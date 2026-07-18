@@ -18,6 +18,10 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@fontsource-variable/heebo": "^5.2.8",
+    "@fontsource-variable/inter": "^5.2.8",
+    "@fontsource/geologica": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
     "@inlang/paraglide-sveltekit": "^0.16.1",
     "@inlang/plugin-message-format": "^4.4.0",
     "@sveltejs/adapter-node": "^5.2.0",
