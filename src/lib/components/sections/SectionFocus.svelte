@@ -1,11 +1,42 @@
 <script lang="ts">
   /**
-   * SectionFocus — Stub
-   * Full implementation in Phase 6
+   * SectionFocus — Focus/services section with cards
+   * i18n: sections_services, nav_focus, common_more
+   * Rule #1: class prop + twMerge
    */
-  let { class: className = '' }: { class?: string } = $props()
+  import { clsx } from 'clsx'
+  import { twMerge } from 'tailwind-merge'
+  import * as m from '$lib/i18n'
+
+  let {
+    class: className = ''
+  }: {
+    class?: string
+  } = $props()
+
+  const areas = [
+    { title: 'UI/UX Design', desc: 'User-centered design with modern tools and frameworks.', icon: '🎨' },
+    { title: 'Development', desc: 'Full-stack development with SvelteKit, Node.js, and more.', icon: '⚡' },
+    { title: 'AI Integration', desc: 'AI-powered features and automation solutions.', icon: '🤖' },
+    { title: 'Performance', desc: 'Optimized for speed, SEO, and Core Web Vitals.', icon: '🚀' },
+    { title: 'Security', desc: 'Enterprise-grade security by architecture.', icon: '🔒' },
+    { title: 'Support', desc: 'Dedicated support and maintenance.', icon: '💬' }
+  ]
 </script>
 
-<div class={className}>
-  <p class="text-sm text-pm-muted text-center py-16">SectionFocus</p>
-</div>
+<section class={twMerge(clsx('py-20 md:py-28 bg-pm-bg-muted dark:bg-pm-bg-dark-muted', className))}>
+  <div class="container-wide">
+    <h2 class="text-3xl sm:text-4xl font-bold text-pm-gray-900 dark:text-pm-white font-display text-center">
+      {m.sections_services()}
+    </h2>
+    <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {#each areas as area}
+        <div class="p-6 rounded-xl bg-white dark:bg-pm-gray-800 border border-pm-gray-200 dark:border-pm-gray-700 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+          <span class="text-3xl">{area.icon}</span>
+          <h3 class="mt-4 text-lg font-bold text-pm-gray-900 dark:text-pm-white">{area.title}</h3>
+          <p class="mt-2 text-sm text-pm-muted dark:text-pm-muted-dark">{area.desc}</p>
+        </div>
+      {/each}
+    </div>
+  </div>
+</section>

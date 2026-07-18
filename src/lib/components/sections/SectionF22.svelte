@@ -1,11 +1,42 @@
 <script lang="ts">
   /**
-   * SectionF22 — Stub
-   * Full implementation in Phase 6
+   * SectionF22 — F22 project feature section
+   * i18n: sections_home, nav_f22 (if available)
+   * Rule #1: class prop + twMerge
    */
-  let { class: className = '' }: { class?: string } = $props()
+  import { clsx } from 'clsx'
+  import { twMerge } from 'tailwind-merge'
+  import * as m from '$lib/i18n'
+  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+
+  let {
+    title = 'F22 Project',
+    description = 'A flagship project showcasing modern web capabilities.',
+    class: className = ''
+  }: {
+    title?: string
+    description?: string
+    class?: string
+  } = $props()
 </script>
 
-<div class={className}>
-  <p class="text-sm text-pm-muted text-center py-16">SectionF22</p>
-</div>
+<section class={twMerge(clsx('py-20 md:py-28', className))}>
+  <div class="container-wide">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div>
+        <h2 class="text-3xl sm:text-4xl font-bold text-pm-gray-900 dark:text-pm-white font-display">
+          {title}
+        </h2>
+        <p class="mt-6 text-lg text-pm-muted dark:text-pm-muted-dark leading-relaxed">
+          {description}
+        </p>
+        <div class="mt-8">
+          <CtaButton href="/portfolio" variant="primary">{m.common_more()}</CtaButton>
+        </div>
+      </div>
+      <div class="aspect-video rounded-xl overflow-hidden bg-pm-gray-100 dark:bg-pm-gray-800 flex items-center justify-center text-pm-muted text-lg">
+        F22 Project
+      </div>
+    </div>
+  </div>
+</section>
