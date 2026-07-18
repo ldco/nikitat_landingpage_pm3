@@ -1182,3 +1182,228 @@ Route Middleware, Server Plugins, Client Plugins, Scheduled Tasks,
 Shared Domain, App Utils, Scripts Library, Pinia Store, Storybook,
 IDE Workspace, Type Declarations, E2E Tests, File Upload Routes
 ```
+
+
+## 53. Deploy System — Deep Analysis & Improvement Plan
+
+### Текущая архитектура (PM v2)
+```
+deploy.sh (414 строк, 20+ стадий)
+  ├── load environment
+  ├── preflight validation (docker, ansible)
+  ├── host trust + Ansible collection setup
+  ├── render deploy artifacts
+  ├── Docker build (multi-stage, 4 stages)
+  ├── push/stream image to server (SSH registry or direct)
+  ├── app rollout (Ansible)
+  └── health check
+
+Два режима деплоя:
+  ssh-agent:    прямой SSH + docker save/load
+  ssh-registry: локальный Docker Registry через SSH туннель
+```
+
+### Проблемы текущей системы
+
+1. **414 строк deploy.sh** — слишком много для AI. 20+ стадий, сложный control flow.
+2. **Два режима деплоя** — ssh-agent и ssh-registry. Нужен ОДИН.
+3. **Nuxt-specific Dockerfile** — `.output/server/index.mjs`, `nuxt:nodejs` user, всё меняется для SvelteKit.
+4. **Health check** — только print help text, без retry logic.
+5. **Ansible без labels** — Traefik labels не генерируются? (не нашли в коде)
+6. **Rollback** — непроверенная надёжность.
+7. **Multi-project** — через project_id в Ansible, но нет единого dashboard.
+
+### PM3 Deploy — "Спокойный для нервов"
+
+```
+Принципы:
+  1. ОДИН режим деплоя (SSH registry всегда)
+  2. МАКСИМУМ 10 стадий (не 20)
+  3. SIMPLE Dockerfile (SvelteKit adapter-node — 30 строк вместо 80)
+  4. HEALTH CHECK с retry + graceful rollback
+  5. АВТОМАТИЧЕСКИЙ fallback при ошибке
+  6. STATE FILE — всегда актуален, AI читает и понимает
+  7. Multi-project через Traefik host-based routing
+```
+
+### PM3 deploy.sh @ 10 stages
+
+```bash
+1. validate  → проверить .env, docker, ansible
+2. build     → docker build (SvelteKit adapter-node)
+3. test      → docker run + curl health check локально
+4. tag       → docker tag с версией + git sha
+5. push      → docker push в SSH registry
+6. backup    → backup sqlite.db на VPS
+7. deploy    → ansible-playbook (update container, restart)
+8. migrate   → ansible запускает drizzle push
+9. verify    → curl health check с retry (5 попыток, backoff)
+10. report   → записать state file, показать URL
+```
+
+### Dockerfile PM3 (SvelteKit)
+
+```dockerfile
+FROM node:22-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:22-alpine AS production
+RUN apk add --no-cache ffmpeg
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/data ./data
+EXPOSE 3000
+CMD ["node", "build/index.js"]
+```
+→ 20 строк вместо 80
+
+### Multi-Project VPS Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                     Traefik                          │
+│  (один на VPS, обрабатывает все проекты)              │
+├─────────────────────────────────────────────────────┤
+│  project-a.example.com → pm-project-a:3000           │
+│  project-b.example.com → pm-project-b:3000           │
+│  project-c.example.com → pm-project-c:3000           │
+├─────────────────────────────────────────────────────┤
+│               pm-shared network (Docker)              │
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐              │
+│  │ Proj A  │  │ Proj B  │  │ Proj C  │              │
+│  │ :3000   │  │ :3000   │  │ :3000   │              │
+│  └─────────┘  └─────────┘  └─────────┘              │
+└─────────────────────────────────────────────────────┘
+
+Каждый проект:
+  /home/deploy/app/shared/{project_id}/data/sqlite.db
+  /home/deploy/app/stacks/{project_id}/docker-compose.yml
+```
+
+### State file для AI
+
+```json
+{
+  "project_id": "my-project",
+  "domain": "my-project.com",
+  "current_version": "1.2.3",
+  "current_image": "pm-my-project:1.2.3",
+  "previous_version": "1.2.2",
+  "previous_image": "pm-my-project:1.2.2",
+  "deployed_at": "2026-07-18T20:00:00Z",
+  "health": "ok",
+  "last_check": "2026-07-18T20:05:00Z"
+}
+```
+→ AI читает state.json и знает: что развёрнуто, когда, какая версия, что откатить
+
+---
+
+## 54. Greenfield & Brownfield — Simplified Init
+
+### Текущее (PM v2)
+
+```
+Greenfield:
+  npm run init             → CLI мастер (интерактивный, 20+ вопросов)
+  npm run pm-init-green    → генерирует agent-ready context bundle
+  init.vue                 → web-уборщик настройки
+
+Brownfield:
+  init.vue upload zip      → разархивирует в import/
+  npm run pm-init-green    → анализирует import/
+  AI генерирует план миграции
+```
+
+### Проблемы
+
+1. **CLI мастер — 20+ вопросов**. Слишком много для AI и для человека.
+2. **Web уборщик** — сложный UI для того что можно сделать одной командой.
+3. **Контекст-бандл** — генерируется, но AI должен его читать (лишний шаг).
+4. **Brownfield zip upload** — требует упаковки проекта в zip (лишний шаг).
+
+### PM3 — "Проще начать проект или перевести старый"
+
+```
+Принципы:
+  1. ОДНА команда для старта → npm run init
+  2. МИНИМУМ вопросов (4-5, не 20)
+  3. НИКАКИХ zip uploadов — указываешь папку с проектом
+  4. АВТО-генерация конфига из ответов
+  5. СРАЗУ dev server запущен
+  6. Brownfield = AI анализирует старый код → генерирует план → стартует миграцию
+```
+
+### Greenfield flow (PM3)
+
+```bash
+npm run init
+# → 5 вопросов:
+# 1. Название проекта: my-project
+# 2. Языки (default: ru, en): ru, en, fr, he
+# 3. Тип: website | app
+# 4. Модули (default: portfolio, blog, faq):
+# 5. Workflow: claude | qwen | codex
+
+# ↓ Автоматически:
+# - Создаётся site.config.ts с ответами
+# - DB push
+# - DB seed
+# - npm run dev
+# - Готово. Сайт работает.
+```
+
+### Brownfield flow (PM3)
+
+```bash
+npm run init -- --migrate ./path/to/old-project
+# ↓
+# AI читает старый проект
+# Анализирует автоматически:
+#   - Какие страницы/секции есть
+#   - Какие модули использованы
+#   - Какая структура данных
+# ↓
+# Генерирует migration-plan.md
+# ↓
+# Запускает миграцию поэтапно:
+#   1. Scaffold SvelteKit project
+#   2. Port DB schema
+#   3. Port API endpoints
+#   4. Port components
+#   5. Port CSS
+#   6. Verify build
+```
+
+Никаких zip uploadов. Никаких 20 вопросов. Просто указал папку — AI делает всё остальное.
+
+### PM3 init.sh
+
+```bash
+#!/bin/bash
+# ОДИН скрипт для greenfield и brownfield
+# npm run init              → greenfield (спрашивает 5 вопросов)
+# npm run init -- ./old-app → brownfield (анализирует проект)
+
+parse_args() {
+  if [ -d "$1" ]; then
+    BROWNFIELD_DIR="$1"
+    MODE="brownfield"
+  else
+    MODE="greenfield"
+  fi
+}
+
+greenfield_init() {
+  # 5 вопросов → запись в site.config.ts → db push → seed → dev
+}
+
+brownfield_init() {
+  # Анализ папки → генерация migration-plan.md → запуск AI миграции
+}
+```
