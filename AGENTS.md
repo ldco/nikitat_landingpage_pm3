@@ -3,150 +3,126 @@
 ## Identity
 You build Puppet Master — a SvelteKit meta-framework.
 You are an AI developer. You write ALL code — components, API, deploy, MCP tools.
-The human reviews your output. You NEVER ask permission — you state conclusions.
 
 ## AI-Driven Development Philosophy
 
-1. **AI writes everything** — Docker, Ansible, deploy scripts, MCP tools. You are the developer.
-2. **One command per action** — `npm run dev`, `npm test`, `npm run deploy`. Simple, predictable names.
-3. **Brutal explicitness** — no auto-imports, no magic. Every import is explicit. AI must not guess.
-4. **Minimum context window** — one file = one concern. No scattered logic across 5 files.
-5. **Standard web APIs** — use `Request`, `Response`, `URL`, `Headers` over framework wrappers.
-6. **Predictable file structure** — path tells AI exactly what kind of code is inside.
-7. **Security by architecture** — auth/CSRF/CSP in hooks.server.ts. AI can't forget it.
+1. **AI writes everything** — code, Docker, Ansible, MCP tools
+2. **One command per action** — `npm run dev`, `npm test`, `npm run deploy`
+3. **Brutal explicitness** — no auto-imports, no magic
+4. **Minimum context window** — one file = one concern
+5. **Standard web APIs** — `Request`, `Response`, `URL`, `Headers`
+6. **Predictable file structure** — path tells AI what kind of code is inside
+7. **Security by architecture** — auth/CSRF/CSP in hooks.server.ts
 
 ## Critical Rules — ZERO EXCEPTIONS
 
 ### UI System — Our Design Framework (Tailwind-based, like Nuxt UI)
-- **Components define their OWN styles** using our design tokens
-- **NO separate CSS files** for components — the component IS the style
-- **NO global BEM class system** — no `.btn`, `.header`, `.section` in app.css
-- **app.css contains ONLY**: `@import "tailwindcss"` + `@theme {}` (our design tokens) + `@layer base {}` (HTML reset)
-- **Design tokens** map to our color system:
-  - `bg-pm-brand`, `text-pm-muted`, `hover:bg-pm-brand-light`
-  - `font-sans`, `shadow-card`, `rounded-md`
-- **Each component is self-contained**:
-  ```svelte
-  <button class="bg-pm-brand text-pm-white px-6 py-2.5 rounded-md font-medium
-                  hover:bg-pm-brand-light transition-all duration-150
-                  disabled:opacity-50 disabled:cursor-not-allowed">
-    {@render children()}
-  </button>
-  ```
-- **Components are the ONLY reuse unit** — no CSS class reuse, no utility libraries
-- **If a component needs improvement** — improve it at the COMPONENT level, never with overrides
-- **NO tweaks/workarounds** (`mt-8 lg:w-1/2` on a card) — fix the component itself
-- **NO `<style>` blocks** in .svelte files — all styles are Tailwind utility classes
-- **NO scoped styles** — not needed, component classes are the scope
+
+```
+ARCHITECTURE — 3 слоя:
+
+Layer 1: @theme (framework-level design tokens — in app.css)
+  --color-pm-brand: #901504;        ← PM brand default
+  --font-sans: 'Inter';
+  --shadow-card: 0 1px 3px ...;
+  --spacing-section: 6rem;
+
+Layer 2: Components (framework-level — NOT project-specific)
+  Button.svelte:    class="bg-pm-brand"   ← references TOKEN
+  Card.svelte:      class="shadow-card"   ← references TOKEN
+  SectionHero:      class="font-display"  ← references TOKEN
+
+Layer 3: Site Config (project-level — CUSTOMIZES tokens)
+  site.config.ts:
+    colors: { brand: '#0066cc' }  ← project changes brand color
+    
+  app.css reads config → overrides @theme:
+    --color-pm-brand: #0066cc;    ← ALL components now blue
+```
+
+**Why this works for AI-Driven Dev:**
+- AI writes `<Button variant="primary">` — never thinks about colors
+- One config change → every component updates
+- AI reads `site.config.ts` → knows all project settings in one file
+- No component ever hardcodes a hex value
+
+**Rules:**
+- **Components define their OWN styles** using design tokens
+- **NO global CSS classes** (no `.btn`, `.header`, `.section` in app.css)
+- **app.css contains**: `@import "tailwindcss"` + `@theme {}` + `@layer base {}`
+- **Components are the ONLY reuse unit** — no CSS class reuse
+- **NO `<style>` blocks** — all styles are utility classes referencing tokens
+- **NO tweaks** (`mt-8` on a card) — fix the COMPONENT at framework level
+- **Project customization = change tokens in site.config.ts + app.css @theme**
+```
 
 ### Svelte 5 — Runes API ONLY
-- **`$state()`** for reactive variables — NO `let x` expecting reactivity
-- **`$derived(expr)`** for computed values — NO `$:` reactive declarations
-- **`$effect(() => {...})`** for side effects — NO `onMount`, `onDestroy`
-- **`$props()`** for component inputs — NO `export let`
-- **`$bindable()`** for two-way binding
-- **`{@render children()}`** for slots — NO `<slot>`
-- **`onclick`** for event handlers — NO `on:click`
-- **Imports from `$lib/*`** — SvelteKit module alias
+- `$state()`, `$derived(expr)`, `$effect(() => {})`
+- `$props()` for inputs, `{@render children()}` for slots
+- `onclick` for event handlers
+- **NEVER** `export let`, `$:`, `on:click`, `<slot />`
 
 ### TypeScript — ZERO Workarounds
-- **ZERO `any`** — use `unknown`, proper types, or generics
-- **`catch (e: unknown)`** — always typed catch
-- **NO `@ts-ignore`, `@ts-expect-error`, `@ts-nocheck`** — fix the type
-- **NO `!` non-null assertion** — use proper type narrowing
-- **Discriminated unions** with literal `type`/`status`/`kind` discriminator
-- **Every `switch` MUST have** `const _exhaustive: never = value`
+- ZERO `any`, `@ts-ignore`, `!` non-null
+- `catch (e: unknown)`, discriminated unions, exhaustive switch
 
 ### Components — Modular, Self-Contained
 ```
 src/lib/components/
-├── atoms/        ← 13 atomic elements (Button, Logo, NavLink, etc.)
-├── molecules/    ← 21 composite components (NavLinks, PricingCard, etc.)
-├── organisms/    ← complex structures (Header, Footer, SectionRenderer)
-└── sections/     ← self-contained page sections (Hero, About, Contact, etc.)
+├── atoms/        ← 13 atomic elements (Button, Logo, NavLink)
+├── molecules/    ← 21 composite (NavLinks, PricingCard)
+├── organisms/    ← complex (Header, Footer, SectionRenderer)
+└── sections/     ← self-contained (Hero, About, Contact)
 
 Plugins (NOT in components/):
-  src/lib/plugins/portfolio/   ← viewers + API
-  src/lib/plugins/blog/        ← blog components
-  src/lib/plugins/pricing/     ← etc.
+  src/lib/plugins/portfolio/, blog/, pricing/, faq/, features/
 ```
-
-- **Every component uses `<script lang="ts">`**
-- **Props typed via interface** — `let { title, variant }: Props = $props()`
-- **Each component defines its ENTIRE visual identity** — no external CSS dependencies
-- **Sections are self-contained** — fetch own i18n content, have fallback defaults
-- **No hardcoded site-specific values** — everything from `src/lib/config/site.ts`
+- Each component defines its ENTIRE visual identity
+- Props typed via interface: `let { title, variant }: Props = $props()`
+- Sections self-fetch i18n content
 
 ### Config-Driven — site.ts Is the Single Source of Truth
-- **`src/lib/config/site.ts`** — locales, nav, sections, modules, features, SEO, admin
-- **No hardcoded arrays** in components (no `['ru','en','fr','he']` in 6 files)
-- **Navigation from config** — Header and Footer read `siteConfig.nav`
-- **Sections from config** — SectionRenderer reads `siteConfig.sections`
+- `src/lib/config/site.ts` — locales, nav, sections, modules, features, SEO, admin, colors
+- No hardcoded arrays in components
+- Navigation from config, sections from config
 
 ### i18n — Zero Untranslated Text
-- **ALL visible text through `i18n.t('key')`** — no raw strings, zero exceptions
-- **Sections self-fetch titles** — `t('section.title')` with fallback
-- **Translations in DB** — loaded via `+layout.server.ts` → Context API
-- **Fallback chain**: DB translation → content.ts hardcoded → key as last resort
-- **SEO also translated** — `seo.homeTitle`, `seo.homeDescription`
-- **On language switch** — no page reload, just fetch new translations
+- ALL text through `i18n.t('key')`
+- Translations in DB → loaded via layout → Context API
+- Fallback: DB → content.ts → key
 
 ### API — Consistent Envelope
-- **ALL responses: `{ success: true, data }`**
-- **Errors: `throw error(status, message)`** — SvelteKit error()
-- **Zod validation on ALL inputs** (API + form actions)
-- **Auth required on admin routes** — `if (!locals.user) apiError(401)`
-- **RBAC enforced** — `requireAdmin(user, 'master'/'admin'/'editor')`
-- **Mutations logged to audit** — automatically via hooks.server.ts
+- `{ success: true, data }` on every response
+- `throw error(status, message)` for errors
+- Zod on ALL inputs, RBAC on admin, audit on mutations
 
 ### Database — Drizzle ORM Only
-- **No raw SQL** — Drizzle queries only
-- **Schema in `src/lib/server/db/schema.ts`** — 31 tables
-- **Migrations: `npm run db:push`**
-- **Seed: `npm run db:seed`**
-- **DB client singleton** — `useDatabase()` only, WAL mode
+- Schema in `src/lib/server/db/schema.ts` — 31 tables
+- `npm run db:push`, `npm run db:seed`, `npm run db:reset`
 
 ### Security — Architecture, Not Checklist
-- **`src/hooks.server.ts`** — ONE file handles:
-  1. Session loading → `event.locals.user`
-  2. CSRF check on mutations
-  3. CSP nonce → `event.locals.nonce`
-  4. Security headers → every response
-  5. Rate limiting → login, contact, admin API
-  6. Audit logging → fire-and-forget on mutations
-- **AI can't forget security** — it's in hooks, automatically applied
+- `src/hooks.server.ts` — session, CSRF, CSP, headers, rate limit, audit
+- AI can't forget security
 
-### Dev Workflow — AI-Friendly
-- **`npm run dev`** — start dev server
-- **`npm test`** — run all tests
-- **`npm run build`** — production build
-- **`npm run deploy`** — full deploy (build + docker + ansible)
-- **`npm run db:push`** — push schema
-- **`npm run db:seed`** — seed database
-- **`npm run db:reset`** — drop + push + seed
-- Every script does ONE thing. No chains of 5 commands.
+### Dev Workflow — AI-Friendly (13 scripts)
+- `dev`, `build`, `preview`, `check`, `test`, `test:watch`
+- `db:push`, `db:seed`, `db:reset`, `db:studio`
+- `deploy`, `lint`, `format`
 
 ### Onepager vs SPA — Config-Driven
-- **Config: `siteConfig.features.onepager`** — true/false
-- **Onepager:** All sections on `/` via SectionRenderer, anchors `#about`
-- **SPA:** Each section at `/about`, `/focus` via `[section]` route
-- **SectionRenderer handles both modes automatically**
-- **Navigation resolves links** — `resolveSectionHref(id)` → `#id` or `/id`
-- **Portfolio always separate page** — `renderMode: 'page'`
+- `siteConfig.features.onepager` → true/false
+- SectionRenderer handles both modes
+- `resolveSectionHref(id)` → `#id` or `/id`
 
 ### What Changed from PM v2
 | PM v2 | PM |
 |-------|-----|
 | Nuxt 4 + Vue 3 | SvelteKit + Svelte 5 |
-| 5-layer Pure CSS | Component-level Tailwind utilities |
-| Global BEM classes (.btn, .header) | Self-contained components (Button.svelte) |
-| `<script setup lang="ts">` | `<script lang="ts">` |
+| 5-layer Pure CSS | Component-level design tokens |
+| Global BEM classes | Self-contained components |
+| `<script setup>` | `<script lang="ts">` |
 | `ref()`, `computed()` | `$state()`, `$derived()` |
-| `onMounted()` | `$effect(() => {...})` |
-| `<slot />` | `{@render children()}` |
-| `on:click` | `onclick` |
-| `useFetch` | `load()` in `+page.server.ts` |
+| `useFetch` | `load()` in +page.server.ts |
 | Pinia | Svelte rune stores (.svelte.ts) |
-| Nitro server | SvelteKit `+server.ts` |
 | `server/middleware/` | `hooks.server.ts` |
-| `pm_build`, `pm_deploy` | `pm_build`, `pm_deploy` (same name, new impl) |
+| `pm_build`, `pm_deploy` | `pm_build`, `pm_deploy` |
