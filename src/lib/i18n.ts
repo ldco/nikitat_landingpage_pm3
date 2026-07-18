@@ -15,7 +15,6 @@
 
 import * as runtime from '$lib/paraglide/runtime.js'
 import { createI18n } from '@inlang/paraglide-sveltekit'
-import type { Locale } from '$lib/config/site'
 
 // Re-export all Paraglide messages for convenience
 // import * as m from '$lib/i18n' — then use m.hero_title(), m.common_submit(), etc.
@@ -24,14 +23,13 @@ export * from '$lib/paraglide/messages.js'
 // Create i18n instance with locale detection strategy
 // Strategy (in order): URL path prefix → cookie → browser → defaultLocale
 export const i18n = createI18n(runtime, {
-  defaultLanguageTag: 'ru' as Locale,
   prefixDefaultLanguage: 'never', // Default locale (ru) has no prefix
   textDirection: {
     ru: 'ltr',
     en: 'ltr',
     fr: 'ltr',
     he: 'rtl'
-  } as Record<Locale, 'ltr' | 'rtl'>,
+  },
   exclude: ['/api/', '/admin/'], // API and admin routes are not translated
   seo: {
     noAlternateLinks: false
