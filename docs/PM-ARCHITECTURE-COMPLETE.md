@@ -1407,3 +1407,127 @@ brownfield_init() {
   # Анализ папки → генерация migration-plan.md → запуск AI миграции
 }
 ```
+
+
+## 55. PM MCP Server — AI-Driven Development Tools
+
+### Текущий PM MCP (v2) — Operations-Heavy
+
+```
+puppetmaster MCP:
+  pm_build              — production build
+  pm_config_get/set     — read/modify config
+  pm_contribute_*       — contribution docs (PM-specific)
+  pm_db_migrate/push/reset/seed/studio — DB operations
+  pm_deploy             — deploy to VPS
+  pm_dev                — dev server (start/stop/status)
+  pm_init               — project init (one-time)
+  pm_knowledge          — load framework knowledge base
+  pm_lint               — run lint
+  pm_review_checklist/run — code review
+  pm_rollback           — rollback deploy
+  pm_setup              — VPS provision
+  pm_status             — project status
+  pm_test               — run tests
+
+Дизайн: для ЧЕЛОВЕКА-ОПЕРАТОРА, управляющего production.
+       Build, deploy, lint, status, rollback — операции.
+```
+
+### Глобальный MCP Layer (Kilo — что уже есть)
+
+```
+~/.config/kilo/kilo.json:
+  context7      — version-specific docs on demand
+  sqlite        — local DB access
+  puppeteer     — frontend rendering/visual testing
+  puppetmaster  — PM framework operations
+  tausik        — project management, memory, tasks
+  mcp-server-git — structured git operations
+
+INSTRUCTIONS: глобальные правила поведения AI
+```
+
+### PM3 MCP — AI-Driven Development
+
+```
+НЕ просто operations. Generation + Validation + Search + Knowledge.
+AI должен мочь:
+  - СОЗДАТЬ компонент → pm3_generate_component("Button", { variant: "primary" })
+  - НАЙТИ компонент   → pm3_search_components("hero")
+  - ПРОВЕРИТЬ i18n    → pm3_validate_i18n()
+  - СДЕЛАТЬ API       → pm3_generate_api("faq", { methods: ["GET","POST"] })
+  - СОЗДАТЬ админку   → pm3_generate_admin_page("products", { fields })
+  - УЗНАТЬ СТРУКТУРУ  → pm3_get_schema("portfolios")
+  - ДЕБАЖИТЬ           → pm3_dev with logs, health
+  - ДЕПЛОИТЬ           → pm3_deploy (единая команда, AI-friendly)
+```
+
+### PM3 MCP Tools — Полный список
+
+```
+KNOWLEDGE (4):
+  pm3_knowledge(topic)           — PM3 framework docs (components, routes, schema, i18n, security)
+  pm3_search_components(query)   — найти компонент по ключевому слову
+  pm3_search_routes(pattern)     — найти роут по паттерну
+  pm3_search_translations(key)   — найти перевод по ключу
+  pm3_get_schema(table)          — схема таблицы (columns, types, relations)
+
+GENERATION (6):
+  pm3_generate_component(spec)   — Svelte компонент из описания
+  pm3_generate_route(spec)       — +page.svelte + +page.server.ts
+  pm3_generate_api(spec)         — +server.ts с Zod + auth + envelope
+  pm3_generate_section(spec)     — секция с i18n паттерном
+  pm3_generate_admin_page(spec)  — CRUD страница с DataTable + формами
+  pm3_generate_migration(spec)   — Drizzle migration из описания изменения
+
+VALIDATION (6):
+  pm3_validate_i18n()            — все переводы во всех локалях
+  pm3_validate_rbac()            — auth guards на всех админ роутах
+  pm3_validate_envelope()        — { success: true, data } на всех API
+  pm3_validate_types()           — TypeScript strict mode
+  pm3_validate_security()        — OWASP Top 10 проверка
+  pm3_validate_components()      — конвенции стиля (no any, no $:)
+
+OPERATIONS (порт из v2):
+  pm3_dev                        — dev server (адаптирован под SvelteKit)
+  pm3_build                      — production build
+  pm3_test                       — run tests
+  pm3_db_push                    — push schema
+  pm3_db_seed                    — seed database
+  pm3_deploy                     — deploy to production (одна команда!)
+  pm3_status                     — project status (AI-friendly)
+  pm3_lint                       — run lint
+```
+
+### Как TUI использует MCP
+
+```
+Ralph TUI → вызывает pm3_knowledge("components")
+           → получает список всех компонентов с props
+           → строит UI для выбора компонента
+           → pm3_generate_component("Hero", {title, subtitle})
+           → создаёт файл SectionHero.svelte
+
+NoCowboy/Overseer → pm3_validate_i18n()
+           → проверяет 4 локали на полноту
+           → если есть пробелы → pm3_generate_translation(key)
+           → заполняет недостающие переводы
+
+Deploy pipeline → pm3_deploy
+           → AI вызывает ОДНУ команду
+           → pm3_status проверяет результат
+           → pm3_view_logs если ошибка
+```
+
+### Улучшения для PM3 MCP
+
+```
+1. Типизированный API — все ответы MCP типизированы
+2. Кэширование — pm3_knowledge/topic один раз загружается
+3. Batch-операции — pm3_validate_all() проверяет всё сразу
+4. Error recovery — MCP не падает при ошибке одного тула
+5. Progress reporting — долгие операции показывают прогресс
+6. AI-оптимизированные ответы — JSON, не markdown
+7. Встроенная self-documentation — help по каждому тулу
+```
