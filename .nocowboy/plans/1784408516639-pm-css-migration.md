@@ -304,3 +304,65 @@ SITE LEVEL (специфично для проекта):
 - [ ] ThemeToggle переключает light/dark
 - [ ] CookieConsent появляется и принимается
 - [ ] `site.ts` COLORS совпадают с примитивами в `app.css`
+
+---
+
+## Audit Findings — Component Token Issues (39 files scanned)
+
+### Step 3 (дополнено): Конкретные фиксы компонентов
+
+**3.1 — CRITICAL: Несуществующий токен**
+| Файл | Строка | Было | Стало |
+|------|--------|------|-------|
+| `SectionFaq.svelte` | 34 | `dark:hover:bg-pm-gray-750` | `dark:hover:bg-pm-gray-700` |
+
+**3.2 — CRITICAL: Компонент без pm-* токенов**
+| Файл | Проблема | Фикс |
+|------|----------|------|
+| `PortfolioLightbox.svelte` | `bg-black/90` | `bg-pm-black/90` |
+| | `text-white/80` | `text-pm-white/80` |
+| | `hover:text-white` | `hover:text-pm-white` |
+| | `text-white/70` | `text-pm-white/70` |
+| | `bg-white` | `bg-pm-white` |
+| | `bg-white/40` | `bg-pm-white/40` |
+
+**3.3 — HIGH: 15 компонентов с `text-white` / `bg-white`**
+
+Найти и заменить во ВСЕХ .svelte файлах:
+- `text-white` → `text-pm-white` (кроме случаев где `text-white` — часть другого класса)
+- `bg-white` → `bg-pm-white` (кроме случаев где `bg-white` — часть другого класса)
+- `bg-white/80` → `bg-pm-white/80`
+
+Компоненты: CtaButton, BackToTop, EmptyState, LangSwitcher, BlogPostCard, PricingCard, TheHeader, CookieConsent, ConfirmDialog, ToastContainer, SectionFocus, SectionPortfolio, SectionContact, SectionFeatures, SectionTeam, SectionTestimonials
+
+**3.4 — HIGH: FormField — заменить стандартные gray на pm-gray**
+| Было | Стало |
+|------|-------|
+| `border-gray-300` | `border-pm-gray-300` |
+| `dark:border-gray-600` | `dark:border-pm-gray-600` |
+| `dark:bg-gray-800` | `dark:bg-pm-gray-800` |
+
+**3.5 — HIGH: ConfirmDialog overlay**
+| Было | Стало |
+|------|-------|
+| `bg-black/50` | `bg-pm-black/50` |
+
+**3.6 — DEAD CODE: site.ts COLORS**
+После синхронизации app.css с конфигом, COLORS в site.ts должен использоваться хотя бы в одном месте — например в `src/lib/config/site.ts` как экспорт для документации. На данный момент — не импортирован нигде. Добавить импорт в `app.css` невозможно (CSS не импортирует TS). COLORS остаётся как reference для разработчика.
+
+---
+
+## Final Verification Checklist (обновлено)
+
+- [ ] `npx svelte-check` → 0 errors
+- [ ] `npm run dev` → рендерится без 500
+- [ ] Цвета: красно-коричневые (#901504 / #3b0902 / #fbf2e7)
+- [ ] Dark mode: фон тёмный, текст светлый
+- [ ] `grep -r "text-white" src/lib/components/` → 0 результатов (все заменены на pm-white)
+- [ ] `grep -r "bg-white" src/lib/components/` → 0 результатов
+- [ ] `grep -r "pm-gray-750" src/` → 0 результатов (несуществующий токен)
+- [ ] `grep -r "border-gray-300" src/lib/components/atoms/FormField.svelte` → 0 результатов
+- [ ] PortfolioLightbox использует pm-* токены (не `bg-black/90`, не `text-white/80`)
+- [ ] Все 6 homepage-секций отображаются
+- [ ] LangSwitcher + ThemeToggle работают
+- [ ] `site.ts` COLORS совпадают с примитивами в `app.css` (#3b0902, #fbf2e7, #901504, #901504)
