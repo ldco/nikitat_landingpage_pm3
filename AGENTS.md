@@ -16,45 +16,133 @@ You are an AI developer. You write ALL code — components, API, deploy, MCP too
 
 ## Critical Rules — ZERO EXCEPTIONS
 
+### Rule #1: Escape Hatch — class prop + tailwind-merge (MANDATORY)
+
+EVERY UI component MUST accept a `class` prop and merge it with internal classes.
+This prevents AI from creating wrapper divs or modifying components.
+
+```svelte
+<!-- Button.svelte -->
+<script lang="ts">
+  import { clsx } from 'clsx'
+  import { twMerge } from 'tailwind-merge'
+
+  let { variant = 'primary', size = 'md', class: className = '', ...rest }: Props = $props()
+
+  const base = 'inline-flex items-center justify-center rounded-md font-medium transition-all'
+  const variants = { primary: 'bg-pm-brand text-pm-white hover:bg-pm-brand-light' }
+  const sizes = { sm: 'px-md py-sm text-sm', md: 'px-lg py-md text-base' }
+
+  const merged = twMerge(clsx(base, variants[variant], sizes[size], className))
+</script>
+
+<button class={merged} {...rest}>
+  {@render children?.()}
+</button>
+```
+
+AI safely writes: `<Button variant="primary" class="mt-4 w-full">` — NO wrapper div needed.
+
+### Rule #2: Composition Over Monolithic Sections (CRITICAL)
+
+DO NOT create monolithic components like `<SectionHero>`, `<SectionAbout>`.
+AI composes sections from atomic components:
+
+```svelte
+<!-- ✅ RIGHT: AI composes from atoms -->
+<Section padding="large">
+  <Container>
+    <Heading size="xl" class="mb-md">{t('hero.title')}</Heading>
+    <Text size="lg" class="mb-lg">{t('hero.subtitle')}</Text>
+    <div class="flex gap-4">
+      <Button variant="primary" class="w-full sm:w-auto">{t('cta.primary')}</Button>
+      <Button variant="outline" class="w-full sm:w-auto">{t('cta.secondary')}</Button>
+    </div>
+  </Container>
+</Section>
+
+<!-- ❌ WRONG: Monolithic with 10 props AI must learn -->
+<SectionHero showVideo alignLeft hideButton />
+```
+
+```
+Atomic composition library:
+  <Section>      — page section with padding/spacing
+  <Container>    — max-width + horizontal padding wrapper
+  <Heading>      — h1/h2/h3 with size variants (sm/md/lg/xl)
+  <Text>         — paragraph with size variants (sm/md/lg)
+  <Grid>         — responsive grid (2/3/4 columns)
+  <Card>         — card with shadow, border, hover
+```
+
+### Rule #3: Strict Prop Types — Union Types Only
+
+AI hallucinates prop names. Prevent it with strict union types:
+
+```svelte
+// ✅ Strict — AI cannot write size="big" or variant="mega"
+type Size = 'sm' | 'md' | 'lg'
+type Variant = 'primary' | 'secondary' | 'outline' | 'ghost'
+let { size = 'md', variant = 'primary' }: { size?: Size; variant?: Variant } = $props()
+
+// ❌ LAZY — allows AI to pass anything
+let { size = 'md', variant = 'primary' }: { size?: string; variant?: string } = $props()
+```
+
+### Rule #4: Isolate Complex Logic (GSAP / Matter.js / Three.js)
+
+Animation and physics logic MUST be in dedicated, isolated components.
+AI forgets `.kill()` and `.destroy()` — create memory leaks.
+
+```svelte
+<!-- FallingLetters.svelte — isolated component -->
+<script lang="ts">
+  import Matter from 'matter-js'
+
+  let canvas: HTMLCanvasElement
+  let engine: Matter.Engine | null = null
+
+  $effect(() => {
+    // Initialize physics engine
+    engine = Matter.Engine.create({ enableSleeping: true })
+    // ... setup walls, bodies, runner ...
+
+    return () => {
+      // CRITICAL: cleanup — AI can't forget this
+      Matter.Engine.clear(engine!)
+      Matter.Runner.stop(runner!)
+      engine = null
+    }
+  })
+</script>
+
+<canvas bind:this={canvas} class="pointer-events-none" />
+
+<!-- Usage: just drop it in -->
+<FallingLetters enabled={true} />
+```
+
+---
+
 ### UI System — Our Design Framework (Tailwind-based, like Nuxt UI)
 
 ```
-ARCHITECTURE — 3 слоя:
-
 Layer 1: @theme (framework-level design tokens — in app.css)
-  --color-pm-brand: #901504;        ← PM brand default
-  --font-sans: 'Inter';
-  --shadow-card: 0 1px 3px ...;
-  --spacing-section: 6rem;
-
 Layer 2: Components (framework-level — NOT project-specific)
-  Button.svelte:    class="bg-pm-brand"   ← references TOKEN
-  Card.svelte:      class="shadow-card"   ← references TOKEN
-  SectionHero:      class="font-display"  ← references TOKEN
-
+  Components use design tokens, NOT hardcoded hex values
+  Every component has class prop + tailwind-merge (Rule #1)
 Layer 3: Site Config (project-level — CUSTOMIZES tokens)
-  site.config.ts:
-    colors: { brand: '#0066cc' }  ← project changes brand color
-    
-  app.css reads config → overrides @theme:
-    --color-pm-brand: #0066cc;    ← ALL components now blue
+  site.config.ts: colors: { brand: '#0066cc' }
+  app.css @theme overrides token → ALL components update
 ```
-
-**Why this works for AI-Driven Dev:**
-- AI writes `<Button variant="primary">` — never thinks about colors
-- One config change → every component updates
-- AI reads `site.config.ts` → knows all project settings in one file
-- No component ever hardcodes a hex value
 
 **Rules:**
 - **Components define their OWN styles** using design tokens
 - **NO global CSS classes** (no `.btn`, `.header`, `.section` in app.css)
 - **app.css contains**: `@import "tailwindcss"` + `@theme {}` + `@layer base {}`
-- **Components are the ONLY reuse unit** — no CSS class reuse
-- **NO `<style>` blocks** — all styles are utility classes referencing tokens
-- **NO tweaks** (`mt-8` on a card) — fix the COMPONENT at framework level
+- **Components are the ONLY reuse unit**
+- **NO tweaks (`mt-8` on a Card)** — use `class` prop (Rule #1) or fix the COMPONENT
 - **Project customization = change tokens in site.config.ts + app.css @theme**
-```
 
 ### Svelte 5 — Runes API ONLY
 - `$state()`, `$derived(expr)`, `$effect(() => {})`
@@ -64,31 +152,33 @@ Layer 3: Site Config (project-level — CUSTOMIZES tokens)
 
 ### TypeScript — ZERO Workarounds
 - ZERO `any`, `@ts-ignore`, `!` non-null
+- Strict union types for ALL component props (Rule #3)
 - `catch (e: unknown)`, discriminated unions, exhaustive switch
 
-### Components — Modular, Self-Contained
+### Components — Composition Over Monoliths
 ```
-src/lib/components/
-├── atoms/        ← 13 atomic elements (Button, Logo, NavLink)
-├── molecules/    ← 21 composite (NavLinks, PricingCard)
-├── organisms/    ← complex (Header, Footer, SectionRenderer)
-└── sections/     ← self-contained (Hero, About, Contact)
+Atomic library (atoms):
+  Button, Heading, Text, Logo, NavLink, SocialIcon, PictureImage,
+  AppImage, ThemeToggle, LangSwitcher, BackToTop, HamburgerIcon
+
+Layout primitives (atoms — new for PM):
+  Section, Container, Grid, Card, Badge, Spinner, EmptyState
+
+Complex (isolated per Rule #4):
+  FallingLetters (Matter.js), HeroAnimation (GSAP), ScrollyScene
 
 Plugins (NOT in components/):
   src/lib/plugins/portfolio/, blog/, pricing/, faq/, features/
 ```
-- Each component defines its ENTIRE visual identity
-- Props typed via interface: `let { title, variant }: Props = $props()`
-- Sections self-fetch i18n content
 
-### Config-Driven — site.ts Is the Single Source of Truth
-- `src/lib/config/site.ts` — locales, nav, sections, modules, features, SEO, admin, colors
+### Config-Driven — site.ts Is Single Source of Truth
+- `src/lib/config/site.ts` — locales, nav, modules, features, SEO, admin
 - No hardcoded arrays in components
 - Navigation from config, sections from config
 
 ### i18n — Zero Untranslated Text
 - ALL text through `i18n.t('key')`
-- Translations in DB → loaded via layout → Context API
+- Translations in DB → layout → Context API
 - Fallback: DB → content.ts → key
 
 ### API — Consistent Envelope
@@ -98,11 +188,11 @@ Plugins (NOT in components/):
 
 ### Database — Drizzle ORM Only
 - Schema in `src/lib/server/db/schema.ts` — 31 tables
-- `npm run db:push`, `npm run db:seed`, `npm run db:reset`
+- `npm run db:push`, `npm run db:seed`
 
 ### Security — Architecture, Not Checklist
 - `src/hooks.server.ts` — session, CSRF, CSP, headers, rate limit, audit
-- AI can't forget security
+- AI cannot forget security
 
 ### Dev Workflow — AI-Friendly (13 scripts)
 - `dev`, `build`, `preview`, `check`, `test`, `test:watch`
@@ -119,10 +209,10 @@ Plugins (NOT in components/):
 |-------|-----|
 | Nuxt 4 + Vue 3 | SvelteKit + Svelte 5 |
 | 5-layer Pure CSS | Component-level design tokens |
-| Global BEM classes | Self-contained components |
+| Global BEM classes | Self-contained components + tailwind-merge |
+| Monolithic sections (SectionHero) | Atomic composition (Section + Container + Heading) |
 | `<script setup>` | `<script lang="ts">` |
 | `ref()`, `computed()` | `$state()`, `$derived()` |
 | `useFetch` | `load()` in +page.server.ts |
 | Pinia | Svelte rune stores (.svelte.ts) |
 | `server/middleware/` | `hooks.server.ts` |
-| `pm_build`, `pm_deploy` | `pm_build`, `pm_deploy` |
