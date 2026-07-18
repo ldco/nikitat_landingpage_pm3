@@ -85,6 +85,18 @@ export const audit = {
     logAudit({ action: 'settings_update', userId: actorId, ipAddress: ip, userAgent: ua, details })
   },
 
+  roleCreate(ip: string, ua: string | null, actorId: number, roleId: number, roleName: string, roleSlug: string) {
+    logAudit({ action: 'role_create', userId: actorId, ipAddress: ip, userAgent: ua, details: { roleId, roleName, roleSlug } })
+  },
+
+  roleUpdate(ip: string, ua: string | null, actorId: number, roleId: number, roleName: string, changes: Record<string, unknown>) {
+    logAudit({ action: 'role_update', userId: actorId, ipAddress: ip, userAgent: ua, details: { roleId, roleName, changes } })
+  },
+
+  roleDelete(ip: string, ua: string | null, actorId: number, roleId: number, roleName: string) {
+    logAudit({ action: 'role_delete', userId: actorId, ipAddress: ip, userAgent: ua, details: { roleId, roleName } })
+  },
+
   terminalCommand(ip: string, ua: string | null, actorId: number, command: string, success: boolean) {
     logAudit({ action: 'terminal_command', userId: actorId, ipAddress: ip, userAgent: ua, details: { command }, success })
   }
