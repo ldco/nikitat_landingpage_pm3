@@ -366,3 +366,16 @@ SITE LEVEL (специфично для проекта):
 - [ ] Все 6 homepage-секций отображаются
 - [ ] LangSwitcher + ThemeToggle работают
 - [ ] `site.ts` COLORS совпадают с примитивами в `app.css` (#3b0902, #fbf2e7, #901504, #901504)
+
+---
+
+## Unresolved: @theme inline vs regular @theme
+
+При имплементации проверить:
+1. Написать `@theme { --color-test: var(--other); }` в app.css
+2. `npm run dev`
+3. В Chrome DevTools изменить `--other` → проверить обновился ли `--color-test`
+4. Если НЕ обновился → использовать `@theme inline` для всех токенов с `var()`
+5. Если обновился → обычный `@theme` ок
+
+Это единственный момент который нельзя проверить без запуска кода.
