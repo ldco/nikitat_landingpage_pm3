@@ -16,6 +16,17 @@ interface TranslationEntry {
 }
 
 function loadSystemTranslations(): TranslationEntry[] {
+  // DB-resident translations (admin.*, settings.*, blog.*, etc.)
+  // UI translations (common.*, nav.*, auth.*, etc.) are handled by Paraglide
+  const dbPath = join(process.cwd(), 'i18n', 'db-translations.json')
+  try {
+    if (existsSync(dbPath)) {
+      return JSON.parse(readFileSync(dbPath, 'utf-8')) as TranslationEntry[]
+    }
+  } catch {
+    // fall through
+  }
+  // Fallback to full seed if db-translations hasn't been generated yet
   const seedPath = join(process.cwd(), 'i18n', 'system-seed.json')
   try {
     if (existsSync(seedPath)) {
@@ -134,14 +145,12 @@ function seed() {
     if (count > 0) {
       console.log(`   ✓ ${count} system translations seeded (${systemTranslations.length - count} duplicates skipped)`)
     } else {
-      // Minimal fallback translations if no i18n/system-seed.json
+      // Minimal fallback translations if no i18n/db-translations.json
       const fallback = [
-        { locale: 'ru', key: 'hero.title', value: 'Puppet Master' },
-        { locale: 'ru', key: 'hero.subtitle', value: 'SvelteKit Meta-Framework' },
-        { locale: 'en', key: 'hero.title', value: 'Puppet Master' },
-        { locale: 'en', key: 'hero.subtitle', value: 'SvelteKit Meta-Framework' },
-        { locale: 'fr', key: 'hero.title', value: 'Puppet Master' },
-        { locale: 'he', key: 'hero.title', value: 'Puppet Master' },
+        { locale: 'ru', key: 'admin.actions', value: 'Действия' },
+        { locale: 'en', key: 'admin.actions', value: 'Actions' },
+        { locale: 'fr', key: 'admin.actions', value: 'Actions' },
+        { locale: 'he', key: 'admin.actions', value: 'פעולות' },
       ]
       for (const t of fallback) {
         db.insert(schema.translations).values(t).run()

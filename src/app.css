@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Class-based dark mode (controlled by theme.svelte.ts) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* PM Design Tokens */
   --color-pm-black: #0d0d0d;
@@ -22,7 +25,7 @@
   }
 
   body {
-    @apply bg-pm-bg text-pm-black antialiased;
+    @apply bg-pm-bg text-pm-black antialiased dark:bg-pm-bg-dark dark:text-pm-white;
     font-family: var(--font-sans);
   }
 

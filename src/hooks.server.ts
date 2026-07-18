@@ -2,10 +2,11 @@
  * PM Server Hooks
  *
  * Replaces Nuxt middleware + plugins.
- * Order: Session → CSRF → CSP → Security Headers → Rate Limit
+ * Order: Paraglide (i18n) → Logger → Session → Rate Limit → CSRF → CSP
  */
 import { sequence } from '@sveltejs/kit/hooks'
 import type { Handle } from '@sveltejs/kit'
+import { i18n } from '$lib/i18n'
 import { getValidSession } from '$lib/server/auth/session'
 import { useDatabase, schema } from '$lib/server/db'
 import { eq } from 'drizzle-orm'
@@ -123,4 +124,12 @@ const logHandle: Handle = async ({ event, resolve }) => {
 }
 
 // ── Export sequence ─────────────────────────────────────────────────────────
-export const handle = sequence(logHandle, sessionHandle, rateLimitHandle, csrfHandle, cspHandle)
+// Order: i18n (lang/dir/html) → logger → session → rate-limit → CSRF → CSP
+export const handle = sequence(
+  i18n.handle(),
+  logHandle,
+  sessionHandle,
+  rateLimitHandle,
+  csrfHandle,
+  cspHandle
+)
