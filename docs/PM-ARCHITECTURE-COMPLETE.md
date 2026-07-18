@@ -460,7 +460,84 @@ Streaming SSR         → load() can return promises
 | tailwindcss | CSS engine |
 | @tailwindcss/vite | Vite plugin |
 
-### DISCUSSED
+## 22. Deploy System
+
+### Architecture
+```
+Developer → deploy.sh → Docker build → SSH Registry → VPS → Ansible → Traefik
+                              ↓
+                        npm run build (SvelteKit node adapter)
+```
+
+### Components
+| Component | What it does | PM3 Notes |
+|-----------|--------------|-----------|
+| `Dockerfile` | Multi-stage build (node:22-alpine) | Port: just change Nuxt→SvelteKit build |
+| `scripts/deploy.sh` | Orchestrates deploy (build + push + ansible) | Bash — stays |
+| `scripts/deploy-logs.sh` | Tail logs from VPS | Bash — stays |
+| `scripts/deploy-secrets.sh` | Sync .env to VPS | Bash — stays |
+| `scripts/deploy-shell.sh` | SSH shell to VPS | Bash — stays |
+| `scripts/setup.sh` | First-time VPS provision | Bash — stays |
+| `ansible/deploy.yml` | Ansible playbook for deploy | Stays |
+| `ansible/provision-shared.yml` | VPS provision playbook | Stays |
+| `ansible/rollback-app.yml` | Rollback playbook | Stays |
+| `ansible/requirements.yml` | Ansible collections | Stays |
+
+### Deploy Flow (deploy.sh)
+```
+1. Проверить .env + inventory
+2. Собрать Docker образ
+3. Загрузить в SSH Registry или на VPS
+4. Ansible:
+   - Сгенерировать docker-compose.yml
+   - Обновить Traefik config
+   - Запустить миграции БД
+   - Health check
+5. Обновить .pm-deploy-state.json
+```
+
+### Docker Image
+```
+FROM node:22-alpine
+  → npm ci --production
+  → npm run build
+  → COPY build artifacts
+  → USER non-root
+  → node build/index.js (SvelteKit node adapter)
+```
+
+### Deploy Modes
+```
+ssh-agent   → прямой SSH + k3s образа
+ssh-registry → свой Docker Registry через SSH туннель
+```
+
+### What changes for PM3
+- `Dockerfile`: Nuxt build → SvelteKit build (adapter-node)
+- `docker-entrypoint.sh`: Nuxt start → SvelteKit node start
+- `ansible/deploy-vars.yml`: image name updates
+- Остальное (bash, ansible, traefik) — stays
+
+## 23. Hamburger Animations
+
+### Текущее: библиотека hamburgers (^1.2.1)
+```
+~15 типов анимаций: spin, elastic, slider, spring, squeeze, arrow, 
+                    3dx, 3dy, 3dxy, boring, collapse, vortex, etc.
+Используется в этом сайте: только spin
+Размер: ~10KB CSS (~800 строк)
+```
+
+### Решение для PM3
+```
+ВЗЯТЬ все анимации из библиотеки, переписать на свои CSS переменные.
+Добавить в @layer components в app.css.
+Минус зависимость, плюс контроль визуала.
+Размер будет меньше — только нужные типы.
+Можно добавить новые типы в будущем.
+```
+
+## 24. Library Decisions — Updated
 | Lib | Decision |
 |-----|----------|
 | Three.js | ДЕРЖИМ — используется в других проектах PM, не в этом сайте |
