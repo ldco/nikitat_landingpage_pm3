@@ -467,11 +467,6 @@ Streaming SSR         → load() can return promises
 | hamburgers | ЗАМЕНИТЬ на собственный CSS (50 строк) — контролируем визуал |
 | @iconify/svelte | Tabler icons — перенести с unplugin-icons
 ```
-Three.js: в текущем сайте НЕ ИСПОЛЬЗУЕТСЯ
-  (используется Matter.js для falling letters)
-  Three.js есть в deps но dead code — для PM v2 фреймворка
-  Можно не ставить в PM3 если не нужен
-
 Matter.js: 400 физических тел для falling letters
   Фреймворк-независимая JS библиотека — портируется как Svelte action
   
