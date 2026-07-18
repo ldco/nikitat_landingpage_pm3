@@ -1039,3 +1039,146 @@ PM3 Plugins (отдельные модули):
 5. **Никаких BEM классов** — всё через Tailwind
 6. **Config-driven** — конфиг управляет всем
 7. **Модули = плагины** — portfolio, blog, pricing не в core
+
+
+## 40. Route Middleware (Nuxt Client-Side)
+```
+app/middleware/00.init.global.ts — проверка pmMode, редирект на /init если не настроен
+app/middleware/auth.ts          — защита админ-роутов (definePageMeta)
+app/middleware/app-mode.global.ts — роутинг App/Website/Admin
+
+→ SvelteKit: hooks.server.ts для server-side, +layout.server.ts для auth guard
+  SvelteKit НЕ имеет клиентских middleware — используем load функции
+```
+
+## 41. Server Plugins (Nitro)
+```
+server/plugins/01.env-validation.ts — валидация .env при старте
+server/plugins/02.error-handlers.ts — глобальные обработчики ошибок
+server/plugins/auto-seed.ts         — авто-seed при первом запуске
+server/plugins/compress.ts         — сжатие ответов
+server/plugins/csp-nonce.ts        — генерация nonces для CSP
+server/plugins/sentry.ts           — Sentry для логирования ошибок
+
+→ SvelteKit: hooks.server.ts для auto-seed/sentry/env-validation
+  Vite server.watch для hot-reload (вместо плагинов)
+```
+
+## 42. Client Plugins (Nuxt)
+```
+app/plugins/a11y.client.ts         — axe-core регистрация
+app/plugins/color-render-fallback.client.ts — Chrome GPU fix
+app/plugins/csrf.client.ts         — авто-inject CSRF токенов в $fetch
+app/plugins/reveal.ts              — v-reveal директива (global)
+app/plugins/scrollytelling.ts      — v-scrolly-scene директива
+app/plugins/sentry.client.ts       — Sentry browser
+app/plugins/startup-preferences.client.ts — тема + локаль из cookie/storage
+app/plugins/vh-fix.client.ts      — mobile 100vh fix
+
+→ SvelteKit: hooks.client.ts для CSRF авто-inject
+  Svelte actions для reveal/scrolly вместо директив
+  $effect в layout для startup-preferences
+```
+
+## 43. Scheduled Tasks
+```
+server/tasks/cleanup-sessions.ts — удаление просроченных сессий (каждый час)
+Nitro scheduler через defineTask()
+
+→ SvelteKit: setInterval в hooks.server.ts или @sveltejs/adapter-node cron
+```
+
+## 44. Shared Domain Logic
+```
+shared/modules.ts — реестр модулей + локалей PM (единый источник)
+  Используется из: server/api/setup, app/pages/init.vue, scripts/lib
+
+→ SvelteKit: $lib/shared/ — импортируется из server и client кода
+```
+
+## 45. App Utilities
+```
+app/utils/api-errors.ts      — перевод API ошибок
+app/utils/image-assets.ts    — ресолвер image assets
+app/utils/legal-markdown.ts  — рендеринг юридического markdown
+app/utils/private-teaching.ts — приватные данные
+app/utils/rtl.ts             — RTL детекция по локали
+app/utils/sanitize.ts        — HTML санитизация (+атрибуты)
+
+→ SvelteKit: $lib/utils/ — те же функции
+```
+
+## 46. Scripts Library
+```
+scripts/lib/config-reader.ts    — читает puppet-master.config.ts
+scripts/lib/config-writer.ts    — пишет конфиг обратно
+scripts/lib/deploy-env.sh       — env-переменные для деплоя
+scripts/lib/deploy-registry.sh  — Docker Registry через SSH
+scripts/lib/framework-versions.sh — версии фреймворка
+scripts/lib/index.ts            — реэкспорт
+scripts/lib/modules.ts          — реестр модулей
+
+→ SvelteKit: портировать как есть (чистый TS/Bash, без Nuxt зависимости)
+```
+
+## 47. Pinia Store (единственный)
+```
+app/stores/admin.ts — UI state админки (sidebar, unsaved changes, nav warnings)
+
+→ SvelteKit: Svelte 5 runes — admin.svelte.ts rune store
+  Не нужен Pinia — один модуль с $state
+```
+
+## 48. Storybook
+```
+.storybook/main.ts    — конфигурация Storybook для Vue
+.storybook/preview.ts — превью конфиг
+
+→ SvelteKit: Storybook для Svelte (@storybook/svelte)
+```
+
+## 49. IDE Workspace
+```
+.vscode/settings.json  — настройки VSCode (форматирование, линтеры)
+.vscode/universe.json  — кастомный файл (AI workspace?)
+
+→ SvelteKit: обновить конфиг под Svelte (svelte extension, prettier)
+```
+
+## 50. Type Declarations
+```
+types/clamscan.d.ts   — типы для ClamAV
+types/websocket.ts    — типы для WebSocket
+
+→ SvelteKit: src/app.d.ts + src/lib/types/
+```
+
+## 51. E2E Tests (Playwright)
+```
+e2e-playwright/example.spec.ts            — пример теста
+e2e-playwright/smoke.spec.ts              — smoke test (главная, админка, API)
+e2e-playwright/visual-regression.spec.ts  — визуальные регрессии
+
+→ SvelteKit: Playwright + @sveltejs/kit (test runner заменяет Nuxt test utils)
+```
+
+## 52. File Upload Routes
+```
+server/routes/uploads/ — загрузка файлов (изображения, видео)
+
+→ SvelteKit: src/routes/api/upload/ — тот же паттерн +server.ts
+```
+
+## FINAL COUNT: 52 Sections Analyzed
+```
+Config, Sections, SectionRenderer, Modules, Navigation, ScrollSpy,
+Page Transitions, Logo, Footer, Settings, i18n, CSS, Security, PM3 Vision,
+Scrollytelling, Animations, Falling Letters, Library Map, Admin Panel,
+Nuxt↔SvelteKit Map, Library Decisions, Deploy System, Hamburger,
+Font System, Cookie Consent, SEO, Performance, Accessibility, WebSocket,
+Error Handling, Init/Setup, pm-core, 24 Composables, Public Assets,
+NPM Scripts, AI-Driven Dev, Legal/152-ФЗ,
+Route Middleware, Server Plugins, Client Plugins, Scheduled Tasks,
+Shared Domain, App Utils, Scripts Library, Pinia Store, Storybook,
+IDE Workspace, Type Declarations, E2E Tests, File Upload Routes
+```
