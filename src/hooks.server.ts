@@ -1,0 +1,126 @@
+/**
+ * PM Server Hooks
+ *
+ * Replaces Nuxt middleware + plugins.
+ * Order: Session → CSRF → CSP → Security Headers → Rate Limit
+ */
+import { sequence } from '@sveltejs/kit/hooks'
+import type { Handle } from '@sveltejs/kit'
+import { getValidSession } from '$lib/server/auth/session'
+import { useDatabase, schema } from '$lib/server/db'
+import { eq } from 'drizzle-orm'
+import { generateCspNonce, buildSecurityHeaders } from '$lib/server/security/headers'
+import { validateCsrfToken, CSRF_COOKIE_NAME, CSRF_HEADER_NAME, generateCsrfToken } from '$lib/server/security/csrf'
+import { loginRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
+import { logger } from '$lib/server/utils/logger'
+
+const SESSION_COOKIE = 'pm-session'
+const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
+
+// ── Session Handle ──────────────────────────────────────────────────────────
+const sessionHandle: Handle = async ({ event, resolve }) => {
+  const sessionId = event.cookies.get(SESSION_COOKIE)
+
+  if (sessionId) {
+    const session = getValidSession(sessionId)
+    if (session) {
+      const db = useDatabase()
+      const user = db
+        .select({ id: schema.users.id, email: schema.users.email, role: schema.users.role, name: schema.users.name })
+        .from(schema.users)
+        .where(eq(schema.users.id, session.userId))
+        .get()
+
+      if (user) {
+        event.locals.user = user
+      }
+    }
+  }
+
+  return resolve(event)
+}
+
+// ── CSRF Handle ─────────────────────────────────────────────────────────────
+const csrfHandle: Handle = async ({ event, resolve }) => {
+  // Generate and set CSRF token for every response
+  const csrfToken = generateCsrfToken()
+  event.cookies.set(CSRF_COOKIE_NAME, csrfToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    path: '/'
+  })
+
+  // Validate on state-changing methods
+  if (MUTATION_METHODS.has(event.request.method)) {
+    // Skip CSRF for login (handled differently)
+    const url = new URL(event.request.url)
+    if (url.pathname === '/api/auth/login') {
+      return resolve(event)
+    }
+
+    const cookieToken = event.cookies.get(CSRF_COOKIE_NAME) ?? undefined
+    const headerToken = event.request.headers.get(CSRF_HEADER_NAME) ?? undefined
+
+    if (!validateCsrfToken(cookieToken, headerToken)) {
+      return new Response(JSON.stringify({ success: false, error: { code: 'csrf.invalid', message: 'Invalid CSRF token' } }), {
+        status: 403,
+        headers: { 'content-type': 'application/json' }
+      })
+    }
+  }
+
+  return resolve(event)
+}
+
+// ── CSP Handle ──────────────────────────────────────────────────────────────
+const cspHandle: Handle = async ({ event, resolve }) => {
+  const nonce = generateCspNonce()
+  event.locals.nonce = nonce
+
+  const response = await resolve(event)
+
+  const securityHeaders = buildSecurityHeaders(nonce, process.env.NODE_ENV === 'production')
+  for (const [key, value] of securityHeaders) {
+    response.headers.set(key, value)
+  }
+
+  return response
+}
+
+// ── Rate Limit Handle ───────────────────────────────────────────────────────
+const rateLimitHandle: Handle = async ({ event, resolve }) => {
+  const url = new URL(event.request.url)
+
+  // Only rate-limit specific endpoints
+  if (url.pathname === '/api/auth/login') {
+    const ip = getClientIp(event.request)
+    if (!loginRateLimiter.check(ip)) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: { code: 'rateLimit.exceeded', message: 'Too many requests. Try again later.' }
+      }), {
+        status: 429,
+        headers: { 'content-type': 'application/json' }
+      })
+    }
+  }
+
+  return resolve(event)
+}
+
+// ── Logger Handle ────────────────────────────────────────────────────────────
+const logHandle: Handle = async ({ event, resolve }) => {
+  const start = Date.now()
+  const response = await resolve(event)
+  const ms = Date.now() - start
+
+  if (event.url.pathname.startsWith('/api/')) {
+    logger.info({ method: event.request.method, path: event.url.pathname, status: response.status, ms }, 'API request')
+  }
+
+  return response
+}
+
+// ── Export sequence ─────────────────────────────────────────────────────────
+export const handle = sequence(logHandle, sessionHandle, rateLimitHandle, csrfHandle, cspHandle)

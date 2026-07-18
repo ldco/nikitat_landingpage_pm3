@@ -1,0 +1,74 @@
+/**
+ * Session Management
+ *
+ * Server-side session CRUD with TTL-based expiration.
+ * Sessions stored in SQLite, cleaned up by cron.
+ */
+import { eq, lt } from 'drizzle-orm'
+import { useDatabase, schema } from '$lib/server/db'
+import { generateSessionId } from './password'
+
+const SESSION_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
+
+export interface SessionData {
+  id: string
+  userId: number
+  expiresAt: Date
+}
+
+export function createSession(userId: number): SessionData {
+  const db = useDatabase()
+  const id = generateSessionId()
+  const expiresAt = new Date(Date.now() + SESSION_TTL_MS)
+  db.insert(schema.sessions).values({ id, userId, expiresAt }).run()
+  return { id, userId, expiresAt }
+}
+
+export function getValidSession(sessionId: string): SessionData | null {
+  const db = useDatabase()
+  const session = db
+    .select()
+    .from(schema.sessions)
+    .where(eq(schema.sessions.id, sessionId))
+    .get()
+
+  if (!session) return null
+  if (session.expiresAt < new Date()) {
+    deleteSession(sessionId)
+    return null
+  }
+  return { id: session.id, userId: session.userId, expiresAt: session.expiresAt }
+}
+
+export function deleteSession(sessionId: string): void {
+  const db = useDatabase()
+  db.delete(schema.sessions).where(eq(schema.sessions.id, sessionId)).run()
+}
+
+export function deleteUserSessions(userId: number): void {
+  const db = useDatabase()
+  db.delete(schema.sessions).where(eq(schema.sessions.userId, userId)).run()
+}
+
+export function cleanupExpiredSessions(): number {
+  const db = useDatabase()
+  const result = db
+    .delete(schema.sessions)
+    .where(lt(schema.sessions.expiresAt, new Date()))
+    .run()
+  return result.changes
+}
+
+export function extendSession(sessionId: string): SessionData | null {
+  const session = getValidSession(sessionId)
+  if (!session) return null
+
+  const db = useDatabase()
+  const newExpiresAt = new Date(Date.now() + SESSION_TTL_MS)
+  db.update(schema.sessions)
+    .set({ expiresAt: newExpiresAt })
+    .where(eq(schema.sessions.id, sessionId))
+    .run()
+
+  return { ...session, expiresAt: newExpiresAt }
+}

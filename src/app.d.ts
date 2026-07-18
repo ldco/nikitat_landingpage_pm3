@@ -4,8 +4,8 @@ declare global {
       user?: {
         id: number
         email: string
-        role: string
-        name: string
+        role: 'master' | 'admin' | 'editor'
+        name: string | null
       }
       nonce?: string
     }
