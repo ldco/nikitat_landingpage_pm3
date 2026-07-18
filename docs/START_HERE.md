@@ -63,3 +63,29 @@ This is the ENTRY POINT for any new AI session — read this first.
 ⬜ Clean — no uncommitted changes
 ⬜ Next: Phase 0, Step 0.2 — SvelteKit Scaffold
 ```
+
+## Key Rules & Style Guide
+
+**BEFORE writing any code**, read these files:
+
+| File | What |
+|------|------|
+| `AGENTS.md` | PM3 philosophy + all rules (CSS, Svelte, TS, i18n, API, DB, Security) |
+| `docs/STYLE_GUIDE.md` | Concrete code patterns (Svelte 5 runes, CSS classes, i18n, API) |
+| `docs/PM-ARCHITECTURE-COMPLETE.md` | Full 58-section framework analysis |
+| `docs/MIGRATION_STEP_BY_STEP.md` | 16-phase execution plan |
+
+## PM3 in One Sentence
+
+**PM3 is SvelteKit with Tailwind CSS, where EVERYTHING is config-driven, ALL text is translated, ALL components use our design system, and ALL commands are AI-friendly.**
+
+## The Golden Rules (TL;DR)
+
+1. `$state / $derived / $effect` — Svelte 5 runes only
+2. `.btn .hero .section .card` — our PM classes from @layer components
+3. `i18n.t('key')` — every visible string
+4. `src/lib/config/site.ts` — single source of truth
+5. `{ success: true, data }` — every API response
+6. `hooks.server.ts` — all security in one file
+7. `npm run deploy` — one command for everything
+8. Zero `any` in TypeScript
