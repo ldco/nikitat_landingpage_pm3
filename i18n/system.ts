@@ -1,32 +1,51 @@
 /**
- * System Translation Prefixes
+ * Translation Classification Reference
  *
- * Keys starting with these prefixes are "system" translations:
- * - Editable only by master role in admin panel
- * - UI labels used throughout the app
+ * ARCHITECTURE (Phase 2 — Paraglide + DB split):
  *
- * All other keys are "content" translations:
- * - Editable by admin+ roles
- * - Site-specific content (hero text, about, etc.)
+ * Paraglide (compile-time, messages/*.json):
+ *   UI strings: common.*, nav.*, auth.*, error.*, validation.*,
+ *   cookies.*, theme.*, footer.*, sections.*, legal.*,
+ *   pricing.*, setup.*, init.*, apiErrors.*
+ *
+ * DB (runtime, admin-editable via admin panel):
+ *   Content: admin.*, settings.*, blog.*, team.*, portfolio.*,
+ *   testimonials.*, features.*, faq.*, clients.*
+ *
+ * Paraglide keys are compiled into JS at build time.
+ * DB keys are loaded at runtime and editable via admin panel.
+ *
+ * NEVER use string-based t('key') API in components.
+ * ✅ import * as m from '$lib/i18n' → m.common_submit()
+ * ❌ t('common.submit')
+ *
+ * DB content is loaded via $page.data:
+ * ✅ {data.post.title}
  */
 
-export const SYSTEM_PREFIXES = [
-  'common.',
-  'cookies.',
-  'nav.',
-  'auth.',
-  'admin.',
-  'theme.',
-  'footer.',
-  'validation.',
-  'pricing.',
-  'settings.'
+// Paraglide UI prefixes (NOT in DB)
+export const PARAGLIDE_PREFIXES = [
+  'common.', 'cookies.', 'nav.', 'auth.', 'error.', 'validation.',
+  'theme.', 'footer.', 'sections.', 'legal.',
+  'pricing.', 'setup.', 'init.', 'apiErrors.'
+] as const
+
+// DB content prefixes (NOT in Paraglide)
+export const DB_PREFIXES = [
+  'admin.', 'settings.', 'blog.', 'team.', 'portfolio.',
+  'testimonials.', 'features.', 'faq.', 'clients.'
 ] as const
 
 /**
- * Check if a translation key is a system key
- * System keys are only editable by master role
+ * Check if a translation key is a Paraglide (UI) key
  */
-export function isSystemKey(key: string): boolean {
-  return SYSTEM_PREFIXES.some(prefix => key.startsWith(prefix))
+export function isParaglideKey(key: string): boolean {
+  return PARAGLIDE_PREFIXES.some(prefix => key.startsWith(prefix))
+}
+
+/**
+ * Check if a translation key is a DB (content) key
+ */
+export function isDbKey(key: string): boolean {
+  return DB_PREFIXES.some(prefix => key.startsWith(prefix))
 }
