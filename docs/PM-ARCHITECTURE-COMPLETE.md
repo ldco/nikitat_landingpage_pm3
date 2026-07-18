@@ -746,32 +746,123 @@ public/images/        — hero, about (content images)
 | useWebSocket | WebSocket class |
 | usePmConfig | $page.data (from layout.load) |
 
+## XX. 152-ФЗ & Legal System (Russian Personal Data Law)
+
+### Legal Documents (framework-level)
+```
+legal/
+  ru/privacy-policy.md          — Политика конфиденциальности
+  ru/personal-data-policy.md    — Политика обработки персональных данных
+  ru/terms-of-service.md        — Условия использования
+  en/privacy-policy.md          — Privacy Policy
+  en/personal-data-policy.md    — Personal Data Processing Policy
+  en/terms-of-service.md        — Terms of Service
+```
+
+### Как работает
+```
+1. legal/[document].vue — динамическая страница
+   - Читает .md файл из папки legal/{lang}/{id}.md
+   - Подставляет переменные: companyName, INN, OGRN, address из БД
+   - Рендерит markdown в HTML (с безопасным рендерингом)
+   
+2. Admin legal.vue — редактор переводов для юридических документов
+   - Загружает content из translations БД по ключам legal.*
+   - Показывает статус перевода для каждой локали
+   
+3. SectionContact — проверяет согласие на обработку данных
+   - Если есть personal-data-policy → требуется consent checkbox
+   - Если нет → форма работает без consent (упрощённый режим)
+   - Ссылки на privacy-policy + personal-data-policy под формой
+```
+
+### Consent flow
+```
+Форма контакта:
+  1. Есть personal-data-policy? → показать checkbox + ссылку
+  2. Нет personal-data-policy? → скрыть checkbox (forceShow)
+  3. Пользователь отмечает consent → true
+  4. B submit: consent обязателен если policy существует
+
+Cookie consent (152-ФЗ + GDPR):
+  1. localStorage: pm-cookie-consent-v1
+  2. cookie: pm-cookie-consent (для SSR)
+  3. 3 состояния: accepted / declined / null (unset)
+  4. Preference cookies: pm-color-mode, pm-theme-explicit, pm-locale-explicit
+  5. Максимальный срок: 365 дней
+```
+
+### LegalInfo molecule
+```
+Footer:
+  © 2025 Company. All rights reserved
+  · ИНН: xxx
+  · ОГРН: xxx  
+  · Адрес: xxx
+  · Email: xxx
+  
+  Показывает только то, что имеет значение в БД.
+  Ссылки на /legal/privacy-policy, /legal/personal-data-policy, /legal/terms-of-service
+```
+
+### Для PM3
+```
+- legal/ дирректория с .md документами — копируется как есть
+- legal/[slug]/+page.svelte — портировать с Nuxt
+- admin/legal — портировать как admin CRUD страницу
+- LegalInfo — портировать как molecule
+- CookieConsent — уже есть, доработать 152-ФЗ
+- SectionContact — уже есть, доработать проверку документов
+```
+
 ## 36. AI-Driven Development — Core Philosophy
 
-### Принципы AI-Driven Workflow
+### Исправленное понимание
+
+**AI-Driven Development НЕ значит «AI не нужно знать».**  
+AI-Driven Development значит **AI пишет ВСЁ**, включая Dockerfile, Ansible, deploy-скрипты, Traefik. AI — разработчик.
+
+**Принципы (исправленные):**
 
 ```
-1. ОДНА команда для запуска → npm run dev
-2. ОДНА команда для тестов → npm test
-3. ОДНА команда для деплоя → npm run deploy
-4. НИКАКИХ сложных bash-скриптов с 20 флагами
-5. НИКАКИХ цепочек из 5+ команд
-6. Каждая команда делает ОДНО действие
-7. Имена команд: dev, build, test, deploy, db:push, seed, reset
-8. Без «магии» — команда = понятный вызов
+1. Команды должны быть ПРОСТЫМИ и ПРЕДСКАЗУЕМЫМИ
+   → npm run deploy запускает deploy.sh
+   → AI МОЖЕТ заглянуть в deploy.sh и понять его
+   → AI МОЖЕТ переписать deploy.sh под новый проект
+
+2. Никакой «магии»
+   → Команда dev запускает Vite dev server
+   → Команда build делает production build
+   → Команда deploy собирает + пушит + деплоит
+   → Никаких абстракций «просто вызови и не думай»
+
+3. 60 скриптов — ANTI-AI-FIRST
+   → AI не запомнит 60 скриптов
+   → 13 скриптов — AI запомнит с первого раза
+   → Каждый скрипт — одно действие, понятное имя
+
+4. Весь код — AI-читаемый
+   → deploy.sh написан понятно, AI его понимает
+   → Dockerfile написан понятно, AI его понимает
+   → Ansible playbook написан понятно, AI его понимает
+   → AI должен мочь прочитать и модифицировать любой скрипт
 ```
 
-### Почему для AI-Driven Development
+### Что это меняет в PM3
 
 ```
-AI агенту нужно:
-- Минимум контекста для запоминания
-- Предсказуемые команды
-- Быстрая обратная связь
-- Одно действие за раз
+Вместо «AI не нужно знать про Docker»:
+  → Dockerfile — 50 строк, понятных AI
+  → deploy.sh — 150 строк, понятных AI  
+  → Ansible playbook — 100 строк, понятных AI
 
-60 npm скриптов в PM v2 — ANTI-AI-FIRST.
-AI не может запомнить 60 команд, их назначение и флаги.
+Вместо «одна команда для всего»:
+  → npm run build — собирает
+  → npm run docker:build — собирает Docker образ
+  → npm run deploy — полный деплой
+
+AI может вызвать любую команду отдельно,
+или полный цикл одной командой.
 ```
 
 ## 37. NPM Scripts — Nuxt → SvelteKit
