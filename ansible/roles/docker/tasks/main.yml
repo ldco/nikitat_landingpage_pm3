@@ -1,0 +1,106 @@
+# ============================================
+# Docker - Install Docker Engine and base runtime resources
+# ============================================
+
+- name: Add Docker GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  tags: [docker]
+
+- name: Add Docker repository
+  apt_repository:
+    repo: 'deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_facts["distribution_release"] }} stable'
+    state: present
+  tags: [docker]
+
+- name: Install Docker
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+      - python3-docker
+      - python3-pip
+    state: present
+    update_cache: yes
+  tags: [docker]
+
+- name: Check Docker Python SDK import
+  command: "{{ ansible_python_interpreter | default('/usr/bin/python3') }} -c 'import docker'"
+  register: docker_python_sdk_check
+  changed_when: false
+  failed_when: false
+  tags: [docker]
+
+- name: Install Docker Python SDK with pip fallback
+  shell: |
+    set -euo pipefail
+    python_bin={{ ansible_python_interpreter | default('/usr/bin/python3') | quote }}
+    "$python_bin" -m pip install docker --break-system-packages || "$python_bin" -m pip install docker
+  args:
+    executable: /bin/bash
+  when: docker_python_sdk_check.rc != 0
+  tags: [docker]
+
+- name: Verify Docker Python SDK is available for Ansible Docker modules
+  command: "{{ ansible_python_interpreter | default('/usr/bin/python3') }} -c 'import docker'"
+  register: docker_python_sdk_verify
+  changed_when: false
+  failed_when: false
+  tags: [docker]
+
+- name: Fail when Docker Python SDK is unavailable
+  fail:
+    msg: >-
+      Python Docker SDK is required for community.docker Ansible modules.
+      Install the distro package python3-docker or allow the pip fallback to
+      install the docker package for {{ ansible_python_interpreter | default('/usr/bin/python3') }}.
+  when: docker_python_sdk_verify.rc != 0
+  tags: [docker]
+
+- name: Ensure Docker service is started and enabled
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+  tags: [docker]
+
+- name: Configure Docker daemon
+  copy:
+    dest: /etc/docker/daemon.json
+    content: |
+      {
+        "log-driver": "json-file",
+        "log-opts": {
+          "max-size": "10m",
+          "max-file": "3"
+        },
+        "storage-driver": "overlay2"
+      }
+  notify: Restart Docker
+  tags: [docker]
+
+- name: Create Traefik network for runtime traffic
+  community.docker.docker_network:
+    name: '{{ traefik_network_name | default("traefik-public") }}'
+    state: present
+  tags: [docker]
+
+- name: Create Docker volumes for runtime data
+  community.docker.docker_volume:
+    name: '{{ item }}'
+    state: present
+  loop:
+    - '{{ pm_deploy_data_volume | default("puppetmaster2_data") }}'
+    - '{{ pm_deploy_uploads_volume | default("puppetmaster2_uploads") }}'
+  tags: [docker]
+
+- name: Create Let's Encrypt directory
+  file:
+    path: /letsencrypt
+    state: directory
+    mode: '0700'
+  tags: [docker]

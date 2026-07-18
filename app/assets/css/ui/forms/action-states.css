@@ -1,0 +1,84 @@
+/**
+ * Action Surface States
+ *
+ * Shared interactive contract for CTA and chrome action controls.
+ * Keep hover/active/focus behavior here instead of redefining it per component.
+ */
+
+:root {
+  --action-surface-transition: var(--transition-fast) var(--ease-smooth);
+  --action-surface-hover-shadow: var(--shadow-md);
+  --action-surface-active-shadow: var(--shadow-sm);
+
+  --action-brand-bg: var(--i-brand);
+  --action-brand-fg: var(--t-on-brand);
+
+  --action-brand-hover-bg: light-dark(
+    var(--l-bg-elevated),
+    color-mix(in oklch, var(--l-bg-elevated), var(--p-white) 8%)
+  );
+  --action-brand-hover-fg: var(--i-brand);
+
+  --action-brand-active-bg: color-mix(in oklch, var(--action-brand-hover-bg), var(--i-brand) 10%);
+  --action-brand-active-fg: var(--i-brand-active);
+
+  --action-control-bg: transparent;
+  --action-control-fg: var(--t-secondary);
+  --action-control-hover-bg: var(--action-brand-hover-bg);
+  --action-control-hover-fg: var(--i-brand);
+  --action-control-active-bg: var(--action-brand-active-bg);
+  --action-control-active-fg: var(--i-brand-active);
+}
+
+.action-surface {
+  overflow: visible;
+  border: none;
+  transform: none;
+  transition:
+    background-color var(--action-surface-transition),
+    color var(--action-surface-transition),
+    box-shadow var(--action-surface-transition);
+}
+
+.action-surface--brand {
+  background: var(--action-brand-bg);
+  color: var(--action-brand-fg);
+}
+
+.action-surface--brand:hover {
+  background: var(--action-brand-hover-bg);
+  color: var(--action-brand-hover-fg);
+  box-shadow: var(--action-surface-hover-shadow);
+  transform: none;
+}
+
+.action-surface--brand:active {
+  background: var(--action-brand-active-bg);
+  color: var(--action-brand-active-fg);
+  box-shadow: var(--action-surface-active-shadow);
+  transform: none;
+}
+
+.action-surface--control {
+  background: var(--action-control-bg);
+  color: var(--action-control-fg);
+}
+
+.action-surface--control:hover {
+  background: var(--action-control-hover-bg);
+  color: var(--action-control-hover-fg);
+  box-shadow: var(--action-surface-hover-shadow);
+  transform: none;
+}
+
+.action-surface--control:active {
+  background: var(--action-control-active-bg);
+  color: var(--action-control-active-fg);
+  box-shadow: var(--action-surface-active-shadow);
+  transform: none;
+}
+
+.action-surface:focus-visible {
+  outline: 2px solid var(--i-focus-ring);
+  outline-offset: 2px;
+}

@@ -1,0 +1,378 @@
+# ============================================
+# PuppetMaster Shared VPS — Per-Project Deploy
+# ============================================
+# Deploys a single PM project onto a shared multi-project VPS.
+# Generates docker-compose.yml per project, appends Traefik router,
+# runs migrations, and starts the container on the pm-shared network.
+#
+# Usage (via deploy.sh --target, not directly):
+#   ansible-playbook -i inventory.yml deploy.yml \
+#     -e project_id=my-project \
+#     -e project_domain=my-project.com \
+#     -e app_image_ref=puppetmaster2-app:abc123
+# ============================================
+
+- name: Deploy PM project to shared VPS
+  hosts: all
+  become: true
+  collections:
+    - community.docker
+  vars_files:
+    - deploy-vars.yml
+
+  vars:
+    project_id: '{{ project_id | mandatory }}'
+    project_domain: '{{ project_domain | mandatory }}'
+    app_image_ref: '{{ app_image_ref | mandatory }}'
+    deploy_version: '{{ deploy_version | default(app_image_ref) }}'
+    deploy_shared_root: '/home/{{ deploy_user }}/app/shared/{{ project_id }}'
+    stack_dir: '/home/{{ deploy_user }}/app/stacks/{{ project_id }}'
+    container_uid: '1001'
+    container_gid: '1001'
+    sqlite_db_path: '{{ deploy_shared_root }}/data/sqlite.db'
+    sqlite_db_dir: '{{ deploy_shared_root }}/data'
+    sqlite_db_backup_name: 'sqlite.db'
+    release_state_dir: '{{ stack_dir }}'
+    current_image_file: '{{ release_state_dir }}/current-image'
+    previous_image_file: '{{ release_state_dir }}/previous-image'
+    current_version_file: '{{ release_state_dir }}/current-version'
+    previous_version_file: '{{ release_state_dir }}/previous-version'
+
+  tasks:
+    # ─── Validation ────────────────────────────────────────────────────
+
+    - name: Validate required variables
+      assert:
+        that:
+          - project_id | length > 0
+          - project_domain | length > 0
+          - app_image_ref | length > 0
+        fail_msg: 'project_id, project_domain, and app_image_ref are required.'
+
+    # ─── Directories ────────────────────────────────────────────────────
+
+    - name: Create project shared directories
+      file:
+        path: '{{ item.path }}'
+        state: directory
+        owner: '{{ item.owner | default(deploy_user) }}'
+        group: '{{ item.group | default(deploy_user) }}'
+        mode: '{{ item.mode }}'
+      loop:
+        - { path: '{{ deploy_shared_root }}', mode: '0755' }
+        - { path: '{{ deploy_shared_root }}/data', owner: '{{ container_uid }}', group: '{{ container_gid }}', mode: '0770' }
+        - { path: '{{ deploy_shared_root }}/uploads', owner: '{{ container_uid }}', group: '{{ container_gid }}', mode: '0770' }
+        - { path: '{{ stack_dir }}', mode: '0755' }
+
+    - name: Create backups directory per project
+      file:
+        path: '/home/{{ deploy_user }}/backups/{{ project_id }}'
+        state: directory
+        owner: '{{ deploy_user }}'
+        group: '{{ deploy_user }}'
+        mode: '0755'
+
+    # ─── Ensure SQLite DB exists ────────────────────────────────────────
+
+    - name: Ensure SQLite database file exists
+      file:
+        path: '{{ sqlite_db_path }}'
+        state: touch
+        owner: '{{ container_uid }}'
+        group: '{{ container_gid }}'
+        mode: '0660'
+
+    # ─── Pre-migration safety ────────────────────────────────────────────
+
+    - name: Check whether SQLite DB exists before maintenance decision
+      stat:
+        path: '{{ sqlite_db_path }}'
+      register: deploy_sqlite_db_file
+
+    - name: Backup SQLite DB before maintenance schema sync
+      shell: |
+        backup_path="/home/{{ deploy_user }}/backups/{{ project_id }}/{{ project_id }}-{{ ansible_date_time.iso8601_basic_short }}-{{ sqlite_db_backup_name }}"
+        mkdir -p "$(dirname "{{ sqlite_db_path }}")"
+        sqlite3 {{ sqlite_db_path | quote }} ".backup '${backup_path}'"
+        printf '%s\n' "$backup_path" > {{ stack_dir }}/latest-db-backup
+      args:
+        executable: /bin/bash
+      when:
+        - pm_deploy_schema_mode == 'maintenance'
+        - deploy_sqlite_db_file.stat.exists
+        - (deploy_sqlite_db_file.stat.size | default(0) | int) > 0
+
+    # ─── Write project env file ─────────────────────────────────────────
+
+    - name: Write project runtime environment file
+      copy:
+        dest: '{{ deploy_shared_root }}/.env.runtime'
+        owner: '{{ deploy_user }}'
+        group: '{{ deploy_user }}'
+        mode: '0600'
+        content: |
+          NODE_ENV=production
+          HOST=0.0.0.0
+          PORT=3000
+          SITE_DOMAIN={{ project_domain }}
+          NUXT_PUBLIC_SITE_DOMAIN={{ project_domain }}
+          DATABASE_URL=/app/data/sqlite.db
+          NUXT_DATABASE_URL=/app/data/sqlite.db
+          UPLOAD_DIR=/app/uploads
+          NUXT_APP_VERSION={{ app_version | default('0.1.0') }}
+          NUXT_PUBLIC_APP_VERSION={{ app_version | default('0.1.0') }}
+          NUXT_BUILD_VERSION={{ deploy_version }}
+          NUXT_PUBLIC_BUILD_VERSION={{ deploy_version }}
+          NUXT_BUILD_TIMESTAMP={{ build_timestamp | default('') }}
+          NUXT_PUBLIC_BUILD_TIMESTAMP={{ build_timestamp | default('') }}
+          NUXT_BUILD_SHA={{ build_sha | default('unknown') }}
+          NUXT_PUBLIC_BUILD_SHA={{ build_sha | default('unknown') }}
+          NUXT_BUILD_BRANCH={{ build_branch | default('unknown') }}
+          NUXT_BUILD_COMMIT_MESSAGE={{ build_commit_message | default('unknown') }}
+          PM_SETTINGS_ENCRYPTION_KEY={{ pm_settings_encryption_key }}
+          SMTP_HOST={{ smtp_host }}
+          SMTP_PORT={{ smtp_port }}
+          SMTP_USER={{ smtp_user }}
+          SMTP_PASS={{ smtp_pass }}
+          SMTP_FROM={{ smtp_from }}
+          S3_ENDPOINT={{ s3_endpoint }}
+          S3_BUCKET={{ s3_bucket }}
+          S3_ACCESS_KEY={{ s3_access_key }}
+          S3_SECRET_KEY={{ s3_secret_key }}
+          S3_REGION={{ s3_region }}
+          S3_VISIBILITY={{ s3_visibility }}
+          S3_PUBLIC_URL={{ s3_public_url }}
+          S3_PROXY_SIGNING_KEY={{ s3_proxy_signing_key }}
+          API_BASE_URL={{ api_base_url }}
+          API_CLIENT_ID={{ api_client_id }}
+          API_CLIENT_SECRET={{ api_client_secret }}
+          API_TOKEN_URL={{ api_token_url }}
+          API_JWT_TOKEN={{ api_jwt_token }}
+          API_KEY={{ api_key }}
+          API_TOKEN_REFRESH_BUFFER={{ api_token_refresh_buffer }}
+          REDIS_URL={{ redis_url }}
+          REDIS_PREFIX={{ redis_prefix }}
+          PM_MONITORING_NETDATA_ENABLED={{ pm_monitoring_netdata_enabled | default('true') }}
+          NETDATA_URL=http://host.docker.internal:19999
+
+    # ─── Run Drizzle migrations ─────────────────────────────────────────
+
+    - name: Run database migrations for project
+      community.docker.docker_container:
+        name: 'pm-{{ project_id }}-schema-sync'
+        image: '{{ app_image_ref }}'
+        state: started
+        detach: false
+        cleanup: true
+        env_file: '{{ deploy_shared_root }}/.env.runtime'
+        command:
+          - node
+          - .output/server/docker-migrate.mjs
+        networks:
+          - name: 'pm-shared'
+        volumes:
+          - '{{ deploy_shared_root }}/data:/app/data'
+          - '{{ deploy_shared_root }}/uploads:/app/uploads'
+
+    # ─── Admin credential rotation ───────────────────────────────────────
+
+    - name: Rotate configured admin passwords
+      community.docker.docker_container:
+        name: 'pm-{{ project_id }}-admin-password-rotation'
+        image: '{{ app_image_ref }}'
+        state: started
+        detach: false
+        cleanup: true
+        env_file: '{{ deploy_shared_root }}/.env.runtime'
+        env:
+          PM_ADMIN_MASTER_EMAIL: '{{ pm_admin_master_email }}'
+          PM_ADMIN_MASTER_PASSWORD: '{{ pm_admin_master_password }}'
+          PM_ADMIN_ADMIN_EMAIL: '{{ pm_admin_admin_email }}'
+          PM_ADMIN_ADMIN_PASSWORD: '{{ pm_admin_admin_password }}'
+          PM_ADMIN_USER_EMAIL: '{{ pm_admin_user_email }}'
+          PM_ADMIN_USER_PASSWORD: '{{ pm_admin_user_password }}'
+        command:
+          - node
+          - scripts/rotate-admin-passwords.mjs
+          - --apply
+          - --db
+          - /app/data/sqlite.db
+        networks:
+          - name: 'pm-shared'
+        volumes:
+          - '{{ deploy_shared_root }}/data:/app/data'
+          - '{{ deploy_shared_root }}/uploads:/app/uploads'
+      no_log: true
+      when: pm_admin_password_rotation_enabled | default('false') | bool
+
+    # ─── Write docker-compose.yml for this project ──────────────────────
+
+    - name: Generate project docker-compose.yml
+      copy:
+        dest: '{{ stack_dir }}/docker-compose.yml'
+        owner: '{{ deploy_user }}'
+        group: '{{ deploy_user }}'
+        mode: '0644'
+        content: |
+          # PM project: {{ project_id }}
+          # Domain: {{ project_domain }}
+          # Deploy version: {{ deploy_version }}
+          # Managed by pm-deploy. Edit via deploy, not directly.
+
+          services:
+            {{ project_id }}:
+              image: {{ app_image_ref | to_json }}
+              container_name: pm-{{ project_id }}-app
+              restart: unless-stopped
+              deploy:
+                resources:
+                  limits:
+                    memory: 256M
+              env_file:
+                - {{ deploy_shared_root }}/.env.runtime
+              volumes:
+                - {{ deploy_shared_root }}/data:/app/data
+                - {{ deploy_shared_root }}/uploads:/app/uploads
+              networks:
+                - pm-shared
+              extra_hosts:
+                - host.docker.internal:host-gateway
+              healthcheck:
+                test:
+                  - CMD-SHELL
+                  - wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health || exit 1
+                interval: 30s
+                timeout: 5s
+                retries: 3
+                start_period: 20s
+
+          networks:
+            pm-shared:
+              external: true
+
+    # ─── Start/update the project container ─────────────────────────────
+
+    - name: Start project container via docker compose
+      community.docker.docker_compose_v2:
+        project_src: '{{ stack_dir }}'
+        project_name: 'pm-{{ project_id }}'
+        state: present
+        pull: missing
+        recreate: always
+
+    # ─── Record deployment ──────────────────────────────────────────────
+
+    - name: Record project deployment metadata
+      copy:
+        dest: '{{ stack_dir }}/.pm-deploy.json'
+        content: |
+          {
+            "projectId": "{{ project_id }}",
+            "domain": "{{ project_domain }}",
+            "imageRef": "{{ app_image_ref }}",
+            "deployVersion": "{{ deploy_version }}",
+            "deployedAt": "{{ ansible_date_time.iso8601 }}",
+            "buildSha": "{{ build_sha | default('unknown') }}",
+            "buildTimestamp": "{{ build_timestamp | default('') }}",
+            "traefikAliasRedirectRegex": "{{ traefik_alias_redirect_regex | default('') }}",
+            "traefikAliasRedirectReplacement": "{{ traefik_alias_redirect_replacement | default('') }}"
+          }
+        owner: '{{ deploy_user }}'
+        group: '{{ deploy_user }}'
+        mode: '0644'
+
+    # ─── Release markers for rollback ────────────────────────────────────
+
+    - name: Read current image marker when present
+      slurp:
+        src: '{{ current_image_file }}'
+      register: deploy_current_image_marker
+      failed_when: false
+
+    - name: Read current version marker when present
+      slurp:
+        src: '{{ current_version_file }}'
+      register: deploy_current_version_marker
+      failed_when: false
+
+    - name: Persist current image marker
+      copy:
+        dest: '{{ current_image_file }}'
+        content: "{{ app_image_ref }}\n"
+        owner: '{{ deploy_user }}'
+        group: '{{ deploy_user }}'
+        mode: '0600'
+
+    - name: Persist previous image marker
+      copy:
+        dest: '{{ previous_image_file }}'
+        content: "{{ deploy_current_image_marker.content | b64decode | trim }}\n"
+        owner: '{{ deploy_user }}'
+        group: '{{ deploy_user }}'
+        mode: '0600'
+      when: deploy_current_image_marker.content is defined and (deploy_current_image_marker.content | b64decode | trim | length > 0)
+
+    - name: Persist current version marker
+      copy:
+        dest: '{{ current_version_file }}'
+        content: "{{ deploy_version | default(app_image_ref) }}\n"
+        owner: '{{ deploy_user }}'
+        group: '{{ deploy_user }}'
+        mode: '0600'
+
+    - name: Persist previous version marker
+      copy:
+        dest: '{{ previous_version_file }}'
+        content: "{{ deploy_current_version_marker.content | b64decode | trim }}\n"
+        owner: '{{ deploy_user }}'
+        group: '{{ deploy_user }}'
+        mode: '0600'
+      when: deploy_current_version_marker.content is defined and (deploy_current_version_marker.content | b64decode | trim | length > 0)
+
+  # ─── Post-deploy summary ────────────────────────────────────────────
+
+  post_tasks:
+    # ─── Prune old Docker images ────────────────────────────────────────
+    # Each deploy creates a new image tag. Old images pile up on the
+    # small 14GB VPS root partition unless cleaned. Keep the current and
+    # previous (for rollback), remove the rest.
+
+    - name: Compute image repository from app_image_ref
+      set_fact:
+        app_image_repo: "{{ app_image_ref | regex_replace(':[^:]+$', '') }}"
+
+    - name: Prune old app images (keep latest 2)
+      shell: |
+        set -e
+        images=$(docker images "{{ app_image_repo }}" -q 2>/dev/null | tail -n +3)
+        if [ -n "$images" ]; then
+          echo "$images" | xargs -r docker rmi -f
+          echo "PRUNED"
+        fi
+      register: deploy_prune_result
+      changed_when: "'PRUNED' in deploy_prune_result.stdout"
+
+    - name: Prune dangling images
+      community.docker.docker_prune:
+        images: true
+        images_filters:
+          dangling: true
+
+    - name: Display deploy summary
+      debug:
+        msg: |
+          ========================================
+          Project '{{ project_id }}' deployed!
+          ========================================
+
+          Domain:    https://{{ project_domain }}
+          Health:    https://{{ project_domain }}/api/health
+          Stack:     {{ stack_dir }}
+          Container: pm-{{ project_id }}-app
+          Image:     {{ app_image_ref }}
+
+          Image cleanup: {{ 'old images pruned' if deploy_prune_result.changed else 'nothing to prune' }}
+
+          View in Dockge: https://{{ ansible_host }}:5001
+          Docker logs:    ssh {{ deploy_user }}@{{ ansible_host }} docker logs pm-{{ project_id }}-app --tail 200
+          ========================================

@@ -1,0 +1,2 @@
+@layer reset, primitives, semantic, components, utilities;
+@import '../ui/content/hero-parallax.css' layer(components);

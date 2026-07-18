@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Puppet Master Framework Versions",
+  "type": "object",
+  "required": ["runtime", "ansible", "npm"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "runtime": {
+      "type": "object",
+      "required": ["nodeImage", "traefikImage"],
+      "additionalProperties": false,
+      "properties": {
+        "nodeImage": {
+          "type": "string",
+          "minLength": 1
+        },
+        "traefikImage": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "ansible": {
+      "type": "object",
+      "required": ["communityDocker"],
+      "additionalProperties": false,
+      "properties": {
+        "communityDocker": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "npm": {
+      "type": "object",
+      "required": ["manifest", "lockfile"],
+      "additionalProperties": false,
+      "properties": {
+        "manifest": {
+          "const": "package.json"
+        },
+        "lockfile": {
+          "const": "package-lock.json"
+        }
+      }
+    }
+  }
+}

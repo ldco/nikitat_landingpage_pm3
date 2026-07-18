@@ -1,0 +1,321 @@
+{
+  "project": "Fabrica 22 — Nuxt 4 (PM) to SvelteKit Migration",
+  "version": "1.0.0",
+  "parts": [
+    {
+      "id": "part-1",
+      "title": "PART 1: Stack Migration — Nuxt → SvelteKit",
+      "description": "Full migration of the entire application from Nuxt 4 (Vue 3 + Nitro) to SvelteKit (Svelte 5). Includes all API endpoints, pages, admin dashboard, DB layer, auth, i18n, animations. CSS stays as-is (ported as global CSS or inline). Everything must work end-to-end.",
+      "status": "planned",
+      "dependencies": [],
+      "sprints": [
+        {
+          "id": "1.1",
+          "title": "Project scaffold + DB layer + Core config",
+          "description": "Init SvelteKit project, install deps, configure Drizzle ORM, port schema + client + seed data, create config system",
+          "status": "pending",
+          "estimated_days": 2
+        },
+        {
+          "id": "1.2",
+          "title": "Server hooks + Auth + Security basics",
+          "description": "Port hooks.server.ts (session, CSRF, CSP headers), auth system (login/logout/session), RBAC helpers, CSRF middleware, rate limiting basics",
+          "status": "pending",
+          "estimated_days": 3
+        },
+        {
+          "id": "1.3",
+          "title": "Public API endpoints (all 15+)",
+          "description": "Port all public API routes: health, i18n, portfolios, blog, contact, faq, features, settings, pricing, ws (all as +server.ts)",
+          "status": "pending",
+          "estimated_days": 3
+        },
+        {
+          "id": "1.4",
+          "title": "Admin API endpoints (all 27 groups)",
+          "description": "Port all admin CRUD routes: users, roles, translations, settings, legal, portfolio, blog, faq, features, contacts, pricing, team, testimonials, clients, health, stats, audit, terminal, ops, monitoring, support-bundle",
+          "status": "pending",
+          "estimated_days": 5
+        },
+        {
+          "id": "1.5",
+          "title": "Server utilities (38 modules)",
+          "description": "Port all server/utils/* to lib/server/utils/: accountLockout, admin-rbac, audit, csrf, email, env, fileValidation, logger, password, rateLimit, sanitization, storage/*, api/*, translationCache, etc.",
+          "status": "pending",
+          "estimated_days": 4
+        },
+        {
+          "id": "1.6",
+          "title": "Frontend shell + Layouts + Atoms",
+          "description": "Port layouts (default, admin, blank), app.html, +layout.svelte with header/footer/falling letters. Port all 13 atomic components to Svelte",
+          "status": "pending",
+          "estimated_days": 3
+        },
+        {
+          "id": "1.7",
+          "title": "Molecules + Organisms",
+          "description": "Port all 21 molecular components and 13 organism components to Svelte 5",
+          "status": "pending",
+          "estimated_days": 4
+        },
+        {
+          "id": "1.8",
+          "title": "All 13 Section components",
+          "description": "Port all section components (SectionHero, About, Focus, F22, Contact, Portfolio, Blog, Features, FAQ, Pricing, Team, Testimonials, Clients) + SectionRenderer",
+          "status": "pending",
+          "estimated_days": 4
+        },
+        {
+          "id": "1.9",
+          "title": "Portfolio viewers (4 components)",
+          "description": "Port BrandbookViewer, BrandingViewer, CaseStudyViewer, WebsiteViewer + PortfolioLightbox",
+          "status": "pending",
+          "estimated_days": 2
+        },
+        {
+          "id": "1.10",
+          "title": "Pages (public)",
+          "description": "Port homepage (onepager index), dynamic [section], blog pages, portfolio pages, legal pages, login page, init page",
+          "status": "pending",
+          "estimated_days": 3
+        },
+        {
+          "id": "1.11",
+          "title": "Admin Dashboard (all 17 pages)",
+          "description": "Port all admin pages: dashboard, users, roles, translations, settings, legal, health, logs, portfolios, blog, faq, features, contacts, pricing, team, testimonials, clients + admin layout with sidebar",
+          "status": "pending",
+          "estimated_days": 5
+        },
+        {
+          "id": "1.12",
+          "title": "i18n system + Theme switching + RTL",
+          "description": "Port translation loader (typesafe-i18n), content.ts + system.ts, locale detection, theme toggle (light/dark/system), RTL support",
+          "status": "pending",
+          "estimated_days": 2
+        },
+        {
+          "id": "1.13",
+          "title": "Animations + Interactivity",
+          "description": "Port GSAP hero intro, scrollReveal (as Svelte action), scrollytelling (Svelte action), Three.js FallingLetters, page transitions, hero parallax",
+          "status": "pending",
+          "estimated_days": 3
+        },
+        {
+          "id": "1.14",
+          "title": "2FA + File upload + Storage",
+          "description": "Port two-factor auth (TOTP setup/verify), file upload endpoints, local/S3 storage providers, image processing with sharp",
+          "status": "pending",
+          "estimated_days": 2
+        },
+        {
+          "id": "1.15",
+          "title": "Integration testing + Bug fixes",
+          "description": "Make everything work together: test all endpoints, check all pages render, fix SSR/hydration issues, verify admin CRUD flows",
+          "status": "pending",
+          "estimated_days": 3
+        }
+      ]
+    },
+    {
+      "id": "part-2",
+      "title": "PART 2: CSS Migration — Pure CSS → Tailwind",
+      "description": "Replace the 5-layer Pure CSS system with Tailwind CSS (customized with PM design tokens). Refactor all Svelte components to use Tailwind utility classes. Create custom Tailwind plugin for PM-specific styles.",
+      "status": "planned",
+      "dependencies": ["part-1"],
+      "sprints": [
+        {
+          "id": "2.1",
+          "title": "Tailwind config + Design tokens",
+          "description": "Configure Tailwind v4 with PM color primitives (OKLCH auto-calculated), spacing, typography. Create custom plugin for PM-specific utilities (section, container, section-title)",
+          "status": "pending",
+          "estimated_days": 2
+        },
+        {
+          "id": "2.2",
+          "title": "Migrate reset + primitives layer",
+          "description": "Replace CSS reset with Tailwind preflight. Map color primitives + typography tokens to Tailwind theme",
+          "status": "pending",
+          "estimated_days": 1
+        },
+        {
+          "id": "2.3",
+          "title": "Migrate skeleton layer (header, footer, nav, mobile-nav, social-nav, bottom-nav)",
+          "description": "Refactor Header, Footer, NavLink, NavLinks, SocialNav, hamburger menu to Tailwind classes. Remove skeleton/*.css",
+          "status": "pending",
+          "estimated_days": 3
+        },
+        {
+          "id": "2.4",
+          "title": "Migrate layout + section CSS",
+          "description": "Refactor section layout, containers, responsive grid to Tailwind. Remove layout/*.css",
+          "status": "pending",
+          "estimated_days": 2
+        },
+        {
+          "id": "2.5",
+          "title": "Migrate UI layer (forms, buttons, cards, hero, parallax)",
+          "description": "Refactor form inputs, buttons, cards, hero styles, parallax layers to Tailwind. Remove ui/*.css",
+          "status": "pending",
+          "estimated_days": 3
+        },
+        {
+          "id": "2.6",
+          "title": "Migrate animations + runtime CSS",
+          "description": "Tailwind-ify keyframes, scroll animations, page transitions. Remove animations/*.css. Keep runtime section-specific CSS or convert to Tailwind",
+          "status": "pending",
+          "estimated_days": 2
+        },
+        {
+          "id": "2.7",
+          "title": "Migrate utility layer + cleanup",
+          "description": "Convert common utility classes to Tailwind equivalents. Remove common/*.css. Dark mode audit. RTL audit. Verify no dead CSS remains",
+          "status": "pending",
+          "estimated_days": 2
+        },
+        {
+          "id": "2.8",
+          "title": "Visual regression testing",
+          "description": "Compare every page/section before and after. Fix any visual discrepancies. Test all themes (light/dark), locales (incl RTL), responsive breakpoints",
+          "status": "pending",
+          "estimated_days": 2
+        }
+      ]
+    },
+    {
+      "id": "part-3",
+      "title": "PART 3: Security Hardening — Maximally Secure on SvelteKit",
+      "description": "Comprehensive security audit and hardening of the SvelteKit application. Migrate all security mechanisms from PM framework and enhance for SvelteKit-native patterns. Target: OWASP Top 10 compliance + 152-ФЗ compliance.",
+      "status": "planned",
+      "dependencies": ["part-1"],
+      "sprints": [
+        {
+          "id": "3.1",
+          "title": "Auth system hardening",
+          "description": "Review session management, password policy (scrypt), account lockout, cookie flags (HttpOnly/Secure/SameSite). Implement SvelteKit-native auth hooks",
+          "status": "pending",
+          "estimated_days": 2
+        },
+        {
+          "id": "3.2",
+          "title": "CSRF + CSP + Security headers",
+          "description": "Port CSRF double-submit pattern as SvelteKit handle hook. Port CSP with nonces via SvelteKit event loop. All security headers (HSTS, XFO, CORS, COOP, Permissions-Policy)",
+          "status": "pending",
+          "estimated_days": 2
+        },
+        {
+          "id": "3.3",
+          "title": "Input validation + XSS prevention",
+          "description": "Zod validation on ALL API inputs, form actions, search params. Sanitize HTML on all user content. Escape HTML in templates. Magic byte file validation",
+          "status": "pending",
+          "estimated_days": 2
+        },
+        {
+          "id": "3.4",
+          "title": "Rate limiting + DoS protection",
+          "description": "Port rate limiter. Apply to login, contact, admin endpoints. IP-based + user-based limits. Redis-backed for multi-instance",
+          "status": "pending",
+          "estimated_days": 1
+        },
+        {
+          "id": "3.5",
+          "title": "Audit logging",
+          "description": "Port audit logger. Log all security events (login, logout, failed login, CRUD, role changes, 2FA). Structured JSON logs via Pino",
+          "status": "pending",
+          "estimated_days": 1
+        },
+        {
+          "id": "3.6",
+          "title": "2FA + Backup codes",
+          "description": "Port TOTP 2FA (otpauth), QR code setup, backup codes, encrypted secret storage. Verify all flows on SvelteKit",
+          "status": "pending",
+          "estimated_days": 1
+        },
+        {
+          "id": "3.7",
+          "title": "Compliance (152-ФЗ + GDPR)",
+          "description": "Verify cookie consent banner works on SvelteKit. Consent proof storage. Privacy policy + Personal Data policy display. DSAR procedure. Data localization (SQLite stays local)",
+          "status": "pending",
+          "estimated_days": 1
+        },
+        {
+          "id": "3.8",
+          "title": "Security audit + Penetration testing",
+          "description": "Run security audit (OWASP ZAP or similar). Check all endpoints for vulnerabilities. Review dependency CVEs. Fix all findings",
+          "status": "pending",
+          "estimated_days": 2
+        }
+      ]
+    },
+    {
+      "id": "part-4",
+      "title": "PART 4: Performance Optimization — Maximally Fast on SvelteKit",
+      "description": "Optimize the SvelteKit application for maximum performance: SSR/SSG strategy, bundle optimization, caching, image optimization, streaming, lazy loading, Core Web Vitals targeting 90+.",
+      "status": "planned",
+      "dependencies": ["part-1"],
+      "sprints": [
+        {
+          "id": "4.1",
+          "title": "SSR/SSG strategy + Caching",
+          "description": "Configure SvelteKit adapter (Node or static). Set up ISR/SSR/SSG per route. Port Nitro routeRules (ISR for homepage, caching headers for static assets). Redis cache for API if needed",
+          "status": "pending",
+          "estimated_days": 2
+        },
+        {
+          "id": "4.2",
+          "title": "Image optimization pipeline",
+          "description": "Port sharp processing pipeline. AVIF/WebP generation on upload. Responsive srcset. Lazy loading (loading=lazy). Thumbnail generation. Optimized image storage",
+          "status": "pending",
+          "estimated_days": 2
+        },
+        {
+          "id": "4.3",
+          "title": "Bundle optimization + Code splitting",
+          "description": "Tree-shake unused deps. Code-split large components (Three.js, GSAP, portfolio viewers). Dynamic imports for admin panel. Analyze bundle with vite-bundle-analyzer",
+          "status": "pending",
+          "estimated_days": 2
+        },
+        {
+          "id": "4.4",
+          "title": "Font optimization + Critical CSS",
+          "description": "Self-host fonts. Font subsetting (Cyrillic + Latin + Hebrew). Preload critical fonts. Inline critical CSS (first paint). Defer non-critical CSS",
+          "status": "pending",
+          "estimated_days": 1
+        },
+        {
+          "id": "4.5",
+          "title": "Database query optimization",
+          "description": "Review all Drizzle queries for N+1. Add proper indexes. Optimize JOINs. Use prepared statements. WAL mode tuning. Connection pooling if needed",
+          "status": "pending",
+          "estimated_days": 2
+        },
+        {
+          "id": "4.6",
+          "title": "Lighthouse audit + Core Web Vitals",
+          "description": "Run Lighthouse on all page types. Target: LCP < 2.5s, FID < 100ms, CLS < 0.1. Optimize TTFB, FCP, SI. Fix all performance issues",
+          "status": "pending",
+          "estimated_days": 2
+        },
+        {
+          "id": "4.7",
+          "title": "Progressive enhancement + Offline",
+          "description": "Implement progressive enhancement for JS-dependent features. Add service worker for offline support (PWA). App shell caching. Background sync for contact form",
+          "status": "pending",
+          "estimated_days": 2
+        },
+        {
+          "id": "4.8",
+          "title": "Load testing + Production benchmarks",
+          "description": "Run k6/artillery load tests. Benchmark API response times. Measure memory usage. Test with production-like data volume. Verify horizontal scaling",
+          "status": "pending",
+          "estimated_days": 2
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_sprints": 39,
+    "total_estimated_days": 94,
+    "current_part": "part-1",
+    "overall_status": "planned"
+  }
+}

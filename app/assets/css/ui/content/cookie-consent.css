@@ -1,0 +1,126 @@
+/**
+ * Essential cookie notice banner
+ *
+ * Fixed, non-blocking legal notice for essential cookies.
+ */
+
+.cookie-consent {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: var(--z-fixed);
+  padding: var(--space-3) var(--space-4);
+  pointer-events: none;
+}
+
+.cookie-consent__panel {
+  pointer-events: auto;
+  width: fit-content;
+  max-width: min(100%, 92rem);
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklch, var(--l-bg-elevated), var(--p-white) 4%),
+      color-mix(in oklch, var(--l-bg-elevated), var(--p-black) 3%)
+    );
+  border: 1px solid var(--l-border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+}
+
+.cookie-consent__icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--i-brand), transparent 88%);
+  color: var(--i-brand);
+  border-radius: var(--radius-full);
+}
+
+.cookie-consent__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.cookie-consent__content {
+  min-width: 0;
+}
+
+.cookie-consent__title {
+  margin: 0 0 var(--space-0-5);
+  color: var(--t-primary);
+  font-size: var(--font-size-base);
+  line-height: 1.2;
+}
+
+.cookie-consent__description {
+  margin: 0;
+  color: var(--t-secondary);
+  line-height: 1.35;
+}
+
+.cookie-consent__actions {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.cookie-consent__actions .btn {
+  white-space: nowrap;
+}
+
+.cookie-consent-enter-active,
+.cookie-consent-leave-active {
+  transition:
+    opacity var(--transition-slow) ease,
+    transform var(--transition-slow) ease;
+}
+
+.cookie-consent-enter-from,
+.cookie-consent-leave-to {
+  opacity: 0;
+  transform: translateY(1rem);
+}
+
+@media (max-width: 767px) {
+  .cookie-consent {
+    padding: var(--space-3);
+  }
+
+  .cookie-consent__panel {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+
+  .cookie-consent__icon-wrap {
+    width: 2.5rem;
+    height: 2.5rem;
+    align-self: start;
+  }
+
+  .cookie-consent__icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .cookie-consent__actions {
+    grid-column: 1 / -1;
+    flex-direction: column;
+  }
+
+  .cookie-consent__actions .btn {
+    width: 100%;
+  }
+}

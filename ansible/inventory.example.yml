@@ -1,0 +1,35 @@
+# ============================================
+# Ansible Inventory - Server Provisioning
+# ============================================
+# Reference only.
+# npm run setup / deploy / rollback generate ansible/inventory.yml from .env.
+#
+# Never commit inventory.yml to git.
+#
+# SINGLE SOURCE OF TRUTH: .env
+# ============================================
+
+all:
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    ansible_user: deploy # generated from DEPLOY_USER
+    deploy_user: deploy
+    ansible_ssh_common_args: -o StrictHostKeyChecking=yes -o UserKnownHostsFile=./ansible/known_hosts
+    # ansible_become_password is passed at runtime by the deploy scripts.
+    # Choose one auth mode:
+    # ansible_password: YOUR_DEPLOY_PASSWORD
+    # ansible_ssh_private_key_file: ~/.ssh/your-key
+
+  children:
+    # Production servers
+    production:
+      hosts:
+        prod-1:
+          ansible_host: YOUR_SERVER_IP
+
+    # Staging servers (optional)
+    # staging:
+    #   hosts:
+    #     stage-1:
+    #       ansible_host: YOUR_STAGING_IP
+    #       domain: staging.example.com

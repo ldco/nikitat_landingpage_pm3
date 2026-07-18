@@ -1,0 +1,19 @@
+.falling-letters {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .falling-letters {
+    display: none;
+  }
+}
+
+@media print {
+  .falling-letters {
+    display: none;
+  }
+}

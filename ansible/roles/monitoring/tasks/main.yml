@@ -1,0 +1,95 @@
+# ============================================
+# Monitoring - Local metrics source for PM admin
+# ============================================
+
+- name: Install Netdata package
+  apt:
+    name: netdata
+    state: present
+    update_cache: yes
+  register: netdata_install
+  failed_when: false
+  when: pm_monitoring_netdata_enabled | default('true') | bool
+  tags: [monitoring, netdata]
+
+- name: Explain skipped Netdata install
+  debug:
+    msg: "Netdata package is not available from the configured apt repositories; PM admin monitoring will show unavailable until Netdata is installed."
+  when:
+    - pm_monitoring_netdata_enabled | default('true') | bool
+    - netdata_install is defined
+    - netdata_install.failed | default(false)
+  tags: [monitoring, netdata]
+
+- name: Detect Docker bridge gateway for app-container metrics access
+  shell: |
+    set -euo pipefail
+    ip -4 addr show docker0 | awk '/inet / {print $2}' | cut -d/ -f1 | head -n 1
+  args:
+    executable: /bin/bash
+  register: docker_bridge_gateway
+  changed_when: false
+  failed_when: false
+  when: pm_monitoring_netdata_enabled | default('true') | bool
+  tags: [monitoring, netdata]
+
+- name: Keep Netdata private to localhost and Docker bridge
+  blockinfile:
+    path: /etc/netdata/netdata.conf
+    marker: "# {mark} PuppetMaster local monitoring"
+    block: |
+      [web]
+        bind socket to IP = 127.0.0.1 {{ docker_bridge_gateway.stdout | default('172.17.0.1', true) }}
+        allow connections from = *
+    create: yes
+    mode: '0644'
+  notify: Restart netdata
+  when:
+    - pm_monitoring_netdata_enabled | default('true') | bool
+    - netdata_install is defined
+    - not (netdata_install.failed | default(false))
+  tags: [monitoring, netdata]
+
+- name: Normalize existing Netdata bind directives for Docker monitoring
+  replace:
+    path: /etc/netdata/netdata.conf
+    regexp: '^\s*bind socket to IP\s*=.*$'
+    replace: '  bind socket to IP = 127.0.0.1 {{ docker_bridge_gateway.stdout | default("172.17.0.1", true) }}'
+  notify: Restart netdata
+  when:
+    - pm_monitoring_netdata_enabled | default('true') | bool
+    - netdata_install is defined
+    - not (netdata_install.failed | default(false))
+  tags: [monitoring, netdata]
+
+- name: Normalize existing Netdata allow directives for Docker monitoring
+  replace:
+    path: /etc/netdata/netdata.conf
+    regexp: '^\s*allow connections from\s*=.*$'
+    replace: '  allow connections from = *'
+  notify: Restart netdata
+  when:
+    - pm_monitoring_netdata_enabled | default('true') | bool
+    - netdata_install is defined
+    - not (netdata_install.failed | default(false))
+  tags: [monitoring, netdata]
+
+- name: Enable Netdata service
+  systemd:
+    name: netdata
+    state: started
+    enabled: yes
+  when:
+    - pm_monitoring_netdata_enabled | default('true') | bool
+    - netdata_install is defined
+    - not (netdata_install.failed | default(false))
+  tags: [monitoring, netdata]
+
+- name: Stop Netdata when PM monitoring is disabled
+  systemd:
+    name: netdata
+    state: stopped
+    enabled: no
+  failed_when: false
+  when: not (pm_monitoring_netdata_enabled | default('true') | bool)
+  tags: [monitoring, netdata]

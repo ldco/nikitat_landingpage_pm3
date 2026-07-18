@@ -1,0 +1,63 @@
+# ============================================
+# Deploy User - Create user for remote deploy operations
+# ============================================
+
+- name: Create deploy group
+  group:
+    name: '{{ deploy_user }}'
+    state: present
+  tags: [deploy-user]
+
+- name: Create deploy user
+  user:
+    name: '{{ deploy_user }}'
+    group: '{{ deploy_user }}'
+    groups:
+      - docker
+      - sudo
+    append: yes
+    shell: /bin/bash
+    create_home: yes
+    state: present
+  tags: [deploy-user]
+
+- name: Remove legacy broad deploy sudoers file
+  file:
+    path: /etc/sudoers.d/{{ deploy_user }}
+    state: absent
+  tags: [deploy-user]
+
+- name: Create .ssh directory
+  file:
+    path: /home/{{ deploy_user }}/.ssh
+    state: directory
+    owner: '{{ deploy_user }}'
+    group: '{{ deploy_user }}'
+    mode: '0700'
+  tags: [deploy-user]
+  when: deploy_auth_mode | default('password') == 'ssh_key'
+
+- name: Add SSH authorized key
+  authorized_key:
+    user: '{{ deploy_user }}'
+    key: '{{ deploy_user_ssh_key }}'
+    state: present
+  tags: [deploy-user]
+  when:
+    - deploy_auth_mode | default('password') == 'ssh_key'
+    - deploy_user_ssh_key is defined
+    - deploy_user_ssh_key | length > 0
+
+- name: Create app directories
+  file:
+    path: '{{ item }}'
+    state: directory
+    owner: '{{ deploy_user }}'
+    group: '{{ deploy_user }}'
+    mode: '0755'
+  loop:
+    - /home/{{ deploy_user }}/app
+    - /home/{{ deploy_user }}/backups
+    - /home/{{ deploy_user }}/app/runtime
+    - /home/{{ deploy_user }}/app/releases
+  tags: [deploy-user]

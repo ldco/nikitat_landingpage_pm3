@@ -1,0 +1,75 @@
+{
+  "projectBasics": {
+    "projectName": "Puppet Master",
+    "ownerCompany": "Puppet Master",
+    "shortDescription": "Puppet Master framework starter used when no project concept has been provided.",
+    "websiteOrApp": "website",
+    "targetAudience": "Framework evaluators and project owners",
+    "primaryMarketCountry": "USA",
+    "primaryLanguage": "en",
+    "additionalLanguages": [],
+    "rtlNeeded": false,
+    "dateFormat": "MM/DD/YYYY",
+    "currency": "USD",
+    "timezone": "UTC"
+  },
+  "businessGoal": {
+    "mainGoal": "Present the Puppet Master framework starter baseline.",
+    "secondaryGoals": [
+      "Show default navigation, feature, FAQ, and contact modules",
+      "Provide a safe starting point for agent-generated project layers"
+    ],
+    "primaryConversionAction": "Contact",
+    "firstTenSeconds": "This is the PM master starter and should be replaced by a generated project layer when concept docs exist."
+  },
+  "productShape": {
+    "publicWebsiteNeeded": true,
+    "userAppNeeded": false,
+    "adminPanelNeeded": true,
+    "onepagerOrMultipage": "onepager",
+    "publicRoutesSections": ["home", "features", "faq", "contact"],
+    "requiredAdminModules": ["translations", "settings", "legal", "features", "faq", "contacts"],
+    "requiredPmModules": ["features", "faq", "contact"],
+    "customModulesOrDatabaseTables": []
+  },
+  "contentAndBrand": {
+    "brandTone": "Clear, technical, concise",
+    "visualDirection": "Use PM master branding from the designer-maintained public/logos assets.",
+    "existingLogoAssetsAvailable": true,
+    "assetsPathOrInstructions": "Use public/logos, public/favicon.svg, and public/og-image assets until project assets are supplied.",
+    "publicCopySource": "greenfield defaults and project/init/concept_docs/",
+    "conceptDocsPath": "project/init/concept_docs/",
+    "legalCompanyDetails": "PM master placeholders only; replace before production.",
+    "seoTitle": "Puppet Master",
+    "seoDescription": "Puppet Master framework starter for generated Nuxt projects.",
+    "seoKeywords": ["puppet master", "nuxt", "framework", "starter"],
+    "socialPreviewRequirements": "Use PM master preview assets until project assets are supplied."
+  },
+  "integrations": {
+    "contactForm": true,
+    "emailProviderSmtp": false,
+    "telegramNotifications": false,
+    "analytics": false,
+    "storageUploads": "local",
+    "externalApis": [],
+    "authRequirements": "Admin auth only",
+    "paymentsSubscriptions": false,
+    "otherIntegrations": []
+  },
+  "deployment": {
+    "localOnlyForNowOrProductionTarget": "local-only",
+    "launchDomain": "",
+    "hostingServerTarget": "",
+    "dnsReady": false,
+    "productionEmailForTls": "",
+    "expectedDeployMode": "docker"
+  },
+  "implementationPermissions": {
+    "useCurrentWorkspaceAsNewProject": true,
+    "createNewFolderRepository": false,
+    "approveReplacingOldProjectLayerContent": true,
+    "keepPmFrameworkCore": true,
+    "resetLocalDatabaseBeforeNewSeedData": true,
+    "seedDemoData": true
+  }
+}

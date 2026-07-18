@@ -1,0 +1,92 @@
+# ============================================
+# Common - Base system setup
+# ============================================
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  tags: [common, packages]
+
+- name: Upgrade all packages
+  apt:
+    upgrade: safe
+  tags: [common, packages]
+
+- name: Install essential packages
+  apt:
+    name:
+      - curl
+      - wget
+      - git
+      - rsync
+      - htop
+      - vim
+      - unzip
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - lsb-release
+      - sqlite3
+      - ffmpeg
+      - zstd
+      - build-essential
+    state: present
+  tags: [common, packages]
+
+- name: Ensure NodeSource keyring directory exists
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  tags: [common, packages]
+
+- name: Download NodeSource signing key
+  get_url:
+    url: https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
+    dest: /tmp/nodesource.gpg.key
+    mode: '0644'
+  tags: [common, packages]
+
+- name: Install NodeSource apt keyring
+  shell: |
+    gpg --dearmor --yes --output /etc/apt/keyrings/nodesource.gpg /tmp/nodesource.gpg.key
+  args:
+    creates: /etc/apt/keyrings/nodesource.gpg
+  tags: [common, packages]
+
+- name: Configure NodeSource Node 22 repository
+  apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main"
+    filename: nodesource-node22
+    state: present
+    update_cache: yes
+  tags: [common, packages]
+
+- name: Install pinned Node.js runtime
+  apt:
+    name:
+      - nodejs
+    state: present
+  tags: [common, packages]
+
+- name: Set timezone to UTC
+  timezone:
+    name: UTC
+  tags: [common, timezone]
+
+- name: Configure system limits
+  pam_limits:
+    domain: '*'
+    limit_type: soft
+    limit_item: nofile
+    value: 65535
+  tags: [common, limits]
+
+- name: Configure system limits (hard)
+  pam_limits:
+    domain: '*'
+    limit_type: hard
+    limit_item: nofile
+    value: 65535
+  tags: [common, limits]

@@ -1,0 +1,99 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * CHROME GPU OKLCH COLOR-BANDING FALLBACK
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Problem: Chrome's hardware-accelerated rendering pipeline can produce
+ * visible color seams/banding between adjacent structural containers when
+ * computing oklch color-mix() values at runtime. This is a GPU color profile
+ * quantization error specific to certain display profiles (sRGB vs Display P3)
+ * and does NOT manifest in Brave (Shields intercept GPU interpolation),
+ * Firefox, or Safari.
+ *
+ * Solution: oklch color-mix() calls are reassigned to srgb equivalents
+ * when the .use-color-fallback class is present on <html>.
+ * The class is added unconditionally in app.vue via useHead() — no client-side
+ * plugin needed. Only affects Chrome users (the banding is absent in other browsers).
+ *
+ * Applies to :root directly (always-on), so no client-side detection is needed.
+ * The perceptual difference between srgb and oklch for neutral color mixing
+ * is negligible — far less than the banding artifact this fixes.
+ *
+ * IMPORTANT: light-dark() and token inheritance are fully preserved.
+ * Only the color-mix() color space is swapped from oklch → srgb.
+ *
+ * Controlled by: features.colorRenderFallback in puppet-master.config.ts
+ * Default: true (always-on — protects Chrome users from GPU banding)
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+html.use-color-fallback {
+  /* ══════════════════════════════════════════════════════════
+   * LAYOUT COLORS (l-)
+   * ══════════════════════════════════════════════════════════ */
+
+  --l-bg: light-dark(var(--p-white), var(--p-black));
+
+  --l-bg-elevated: light-dark(
+    color-mix(in srgb, var(--p-white), var(--p-black) 3%),
+    color-mix(in srgb, var(--p-black), var(--p-white) 5%)
+  );
+
+  --l-bg-sunken: light-dark(
+    color-mix(in srgb, var(--p-white), var(--p-black) 6%),
+    color-mix(in srgb, var(--p-black), var(--p-white) 2%)
+  );
+
+  --l-surface: var(--l-bg-elevated);
+
+  --l-placeholder-base: light-dark(
+    color-mix(in srgb, var(--p-white), var(--p-black) 12%),
+    color-mix(in srgb, var(--p-black), var(--p-white) 16%)
+  );
+
+  --l-placeholder-shine: light-dark(
+    color-mix(in srgb, var(--p-white), transparent 35%),
+    color-mix(in srgb, var(--p-white), transparent 78%)
+  );
+
+  --l-placeholder-header: light-dark(
+    color-mix(in srgb, var(--p-white), var(--p-black) 24%),
+    color-mix(in srgb, var(--p-black), var(--p-white) 24%)
+  );
+
+  --l-shadow-soft: light-dark(
+    color-mix(in srgb, var(--p-black), transparent 90%),
+    color-mix(in srgb, var(--p-black), transparent 70%)
+  );
+
+  --l-border: light-dark(
+    color-mix(in srgb, var(--p-black), transparent 88%),
+    color-mix(in srgb, var(--p-white), transparent 85%)
+  );
+
+  --l-border-strong: light-dark(
+    color-mix(in srgb, var(--p-black), transparent 75%),
+    color-mix(in srgb, var(--p-white), transparent 70%)
+  );
+
+  /* ══════════════════════════════════════════════════════════
+   * TEXT COLORS (t-)
+   * ══════════════════════════════════════════════════════════ */
+
+  --t-primary: light-dark(var(--p-black), var(--p-white));
+
+  --t-secondary: light-dark(
+    color-mix(in srgb, var(--p-black), transparent 35%),
+    color-mix(in srgb, var(--p-white), transparent 35%)
+  );
+
+  --t-muted: light-dark(
+    color-mix(in srgb, var(--p-black), transparent 55%),
+    color-mix(in srgb, var(--p-white), transparent 55%)
+  );
+
+  --t-tertiary: light-dark(
+    color-mix(in srgb, var(--p-black), transparent 68%),
+    color-mix(in srgb, var(--p-white), transparent 68%)
+  );
+}

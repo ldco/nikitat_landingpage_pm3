@@ -1,0 +1,81 @@
+- name: Roll back PM project to previous Docker image
+  hosts: all
+  become: true
+  collections:
+    - community.docker
+  vars_files:
+    - deploy-vars.yml
+
+  vars:
+    project_id: '{{ project_id | mandatory }}'
+    stack_dir: '/home/{{ deploy_user }}/app/stacks/{{ project_id }}'
+    previous_image_file: '{{ stack_dir }}/previous-image'
+    current_image_file: '{{ stack_dir }}/current-image'
+
+  tasks:
+    - name: Check previous image marker
+      stat:
+        path: '{{ previous_image_file }}'
+      register: prev_image_stat
+
+    - name: Ensure previous image exists
+      assert:
+        that: prev_image_stat.stat.exists
+        fail_msg: "No previous image marker for project {{ project_id }}."
+
+    - name: Read previous image
+      slurp:
+        src: '{{ previous_image_file }}'
+      register: prev_image_content
+
+    - name: Read current image
+      slurp:
+        src: '{{ current_image_file }}'
+      register: curr_image_content
+      failed_when: false
+
+    - name: Resolve rollback image
+      set_fact:
+        rollback_image: '{{ prev_image_content.content | b64decode | trim }}'
+
+    - name: Update docker-compose.yml image reference
+      replace:
+        path: '{{ stack_dir }}/docker-compose.yml'
+        regexp: '^(\s+)image: .*'
+        replace: '\1image: {{ rollback_image }}'
+
+    - name: Restart project with previous image
+      community.docker.docker_compose_v2:
+        project_src: '{{ stack_dir }}'
+        project_name: 'pm-{{ project_id }}'
+        state: present
+        pull: false
+        recreate: always
+
+    - name: Swap image markers — previous becomes current
+      copy:
+        dest: '{{ current_image_file }}'
+        content: "{{ rollback_image }}\n"
+        owner: '{{ deploy_user }}'
+        group: '{{ deploy_user }}'
+        mode: '0600'
+
+    - name: Clear previous image marker
+      file:
+        path: '{{ previous_image_file }}'
+        state: absent
+
+  post_tasks:
+    - name: Display rollback summary
+      debug:
+        msg: |
+          ========================================
+          Project '{{ project_id }}' rolled back.
+          ========================================
+
+          Image: {{ rollback_image }}
+          Stack: {{ stack_dir }}
+          Domain: https://{{ site_domain }}
+
+          Health: curl -fsS https://{{ site_domain }}/api/health
+          ========================================

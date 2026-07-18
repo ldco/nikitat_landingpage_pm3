@@ -1,0 +1,252 @@
+# ============================================
+# PuppetMaster Shared VPS Provisioning Playbook
+# ============================================
+# Prepares a VPS to host MULTIPLE Puppet Master projects.
+# Installs Dockge for multi-stack Docker Compose management.
+#
+# Usage (via pm-server-create.sh, not directly):
+#   ansible-playbook -i inventory-shared.yml provision-shared.yml
+#
+# What it does:
+# 1. Same base provisioning as the standard PM server setup (system, security, docker, monitoring)
+# 2. Additionally installs and configures Dockge
+# 3. Creates shared Docker network for all PM projects
+# 4. Sets up Traefik with dynamic file provider for multi-domain routing
+# ============================================
+
+- name: Prepare server for PuppetMaster multi-project hosting
+  hosts: all
+  become: true
+  collections:
+    - community.docker
+  vars_files:
+    - deploy-vars.yml
+
+  roles:
+    - common
+    - security
+    - docker
+    - monitoring
+    - deploy-user
+
+  tasks:
+    # ─── Shared infrastructure directories ──────────────────────────────
+
+    - name: Create shared application directories
+      file:
+        path: '{{ item }}'
+        state: directory
+        owner: '{{ deploy_user }}'
+        group: '{{ deploy_user }}'
+        mode: '0755'
+      loop:
+        - '/home/{{ deploy_user }}/app/stacks'
+        - '/home/{{ deploy_user }}/app/traefik'
+        - '/home/{{ deploy_user }}/app/traefik/dynamic'
+        - '/home/{{ deploy_user }}/app/registry'
+        - '/home/{{ deploy_user }}/backups'
+
+    - name: Create shared app data parent directory
+      file:
+        path: '/home/{{ deploy_user }}/app/shared'
+        state: directory
+        owner: '{{ deploy_user }}'
+        group: '{{ deploy_user }}'
+        mode: '0755'
+
+    # ─── Shared Docker network ──────────────────────────────────────────
+
+    - name: Create shared PM application Docker network
+      community.docker.docker_network:
+        name: 'pm-shared'
+        state: present
+
+    - name: Detect pm-shared network gateway for Netdata bind
+      command:
+        argv:
+          - docker
+          - network
+          - inspect
+          - pm-shared
+          - --format
+          - '{% raw %}{{ (index .IPAM.Config 0).Gateway }}{% endraw %}'
+      register: pm_shared_gateway
+      changed_when: false
+      failed_when: false
+      when: pm_monitoring_netdata_enabled | default('true') | bool
+
+    - name: Detect pm-shared network subnet for UFW
+      command:
+        argv:
+          - docker
+          - network
+          - inspect
+          - pm-shared
+          - --format
+          - '{% raw %}{{ (index .IPAM.Config 0).Subnet }}{% endraw %}'
+      register: pm_shared_subnet
+      changed_when: false
+      failed_when: false
+      when: pm_monitoring_netdata_enabled | default('true') | bool
+
+    - name: Allow pm-shared network to reach Netdata through UFW
+      shell: |
+        set -euo pipefail
+        if ! command -v ufw >/dev/null 2>&1; then
+          echo "ufw unavailable"
+          exit 0
+        fi
+        ufw allow proto tcp from {{ pm_shared_subnet.stdout | quote }} to {{ pm_shared_gateway.stdout | quote }} port 19999 comment 'PuppetMaster shared Docker Netdata'
+      args:
+        executable: /bin/bash
+      register: netdata_shared_ufw_rule
+      changed_when: "'Rule added' in netdata_shared_ufw_rule.stdout or 'Rules updated' in netdata_shared_ufw_rule.stdout"
+      when:
+        - pm_monitoring_netdata_enabled | default('true') | bool
+        - pm_shared_subnet.stdout | default('') | length > 0
+        - pm_shared_gateway.stdout | default('') | length > 0
+
+    - name: Extend Netdata bind to include pm-shared gateway
+      replace:
+        path: /etc/netdata/netdata.conf
+        regexp: '^(\s*bind socket to IP\s*=\s*.*)$'
+        replace: '\1 {{ pm_shared_gateway.stdout | default("", true) }}'
+      notify: Restart netdata
+      when:
+        - pm_monitoring_netdata_enabled | default('true') | bool
+        - pm_shared_gateway.stdout | default('') | length > 0
+
+    # ─── Let's Encrypt ──────────────────────────────────────────────────
+
+    - name: Create Let's Encrypt directory
+      file:
+        path: /letsencrypt
+        state: directory
+        mode: '0700'
+
+    - name: Ensure ACME storage file exists
+      file:
+        path: /letsencrypt/acme.json
+        state: touch
+        mode: '0600'
+
+    # ─── Traefik edge proxy (shared across all projects) ─────────────────
+
+    - name: Ensure Traefik dynamic config directory exists
+      file:
+        path: '/home/{{ deploy_user }}/app/traefik/dynamic'
+        state: directory
+        owner: '{{ deploy_user }}'
+        group: '{{ deploy_user }}'
+        mode: '0755'
+
+    - name: Write initial Traefik dynamic config (empty, projects append)
+      copy:
+        dest: '/home/{{ deploy_user }}/app/traefik/dynamic/pm-projects.yml'
+        content: |
+          # PuppetMaster shared Traefik configuration
+          # Managed by pm-deploy. Each project adds its own router block.
+          http:
+            routers: {}
+            services: {}
+        owner: '{{ deploy_user }}'
+        group: '{{ deploy_user }}'
+        mode: '0644'
+
+    - name: Start Traefik reverse proxy
+      community.docker.docker_container:
+        name: 'pm-traefik'
+        image: '{{ traefik_image | default("traefik:v3.1") }}'
+        state: started
+        restart_policy: unless-stopped
+        published_ports:
+          - '80:80'
+          - '443:443'
+        networks:
+          - name: 'pm-shared'
+        volumes:
+          - /letsencrypt:/letsencrypt
+          - '/home/{{ deploy_user }}/app/traefik/dynamic:/etc/traefik/dynamic:ro'
+        command:
+          - --providers.file.directory=/etc/traefik/dynamic
+          - --providers.file.watch=true
+          - --entrypoints.web.address=:80
+          - --entrypoints.websecure.address=:443
+          - --entrypoints.web.http.redirections.entryPoint.to=websecure
+          - --entrypoints.web.http.redirections.entryPoint.scheme=https
+          - --certificatesresolvers.letsencrypt.acme.email={{ acme_email }}
+          - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+          - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
+          - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+
+    # ─── Dockge (multi-stack Docker Compose dashboard) ───────────────────
+
+    - name: Create Dockge data directories
+      file:
+        path: '{{ item }}'
+        state: directory
+        owner: '{{ deploy_user }}'
+        group: '{{ deploy_user }}'
+        mode: '0755'
+      loop:
+        - '/home/{{ deploy_user }}/app/dockge'
+        - '/home/{{ deploy_user }}/app/dockge/data'
+        - '/home/{{ deploy_user }}/app/stacks'
+
+    - name: Start Dockge container
+      community.docker.docker_container:
+        name: 'pm-dockge'
+        image: 'louislam/dockge:1'
+        state: started
+        restart_policy: unless-stopped
+        published_ports:
+          - '5001:5001'
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - '/home/{{ deploy_user }}/app/dockge/data:/app/data'
+          - '/home/{{ deploy_user }}/app/stacks:/home/{{ deploy_user }}/app/stacks'
+        networks:
+          - name: 'pm-shared'
+        env:
+          DOCKGE_STACKS_DIR: '/home/{{ deploy_user }}/app/stacks'
+
+    # ─── Private Docker Registry (shared image cache) ────────────────────
+
+    - name: Start private Docker registry
+      community.docker.docker_container:
+        name: 'pm-registry'
+        image: 'registry:2'
+        state: started
+        restart_policy: unless-stopped
+        published_ports:
+          - '127.0.0.1:5000:5000'
+        volumes:
+          - '/home/{{ deploy_user }}/app/registry:/var/lib/registry'
+        networks:
+          - name: 'pm-shared'
+        env:
+          REGISTRY_STORAGE_DELETE_ENABLED: 'true'
+
+  # ─── Completion ──────────────────────────────────────────────────────
+
+  post_tasks:
+    - name: Display completion message
+      debug:
+        msg: |
+          ========================================
+          Shared PM server {{ inventory_hostname }} is ready!
+          ========================================
+
+          IP: {{ ansible_host }}
+          Deploy user: {{ deploy_user }}
+          Dockge dashboard: https://{{ ansible_host }}:5001
+
+          Stack directory: /home/{{ deploy_user }}/app/stacks/
+          Traefik config:   /home/{{ deploy_user }}/app/traefik/dynamic/
+
+          Deploy projects with:
+            npm run deploy
+
+          View running stacks in Dockge or via:
+            docker ps --filter network=pm-shared
+          ========================================

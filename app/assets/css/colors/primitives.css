@@ -1,0 +1,44 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * COLOR PRIMITIVES
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * THE ONLY COLORS YOU NEED TO DEFINE!
+ * Everything else is auto-calculated in auto.css
+ *
+ * p- prefix = "primitive"
+ *
+ * IMPORTANT: These values MUST match puppet-master.config.ts colors.
+ * There is currently no build-time sync — update both locations manually.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+:root {
+  /* ══════════════════════════════════════════════════════════
+   * THE 4 PRIMITIVES - Change these to rebrand the entire site
+   * Project branding from puppet-master.config.ts colors.
+   * ══════════════════════════════════════════════════════════ */
+
+  --p-black: #3b0902; /* Deep maroon — strong text contrast */
+  --p-white: #fbf2e7; /* Pale warm off-white — bright background */
+  --p-brand: #901504; /* Deep red — brand accent */
+  --p-accent: #901504; /* Deep red — secondary accent */
+
+  /* Enable light-dark() function */
+  color-scheme: light dark;
+}
+
+/*
+ * Dark/Light mode class support (for @nuxtjs/color-mode)
+ * The module adds .dark or .light class to <html> element
+ */
+html.dark {
+  color-scheme: dark;
+}
+
+html.light {
+  color-scheme: light;
+}
+
+

@@ -1,0 +1,522 @@
+{
+  "$schema": "./docs/core_migration/pm-ownership.schema.json",
+  "version": 1,
+  "description": "Initial Puppet Master ownership scaffold. Paths are intentionally broad for the first no-legacy Plan 1 migration phase.",
+  "owners": {
+    "core": {
+      "description": "Stable PM platform runtime: config loading, security, auth/session primitives, RBAC, audit, setup, base CSS, shared utilities."
+    },
+    "site-shell": {
+      "description": "Public website shell, navigation, footer/header behavior, public page rendering."
+    },
+    "admin-shell": {
+      "description": "PM management shell: admin layouts, admin pages, admin APIs, settings/users/audit surfaces."
+    },
+    "app-shell": {
+      "description": "Authenticated product/dashboard shell for app-mode projects."
+    },
+    "plugin-blog": {
+      "description": "Blog public/admin functionality."
+    },
+    "plugin-pricing": {
+      "description": "Pricing public/admin functionality."
+    },
+    "plugin-contact": {
+      "description": "Contact form, contact settings, notifications, and related public/admin functionality."
+    },
+    "plugin-scrollytelling": {
+      "description": "Scene-based storytelling and motion functionality."
+    },
+    "plugin-portfolio": {
+      "description": "Portfolio/project showcase functionality."
+    },
+    "plugin-faq": {
+      "description": "FAQ public/admin functionality."
+    },
+    "plugin-team": {
+      "description": "Team public/admin functionality."
+    },
+    "plugin-testimonials": {
+      "description": "Testimonials public/admin functionality."
+    },
+    "plugin-clients": {
+      "description": "Clients/logos public/admin functionality."
+    },
+    "plugin-features": {
+      "description": "Feature cards public/admin functionality."
+    },
+    "plugin-media": {
+      "description": "Media upload, storage-facing UI/API, and media delivery functionality."
+    },
+    "plugin-analytics": {
+      "description": "Analytics capture, performance telemetry, and analytics integrations."
+    },
+    "undecided": {
+      "description": "Temporary bucket for mixed paths that require inspection before moving."
+    },
+    "project": {
+      "description": "Current product code, content, branding, project config, custom APIs, custom schema, and client-specific assets."
+    }
+  },
+  "paths": [
+    {
+      "path": "project/puppet-master.config.ts",
+      "owner": "project",
+      "status": "canonical"
+    },
+    {
+      "path": "pm-core/app/types/**",
+      "owner": "core",
+      "status": "conflict",
+      "notes": "Shared type contracts live in core, but modules.ts still contains plugin route/admin metadata. Split pure module config contracts from shell/plugin metadata before treating this path as canonical core."
+    },
+    {
+      "path": "pm-core/app/composables/usePmConfig.ts",
+      "owner": "core",
+      "status": "canonical"
+    },
+    {
+      "path": "pm-core/app/composables/useConfig.ts",
+      "owner": "core",
+      "status": "canonical"
+    },
+    {
+      "path": "pm-core/app/composables/useSafeConfig.ts",
+      "owner": "core",
+      "status": "canonical"
+    },
+    {
+      "path": "pm-core/app/composables/useModule.ts",
+      "owner": "core",
+      "status": "conflict",
+      "notes": "Core access wrapper over current module registry, currently coupled to plugin route/admin metadata. Do not use this as proof that plugin route/admin metadata is ready to move."
+    },
+    {
+      "path": "app/composables/apiFetch.ts",
+      "owner": "core",
+      "status": "candidate",
+      "notes": "Core API transport primitive. Move with useCsrf."
+    },
+    {
+      "path": "app/composables/useCsrf.ts",
+      "owner": "core",
+      "status": "candidate",
+      "notes": "Core CSRF primitive. Move with apiFetch."
+    },
+    {
+      "path": "app/composables/useAuth.ts",
+      "owner": "core",
+      "status": "candidate",
+      "notes": "Core auth state candidate; inspect admin/app coupling before moving."
+    },
+    {
+      "path": "app/composables/useClientMounted.ts",
+      "owner": "core",
+      "status": "candidate"
+    },
+    {
+      "path": "app/composables/useConfirm.ts",
+      "owner": "core",
+      "status": "candidate",
+      "notes": "Shared UI primitive; move with confirm dialog ownership plan."
+    },
+    {
+      "path": "app/composables/useFormDirty.ts",
+      "owner": "core",
+      "status": "candidate"
+    },
+    {
+      "path": "app/composables/useMediaQuery.ts",
+      "owner": "core",
+      "status": "candidate"
+    },
+    {
+      "path": "app/composables/usePagination.ts",
+      "owner": "core",
+      "status": "candidate"
+    },
+    {
+      "path": "app/composables/useSiteSettings.ts",
+      "owner": "core",
+      "status": "candidate",
+      "notes": "Runtime settings access; inspect settings API coupling before moving."
+    },
+    {
+      "path": "app/composables/useToast.ts",
+      "owner": "core",
+      "status": "candidate",
+      "notes": "Shared UI primitive; move with toast container ownership plan."
+    },
+    {
+      "path": "app/composables/useHeaderQuickContacts.ts",
+      "owner": "undecided",
+      "status": "conflict",
+      "notes": "Currently crosses site-shell, settings, project branding, and icon dependencies. Not safe for physical move yet."
+    },
+    {
+      "path": "app/composables/useLogo.ts",
+      "owner": "undecided",
+      "status": "conflict",
+      "notes": "Currently crosses site-shell and project logo asset conventions. Not safe for physical move yet."
+    },
+    {
+      "path": "app/composables/useWebsiteNavigation.ts",
+      "owner": "site-shell",
+      "status": "candidate"
+    },
+    {
+      "path": "app/composables/useScrollHeader.ts",
+      "owner": "site-shell",
+      "status": "candidate"
+    },
+    {
+      "path": "app/composables/useScrollSpy.ts",
+      "owner": "site-shell",
+      "status": "candidate"
+    },
+    {
+      "path": "app/composables/useReveal.ts",
+      "owner": "site-shell",
+      "status": "candidate",
+      "notes": "Public visual behavior; can become core only if shared across shells."
+    },
+    {
+      "path": "app/composables/useCookieConsent.ts",
+      "owner": "site-shell",
+      "status": "candidate"
+    },
+    {
+      "path": "app/composables/useUnreadCount.ts",
+      "owner": "admin-shell",
+      "status": "candidate"
+    },
+    {
+      "path": "app/composables/useWebSocket.ts",
+      "owner": "app-shell",
+      "status": "candidate",
+      "notes": "Runtime realtime helper; inspect consumers before moving."
+    },
+    {
+      "path": "app/composables/useScrollytelling.ts",
+      "owner": "plugin-scrollytelling",
+      "status": "candidate"
+    },
+    {
+      "path": "app/composables/useLegalDocuments.ts",
+      "owner": "plugin-contact",
+      "status": "candidate",
+      "notes": "Legal/contact/footer coupling; review before moving."
+    },
+    {
+      "path": "app/assets/css/colors/**",
+      "owner": "core",
+      "status": "candidate"
+    },
+    {
+      "path": "app/assets/css/typography/**",
+      "owner": "core",
+      "status": "candidate"
+    },
+    {
+      "path": "app/assets/css/common/**",
+      "owner": "core",
+      "status": "candidate",
+      "notes": "Shared utilities; inspect project-specific classes first."
+    },
+    {
+      "path": "app/assets/css/layout/**",
+      "owner": "undecided",
+      "status": "candidate",
+      "notes": "Mixed core/site/admin layout styles."
+    },
+    {
+      "path": "app/assets/css/runtime/**",
+      "owner": "undecided",
+      "status": "candidate",
+      "notes": "Mixed plugin and section-specific runtime CSS."
+    },
+    {
+      "path": "app/assets/css/skeleton/**",
+      "owner": "site-shell",
+      "status": "candidate"
+    },
+    {
+      "path": "app/components/**",
+      "owner": "undecided",
+      "status": "candidate",
+      "notes": "Mixed core primitives, shells, plugins, and project components. Classify before moving."
+    },
+    {
+      "path": "app/layouts/default.vue",
+      "owner": "site-shell",
+      "status": "candidate"
+    },
+    {
+      "path": "app/pages/admin/**",
+      "owner": "admin-shell",
+      "status": "candidate"
+    },
+    {
+      "path": "app/layouts/admin.vue",
+      "owner": "admin-shell",
+      "status": "candidate"
+    },
+    {
+      "path": "app/layouts/blank.vue",
+      "owner": "core",
+      "status": "candidate",
+      "notes": "Shared layout primitive if it remains generic."
+    },
+    {
+      "path": "app/pages/[section].vue",
+      "owner": "site-shell",
+      "status": "candidate"
+    },
+    {
+      "path": "app/pages/index.vue",
+      "owner": "site-shell",
+      "status": "candidate"
+    },
+    {
+      "path": "app/pages/legal/**",
+      "owner": "plugin-contact",
+      "status": "candidate",
+      "notes": "Public legal documents; review contact/legal ownership."
+    },
+    {
+      "path": "app/middleware/**",
+      "owner": "undecided",
+      "status": "candidate",
+      "notes": "Split mode guards, auth guards, and setup guards before moving."
+    },
+    {
+      "path": "app/plugins/**",
+      "owner": "undecided",
+      "status": "candidate",
+      "notes": "Split startup preferences, reveal, performance, and client behavior before moving."
+    },
+    {
+      "path": "app/lib/assembly-engine/**",
+      "owner": "plugin-scrollytelling",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/admin/**",
+      "owner": "admin-shell",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/auth/**",
+      "owner": "core",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/setup/**",
+      "owner": "core",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/health.get.ts",
+      "owner": "core",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/docs/**",
+      "owner": "core",
+      "status": "candidate",
+      "notes": "Framework API docs unless generated from plugin-only contracts."
+    },
+    {
+      "path": "server/utils/auth.ts",
+      "owner": "core",
+      "status": "candidate"
+    },
+    {
+      "path": "server/utils/admin-rbac.ts",
+      "owner": "core",
+      "status": "candidate"
+    },
+    {
+      "path": "server/utils/audit.ts",
+      "owner": "core",
+      "status": "candidate"
+    },
+    {
+      "path": "server/utils/setup-guard.ts",
+      "owner": "core",
+      "status": "candidate"
+    },
+    {
+      "path": "server/utils/validation.ts",
+      "owner": "core",
+      "status": "candidate",
+      "notes": "Shared validation contracts; inspect plugin schemas before moving."
+    },
+    {
+      "path": "server/utils/storage/**",
+      "owner": "core",
+      "status": "candidate"
+    },
+    {
+      "path": "server/database/**",
+      "owner": "undecided",
+      "status": "candidate",
+      "notes": "Split core, shell, plugin, and project schema/seed/migrations later."
+    },
+    {
+      "path": "server/repositories/**",
+      "owner": "undecided",
+      "status": "candidate",
+      "notes": "Classify by table/domain before moving."
+    },
+    {
+      "path": "server/api/blog/**",
+      "owner": "plugin-blog",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/admin/blog/**",
+      "owner": "plugin-blog",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/pricing/**",
+      "owner": "plugin-pricing",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/admin/pricing/**",
+      "owner": "plugin-pricing",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/contact/**",
+      "owner": "plugin-contact",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/admin/contacts/**",
+      "owner": "plugin-contact",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/portfolios/**",
+      "owner": "plugin-portfolio",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/faq/**",
+      "owner": "plugin-faq",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/admin/faq/**",
+      "owner": "plugin-faq",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/team/**",
+      "owner": "plugin-team",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/admin/team/**",
+      "owner": "plugin-team",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/testimonials/**",
+      "owner": "plugin-testimonials",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/admin/testimonials/**",
+      "owner": "plugin-testimonials",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/clients/**",
+      "owner": "plugin-clients",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/admin/clients/**",
+      "owner": "plugin-clients",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/features/**",
+      "owner": "plugin-features",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/admin/features/**",
+      "owner": "plugin-features",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/upload/**",
+      "owner": "plugin-media",
+      "status": "candidate",
+      "notes": "Review storage/auth boundary before moving."
+    },
+    {
+      "path": "server/api/media/**",
+      "owner": "plugin-media",
+      "status": "candidate"
+    },
+    {
+      "path": "server/api/analytics/**",
+      "owner": "plugin-analytics",
+      "status": "candidate"
+    },
+    {
+      "path": "scripts/**",
+      "owner": "undecided",
+      "status": "candidate",
+      "notes": "Classify framework tooling vs project/deploy tooling per script."
+    },
+    {
+      "path": "tests/**",
+      "owner": "undecided",
+      "status": "candidate",
+      "notes": "Tests follow the source owner; classify with moved code."
+    },
+    {
+      "path": "docs/core_migration/**",
+      "owner": "core",
+      "status": "canonical"
+    },
+    {
+      "path": "docs/**",
+      "owner": "undecided",
+      "status": "candidate",
+      "notes": "Split framework docs, plugin docs, project launch docs, and operations docs."
+    },
+    {
+      "path": "app/components/sections/SectionBlog.vue",
+      "owner": "plugin-blog",
+      "status": "candidate"
+    },
+    {
+      "path": "app/components/sections/SectionPricing.vue",
+      "owner": "plugin-pricing",
+      "status": "candidate"
+    },
+    {
+      "path": "app/components/sections/SectionContact.vue",
+      "owner": "plugin-contact",
+      "status": "candidate"
+    },
+    {
+      "path": "app/components/molecules/HeroParallaxScene.vue",
+      "owner": "plugin-scrollytelling",
+      "status": "candidate"
+    },
+    {
+      "path": "app/components/organisms/OnepagerThreeStoryScene.vue",
+      "owner": "plugin-scrollytelling",
+      "status": "candidate"
+    }
+  ]
+}

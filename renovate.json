@@ -1,0 +1,28 @@
+{
+  "extends": ["config:recommended"],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on monday"]
+  },
+  "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "groupName": "npm dependencies"
+    },
+    {
+      "matchDatasources": ["docker"],
+      "groupName": "runtime images"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^framework\\.versions\\.json$/"],
+      "matchStrings": [
+        "\"nodeImage\"\\s*:\\s*\"(?<depName>node):(?<currentValue>[^\"]+)\"",
+        "\"traefikImage\"\\s*:\\s*\"(?<depName>traefik):(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "docker"
+    }
+  ]
+}

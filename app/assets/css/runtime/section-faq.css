@@ -1,0 +1,2 @@
+@import '../ui/content/faq.css';
+@layer reset, primitives, semantic, components, utilities;
