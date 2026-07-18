@@ -194,7 +194,146 @@ config.footerMadeBy = {
 }
 ```
 
-## 14. Settings Schema
+## 15. Scrollytelling System
+
+Сложная система scroll-driven анимаций. Работает без IntersectionObserver — через прямой DOM measurement.
+
+```ts
+useScrollytelling({ enabled, sceneSelector, parallaxSelector })
+
+// Сценарии:
+// 1. Scene progress: CSS var --pm-scene-progress (0 → 1)
+// 2. Global scroll progress: CSS var --pm-scroll-progress
+// 3. Parallax: scroll-driven + pointer-driven (мышь)
+// 4. Floating: авто-анимация элементов
+// 5. Режим reduced-motion: отключается при prefers-reduced-motion
+
+// HTML: data-атрибуты для элементов
+data-scrolly-scene      — отметить сцену
+data-parallax             — отметить parallax-элемент
+data-parallax-speed       — скорость (0.12)
+data-parallax-clamp       — макс смещение (160px)
+data-parallax-axis        — 'x' | 'y' | 'both'
+data-parallax-pointer     — интенсивность mouse-parallax
+data-parallax-pointer-axis
+data-parallax-float       — floating animation
+
+// Runtime: requestAnimationFrame-based
+// MutationObserver + ResizeObserver для динамических элементов
+// WeakMap для кэша прогресса сцен
+```
+
+## 16. Animation System
+
+### GSAP (SectionHero + HeroAnimatedLogo)
+```ts
+// SectionHero: GSAP intro animation
+// - Logo zoom-out (scale 5→1) + screen shake
+// - Tagline typing with TextPlugin
+// - Настройка: gsap.timeline()
+
+// HeroAnimatedLogo:
+// - Анимированные грани логотипа (scale 0→1, rotation 25→0)
+// - TextPlugin для typing эффекта
+// - gsap.registerPlugin(TextPlugin)
+```
+
+### Falling Letters (Three.js + Matter.js) — ambient background
+```ts
+// Matter.js: физический движок
+// - 400 тел (цифры/символы)
+// - Падают с гравитацией
+// - Canvas рендеринг (без Three.js!)
+// 
+// Эффект: Chaos → Order
+// - Хаотичные цифры падают
+// - Формируют строки 1 и 0
+// - Символы улетают
+```
+
+### Scroll Reveal
+```vue
+// v-reveal directive — IntersectionObserver-based
+// Добавляет класс 'revealed' при появлении в viewport
+// CSS анимация через transition
+```
+
+## 17. Page Transitions
+
+```ts
+features.pageTransitions: 'zoom'
+// Nuxt pageTransition + layoutTransition
+
+// 12 типов: fade, slide-left, slide-up, scale, zoom, flip,
+//           rotate, blur, bounce, swipe, ''
+
+// Только в SPA mode (onepager игнорирует)
+```
+
+## 18. Library Migration Map (Nuxt → SvelteKit)
+
+### ОСТАЮТСЯ (framework-agnostic):
+```
+better-sqlite3     → stays (DB driver)
+drizzle-orm        → stays (ORM)
+drizzle-kit        → stays (migrations)
+zod                → stays (validation)
+gsap               → stays (animations)
+three              → stays (3D, but not used — Matter.js used instead)
+matter-js          → stays (physics for falling letters)
+pino               → stays (logging)
+nodemailer         → stays (email)
+otpauth            → stays (2FA TOTP)
+qrcode             → stays (2FA QR)
+sanitize-html      → stays (XSS prevention)
+sharp              → stays (image processing)
+fluent-ffmpeg      → stays (video compression)
+ioredis            → stays (distributed cache)
+pinia              → REPLACED by Svelte 5 runes ($state/$derived)
+```
+
+### УХОДЯТ (Nuxt-specific):
+```
+nuxt               → @sveltejs/kit (framework)
+vue                → svelte (UI lib)
+vue-router         → svelte-spa-router or @sveltejs/kit/router
+@nuxtjs/i18n       → custom i18n composable
+@nuxtjs/critters   → manual critical CSS
+@vite-pwa/nuxt     → vite-plugin-pwa
+unplugin-icons     → unplugin-icons (stays — Vite plugin)
+hamburgers         → custom CSS (tiny)
+pinia              → Svelte runes
+vue-tsc            → svelte-check
+happy-dom          → jsdom
+```
+
+### НОВЫЕ (SvelteKit-specific):
+```
+@sveltejs/kit              → framework
+@sveltejs/adapter-node     → SSR/Node adapter
+svelte                     → UI library
+@sveltejs/vite-plugin-svelte → Vite plugin
+tailwindcss                → CSS engine
+@tailwindcss/vite          → Tailwind Vite plugin
+```
+
+### ТРЕБУЮТ ВНИМАНИЯ:
+```
+Three.js: в текущем сайте НЕ ИСПОЛЬЗУЕТСЯ
+  (используется Matter.js для falling letters)
+  Three.js есть в deps но dead code — для PM v2 фреймворка
+  Можно не ставить в PM3 если не нужен
+
+Matter.js: 400 физических тел для falling letters
+  Фреймворк-независимая JS библиотека — портируется как Svelte action
+  
+GSAP: hero intro animation
+  TextPlugin требуется для typing эффекта
+  Фреймворк-независимая — портируется как Svelte action
+
+hamburgers: CSS библиотека для гамбургер-меню
+  Можно заменить на 50 строк собственного CSS
+```
 
 ```ts
 settings: [
