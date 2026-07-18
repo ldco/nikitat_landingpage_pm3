@@ -144,15 +144,107 @@ PM имеет два эксклюзивных режима:
 - **App**: продуктовый дашборд
 - **Admin**: управление (добавляется к любому)
 
-## 10. Что мы пропустили при первой миграции
+## 10. Logo System
 
-❌ `features.onepager` — не учли, сделали SPA вместо onepager
-❌ `config.sections` — захардкодили навигацию вместо конфига
-❌ `SectionRenderer` — не сделали динамическую загрузку секций
-❌ `useWebsiteNavigation` — не сделали разрешение ссылок
-❌ Модули — не выделили в plugins, всё смешали в core
-❌ i18n — не сделали `te()` проверку, не сделали fallback chain
-❌ CSS — снесли оригинальные BEM классы
-❌ Settings schema — не перенесли
-❌ Logo система — не перенесли
-❌ Footer MadeBy — не перенесли
+```ts
+// 3 фактора определяют логотип: форма × тема × язык
+// Форма: horizontal (header) | circle (compact)
+// Тема: light (на тёмном фоне) | dark (на светлом фоне)
+// Язык: en, ru, he... с fallback chain
+
+config.logo = {
+  basePath: '/logos',
+  shapes: { horizontal: 'header', circle: 'short' },
+  langFallback: { en: 'en', fr: 'en', he: 'en' },
+  available: ['horizontal_dark_en', 'horizontal_light_en', ...]
+}
+
+// Авто-инверсия:
+// dark theme → 'light' logo (белый на тёмном)
+// light theme → 'dark' logo (тёмный на светлом)
+```
+
+## 11. ScrollSpy — для onepager навигации
+
+```ts
+useScrollSpy(sectionIds) → { activeSection, setActiveSection }
+// IntersectionObserver-free, прямой DOM measurement
+// requestAnimationFrame-based throttling
+// Срабатывает на scroll + resize
+// Авто-обновление при смене маршрута
+```
+
+## 12. Page Transitions (SPA mode only)
+
+```ts
+features.pageTransitions:
+  // 'fade' | 'slide-left' | 'slide-up' | 'scale'
+  // 'zoom' | 'flip' | 'rotate' | 'blur' | 'bounce' | 'swipe' | ''
+```
+
+## 13. Footer MadeBy
+
+```ts
+config.footerMadeBy = {
+  text: 'Made by',
+  url: 'https://fabrica22.pro',
+  basePath: '/madebylogos',
+  langFallback: { en: 'en', fr: 'en', he: 'en' }
+  available: ['horizontal_dark_en', ...]
+}
+```
+
+## 14. Settings Schema
+
+```ts
+settings: [
+  { key: 'contact.email', type: 'email', group: 'contact', label: 'Email', icon: 'mail' },
+  { key: 'social.telegram', type: 'url', group: 'contact', label: 'Telegram', icon: 'brand-telegram' },
+  // ... 50+ настроек
+]
+// GROUP: contact, location, social, integrations, legal, footer, seo, analytics, verification
+```
+
+---
+
+## Итог: что нужно для PM3 на SvelteKit + Tailwind (как Nuxt UI)
+
+### Архитектура PM3:
+
+```
+PM3 Core (SvelteKit + Tailwind):
+├── Config System        ← портировать config.ts
+├── Section System        ← SectionRenderer + onepager/SPA
+├── Navigation System     ← useWebsiteNavigation + ScrollSpy
+├── Logo System           ← theme+lang aware logo selection
+├── i18n System           ← t() + te() + DB translations
+├── Theme System          ← light-dark через Tailwind + @theme
+├── Admin Panel           ← RBAC CRUD, system + website modules
+├── API Layer             ← public + admin endpoints
+├── Security              ← auth, CSRF, CSP, rate, audit
+└── UI Kit (Tailwind)     ← OUR design system на Tailwind
+    ├── @theme             ← PM design tokens
+    ├── atoms/             ← buttons, inputs, icons
+    ├── molecules/         ← cards, nav, modals
+    ├── organisms/         ← header, footer, sections
+    └── sections/          ← hero, about, contact, etc.
+
+PM3 Plugins (отдельные модули):
+├── portfolio/             ← viewer + API + admin
+├── blog/                  ← posts + categories
+├── pricing/               ← tiers + features
+├── faq/                   ← Q&A accordion
+├── features/              ← feature cards
+├── team/                  ← team members
+├── testimonials/          ← reviews carousel
+└── clients/               ← logo strip
+```
+
+### Принципы (из Nuxt UI):
+1. **Tailwind как ДВИЖОК**, не как замена дизайну
+2. **PM Design Tokens** → `@theme` (цвета, шрифты, тени)
+3. **Компоненты** используют Tailwind утилиты с PM токенами
+4. **Визуал = оригинальный PM** — Tailwind не меняет дизайн
+5. **Никаких BEM классов** — всё через Tailwind
+6. **Config-driven** — конфиг управляет всем
+7. **Модули = плагины** — portfolio, blog, pricing не в core
