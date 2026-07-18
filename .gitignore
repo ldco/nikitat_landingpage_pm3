@@ -1,8 +1,9 @@
 # ══════════════════════════════════════════════════════════════
-# NUXT / BUILD OUTPUTS
+# FRAMEWORK BUILD OUTPUTS
 # ══════════════════════════════════════════════════════════════
 .output/
 .nuxt/
+.svelte-kit/
 .nitro/
 .cache/
 dist/

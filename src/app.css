@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme {
+  /* PM Design Tokens */
+  --color-pm-black: #0d0d0d;
+  --color-pm-white: #ffffff;
+  --color-pm-brand: #0066cc;
+  --color-pm-brand-light: #3388dd;
+  --color-pm-brand-dark: #004499;
+  --color-pm-muted: #6b7280;
+  --color-pm-bg: #f9fafb;
+  --color-pm-bg-dark: #1a1a2e;
+
+  --font-sans: 'Inter', 'Geologica', 'Heebo', sans-serif;
+  --font-display: 'Geologica', 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-pm-bg text-pm-black antialiased;
+    font-family: var(--font-sans);
+  }
+
+  a {
+    @apply text-pm-brand transition-colors duration-150;
+  }
+
+  a:hover {
+    @apply text-pm-brand-light;
+  }
+}
