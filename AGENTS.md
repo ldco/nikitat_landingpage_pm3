@@ -66,7 +66,7 @@ AI composes sections from atomic components:
 ```
 
 ```
-Atomic composition library:
+Atomic library (atoms):
   <Section>      — page section with padding/spacing
   <Container>    — max-width + horizontal padding wrapper
   <Heading>      — h1/h2/h3 with size variants (sm/md/lg/xl)
@@ -164,13 +164,15 @@ Atomic library (atoms):
 Layout primitives (atoms — new for PM):
   Section, Container, Grid, Card, Badge, Spinner, EmptyState
 
+Section templates (composed from atoms — customizable defaults):
+  SectionHero, SectionContact, SectionFaq, SectionFeatures
+
 Complex (isolated per Rule #4):
   FallingLetters (Matter.js), HeroAnimation (GSAP), ScrollyScene
 
 Plugins (NOT in components/):
   src/lib/plugins/portfolio/, blog/, pricing/, faq/, features/
 ```
-
 ### Config-Driven — site.ts Is Single Source of Truth
 - `src/lib/config/site.ts` — locales, nav, modules, features, SEO, admin
 - No hardcoded arrays in components
