@@ -1,2 +1,0 @@
-@layer reset, primitives, semantic, components, utilities;
-@import '../animations/scrollytelling.css' layer(components);

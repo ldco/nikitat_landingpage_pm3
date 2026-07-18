@@ -1,7 +1,0 @@
-@layer reset, primitives, semantic, components, utilities;
-@import '../layout/breakpoints.css';
-@import '../layout/admin-sidebar.css' layer(components);
-@import '../layout/admin-content.css' layer(components);
-@import '../layout/admin-header.css' layer(components);
-@import '../skeleton/bottom-nav.css' layer(components);
-@import '../ui/admin/pages.css' layer(components);

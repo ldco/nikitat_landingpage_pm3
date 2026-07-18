@@ -1,2 +1,0 @@
-@layer reset, primitives, semantic, components, utilities;
-@import '../ui/content/onepager-parallax.css' layer(components);
