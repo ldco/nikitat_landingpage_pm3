@@ -418,7 +418,7 @@ Streaming SSR         → load() can return promises
 
 ## 21. Libraries — Final Decision
 
-### ОСТАВИТЬ (framework-agnostic, stays in PM3)
+### ОСТАВИТЬ (framework-agnostic, stays in PM)
 | Lib | Why | Notes |
 |-----|-----|-------|
 | better-sqlite3 | DB driver | — |
@@ -470,7 +470,7 @@ Developer → deploy.sh → Docker build → SSH Registry → VPS → Ansible �
 ```
 
 ### Components
-| Component | What it does | PM3 Notes |
+| Component | What it does | PM Notes |
 |-----------|--------------|-----------|
 | `Dockerfile` | Multi-stage build (node:22-alpine) | Port: just change Nuxt→SvelteKit build |
 | `scripts/deploy.sh` | Orchestrates deploy (build + push + ansible) | Bash — stays |
@@ -512,7 +512,7 @@ ssh-agent   → прямой SSH + k3s образа
 ssh-registry → свой Docker Registry через SSH туннель
 ```
 
-### What changes for PM3
+### What changes for PM
 - `Dockerfile`: Nuxt build → SvelteKit build (adapter-node)
 - `docker-entrypoint.sh`: Nuxt start → SvelteKit node start
 - `ansible/deploy-vars.yml`: image name updates
@@ -528,7 +528,7 @@ ssh-registry → свой Docker Registry через SSH туннель
 Размер: ~10KB CSS (~800 строк)
 ```
 
-### Решение для PM3
+### Решение для PM
 ```
 ВЗЯТЬ все анимации из библиотеки, переписать на свои CSS переменные.
 Добавить в @layer components в app.css.
@@ -564,7 +564,7 @@ Heebo (variable) — для иврита (Hebrew)
 }
 ```
 
-### Для PM3 — портировать как статический ассет
+### Для PM — портировать как статический ассет
 ```
 8 woff2 файлов → public/fonts/
 typography/font-faces.css → src/lib/css/typography/
@@ -641,7 +641,7 @@ server/lib/websocket/ — WebSocket lib
   - Session-based auth через WebSocket
   - Real-time уведомления (админка)
 
-Для PM3:
+Для PM:
   - @sveltejs/adapter-node поддерживает WebSocket
   - ws библиотека остаётся
 ```
@@ -702,7 +702,7 @@ Client:
 Framework (pm-core):
   useConfig, useModule, usePmConfig, useSafeConfig
 
-→ PM3: портировать как Svelte 5 runes (//.svelte.ts stores)
+→ PM: портировать как Svelte 5 runes (//.svelte.ts stores)
   или как Svelte actions (useReveal → use:reveal)
 ```
 
@@ -720,7 +720,7 @@ public/images/        — hero, about (content images)
 
 ## 35. Composable → SvelteKit Migration Map
 
-| Composable | PM3 Approach |
+| Composable | PM Approach |
 |------------|--------------|
 | apiFetch | fetch wrapper в $lib/utils |
 | useAuth | auth.svelte.ts store |
@@ -805,7 +805,7 @@ Footer:
   Ссылки на /legal/privacy-policy, /legal/personal-data-policy, /legal/terms-of-service
 ```
 
-### Для PM3
+### Для PM
 ```
 - legal/ дирректория с .md документами — копируется как есть
 - legal/[slug]/+page.svelte — портировать с Nuxt
@@ -848,7 +848,7 @@ AI-Driven Development значит **AI пишет ВСЁ**, включая Dock
    → AI должен мочь прочитать и модифицировать любой скрипт
 ```
 
-### Что это меняет в PM3
+### Что это меняет в PM
 
 ```
 Вместо «AI не нужно знать про Docker»:
@@ -881,7 +881,7 @@ prettier --write  → prettier --write   (format)
 eslint .          → eslint .           (lint)
 ```
 
-### УХОДЯТ (PM-specific, не нужны в PM3)
+### УХОДЯТ (PM-specific, не нужны в PM)
 ```
 Nuxt Script                → Reason
 ─────────────────────────────────────────────────
@@ -903,7 +903,7 @@ workflow:switch            → initial setup
 workflow:info              → initial setup
 ```
 
-### ДОБАВЛЯЮТСЯ (новые для PM3)
+### ДОБАВЛЯЮТСЯ (новые для PM)
 ```
 SvelteKit Script           → Purpose
 ─────────────────────────────────────────────────
@@ -913,7 +913,7 @@ db:reset                   → drop + push + seed
 deploy                     → one-command deploy (AI-friendly!)
 ```
 
-### ИТОГ PM3 npm scripts
+### ИТОГ PM npm scripts
 ```json
 {
   "dev": "vite dev",
@@ -950,7 +950,7 @@ npm run deploy
 # Всё это делает deploy.sh — прозрачно для AI
 ```
 
-### Что должно быть в deploy.sh (PM3)
+### Что должно быть в deploy.sh (PM)
 ```
 1. npm run build                     # SvelteKit build
 2. docker build -t app:version .     # Docker image
@@ -998,12 +998,12 @@ settings: [
 
 ---
 
-## Итог: что нужно для PM3 на SvelteKit + Tailwind (как Nuxt UI)
+## Итог: что нужно для PM на SvelteKit + Tailwind (как Nuxt UI)
 
-### Архитектура PM3:
+### Архитектура PM:
 
 ```
-PM3 Core (SvelteKit + Tailwind):
+PM Core (SvelteKit + Tailwind):
 ├── Config System        ← портировать config.ts
 ├── Section System        ← SectionRenderer + onepager/SPA
 ├── Navigation System     ← useWebsiteNavigation + ScrollSpy
@@ -1020,7 +1020,7 @@ PM3 Core (SvelteKit + Tailwind):
     ├── organisms/         ← header, footer, sections
     └── sections/          ← hero, about, contact, etc.
 
-PM3 Plugins (отдельные модули):
+PM Plugins (отдельные модули):
 ├── portfolio/             ← viewer + API + admin
 ├── blog/                  ← posts + categories
 ├── pricing/               ← tiers + features
@@ -1172,7 +1172,7 @@ server/routes/uploads/ — загрузка файлов (изображения
 ## FINAL COUNT: 52 Sections Analyzed
 ```
 Config, Sections, SectionRenderer, Modules, Navigation, ScrollSpy,
-Page Transitions, Logo, Footer, Settings, i18n, CSS, Security, PM3 Vision,
+Page Transitions, Logo, Footer, Settings, i18n, CSS, Security, PM Vision,
 Scrollytelling, Animations, Falling Letters, Library Map, Admin Panel,
 Nuxt↔SvelteKit Map, Library Decisions, Deploy System, Hamburger,
 Font System, Cookie Consent, SEO, Performance, Accessibility, WebSocket,
@@ -1213,7 +1213,7 @@ deploy.sh (414 строк, 20+ стадий)
 6. **Rollback** — непроверенная надёжность.
 7. **Multi-project** — через project_id в Ansible, но нет единого dashboard.
 
-### PM3 Deploy — "Спокойный для нервов"
+### PM Deploy — "Спокойный для нервов"
 
 ```
 Принципы:
@@ -1226,7 +1226,7 @@ deploy.sh (414 строк, 20+ стадий)
   7. Multi-project через Traefik host-based routing
 ```
 
-### PM3 deploy.sh @ 10 stages
+### PM deploy.sh @ 10 stages
 
 ```bash
 1. validate  → проверить .env, docker, ansible
@@ -1241,7 +1241,7 @@ deploy.sh (414 строк, 20+ стадий)
 10. report   → записать state file, показать URL
 ```
 
-### Dockerfile PM3 (SvelteKit)
+### Dockerfile PM (SvelteKit)
 
 ```dockerfile
 FROM node:22-alpine AS builder
@@ -1327,7 +1327,7 @@ Brownfield:
 3. **Контекст-бандл** — генерируется, но AI должен его читать (лишний шаг).
 4. **Brownfield zip upload** — требует упаковки проекта в zip (лишний шаг).
 
-### PM3 — "Проще начать проект или перевести старый"
+### PM — "Проще начать проект или перевести старый"
 
 ```
 Принципы:
@@ -1339,7 +1339,7 @@ Brownfield:
   6. Brownfield = AI анализирует старый код → генерирует план → стартует миграцию
 ```
 
-### Greenfield flow (PM3)
+### Greenfield flow (PM)
 
 ```bash
 npm run init
@@ -1358,7 +1358,7 @@ npm run init
 # - Готово. Сайт работает.
 ```
 
-### Brownfield flow (PM3)
+### Brownfield flow (PM)
 
 ```bash
 npm run init -- --migrate ./path/to/old-project
@@ -1382,7 +1382,7 @@ npm run init -- --migrate ./path/to/old-project
 
 Никаких zip uploadов. Никаких 20 вопросов. Просто указал папку — AI делает всё остальное.
 
-### PM3 init.sh
+### PM init.sh
 
 ```bash
 #!/bin/bash
@@ -1448,84 +1448,84 @@ puppetmaster MCP:
 INSTRUCTIONS: глобальные правила поведения AI
 ```
 
-### PM3 MCP — AI-Driven Development
+### PM MCP — AI-Driven Development
 
 ```
 НЕ просто operations. Generation + Validation + Search + Knowledge.
 AI должен мочь:
-  - СОЗДАТЬ компонент → pm3_generate_component("Button", { variant: "primary" })
-  - НАЙТИ компонент   → pm3_search_components("hero")
-  - ПРОВЕРИТЬ i18n    → pm3_validate_i18n()
-  - СДЕЛАТЬ API       → pm3_generate_api("faq", { methods: ["GET","POST"] })
-  - СОЗДАТЬ админку   → pm3_generate_admin_page("products", { fields })
-  - УЗНАТЬ СТРУКТУРУ  → pm3_get_schema("portfolios")
-  - ДЕБАЖИТЬ           → pm3_dev with logs, health
-  - ДЕПЛОИТЬ           → pm3_deploy (единая команда, AI-friendly)
+  - СОЗДАТЬ компонент → pm_generate_component("Button", { variant: "primary" })
+  - НАЙТИ компонент   → pm_search_components("hero")
+  - ПРОВЕРИТЬ i18n    → pm_validate_i18n()
+  - СДЕЛАТЬ API       → pm_generate_api("faq", { methods: ["GET","POST"] })
+  - СОЗДАТЬ админку   → pm_generate_admin_page("products", { fields })
+  - УЗНАТЬ СТРУКТУРУ  → pm_get_schema("portfolios")
+  - ДЕБАЖИТЬ           → pm_dev with logs, health
+  - ДЕПЛОИТЬ           → pm_deploy (единая команда, AI-friendly)
 ```
 
-### PM3 MCP Tools — Полный список
+### PM MCP Tools — Полный список
 
 ```
 KNOWLEDGE (4):
-  pm3_knowledge(topic)           — PM3 framework docs (components, routes, schema, i18n, security)
-  pm3_search_components(query)   — найти компонент по ключевому слову
-  pm3_search_routes(pattern)     — найти роут по паттерну
-  pm3_search_translations(key)   — найти перевод по ключу
-  pm3_get_schema(table)          — схема таблицы (columns, types, relations)
+  pm_knowledge(topic)           — PM framework docs (components, routes, schema, i18n, security)
+  pm_search_components(query)   — найти компонент по ключевому слову
+  pm_search_routes(pattern)     — найти роут по паттерну
+  pm_search_translations(key)   — найти перевод по ключу
+  pm_get_schema(table)          — схема таблицы (columns, types, relations)
 
 GENERATION (6):
-  pm3_generate_component(spec)   — Svelte компонент из описания
-  pm3_generate_route(spec)       — +page.svelte + +page.server.ts
-  pm3_generate_api(spec)         — +server.ts с Zod + auth + envelope
-  pm3_generate_section(spec)     — секция с i18n паттерном
-  pm3_generate_admin_page(spec)  — CRUD страница с DataTable + формами
-  pm3_generate_migration(spec)   — Drizzle migration из описания изменения
+  pm_generate_component(spec)   — Svelte компонент из описания
+  pm_generate_route(spec)       — +page.svelte + +page.server.ts
+  pm_generate_api(spec)         — +server.ts с Zod + auth + envelope
+  pm_generate_section(spec)     — секция с i18n паттерном
+  pm_generate_admin_page(spec)  — CRUD страница с DataTable + формами
+  pm_generate_migration(spec)   — Drizzle migration из описания изменения
 
 VALIDATION (6):
-  pm3_validate_i18n()            — все переводы во всех локалях
-  pm3_validate_rbac()            — auth guards на всех админ роутах
-  pm3_validate_envelope()        — { success: true, data } на всех API
-  pm3_validate_types()           — TypeScript strict mode
-  pm3_validate_security()        — OWASP Top 10 проверка
-  pm3_validate_components()      — конвенции стиля (no any, no $:)
+  pm_validate_i18n()            — все переводы во всех локалях
+  pm_validate_rbac()            — auth guards на всех админ роутах
+  pm_validate_envelope()        — { success: true, data } на всех API
+  pm_validate_types()           — TypeScript strict mode
+  pm_validate_security()        — OWASP Top 10 проверка
+  pm_validate_components()      — конвенции стиля (no any, no $:)
 
 OPERATIONS (порт из v2):
-  pm3_dev                        — dev server (адаптирован под SvelteKit)
-  pm3_build                      — production build
-  pm3_test                       — run tests
-  pm3_db_push                    — push schema
-  pm3_db_seed                    — seed database
-  pm3_deploy                     — deploy to production (одна команда!)
-  pm3_status                     — project status (AI-friendly)
-  pm3_lint                       — run lint
+  pm_dev                        — dev server (адаптирован под SvelteKit)
+  pm_build                      — production build
+  pm_test                       — run tests
+  pm_db_push                    — push schema
+  pm_db_seed                    — seed database
+  pm_deploy                     — deploy to production (одна команда!)
+  pm_status                     — project status (AI-friendly)
+  pm_lint                       — run lint
 ```
 
 ### Как TUI использует MCP
 
 ```
-Ralph TUI → вызывает pm3_knowledge("components")
+Ralph TUI → вызывает pm_knowledge("components")
            → получает список всех компонентов с props
            → строит UI для выбора компонента
-           → pm3_generate_component("Hero", {title, subtitle})
+           → pm_generate_component("Hero", {title, subtitle})
            → создаёт файл SectionHero.svelte
 
-NoCowboy/Overseer → pm3_validate_i18n()
+NoCowboy/Overseer → pm_validate_i18n()
            → проверяет 4 локали на полноту
-           → если есть пробелы → pm3_generate_translation(key)
+           → если есть пробелы → pm_generate_translation(key)
            → заполняет недостающие переводы
 
-Deploy pipeline → pm3_deploy
+Deploy pipeline → pm_deploy
            → AI вызывает ОДНУ команду
-           → pm3_status проверяет результат
-           → pm3_view_logs если ошибка
+           → pm_status проверяет результат
+           → pm_view_logs если ошибка
 ```
 
-### Улучшения для PM3 MCP
+### Улучшения для PM MCP
 
 ```
 1. Типизированный API — все ответы MCP типизированы
-2. Кэширование — pm3_knowledge/topic один раз загружается
-3. Batch-операции — pm3_validate_all() проверяет всё сразу
+2. Кэширование — pm_knowledge/topic один раз загружается
+3. Batch-операции — pm_validate_all() проверяет всё сразу
 4. Error recovery — MCP не падает при ошибке одного тула
 5. Progress reporting — долгие операции показывают прогресс
 6. AI-оптимизированные ответы — JSON, не markdown
@@ -1543,7 +1543,7 @@ Russian:        gitflic.ru, gitverse.ru
 ```
 Нужно пушить код одновременно на несколько remote'ов. Это не про деплой приложения — это про **push исходников** в несколько репозиториев.
 
-### PM3 Config — Git Remotes
+### PM Config — Git Remotes
 
 ```typescript
 // project/site.config.ts
@@ -1557,7 +1557,7 @@ git: {
 }
 ```
 
-### PM3 npm scripts для работы с remote'ами
+### PM npm scripts для работы с remote'ами
 
 ```json
 {

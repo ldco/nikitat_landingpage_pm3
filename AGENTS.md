@@ -1,7 +1,7 @@
-# Puppet Master 3 — AI Agent Guide
+# Puppet Master — AI Agent Guide
 
 ## Identity
-You build Puppet Master 3 — a SvelteKit meta-framework with Tailwind CSS.
+You build Puppet Master — a SvelteKit meta-framework.
 You are an AI developer. You write ALL code — components, API, deploy, MCP tools.
 The human reviews your output. You NEVER ask permission — you state conclusions.
 
@@ -17,17 +17,27 @@ The human reviews your output. You NEVER ask permission — you state conclusion
 
 ## Critical Rules — ZERO EXCEPTIONS
 
-### CSS — Tailwind + PM Design System
-- **ALL styles in src/app.css** — one file, three sections:
-  - `@import "tailwindcss"` — Tailwind engine
-  - `@theme {}` — PM design tokens (colors: pm-black, pm-brand, etc.)
-  - `@layer components {}` — PM BEM classes (btn, header, hero, section, card, etc.)
-- **Components use PM BEM classes from @layer components**
-- **Tailwind utility classes ALSO available** for new development
-- **No `<style>` blocks in .svelte files** — style only through class="" references
-- **No scoped styles** — global CSS only
-- **All colors from PM tokens** — `bg-pm-brand`, `text-pm-muted`, never hardcoded #hex
-- **Light/dark via Tailwind `dark:` variant** — not `light-dark()` CSS function
+### UI System — Our Design Framework (Tailwind-based, like Nuxt UI)
+- **Components define their OWN styles** using our design tokens
+- **NO separate CSS files** for components — the component IS the style
+- **NO global BEM class system** — no `.btn`, `.header`, `.section` in app.css
+- **app.css contains ONLY**: `@import "tailwindcss"` + `@theme {}` (our design tokens) + `@layer base {}` (HTML reset)
+- **Design tokens** map to our color system:
+  - `bg-pm-brand`, `text-pm-muted`, `hover:bg-pm-brand-light`
+  - `font-sans`, `shadow-card`, `rounded-md`
+- **Each component is self-contained**:
+  ```svelte
+  <button class="bg-pm-brand text-pm-white px-6 py-2.5 rounded-md font-medium
+                  hover:bg-pm-brand-light transition-all duration-150
+                  disabled:opacity-50 disabled:cursor-not-allowed">
+    {@render children()}
+  </button>
+  ```
+- **Components are the ONLY reuse unit** — no CSS class reuse, no utility libraries
+- **If a component needs improvement** — improve it at the COMPONENT level, never with overrides
+- **NO tweaks/workarounds** (`mt-8 lg:w-1/2` on a card) — fix the component itself
+- **NO `<style>` blocks** in .svelte files — all styles are Tailwind utility classes
+- **NO scoped styles** — not needed, component classes are the scope
 
 ### Svelte 5 — Runes API ONLY
 - **`$state()`** for reactive variables — NO `let x` expecting reactivity
@@ -47,7 +57,7 @@ The human reviews your output. You NEVER ask permission — you state conclusion
 - **Discriminated unions** with literal `type`/`status`/`kind` discriminator
 - **Every `switch` MUST have** `const _exhaustive: never = value`
 
-### Components — Atomic Design with PM3
+### Components — Modular, Self-Contained
 ```
 src/lib/components/
 ├── atoms/        ← 13 atomic elements (Button, Logo, NavLink, etc.)
@@ -63,6 +73,7 @@ Plugins (NOT in components/):
 
 - **Every component uses `<script lang="ts">`**
 - **Props typed via interface** — `let { title, variant }: Props = $props()`
+- **Each component defines its ENTIRE visual identity** — no external CSS dependencies
 - **Sections are self-contained** — fetch own i18n content, have fallback defaults
 - **No hardcoded site-specific values** — everything from `src/lib/config/site.ts`
 
@@ -74,7 +85,7 @@ Plugins (NOT in components/):
 
 ### i18n — Zero Untranslated Text
 - **ALL visible text through `i18n.t('key')`** — no raw strings, zero exceptions
-- **Sections self-fetch titles** — `te('section.title') ? t('section.title') : fallback`
+- **Sections self-fetch titles** — `t('section.title')` with fallback
 - **Translations in DB** — loaded via `+layout.server.ts` → Context API
 - **Fallback chain**: DB translation → content.ts hardcoded → key as last resort
 - **SEO also translated** — `seo.homeTitle`, `seo.homeDescription`
@@ -124,22 +135,18 @@ Plugins (NOT in components/):
 - **Portfolio always separate page** — `renderMode: 'page'`
 
 ### What Changed from PM v2
-| PM v2 | PM3 |
+| PM v2 | PM |
 |-------|-----|
 | Nuxt 4 + Vue 3 | SvelteKit + Svelte 5 |
-| Pure CSS (5-layer) | Tailwind @theme + @layer components |
+| 5-layer Pure CSS | Component-level Tailwind utilities |
+| Global BEM classes (.btn, .header) | Self-contained components (Button.svelte) |
 | `<script setup lang="ts">` | `<script lang="ts">` |
 | `ref()`, `computed()` | `$state()`, `$derived()` |
 | `onMounted()` | `$effect(() => {...})` |
 | `<slot />` | `{@render children()}` |
 | `on:click` | `onclick` |
 | `useFetch` | `load()` in `+page.server.ts` |
-| `definePageMeta` | `+page.ts` exports |
-| `useHead` / `useSeoMeta` | `<svelte:head>` |
-| `useRuntimeConfig` | `$page.data` from layout.load |
 | Pinia | Svelte rune stores (.svelte.ts) |
 | Nitro server | SvelteKit `+server.ts` |
 | `server/middleware/` | `hooks.server.ts` |
-| `server/plugins/` | hooks + vite plugins |
-| `pm_knowledge` (MCP v2) | `pm3_knowledge` (MCP v3) |
-| `pm_deploy` (MCP v2) | `pm3_deploy` (one command) |
+| `pm_build`, `pm_deploy` | `pm_build`, `pm_deploy` (same name, new impl) |

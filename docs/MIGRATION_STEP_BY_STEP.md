@@ -1,4 +1,4 @@
-# PM3 Migration — Step-by-Step Plan
+# PM Migration — Step-by-Step Plan
 
 Based on 58-section framework analysis in `docs/PM-ARCHITECTURE-COMPLETE.md`.
 
@@ -15,7 +15,7 @@ Based on 58-section framework analysis in `docs/PM-ARCHITECTURE-COMPLETE.md`.
 
 ### Step 0.2 — SvelteKit Scaffold
 - [ ] `npm create svelte@latest .` or manual scaffold
-- [ ] Create `package.json` with PM3 deps
+- [ ] Create `package.json` with PM deps
 - [ ] Install: `@sveltejs/kit`, `@sveltejs/adapter-node`, `svelte`, `vite`, `typescript`
 - [ ] Install: `drizzle-orm`, `better-sqlite3`, `drizzle-kit`, `zod`
 - [ ] Install: `tailwindcss`, `@tailwindcss/vite`
@@ -575,45 +575,45 @@ git: {
 
 ---
 
-## Phase 15: PM3 MCP Server
+## Phase 15: PM MCP Server
 
 ### Step 15.1 — Knowledge Tools
-- [ ] `pm3_knowledge(topic)` — loads PM3 framework docs
-- [ ] `pm3_search_components(query)` — find by keyword
-- [ ] `pm3_search_routes(pattern)` — find route
-- [ ] `pm3_get_schema(table)` — DB schema for table
+- [ ] `pm_knowledge(topic)` — loads PM framework docs
+- [ ] `pm_search_components(query)` — find by keyword
+- [ ] `pm_search_routes(pattern)` — find route
+- [ ] `pm_get_schema(table)` — DB schema for table
 
 ### Step 15.2 — Generation Tools
-- [ ] `pm3_generate_component(spec)` — scaffold Svelte component
-- [ ] `pm3_generate_route(spec)` — scaffold page route
-- [ ] `pm3_generate_api(spec)` — scaffold API endpoint
-- [ ] `pm3_generate_admin_page(spec)` — scaffold CRUD page
+- [ ] `pm_generate_component(spec)` — scaffold Svelte component
+- [ ] `pm_generate_route(spec)` — scaffold page route
+- [ ] `pm_generate_api(spec)` — scaffold API endpoint
+- [ ] `pm_generate_admin_page(spec)` — scaffold CRUD page
 
 ### Step 15.3 — Validation Tools
-- [ ] `pm3_validate_i18n()` — check all 4 locales completeness
-- [ ] `pm3_validate_rbac()` — check all admin routes have auth
-- [ ] `pm3_validate_envelope()` — check API response format
-- [ ] `pm3_validate_security()` — OWASP Top 10 audit
+- [ ] `pm_validate_i18n()` — check all 4 locales completeness
+- [ ] `pm_validate_rbac()` — check all admin routes have auth
+- [ ] `pm_validate_envelope()` — check API response format
+- [ ] `pm_validate_security()` — OWASP Top 10 audit
 
 ### Step 15.4 — Operations Tools (port from v2)
-- [ ] `pm3_dev` — SvelteKit dev server management
-- [ ] `pm3_build` — production build
-- [ ] `pm3_test` — run test suite
-- [ ] `pm3_db_push` / `pm3_db_seed` / `pm3_db_studio`
-- [ ] `pm3_deploy` — single-command deploy
-- [ ] `pm3_status` — project health status
+- [ ] `pm_dev` — SvelteKit dev server management
+- [ ] `pm_build` — production build
+- [ ] `pm_test` — run test suite
+- [ ] `pm_db_push` / `pm_db_seed` / `pm_db_studio`
+- [ ] `pm_deploy` — single-command deploy
+- [ ] `pm_status` — project health status
 
 ---
 
 ## Phase 16: Documentation & Handoff
 
 ### Step 16.1 — Framework Documentation
-- [ ] `docs/PM3-ARCHITECTURE.md` — framework architecture guide
-- [ ] `docs/PM3-COMPONENTS.md` — component catalog with props
-- [ ] `docs/PM3-CSS.md` — CSS system + design tokens
-- [ ] `docs/PM3-API.md` — API reference
-- [ ] `docs/PM3-DEPLOY.md` — deploy guide
-- [ ] `docs/PM3-I18N.md` — translation guide
+- [ ] `docs/PM-ARCHITECTURE.md` — framework architecture guide
+- [ ] `docs/PM-COMPONENTS.md` — component catalog with props
+- [ ] `docs/PM-CSS.md` — CSS system + design tokens
+- [ ] `docs/PM-API.md` — API reference
+- [ ] `docs/PM-DEPLOY.md` — deploy guide
+- [ ] `docs/PM-I18N.md` — translation guide
 
 ### Step 16.2 — Developer Documentation
 - [ ] `AGENTS.md` — AI agent behavior rules
