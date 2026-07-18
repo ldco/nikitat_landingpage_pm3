@@ -746,7 +746,139 @@ public/images/        — hero, about (content images)
 | useWebSocket | WebSocket class |
 | usePmConfig | $page.data (from layout.load) |
 
-## 36. Library Decisions — Final
+## 36. AI-Driven Development — Core Philosophy
+
+### Принципы AI-Driven Workflow
+
+```
+1. ОДНА команда для запуска → npm run dev
+2. ОДНА команда для тестов → npm test
+3. ОДНА команда для деплоя → npm run deploy
+4. НИКАКИХ сложных bash-скриптов с 20 флагами
+5. НИКАКИХ цепочек из 5+ команд
+6. Каждая команда делает ОДНО действие
+7. Имена команд: dev, build, test, deploy, db:push, seed, reset
+8. Без «магии» — команда = понятный вызов
+```
+
+### Почему для AI-Driven Development
+
+```
+AI агенту нужно:
+- Минимум контекста для запоминания
+- Предсказуемые команды
+- Быстрая обратная связь
+- Одно действие за раз
+
+60 npm скриптов в PM v2 — ANTI-AI-FIRST.
+AI не может запомнить 60 команд, их назначение и флаги.
+```
+
+## 37. NPM Scripts — Nuxt → SvelteKit
+
+### ОСТАЮТСЯ (с новым именем)
+```
+Nuxt              → SvelteKit
+─────────────────────────────────────────────────
+nuxt dev          → vite dev           (dev)
+nuxt build        → vite build         (build)
+nuxt preview      → vite preview       (preview)
+vitest run        → vitest run         (test)
+drizzle-kit push  → drizzle-kit push   (db:push)
+drizzle-kit seed  → tsx seed.ts        (db:seed)
+prettier --write  → prettier --write   (format)
+eslint .          → eslint .           (lint)
+```
+
+### УХОДЯТ (PM-specific, не нужны в PM3)
+```
+Nuxt Script                → Reason
+─────────────────────────────────────────────────
+pm-init-green              → одноразовый
+pm-new-project             → одноразовый
+pm-vanilla                 → одноразовый
+check-doc-entrypoints      → PM инфра
+check-pm-ownership         → PM инфра
+lint:css-tokens            → PM система
+assets:launch              → Nuxt-specific
+assets:optimize            → Nuxt-specific
+check:launch-assets        → Nuxt-specific
+generate:favicons          → разово
+storybook                  → dev tool
+storybook:build            → dev tool
+audit:api-envelope         → PM чекер
+admin:passwords:rotate     → ops tool
+workflow:switch            → initial setup
+workflow:info              → initial setup
+```
+
+### ДОБАВЛЯЮТСЯ (новые для PM3)
+```
+SvelteKit Script           → Purpose
+─────────────────────────────────────────────────
+svelte-kit sync            → generate types
+svelte-check               → type checking
+db:reset                   → drop + push + seed
+deploy                     → one-command deploy (AI-friendly!)
+```
+
+### ИТОГ PM3 npm scripts
+```json
+{
+  "dev": "vite dev",
+  "build": "vite build",
+  "preview": "vite preview",
+  "check": "svelte-kit sync && svelte-check",
+  "test": "vitest run",
+  "test:watch": "vitest",
+  "db:push": "drizzle-kit push",
+  "db:seed": "tsx src/lib/server/db/seed.ts",
+  "db:reset": "rm -f data/sqlite.db && drizzle-kit push && tsx src/lib/server/db/seed.ts",
+  "deploy": "bash scripts/deploy.sh",
+  "lint": "eslint .",
+  "format": "prettier --write ."
+}
+```
+→ 13 скриптов вместо 60. AI запоминает с первого раза.
+
+## 38. AI-Driven Deploy
+
+### Принцип
+```bash
+# Единственная команда для деплоя
+npm run deploy
+
+# AI не нужно знать про:
+#   - Docker build флаги
+#   - SSH Registry tunnel
+#   - Ansible inventory
+#   - Traefik config
+#   - .env sync
+#   - DB migrations
+#
+# Всё это делает deploy.sh — прозрачно для AI
+```
+
+### Что должно быть в deploy.sh (PM3)
+```
+1. npm run build                     # SvelteKit build
+2. docker build -t app:version .     # Docker image
+3. docker push registry/app:version  # Push to registry
+4. ansible-playbook deploy.yml       # Ansible deploy
+5. health check                      # Verify it's alive
+```
+
+### Что НЕ нужно AI знать
+```
+- Dockerfile детали
+- Ansible playbooks
+- SSH конфигурация
+- Traefik роутинг
+- .env переменные
+- DB миграции (Ansible сам запускает)
+```
+
+## 39. Summary — What We Analyzed
 | Lib | Decision |
 |-----|----------|
 | Three.js | ДЕРЖИМ — используется в других проектах PM, не в этом сайте |
