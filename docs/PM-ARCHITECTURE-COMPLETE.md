@@ -1531,3 +1531,134 @@ Deploy pipeline → pm3_deploy
 6. AI-оптимизированные ответы — JSON, не markdown
 7. Встроенная self-documentation — help по каждому тулу
 ```
+
+
+## 56. Multi-Git Remote — Russian Developer Infrastructure
+
+### Проблема
+Русские разработчики работают с международными и российскими git-хостингами:
+```
+International:  github.com, gitlab.com
+Russian:        gitflic.ru, gitverse.ru
+```
+Нужно пушить код одновременно на несколько remote'ов. Это не про деплой приложения — это про **push исходников** в несколько репозиториев.
+
+### PM3 Config — Git Remotes
+
+```typescript
+// project/site.config.ts
+git: {
+  remotes: [
+    { name: 'github',    url: 'git@github.com:user/my-project.git',       enabled: true },
+    { name: 'gitlab',    url: 'git@gitlab.com:user/my-project.git',       enabled: false },
+    { name: 'gitflic',   url: 'git@gitflic.ru:user/my-project.git',      enabled: true },
+    { name: 'gitverse',  url: 'git@gitverse.ru:user/my-project.git',     enabled: false }
+  ]
+}
+```
+
+### PM3 npm scripts для работы с remote'ами
+
+```json
+{
+  "git:push": "bash scripts/git-push.sh",
+  "git:push:all": "bash scripts/git-push.sh --all",
+  "git:remote:setup": "bash scripts/git-remote-setup.sh",
+  "git:remote:sync": "bash scripts/git-remote-sync.sh"
+}
+```
+
+### git-push.sh — пушить на все enabled remote'ы
+
+```bash
+#!/bin/bash
+# Push to all enabled git remotes
+# Reads .git/config and PM config for remote list
+# Usage: npm run git:push [branch]
+
+BRANCH="${1:-main}"
+
+# Push to each enabled remote
+for remote in $(node -e "
+  const cfg = require('./project/site.config.ts').default;
+  cfg.git.remotes.filter(r => r.enabled).forEach(r => console.log(r.name))
+"); do
+  echo "Pushing to $remote..."
+  git push "$remote" "$BRANCH" || echo "  Failed: $remote"
+done
+
+echo "Done pushing to all enabled remotes."
+```
+
+### git-remote-setup.sh — автоматическая настройка remote'ов
+
+```bash
+#!/bin/bash
+# Setup all configured git remotes
+# Reads PM config and adds remotes to .git/config
+
+node -e "
+  const cfg = require('./project/site.config.ts').default;
+  cfg.git.remotes.forEach(remote => {
+    if (remote.enabled) {
+      console.log(remote.name, remote.url)
+    }
+  })
+" | while read name url; do
+  # Check if remote exists
+  if git remote get-url "$name" &>/dev/null; then
+    # Update existing remote
+    git remote set-url "$name" "$url"
+    echo "Updated: $name → $url"
+  else
+    # Add new remote
+    git remote add "$name" "$url"  
+    echo "Added: $name → $url"
+  fi
+done
+```
+
+### git-remote-sync.sh — синхронизация всех remote'ов
+
+```bash
+#!/bin/bash
+# Push current branch to ALL enabled remotes
+# Used before important milestones/deploy
+
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+for remote in $(git remote); do
+  echo -n "Pushing to $remote... "
+  if git push "$remote" "$BRANCH" 2>/dev/null; then
+    echo "OK"
+  else
+    echo "FAILED"
+  fi
+done
+```
+
+### Как AI использует это
+
+```
+AI: "Я закончил Sprint 1.6. Сохраняю код."
+  → npm run git:push main
+  → push на github ✅, gitflic ✅
+  → gitlab (disabled, skip)
+
+AI: "Начинаю новый проект."
+  → npm run init
+  → prompt: Git remotes? (github, gitlab, gitflic, gitverse)
+  → npm run git:remote:setup
+  → Все remote'ы настроены автоматически
+```
+
+### Преимущества для русских разработчиков
+
+```
+1. ОДНА команда → push на все российские + международные платформы
+2. КОНФИГИРУЕМО — каждый remote можно включить/выключить
+3. АВТО-настройка — не нужно руками git remote add
+4. АВТО-синк — все remote'ы в актуальном состоянии
+5. AI-FRIENDLY — одна команда npm run git:push
+6. НИКАКОЙ зависимости от VPN/санкций — исходники везде
+```
