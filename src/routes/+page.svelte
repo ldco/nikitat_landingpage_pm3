@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { dev } from '$app/environment'
+  /**
+   * Homepage — Renders all enabled sections via SectionRenderer
+   * Onepager mode: all sections as anchors on one page
+   * SPA mode: only hero section, others via routes
+   */
+  import { FEATURES } from '$lib/config/site'
+  import SectionRenderer from '$lib/components/complex/SectionRenderer.svelte'
 </script>
 
-<h1 class="text-3xl font-bold text-center mt-16">Puppet Master</h1>
-<p class="text-center text-pm-muted mt-4">
-  SvelteKit Meta-Framework
-</p>
-<p class="text-center text-sm text-pm-muted mt-2">
-  {dev ? 'Development' : 'Production'}
-</p>
+<SectionRenderer />
