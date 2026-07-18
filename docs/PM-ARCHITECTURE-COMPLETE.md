@@ -537,7 +537,216 @@ ssh-registry → свой Docker Registry через SSH туннель
 Можно добавить новые типы в будущем.
 ```
 
-## 24. Library Decisions — Updated
+## 24. Font System
+
+### Self-hosted variable fonts
+```
+Geologica (100–900) — основной шрифт (кириллица + латиница)
+  - Cyrillic Extended (woff2, 4 unicode ranges)
+  - Cyrillic
+  - Latin Extended
+  - Latin
+Heebo (variable) — для иврита (Hebrew)
+  - Hebrew
+  - Latin
+  - Latin Extended
+```
+
+### Загрузка
+```css
+@font-face {
+  font-family: 'Geologica';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('./fonts/Geologica-Cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, ...;
+}
+```
+
+### Для PM3 — портировать как статический ассет
+```
+8 woff2 файлов → public/fonts/
+typography/font-faces.css → src/lib/css/typography/
+```
+
+## 25. Cookie Consent System
+
+```
+useCookieConsent() → { cookiesEnabled, canUsePreferenceCookies, ... }
+- localStorage + cookie (дуальная запись)
+- 3 состояния: accepted / declined / null (unset)
+- Preference cookies: pm-color-mode, pm-theme-explicit, pm-locale-explicit
+- Max age: 365 дней
+- CookieConsent.vue компонент (фиксированный внизу)
+- CSS: .cookie-consent → fixed, z-index, gradient background
+- Учитывает features.cookies из конфига
+```
+
+## 26. SEO System
+
+### index.vue (homepage)
+```ts
+useSeoMeta({
+  title: t('seo.homeTitle'),
+  description: t('seo.homeDescription'),
+  ogTitle, ogDescription, ogType: 'website',
+  ogUrl, ogImage, ogImageWidth: 1200, ogImageHeight: 630,
+  twitterCard: 'summary_large_image',
+  twitterTitle, twitterDescription, twitterImage
+})
+
+// Кастомная OG image: /og-image.{buildVersion}.png
+// SVG source: /og-image.svg
+// Preview: /?v={cacheKey}
+```
+
+### Dynamic sections ([section].vue)
+```ts
+useHead({
+  title: te('seo.{id}Title') ? t(...) : t(`nav.${id}`),
+  meta: [{ name: 'description', content: ... }]
+})
+```
+
+## 27. Performance Monitoring
+
+```ts
+usePerformance() → PerformanceReport
+- Core Web Vitals (LCP, FID, CLS, TTFB, FCP)
+- Resource timing analysis
+- Custom performance marks
+- Server-Timing header parsing
+- Performance reporting endpoint: /api/analytics/performance
+```
+
+## 28. Accessibility
+
+```ts
+useA11y() → { checkA11y, violations }
+- Runtime WCAG 2.1 AA checking (dev only)
+- axe-core integration
+- Focus management
+- Skip-to-content link
+- ARIA attributes
+```
+
+## 29. WebSocket & Real-time
+
+```
+server/api/ws.ts — WebSocket endpoint
+server/lib/websocket/ — WebSocket lib
+
+Для этого сайта:
+  - Session-based auth через WebSocket
+  - Real-time уведомления (админка)
+
+Для PM3:
+  - @sveltejs/adapter-node поддерживает WebSocket
+  - ws библиотека остаётся
+```
+
+## 30. Error Handling
+
+```
+api-error.ts — createError wrapper
+  - Структурированные ошибки API
+  - Всегда { success: false, error: string }
+
+Формат:
+  return { success: true, data } — успех
+  throw error(status, message) — ошибка
+
+Nuxt: createError({ statusCode, statusMessage })
+SvelteKit: @sveltejs/kit error() — аналогично
+```
+
+## 31. Init/Setup System
+
+```
+scripts/init-cli.ts       — CLI утилита для настройки проекта
+scripts/init-green.ts     — Greenfield (с нуля)
+init.vue                  — Web-уборщик настройки
+
+Поток:
+  1. Запрос языков
+  2. Выбор workflow (claude/qwen/codex)
+  3. Выбор модулей
+  4. Импорт существующего проекта (zip)
+  5. DB push + seed
+```
+
+## 32. pm-core Framework Layer
+
+```
+pm-core/nuxt.config.ts    — пустой (только defineNuxtConfig)
+pm-core/app/composables/ — 4 компосабла:
+  useConfig()           — доступ к runtime config
+  useModule()           — состояние модулей
+  usePmConfig()         — публичный PM конфиг
+  useSafeConfig()       — безопасный доступ с fallback
+pm-core/app/types/       — 10 файлов типов (config, modules, auth, etc.)
+```
+
+## 33. Composable System (24 total)
+
+```
+Client:
+  apiFetch.ts, useA11y, useAuth, useClientMounted, useConfirm,
+  useCookieConsent, useCsrf, useFallingLetters, useFormDirty,
+  useHeaderQuickContacts, useLegalDocuments, useLogo, useMediaQuery,
+  usePagination, usePerformance, useReveal, useScrollHeader,
+  useScrollSpy, useScrollytelling, useSiteSettings, useToast,
+  useUnreadCount, useWebsiteNavigation, useWebSocket
+
+Framework (pm-core):
+  useConfig, useModule, usePmConfig, useSafeConfig
+
+→ PM3: портировать как Svelte 5 runes (//.svelte.ts stores)
+  или как Svelte actions (useReveal → use:reveal)
+```
+
+## 34. Public Assets
+
+```
+public/madebylogos/   — 8 SVG логотипов (theme × lang)
+public/logos/         — то же самое (дубль?)
+public/og-image.png   — Open Graph preview
+public/og-image.svg   — OG image source
+public/favicon.png    — favicon
+public/favicon.ico    — legacy favicon
+public/images/        — hero, about (content images)
+```
+
+## 35. Composable → SvelteKit Migration Map
+
+| Composable | PM3 Approach |
+|------------|--------------|
+| apiFetch | fetch wrapper в $lib/utils |
+| useAuth | auth.svelte.ts store |
+| useA11y | Svelte action (use:a11y) |
+| useClientMounted | $effect + browser check |
+| useConfirm | ConfirmDialog component |
+| useCookieConsent | CookieConsent component |
+| useCsrf | hooks.server.ts (server) |
+| useFallingLetters | Svelte action (use:fallingLetters) |
+| useHeaderQuickContacts | $derived from config |
+| useLegalDocuments | fetch from API |
+| useLogo | $derived from config + locale |
+| useMediaQuery | matchMedia + $effect |
+| usePagination | $derived pagination |
+| usePerformance | report to analytics API |
+| useReveal | Svelte action (use:reveal) |
+| useScrollHeader | $effect + scroll listener |
+| useScrollSpy | Svelte action (use:scrollSpy) |
+| useScrollytelling | Svelte action (use:scrolly) |
+| useSiteSettings | fetch from API |
+| useToast | toast.svelte.ts store |
+| useWebsiteNavigation | lib/utils/navigation.ts |
+| useWebSocket | WebSocket class |
+| usePmConfig | $page.data (from layout.load) |
+
+## 36. Library Decisions — Final
 | Lib | Decision |
 |-----|----------|
 | Three.js | ДЕРЖИМ — используется в других проектах PM, не в этом сайте |
