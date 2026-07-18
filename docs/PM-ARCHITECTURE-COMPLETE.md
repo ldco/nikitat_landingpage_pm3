@@ -317,7 +317,155 @@ tailwindcss                → CSS engine
 @tailwindcss/vite          → Tailwind Vite plugin
 ```
 
-### ТРЕБУЮТ ВНИМАНИЯ:
+## 19. Admin Panel Architecture
+
+### Admin Pages (17)
+```
+login.vue          — вход
+index.vue          — дашборд (статистика)
+users.vue          — CRUD пользователей (master)
+roles.vue          — CRUD ролей (master)
+translations.vue   — редактор переводов (master/admin/editor)
+settings.vue       — настройки (master/admin)
+legal.vue          — юр. документы (master/admin)
+health.vue         — здоровье системы (master)
+portfolios/        — CRUD портфолио (master/admin)
+blog.vue           — CRUD блога (master/admin/editor)
+faq.vue            — CRUD FAQ (master/admin/editor)
+features.vue       — CRUD features (master/admin/editor)
+contacts.vue       — просмотр контактов (master/admin)
+team.vue           — CRUD команды (master/admin)
+testimonials.vue   — CRUD отзывов (master/admin/editor)
+clients.vue        — CRUD клиентов (master/admin)
+pricing.vue        — CRUD pricing (master/admin)
+```
+
+### Admin Layout — Responsive MD3
+```
+Phone (<600px):      bottom navigation bar
+Tablet (600-839px):  navigation rail (узкий sidebar)
+Desktop (≥840px):    полноценный sidebar (260px)
+```
+
+### Admin — Shared Components
+```
+molecules:     EmptyState, PortfolioLightbox, PricingCard
+organisms:     ChangePasswordModal, ConfirmDialog, ToastContainer, BlogPostsGrid
+               PricingComparison, PricingTiers, TeamGrid
+```
+
+Каждая admin-страница использует:
+- `useFetch()` от Nuxt → `load()` от SvelteKit
+- `definePageMeta({ middleware: 'auth' })` → `+layout.server.ts` auth guard
+- `useHead()` → `<svelte:head>`
+- `useI18n()` → custom i18n
+- Те же CSS классы что и сайт (`.card`, `.badge`, `.btn`, `.data-table`)
+- Tabler icons (`~icons/tabler/`) → `@iconify/svelte` or unplugin-icons
+
+### CRUD Pattern (пример users.vue)
+```vue
+// Каждая admin-страница имеет:
+1. definePageMeta → layout, middleware, pageTransition
+2. useHead → title из i18n
+3. useConfirm → confirm dialog для удаления
+4. useToast → toast notifications
+5. useFetch → данные с сервера
+6. Modal → форма создания/редактирования
+7. CRUD: список → create → edit → delete
+```
+
+## 20. Nuxt ↔ SvelteKit Feature Mapping
+
+### Nuxt → SvelteKit (замена есть)
+```
+definePageMeta        → +page.ts export load + meta
+useFetch(url)         → load() + fetch(url)
+useAsyncData          → load()
+useState              → $state / $page.data
+onMounted             → $effect()
+useHead / useSeoMeta  → <svelte:head>
+useRuntimeConfig      → $page.data (from layout.load())
+useCookie             → event.cookies (in hooks/load)
+navigateTo            → goto() from $app/navigation
+useRoute              → $page from $app/stores
+middleware            → hooks.server.ts / +layout.server.ts
+server middleware     → hooks.server.ts (single handle)
+Nuxt modules          → Vite plugins + hooks
+useLocalePath         → кастомный composable (не встроен)
+```
+
+### У Nuxt есть, у SvelteKit НЕТ → надо делать самим
+```
+Auto-imports          → SvelteKit explicit imports (это плюс для AI!)
+useFetch caching      → кастомный fetch cache
+useAsyncData hydration → load() покрывает большинство
+Built-in i18n         → кастомный i18n (t() + te() + DB)
+Built-in color mode   → Tailwind dark: уже есть
+PWA module            → vite-plugin-pwa
+Cookie consent        → кастомный CookieConsent компонент
+SEO meta helpers      → <svelte:head> covers most cases
+```
+
+### У SvelteKit есть, у Nuxt НЕТ → используем
+```
+Form actions          → +page.server.ts exports actions
+Error boundaries      → +error.svelte per route
+Svelte 5 runes        → $state, $derived, $effect (NO pinia!)
+Standard web APIs     → Request, Response, URL, Headers
+Explicit imports      → AI-friendly (no hidden magic)
+Streaming SSR         → load() can return promises
+```
+
+## 21. Libraries — Final Decision
+
+### ОСТАВИТЬ (framework-agnostic, stays in PM3)
+| Lib | Why | Notes |
+|-----|-----|-------|
+| better-sqlite3 | DB driver | — |
+| drizzle-orm | ORM | — |
+| drizzle-kit | Migrations | — |
+| zod | Validation | — |
+| gsap | Animations | + TextPlugin |
+| matter-js | Falling letters physics | NOT Three.js |
+| pino | Logging | — |
+| nodemailer | Email | — |
+| otpauth | 2FA TOTP | — |
+| qrcode | 2FA QR | — |
+| sanitize-html | XSS prevention | — |
+| sharp | Image processing | — |
+| fluent-ffmpeg | Video compression | — |
+| ioredis | Distributed cache | optional |
+
+### УБРАТЬ (Nuxt-specific, won't migrate)
+| Lib | Reason | Replacement |
+|-----|--------|-------------|
+| nuxt | Framework | @sveltejs/kit |
+| vue | UI lib | svelte |
+| vue-router | Router | @sveltejs/kit |
+| pinia | State | Svelte 5 runes |
+| @nuxtjs/i18n | i18n | Custom composable |
+| @nuxtjs/color-mode | Theme | Tailwind dark: |
+| @nuxtjs/critters | CSS | Manual critical CSS |
+| @vite-pwa/nuxt | PWA | vite-plugin-pwa |
+| vue-tsc | Type check | svelte-check |
+| @vue/test-utils | Testing | Vitest + Svelte |
+| happy-dom | DOM | jsdom |
+
+### ДОБАВИТЬ (new for SvelteKit)
+| Lib | Why |
+|-----|-----|
+| @sveltejs/kit | Framework |
+| @sveltejs/adapter-node | SSR/Node adapter |
+| svelte | UI lib |
+| tailwindcss | CSS engine |
+| @tailwindcss/vite | Vite plugin |
+
+### DISCUSSED
+| Lib | Decision |
+|-----|----------|
+| Three.js | ДЕРЖИМ — используется в других проектах PM, не в этом сайте |
+| hamburgers | ЗАМЕНИТЬ на собственный CSS (50 строк) — контролируем визуал |
+| @iconify/svelte | Tabler icons — перенести с unplugin-icons
 ```
 Three.js: в текущем сайте НЕ ИСПОЛЬЗУЕТСЯ
   (используется Matter.js для falling letters)
