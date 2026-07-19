@@ -1,157 +1,67 @@
-# PM Migration — Phase Status (2026-07-19)
+# PM Migration — Actual State (2026-07-19 04:59)
 
-## Project State
+## Real Status
 
-The entire PM v2 (Nuxt) framework has been migrated to PM v3 (SvelteKit).
-All 16 original phases are complete or in-progress. Build passes with 0 errors.
+The entire Nuxt → SvelteKit migration has code written for all 16 phases,
+but the CSS translation is INCOMPLETE and the database has ZERO content.
 
-**Git commits (58 total this session):** `380f80f` through `2a25668`
-
----
-
-## Phase Status
-
-### ✅ Phase 0 — Project Reset & Foundation (DONE)
-Git reset, SvelteKit scaffold with all deps, 13 clean npm scripts.
-
-### ✅ Phase 1 — Database & Server Foundation (DONE)
-31-table Drizzle schema, DB client (singleton + WAL), 32 server utilities,
-server hooks (session, CSRF, CSP, rate limit), DB seed, 15+ public API endpoints,
-27 admin CRUD API groups.
-
-### ✅ Phase 2 — Site Config, i18n, Forms & Theme (DONE)
-`src/lib/config/site.ts` — comprehensive TypeScript config. Paraglide i18n (397
-UI keys across 4 locales). DB content translations split (1711 entries).
-Superforms + Zod (4 schemas). Theme system (`theme.svelte.ts`, `@custom-variant dark`).
-
-### ✅ Phase 3 — CSS Foundation (DONE — with known gaps)
-FABRICA22 design tokens in `@theme` (`#901504`/#3b0902/#fbf2e7). `@layer base`
-reset from PM v2. Container classes kept temporarily. Hamburger animations (12 types).
-Fonts via @fontsource (Geologica, Inter, Heebo, JetBrains Mono).
-
-**Known gaps (Phase 3.7-3.9, see below):** light-dark() → .dark class overrides added,
-header grid layout fixed, footer and section CSS still partially missing.
-
-### ✅ Phase 4 — Atomic UI Components (DONE — 21 atoms)
-All 13 original atoms rewritten with PM v2 CSS: CtaButton, NavLink, Logo,
-ThemeToggle, LangSwitcher, HamburgerIcon, BackToTop, AppImage, PictureImage,
-SocialIcon, MadeBy, MadeWith, EmptyState.
-
-Plus 8 NEW atoms: Card, Badge, Avatar, Container, Section, Grid, PageHeader,
-BaseIcon (shared SVG wrapper).
-
-### ✅ Phase 5 — Molecules & Organisms (DONE — 6 + 6)
-Molecules: NavLinks, SocialNav, PricingCard, BlogPostCard, ContactInfo,
-PortfolioLightbox.
-Organisms: TheHeader, TheFooter, SectionRenderer, CookieConsent, ConfirmDialog,
-ToastContainer.
-
-### ✅ Phase 6 — Section Components (DONE — 13 sections)
-All 13 sections rewritten with PM v2 tokens: SectionHero, SectionAbout,
-SectionFocus, SectionF22, SectionPortfolio, SectionContact, SectionBlog,
-SectionFeatures, SectionFaq, SectionPricing, SectionTeam, SectionTestimonials,
-SectionClients.
-
-### ✅ Phase 7 — Navigation (DONE)
-`use:scrollSpy` action (RAF-throttled DOM detection). `navigation.svelte.ts`
-shared nav state. NavLinks accepts `activeId` for ScrollSpy highlighting.
-Navigation utilities (`resolveSectionHref`, `isSectionPage`, etc.).
-Page transitions via `{#key}` + `fade`.
-
-### ✅ Phase 8 — Animations (DONE)
-HeroAnimation.svelte (isolated GSAP with $effect cleanup). FallingLetters.svelte
-(isolated Matter.js chaos→order). use:reveal (IntersectionObserver).
-use:parallax (data-attribute-driven). use:scrollyScene (CSS var progress +
-pointer parallax). Page transitions via `{#key}` + `fade` in layout.
-
-### ✅ Phase 9 — Module Plugins (DONE — quality fixes pending)
-Blog listing (`/blog/`) and post detail (`/blog/[slug]/`) with server-side
-load + i18n. Portfolio plugins: BrandingViewer, BrandbookViewer,
-CaseStudyViewer, WebsiteViewer, Lightbox — all use AppImage/Badge/CtaButton
-shared atoms. No hardcoded content or emojis.
-
-### ✅ Phase 10 — Admin Panel (DONE — 17 pages)
-Admin layout with responsive sidebar (desktop) + bottom nav (mobile). Auth guard
-redirects to `/admin/login`. Login form (email + password). Dashboard with stats
-cards. CRUD pages: users, roles, translations, settings, portfolios, blog, team,
-testimonials, faq, pricing, features, contacts, audit, health.
-
-### ✅ Phase 11 — Public Pages (DONE)
-Legal pages (`/legal/terms-of-service`, `/legal/privacy-policy`,
-`/legal/personal-data-policy`) with locale-based markdown loading + English
-fallback. Portfolio listing (`/portfolio/`) and detail (`/portfolio/[slug]/`)
-with type-specific viewer routing.
-
-### ✅ Phase 12 — Git Remotes (DONE)
-Scripts: `scripts/git-remote-setup.sh`, `scripts/git-push.sh`.
-NPM scripts: `npm run git:push`, `npm run git:remote:setup`.
-
-### ✅ Phase 13 — Deploy System (DONE — Ansible pending)
-Dockerfile: multi-stage SvelteKit build, non-root user, FFmpeg, healthcheck.
-`scripts/docker-entrypoint.sh`: drizzle-kit push on boot + start server.
-Deploy scripts and Ansible playbooks exist (deploy.yml needs `NUXT_BUILD_*` →
-`BUILD_*` variable renaming).
-
-### ⬜ Phase 14 — Testing (NOT STARTED)
-Unit tests (100+), API integration tests, full user flow, visual comparison
-with PM v2, responsive (320/768/1024/1440), dark mode, RTL.
-
-### ⬜ Phase 15 — PM MCP Server (NOT STARTED)
-Component Registry, i18n key check, Guardrails.
+**The site currently:**
+- Runs on SvelteKit with 0 build errors
+- Has all component infrastructure (21 atoms, 6 molecules, 8 organisms, 13 sections)
+- Has all routes (public, admin, blog, portfolio, legal)
+- Has all API endpoints (15 public, 27 admin)
+- **But** looks like generic Tailwind, not PM v2
+- **But** dark mode doesn't switch colors properly
+- **But** header/footer/sections don't match PM v2 layout
+- **But** database has users + translations only — no content
 
 ---
 
-## Known Issues — Fix Before Launch
+## What Needs To Be Fixed
 
-### P0 — Header (header.css 515 lines — 60% done)
-- [ ] Fluid height: `clamp(56px, 8vh, 72px)` not h-14 fixed
-- [ ] Scroll glass morphism: `backdrop-filter + --surface-frosted-bg`
-- [ ] Hide on scroll: `.header--hidden` transforms translateY(-100%)
-- [ ] Logo sizing: 40px desktop, 36px mobile, 28px scrolled (currently 32px)
-- [ ] Mobile logo: absolute center (left:50%; transform:translateX(-50%))
-- [ ] Light theme: opaque header (banding artifact fix)
+### P0 — CSS: PM v2 → Tailwind Translation Incomplete
+- Header (header.css, 515 lines): fluid height, scroll glass, logo sizing, mobile centering
+- Footer (footer.css, 478 lines): grid layout, legal bar, theme-logos, RTL — 80% missing
+- Hero (sections.css, 485 lines): 2-column grid, hero-title fluid, section-body fill
+- Layout patterns: image-placeholder, grid-2col, grid-auto, section-image
+- Typography: heading hierarchy, hero-subtitle max-width, RTL
 
-### P0 — Footer (footer.css 478 lines — 80% missing)
-- [ ] Grid layout: `grid-cols-[auto_1fr]` (brand left, actions right)
-- [ ] Legal bar: `legal-bar, legal-row, legal-sep, legal-links` with underline offset
-- [ ] Theme-aware logos: CSS `.light-logo`/`.dark-logo` switching (not JS)
-- [ ] RTL support: `object-position: right center` for `[dir="rtl"]`
-- [ ] Mobile: single column centered, 36px icons
+### P1 — Database: Zero Content
+- 20 tables empty: portfolios, blog_posts, team_members, testimonials, faq_items, pricing_tiers, features, clients, contacts
+- Sections render "No items" / empty state everywhere
+- Need to port seed content from app-nuxt/server/database/seed*.ts into PM v3 seed
+  
+### P1 — Admin: Work in Progress
+- Login/logout flow not tested end-to-end
+- CRUD pages render data tables but have no Create/Edit/Delete forms
+- No create/edit/delete modals — only read-only tables
 
-### P0 — Admin CRUD audit
-- [ ] Verify all 14 CRUD pages render data correctly (was broken, fixed in d4b8e29)
-- [ ] Verify admin login/logout flow works with session
-
-### P1 — Hero Section (sections.css 485 lines — 40% done)
-- [ ] Hero 2-column grid: `grid-cols-[1fr_1fr]` with text + hero-logo SVG
-- [ ] Section-body: `flex-grow: 1; justify-content: center` for filled height
-- [ ] Hero-title fluid: `clamp(2.5rem, 6vw, 4.5rem)` weight 900 line-height 0.9
-- [ ] Hero-logo SVG: `max-width: min(420px, 42vw)` seal animation (GSAP)
-- [ ] Section padding: mobile less padding
-
-### P2 — Layout Patterns
-- [ ] Section-image: `aspect-ratio: 4/3, rounded-xl, overflow-hidden`
-- [ ] Image-placeholder: `bg-sunken, centered icon`
-- [ ] Grid-2col: `1fr 1fr` for image+text sections
-- [ ] Grid-auto: `auto-fit, minmax(280px, 1fr)` for cards
-
-### P2 — Ansible Deploy (deploy.yml)
-- [ ] Rename 12 `NUXT_BUILD_*` → `BUILD_*` env vars
-- [ ] Remove reference to deleted `docker-migrate.mjs`
-
-### P3 — Typography
-- [ ] Heading hierarchy (h1-h6) with specific font-weight/line-height
-- [ ] Hero-subtitle: `max-inline-size: 34rem`
-- [ ] RTL typography adjustments
+### P2 — Remaining
+- Ansible deploy.yml: rename 12 NUXT_BUILD_* → BUILD_*
+- Testing (Phase 14): no tests written
+- MCP Server (Phase 15): not started
 
 ---
 
-## Build Verification
+## Git History
 
 ```
-npm run check: 0 errors
-npm run build: ✓ built in ~8s
+commit 2ec67de   Plan: complete rewrite — accurate state
+commit d4b8e29   CSS layout fix + default content removal
+commit 2a25668   Dockerfile adapted for PM v3
+commit a31d64a   npm scripts (git:push)
+commit a7ca23e   Git remotes
+commit 56bc705   Public pages (legal + portfolio)
+commit 06a171b   14 admin CRUD pages
+commit 25b085c   Admin base (layout + login + dashboard)
+commit 915ea64   Plugin quality fixes
+commit 6d46fbf   Blog + Portfolio plugins
+commit c88de70   Animations
+commit 4a18820   ScrollSpy + nav
+commit a169799   13 sections
+commit 698d80c   Molecules & Organisms
+commit 33a2701   CSS tokens + atoms
+commit 380f80f   Phase 2
 ```
 
-Last commit: `d4b8e29` — CSS layout fix + default content removal (light-dark fix,
-header grid, no emojis/hardcoded strings, admin CRUD literal strings fixed)
+Build: `npm run check` 0 errors, `npm run build` ✓
