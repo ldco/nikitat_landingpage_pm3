@@ -60,9 +60,24 @@
   let mobileOpen = $state(false)
   let userMenuOpen = $state(false)
   let mobileUserMenuOpen = $state(false)
+  let unreadCount = $state(0)
 
   function toggleUserMenu() { userMenuOpen = !userMenuOpen }
   function toggleMobileUserMenu() { mobileUserMenuOpen = !mobileUserMenuOpen }
+
+  $effect(() => {
+    // Poll for unread contacts every 30s (PM v2: admin.vue lines 129-134)
+    async function fetchCount() {
+      try {
+        const res = await fetch('/api/admin/contacts/unread')
+        const json = await res.json()
+        if (json.success) unreadCount = json.data ?? 0
+      } catch { /* ignore */ }
+    }
+    fetchCount()
+    const interval = setInterval(fetchCount, 30000)
+    return () => clearInterval(interval)
+  })
 </script>
 
 <div class="min-h-screen bg-pm-bg" onclick={(e) => {
@@ -84,6 +99,9 @@
             class:text-pm-text-secondary:hover:text-pm-text:hover:bg-pm-bg-sunken={!isActive(section.id)}
           >
             <span class="text-xs font-bold">{section.label.charAt(0)}</span>
+            {#if section.id === 'contacts' && unreadCount > 0}
+              <span class="absolute -top-0.5 -end-0.5 flex items-center justify-center min-w-[14px] h-3.5 px-1 rounded-full bg-pm-danger text-[9px] font-bold text-white leading-none">{unreadCount > 9 ? '9+' : unreadCount}</span>
+            {/if}
             <!-- Tooltip -->
             <span class="absolute start-full ms-2 px-2 py-1 rounded-md bg-pm-bg-elevated border border-pm-border text-xs text-pm-text shadow-md whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-tooltip">
               {section.label}

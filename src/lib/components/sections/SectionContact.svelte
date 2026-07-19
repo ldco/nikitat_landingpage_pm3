@@ -12,6 +12,8 @@
   } = $props()
 
   const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
+  const showEmailConfirm = $derived(FEATURES.contactEmailConfirmation)
+  const showTelegramNotify = $derived(FEATURES.contactTelegramNotify)
 </script>
 
 <section id="contact" class={twMerge(clsx(
@@ -23,6 +25,16 @@
     <h2 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight mb-8 text-center">{m.sections_contact()}</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-[var(--gap-xl)]">
       <div class="rounded-xl border border-pm-border bg-pm-bg p-6 shadow-sm">
+        {#if showEmailConfirm}
+          <div class="mb-4 p-3 rounded-md bg-pm-info-bg border border-pm-info text-sm text-pm-info">
+            <span>Email confirmation will be sent</span>
+          </div>
+        {/if}
+        {#if showTelegramNotify}
+          <div class="mb-4 p-3 rounded-md bg-pm-info-bg border border-pm-info text-sm text-pm-info">
+            <span>Telegram notification enabled</span>
+          </div>
+        {/if}
         <p class="text-sm text-pm-muted text-center py-8">{m.common_note()}</p>
       </div>
       <ContactInfo email="contact@fabrica22.pro" />

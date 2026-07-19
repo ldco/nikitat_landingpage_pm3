@@ -3,9 +3,11 @@
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
   import { languageTag } from '$lib/paraglide/runtime.js'
+  import { FEATURES } from '$lib/config/site'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import Logo from '$lib/components/atoms/Logo.svelte'
   import { breakHeroTitle } from '$lib/utils/titleBreaker'
+  import HeroParallaxScene from '../../../project/HeroParallaxScene.svelte'
 
   let {
     title = m.sections_hero(),
@@ -29,15 +31,22 @@
 
   const locale = $derived(languageTag())
   const segments = $derived(breakHeroTitle(title, locale))
+  const parallaxEnabled = $derived(FEATURES.heroParallax)
 </script>
 
 <section id="home" class={twMerge(clsx(
   'relative grid grid-cols-1 md:grid-cols-2 items-center gap-8 min-h-dvh',
+  parallaxEnabled && 'z-[1]',
   'px-[max(1.5rem,calc((100vw-1280px)/2))]',
   'pt-[calc(clamp(56px,8vh,72px)+2rem)] pb-4',
   'bg-pm-bg',
   className
 ))}>
+  <!-- Parallax layers (behind content) -->
+  {#if parallaxEnabled}
+    <HeroParallaxScene />
+  {/if}
+
   <!-- Left: Text -->
   <div class="flex flex-col justify-center z-10 min-w-0">
     <h1 class="text-[clamp(2.5rem,6vw,4.5rem)] font-black leading-[0.9] tracking-normal text-pm-text mb-5 space-y-2">
