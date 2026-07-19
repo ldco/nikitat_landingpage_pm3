@@ -186,16 +186,18 @@
     </div>
   </header>
 
-  <!-- Mobile Bottom Nav (PM v2: admin.vue lines 433-438) -->
-  <nav class="fixed bottom-0 left-0 right-0 z-sticky lg:hidden flex items-center justify-around h-14 bg-pm-bg-elevated border-t border-pm-border sm:flex md:hidden">
-    {#each adminSections.slice(0, 5) as section}
-      <a href={section.id === 'dashboard' ? '/admin' : `/admin/${section.id}`}
-        class={clsx('flex flex-col items-center gap-0.5 px-2 py-1 text-xs transition-colors',
-          isActive(section.id) ? 'text-pm-brand' : 'text-pm-text-muted hover:text-pm-text'
-        )}>
-        <span>{section.label}</span>
-      </a>
-    {/each}
+  <!-- Mobile Bottom Nav (PM v2: bottom-nav.css 255 lines) -->
+  <nav class="fixed bottom-0 left-0 right-0 z-sticky lg:hidden bg-pm-bg-elevated border-t border-pm-border sm:flex md:hidden">
+    <div class="flex overflow-x-auto snap-x snap-mandatory scrollbar-none h-14">
+      {#each adminSections.slice(0, 8) as section}
+        <a href={section.id === 'dashboard' ? '/admin' : `/admin/${section.id}`}
+          class={clsx('flex flex-col items-center justify-center gap-0.5 px-3 py-1 text-xs snap-start shrink-0 min-w-[4rem] transition-colors',
+            isActive(section.id) ? 'text-pm-brand' : 'text-pm-text-muted hover:text-pm-text'
+          )}>
+          <span class="text-xs font-medium">{section.label}</span>
+        </a>
+      {/each}
+    </div>
   </nav>
 
   <!-- Mobile Hamburger Toggle (phone only) -->
