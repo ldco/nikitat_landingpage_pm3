@@ -2,21 +2,24 @@
   /**
    * SectionHero — PM v2 hero (layout/sections.css 485 lines)
    *
-   * Desktop: 2-col grid [text | hero-logo]
-   * Mobile: single column, smaller title, full-width buttons
-   * RTL: text-align start (logical property, auto-flips)
-   *
-   * Phase 2 will add: line-break algorithm, GSAP intro animation
+   * Features:
+   * - Line-break algorithm with brand-colored segments
+   * - 2-col grid [text | hero-logo]
+   * - Fluid typography, RTL support
+   * - GSAP intro animation (Phases 2 — see gsapIntro.ts)
    *
    * Rule #1: class prop + twMerge
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
+  import { languageTag } from '$lib/paraglide/runtime.js'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import Logo from '$lib/components/atoms/Logo.svelte'
+  import { breakHeroTitle } from '$lib/utils/titleBreaker'
 
   let {
+    title = m.sections_hero(),
     subtitle = '',
     showLogo = true,
     primaryCta = m.nav_contact(),
@@ -25,6 +28,7 @@
     secondaryHref = '/portfolio',
     class: className = ''
   }: {
+    title?: string
     subtitle?: string
     showLogo?: boolean
     primaryCta?: string
@@ -33,6 +37,9 @@
     secondaryHref?: string
     class?: string
   } = $props()
+
+  const locale = $derived(languageTag())
+  const segments = $derived(breakHeroTitle(title, locale))
 </script>
 
 <section id="home" class={twMerge(clsx(
@@ -42,7 +49,11 @@
   <!-- Left: Text -->
   <div class="flex flex-col justify-center z-10 min-w-0">
     <h1 class="hero-title">
-      {m.sections_hero()}
+      {#each segments as segment}
+        <span class="hero-title__line" class:hero-title__line--brand={segment.brand}>
+          <span class="hero-title__plain">{segment.text}</span>
+        </span>
+      {/each}
     </h1>
     {#if subtitle}
       <p class="hero-subtitle">{subtitle}</p>
@@ -89,6 +100,26 @@
     margin-block-end: var(--space-5);
   }
 
+  .hero-title__line {
+    display: block;
+    position: relative;
+    inline-size: fit-content;
+    overflow: visible;
+    line-height: inherit;
+  }
+
+  .hero-title__line--brand {
+    color: var(--color-pm-brand);
+  }
+
+  .hero-title__plain {
+    display: block;
+  }
+
+  .hero-title__line + .hero-title__line {
+    margin-block-start: var(--space-2);
+  }
+
   .hero-subtitle {
     font-size: clamp(1.125rem, 2.5vw, 1.5rem);
     font-weight: 400;
@@ -130,6 +161,11 @@
     .hero-title {
       font-size: clamp(1.75rem, 9.6vw, 2.55rem);
       line-height: 0.85;
+    }
+
+    .hero-title__line {
+      inline-size: 100%;
+      max-inline-size: 100%;
     }
 
     .hero-logo__img {
