@@ -9,6 +9,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import { getNavState } from '$lib/stores/navigation.svelte'
   import Logo from '$lib/components/atoms/Logo.svelte'
   import NavLinks from '$lib/components/molecules/NavLinks.svelte'
   import ThemeToggle from '$lib/components/atoms/ThemeToggle.svelte'
@@ -20,6 +21,9 @@
   }: {
     class?: string
   } = $props()
+
+  const navState = getNavState()
+  const activeSection = $derived(navState.activeSection)
 
   let mobileOpen = $state(false)
 
@@ -37,7 +41,7 @@
 
     <!-- Desktop Nav -->
     <div class="hidden md:flex items-center gap-4">
-      <NavLinks />
+      <NavLinks activeId={activeSection} />
       <div class="flex items-center gap-2 ml-4 pl-4 border-l border-pm-border/50">
         <LangSwitcher mode="side" />
         <ThemeToggle />
@@ -55,7 +59,7 @@
   {#if mobileOpen}
     <div class="md:hidden border-t border-pm-border/50 bg-pm-white dark:bg-pm-black">
       <div class="container-wide py-4">
-        <NavLinks vertical onClick={() => mobileOpen = false} />
+        <NavLinks vertical activeId={activeSection} onClick={() => mobileOpen = false} />
         <div class="mt-4 pt-4 border-t border-pm-border/50">
           <LangSwitcher mode="inline" />
         </div>

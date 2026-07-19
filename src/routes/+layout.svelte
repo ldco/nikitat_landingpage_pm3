@@ -3,6 +3,7 @@
    * Root Layout — Wraps all pages with header, footer, and global UI
    */
   import '../app.css'
+  import { scrollSpy } from '$lib/actions/scrollSpy'
   import TheHeader from '$lib/components/complex/TheHeader.svelte'
   import TheFooter from '$lib/components/complex/TheFooter.svelte'
   import BackToTop from '$lib/components/atoms/BackToTop.svelte'
@@ -13,7 +14,7 @@
 </script>
 
 <TheHeader />
-<main class="min-h-screen pt-16">
+<main class="min-h-screen pt-16" use:scrollSpy>
   {@render children?.()}
 </main>
 <TheFooter />

@@ -14,10 +14,12 @@
   let {
     class: className = '',
     vertical = false,
+    activeId = '',
     onClick
   }: {
     class?: string
     vertical?: boolean
+    activeId?: string
     onClick?: () => void
   } = $props()
 
@@ -29,6 +31,9 @@
     'text-sm font-medium px-3 py-2 rounded-sm ' +
     'text-pm-text-secondary hover:text-pm-text hover:bg-pm-brand-subtle ' +
     'transition-colors duration-150'
+
+  const activeClass =
+    'text-pm-brand bg-pm-brand-subtle'
 
   function resolveLabel(key: string): string {
     const msgKey = key.replace(/\./g, '_') as keyof typeof m
@@ -42,7 +47,14 @@
 
 <nav class={twMerge(clsx(base, vertical && verticalClass, className))}>
   {#each NAV_ITEMS as item}
-    <a href={item.href} class={linkBase} onclick={onClick}>
+    <a
+      href={item.href}
+      class={twMerge(clsx(
+        linkBase,
+        activeId && item.href.endsWith(activeId) && activeClass
+      ))}
+      onclick={onClick}
+    >
       {resolveLabel(item.label)}
     </a>
   {/each}
