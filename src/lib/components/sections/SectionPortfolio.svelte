@@ -2,7 +2,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
-  import { FEATURES } from '$lib/config/site'
+  import { FEATURES, MODULES } from '$lib/config/site'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
 
   let {

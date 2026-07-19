@@ -1,10 +1,8 @@
 <script lang="ts">
-  /**
-   * Root Layout — Wraps all pages with header, footer, and global UI
-   */
   import '../app.css'
   import { page } from '$app/stores'
-  import { fade } from 'svelte/transition'
+  import { fade, slide } from 'svelte/transition'
+  import { FEATURES } from '$lib/config/site'
   import { scrollSpy } from '$lib/actions/scrollSpy'
   import TheHeader from '$lib/components/complex/TheHeader.svelte'
   import TheFooter from '$lib/components/complex/TheFooter.svelte'

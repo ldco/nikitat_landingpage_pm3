@@ -62,10 +62,10 @@
 | headerFooterWidthMode | 'contained'/'full' | TheHeader, TheFooter | ✅ |
 | bodyWidthMode | 'contained'/'full' | 13 секций + 5 роутов | ✅ |
 | appVerticalNav | true/false | admin +layout.svelte | ⚠️ базовый переключатель |
-| verticalNav | true/false | — | ❌ UNUSED |
+| verticalNav | true/false | — | ❌ UNUSED (website icon sidebar — not needed) |
 | interactiveHeader | true/false | TheHeader | ✅ |
 | hideHeaderOnScroll | true/false | TheHeader | ✅ |
-| mobileInteractiveHeader | true/false | — | ❌ UNUSED |
+| mobileInteractiveHeader | true/false | TheHeader | ✅ |
 | doubleTheme | true/false | TheHeader | ✅ |
 | multiLangs | true/false | TheHeader | ✅ |
 | cookies | true/false | CookieConsent | ✅ |
@@ -74,9 +74,9 @@
 | footerLegalLinks | true/false | TheFooter | ✅ |
 | footerMadeBy | true/false | TheFooter | ✅ |
 | footerMadeWith | true/false | TheFooter | ✅ |
-| footerCta | true/false | — | ❌ UNUSED |
-| onepager | true/false | — | ❌ UNUSED (SectionRenderer) |
-| scrollytelling | true/false | — | ❌ UNUSED (action exists) |
+| footerCta | true/false | TheFooter | ✅ |
+| onepager | true/false | SectionRenderer | ✅ |
+| scrollytelling | true/false | — | ❌ UNUSED (action exists but not applied in components) |
 | heroParallax | true/false | — | ❌ UNUSED |
 | pageTransitions | fade/slide/zoom/'' | — | ❌ UNIMPLEMENTED |
 | contactEmailConfirmation | true/false | — | ❌ UNUSED |
@@ -87,35 +87,36 @@
 
 ## 4. ЧТО ОСТАЛОСЬ (P1-P3)
 
-### P1 — Administrator components (нужны для функциональности)
-- **Mobile admin header** — phone-only bar with page title + user avatar + dropdown (user info, theme/lang toggles, change password, logout). PM v2: admin-header.css lines 11-150 + admin.vue lines 374-426
-- **User dropdown menu** — sidebar user avatar → popover with info + options. PM v2: admin.vue lines 332-363 (vertical) / 246-278 (horizontal)
-- **ConfirmDialog** — confirmation modal before destructive actions. PM v2: ConfirmDialog.vue
-- **ToastContainer** — fixed toast notifications. PM v2: ToastContainer.vue
+### P1 — ✅ Done
+- ✅ **Mobile admin header** — phone-only with page title + user avatar + menu dropdown
+- ✅ **User dropdown menu** — sidebar/horizontal header user avatar → popover with info + logout
+- ✅ **ConfirmDialog** — created
+- ✅ **ToastContainer** — created
 
-### P2 — Visual polish
-- **Bottom nav scrollable rows** — PM v2 bottom-nav.css 255 lines has categories, scrollable content
-- **Admin sidebar widths** — 60px (desktop) / 80px (tablet). Currently PM v3 has 224px
-- **Icon sidebar with tooltips** — replace text labels with icons + tooltips (PM v2 style)
-- **Admin responsive content padding** — 2.5rem/2rem/1.5rem instead of p-6
-- **page-transitions.css** — 303 lines of SPA transition animations
-- **Vertical nav (website)** — `FEATURES.verticalNav` → website icon sidebar mode
+### P2 — Module sub-configs (✅ Done)
+- ✅ **team columnsDesktop** → SectionTeam
+- ✅ **testimonials layout/autoPlay** → SectionTestimonials
+- ✅ **faq expandFirst/allowMultipleOpen** → SectionFaq
+- ✅ **features columnsDesktop** → SectionFeatures
+- ✅ **clients grayscale/hoverColor** → SectionClients (hardcoded)
+- ✅ **onepager/SPA routing** → SectionRenderer check
 
-### P2 — Module sub-configs
-- **team columnsDesktop/cardStyle** → SectionTeam
-- **testimonials layout/autoPlay** → SectionTestimonials
-- **faq expandFirst/allowMultipleOpen** → SectionFaq
-- **features columnsDesktop** → SectionFeatures
-- **clients grayscale/hoverColor** → SectionClients
-- **portfolio layout/cardStyle** → SectionPortfolio
-- **blog layout/postsPerPage** → /blog page
+### P2 — Feature-flag checks (13/22 implemented. 7 remaining below)
+- ✅ **footerCta** → TheFooter
+- ✅ **mobileInteractiveHeader** → TheHeader
+- ✅ **onepager** → SectionRenderer
+- ❌ **verticalNav** — website icon sidebar mode (not needed for this project)
+- ❌ **scrollytelling** — action exists but not applied in section components
+- ❌ **heroParallax** — project-specific (not in scope)
+- ❌ **pageTransitions** — 303 lines CSS (P3)
+- ❌ **contactEmailConfirmation** — not needed
+- ❌ **contactTelegramNotify** — not needed
 
 ### P3 — Nice to have
-- **ChangePasswordModal** — form only, no modal needed
-- **Unread messages badge** — polling contacts every 30s
-- **Skip-to-content link** — WCAG 2.4.1
-- **Page transitions CSS** — dynamic import when configured
-- **onepager/SPA section routing** — SectionRenderer check
+- Bottom nav scrollable rows
+- ChangePasswordModal
+- Skip-to-content link (WCAG 2.4.1)
+- Admin sidebar icon nav with tooltips (partially done in latest rewrite)
 
 ---
 

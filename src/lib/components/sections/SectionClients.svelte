@@ -2,7 +2,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
-  import { FEATURES } from '$lib/config/site'
+  import { FEATURES, MODULES } from '$lib/config/site'
 
   let {
     clients = [] as Array<{ id: number; name: string; logoUrl?: string; websiteUrl?: string }>,
@@ -13,6 +13,8 @@
   } = $props()
 
   const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
+  const clientsModule = MODULES.clients as { config?: { grayscale?: boolean; hoverColor?: boolean } } | undefined
+  const clientsConfig = clientsModule?.config ?? { grayscale: true, hoverColor: true }
 </script>
 
 <section id="clients" class={twMerge(clsx(
@@ -22,7 +24,9 @@
 ))}>
   <div class={clsx('w-full mx-auto', isContained && 'max-w-[1280px]')} style="padding-inline: clamp(1rem, 3vw, 3rem);">
     <h2 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight mb-8 text-center">{m.sections_clients()}</h2>
-    <div class="flex flex-wrap items-center justify-center gap-8 opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-500">
+    <div class={clsx('flex flex-wrap items-center justify-center gap-8 transition-all duration-500',
+      clientsConfig.grayscale && 'opacity-50 grayscale hover:opacity-100 hover:grayscale-0',
+    )}>
       {#each clients as client}
         {#if client.websiteUrl}
           <a href={client.websiteUrl} target="_blank" rel="noopener noreferrer">
