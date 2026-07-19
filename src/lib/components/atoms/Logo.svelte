@@ -1,9 +1,12 @@
 <script lang="ts">
   /**
    * Logo — Theme+locale aware SVG logo
+   * PM v2: useLogo.ts (117 lines)
    *
-   * Resolves path as: /logos/{shape}_{theme}_{lang}.svg
-   * Falls back: shape → shape_dark_en → empty
+   * THEME INVERSION: 'dark' mode → 'light' logo, 'light' mode → 'dark' logo
+   * (White logo on dark background, dark logo on light background)
+   *
+   * Fallback chain: shape_theme_lang → shape_theme_en → horizontal_dark_en
    *
    * Rule #1: class prop + twMerge
    */
@@ -12,6 +15,10 @@
   import { getTheme } from '$lib/stores/theme.svelte'
   import { LOGO } from '$lib/config/site'
   import * as runtime from '$lib/paraglide/runtime.js'
+
+  const LOGO_BASE = LOGO.basePath
+  const LOGO_AVAILABLE = new Set(LOGO.available)
+  const LANG_FALLBACK = LOGO.langFallback as Record<string, string>
 
   type Shape = 'horizontal' | 'circle'
 
@@ -29,24 +36,34 @@
     class?: string
   } = $props()
 
+  // Resolve locale with fallback chain
   const currentLocale = $derived(locale ?? runtime.languageTag())
-  const langFallback: Record<string, string> = LOGO.langFallback as Record<string, string>
-  const resolvedLang = $derived(langFallback[currentLocale] ?? 'en')
+  const effectiveLang = $derived.by(() => {
+    const lang = currentLocale
+    // Check if this language has a direct logo variant
+    const hasDirect = [...LOGO_AVAILABLE].some(name => name.endsWith(`_${lang}`))
+    if (hasDirect) return lang
+    // Use fallback from config
+    if (LANG_FALLBACK[lang]) return LANG_FALLBACK[lang]
+    // Ultimate fallback: english
+    return 'en'
+  })
 
-  // Try: horizontal_dark_en, then horizontal_dark, then horizontal, then empty
-  const available = $derived(new Set(LOGO.available))
+  // PM v2: invert theme — dark mode uses 'light' logo, light mode uses 'dark' logo
   const themeStore = getTheme()
   const currentTheme = $derived(theme ?? themeStore.current)
+  const invertedTheme = $derived(currentTheme === 'dark' ? 'light' : 'dark')
+
+  // Build path with fallback chain: shape_theme_lang → shape_theme_en → horizontal_dark_en
   const src = $derived.by(() => {
-    const themeVar = theme ?? themeStore.current
-    const t = `${shape}_${themeVar}_${resolvedLang}`
-    const t2 = `${shape}_${themeVar}`
-    const t3 = shape
-    const urls = [t, t2, t3]
-    for (const v of urls) {
-      if (available.has(v)) return `${LOGO.basePath}/${v}.svg`
-    }
-    return ''
+    const primary = `${shape}_${invertedTheme}_${effectiveLang}`
+    if (LOGO_AVAILABLE.has(primary)) return `${LOGO_BASE}/${primary}.svg`
+
+    const fallback = `${shape}_${invertedTheme}_en`
+    if (LOGO_AVAILABLE.has(fallback)) return `${LOGO_BASE}/${fallback}.svg`
+
+    // Ultimate fallback
+    return `${LOGO_BASE}/horizontal_dark_en.svg`
   })
 </script>
 

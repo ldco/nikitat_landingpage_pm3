@@ -10,13 +10,9 @@ function getStored(): Theme | null {
   return null
 }
 
-function getSystem(): Theme {
-  if (!browser) return 'light'
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-}
-
-// Module-level $state — shared across ALL getTheme() callers (singleton)
-let current = $state<Theme>(getStored() ?? getSystem())
+// ALWAYS initialize to 'light' on SSR to prevent hydration mismatch
+// Actual theme is read in initTheme() after mount
+let current = $state<Theme>('light')
 
 function applyTheme(t: Theme) {
   if (!browser) return
@@ -25,17 +21,18 @@ function applyTheme(t: Theme) {
 
 function persistTheme(t: Theme) {
   if (!browser) return
-  try { localStorage.setItem(STORAGE_KEY, t) } catch { /* quota exceeded / private mode */ }
+  try { localStorage.setItem(STORAGE_KEY, t) } catch { /* private mode */ }
 }
 
-// Apply on first real client render (called from root layout $effect)
 let _initialized = false
 export function initTheme() {
-  if (_initialized) return
+  if (_initialized || !browser) return
   _initialized = true
+  // Read stored preference AFTER mount — never during SSR
+  const stored = getStored()
+  if (stored) current = stored
   applyTheme(current)
-  
-  // Listen for system preference changes (only if user hasn't set preference)
+
   const mq = window.matchMedia('(prefers-color-scheme: dark)')
   const handler = (e: MediaQueryListEvent) => {
     if (!getStored()) {
@@ -44,6 +41,7 @@ export function initTheme() {
     }
   }
   mq.addEventListener('change', handler)
+  _initialized = true
 }
 
 export function getTheme() {
