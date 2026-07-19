@@ -16,7 +16,6 @@
   import { SEO } from '$lib/config/site'
   import NavLinks from '$lib/components/molecules/NavLinks.svelte'
   import MadeBy from '$lib/components/atoms/MadeBy.svelte'
-  import MadeWith from '$lib/components/atoms/MadeWith.svelte'
 
   let {
     class: className = ''
@@ -39,7 +38,7 @@
       <!-- Actions column (right) -->
       <div class="flex flex-col items-center md:items-end gap-3 w-full min-w-0">
         <NavLinks />
-        <!-- MadeWith shown only when url prop passed -->
+
       </div>
     </div>
 
