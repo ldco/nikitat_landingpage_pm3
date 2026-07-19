@@ -1,12 +1,12 @@
 <script lang="ts">
   /**
-   * SectionHero — PM v2 hero section (2-column grid + logo)
+   * SectionHero — PM v2 hero (layout/sections.css 485 lines)
    *
-   * Source: app-nuxt/app/assets/css/layout/sections.css (485 lines)
-   * - 2-column grid: text | hero-logo
-   * - hero-title: clamp(2.5rem, 6vw, 4.5rem), weight 900, line-height 0.9
-   * - hero-logo: max-width min(420px, 42vw)
-   * - Mobile: single column, smaller title
+   * Desktop: 2-col grid [text | hero-logo]
+   * Mobile: single column, smaller title, full-width buttons
+   * RTL: text-align start (logical property, auto-flips)
+   *
+   * Phase 2 will add: line-break algorithm, GSAP intro animation
    *
    * Rule #1: class prop + twMerge
    */
@@ -14,58 +14,138 @@
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import Logo from '$lib/components/atoms/Logo.svelte'
 
   let {
     subtitle = '',
     showLogo = true,
+    primaryCta = m.nav_contact(),
+    primaryHref = '/#contact',
+    secondaryCta = m.nav_portfolio(),
+    secondaryHref = '/portfolio',
     class: className = ''
   }: {
     subtitle?: string
     showLogo?: boolean
+    primaryCta?: string
+    primaryHref?: string
+    secondaryCta?: string
+    secondaryHref?: string
     class?: string
   } = $props()
 </script>
 
-<section class={twMerge(clsx(
-  'relative grid grid-cols-1 md:grid-cols-2 items-center gap-8',
-  'min-h-screen md:min-h-[80vh]',
-  'px-6 md:px-[max(1.5rem,calc((100vw-1280px)/2))]',
-  'pt-[clamp(56px,8vh,72px)] pb-4',
+<section id="home" class={twMerge(clsx(
+  'section-hero',
   className
 ))}>
-  <!-- Left: Text content -->
-  <div class="flex flex-col justify-center z-10 max-w-none">
-    <h1 class="
-      text-[clamp(2.5rem,6vw,4.5rem)]
-      font-black leading-[0.9] tracking-normal
-      text-pm-text font-display
-    ">
+  <!-- Left: Text -->
+  <div class="flex flex-col justify-center z-10 min-w-0">
+    <h1 class="hero-title">
       {m.sections_hero()}
     </h1>
     {#if subtitle}
-      <p class="mt-5 max-w-[34rem] text-[clamp(1rem,1.5vw,1.25rem)] text-pm-text-secondary leading-relaxed">
-        {subtitle}
-      </p>
+      <p class="hero-subtitle">{subtitle}</p>
     {/if}
-    <div class="flex flex-wrap gap-4 mt-8">
-      <CtaButton href="/#contact" variant="primary" size="lg">{m.nav_contact()}</CtaButton>
-      <CtaButton href="/portfolio" variant="outline" size="lg">{m.nav_portfolio()}</CtaButton>
+    <div class="hero-actions">
+      <CtaButton href={primaryHref} variant="primary" size="lg">{primaryCta}</CtaButton>
+      <CtaButton href={secondaryHref} variant="outline" size="lg">{secondaryCta}</CtaButton>
     </div>
   </div>
 
-  <!-- Right: Hero Logo (optional) -->
+  <!-- Right: Logo -->
   {#if showLogo}
-    <div class="flex items-center justify-center">
-      <div class="w-full max-w-[min(420px,42vw)]">
-        <!-- Hero logo SVG seal — will be animated by GSAP HeroAnimation -->
-        <svg viewBox="0 0 400 400" class="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="200" cy="200" r="180" fill="none" stroke="currentColor" stroke-width="2" opacity="0.2"/>
-          <circle cx="200" cy="200" r="140" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
-          <text x="200" y="170" text-anchor="middle" font-size="48" font-weight="900" fill="currentColor">PM</text>
-          <text x="200" y="220" text-anchor="middle" font-size="14" fill="currentColor" opacity="0.6">SVELTEKIT</text>
-          <text x="200" y="240" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.4">META-FRAMEWORK</text>
-        </svg>
+    <div class="hero-logo">
+      <div class="hero-logo__img">
+        <Logo shape="circle" />
       </div>
     </div>
   {/if}
 </section>
+
+<style>
+  /* PM v2 hero styles — translated from layout/sections.css
+   * Keeping as scoped style because these are section-specific layout patterns
+   * that don't need to be reusable global classes */
+  .section-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: var(--space-8);
+    min-height: 100dvh;
+    padding-inline: max(1.5rem, calc((100vw - 1280px) / 2));
+    padding-block-start: calc(var(--header-height, 72px) + var(--space-8));
+    padding-block-end: var(--space-4);
+    position: relative;
+    background: var(--color-pm-bg);
+  }
+
+  .hero-title {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 900;
+    line-height: 0.9;
+    letter-spacing: 0;
+    color: var(--color-pm-text);
+    margin-block-end: var(--space-5);
+  }
+
+  .hero-subtitle {
+    font-size: clamp(1.125rem, 2.5vw, 1.5rem);
+    font-weight: 400;
+    color: var(--color-pm-text-secondary);
+    max-inline-size: 700px;
+    line-height: 1.6;
+    margin-block-end: var(--space-8);
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap-md);
+  }
+
+  .hero-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+    z-index: 3;
+  }
+
+  .hero-logo__img {
+    width: 100%;
+    max-width: min(420px, 42vw);
+    height: auto;
+  }
+
+  @media (max-width: 639px) {
+    .section-hero {
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+      min-height: 100svh;
+      padding-inline: var(--space-4);
+      padding-block-start: calc(var(--header-height, 72px) + var(--space-2));
+    }
+
+    .hero-title {
+      font-size: clamp(1.75rem, 9.6vw, 2.55rem);
+      line-height: 0.85;
+    }
+
+    .hero-logo__img {
+      max-width: min(280px, 65vw);
+    }
+
+    .hero-actions {
+      width: 100%;
+    }
+
+    .hero-actions > :global(*) {
+      width: 100%;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .section-hero { border: 1px solid currentColor; }
+  }
+</style>
