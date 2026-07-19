@@ -1,16 +1,11 @@
 <script lang="ts">
-  /**
-   * SectionF22 — F22 project feature section
-   * i18n: sections_home, nav_f22 (if available)
-   * Rule #1: class prop + twMerge
-   */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
 
   let {
-    title = '',
+    title = m.nav_f22(),
     description = '',
     class: className = ''
   }: {
@@ -20,23 +15,38 @@
   } = $props()
 </script>
 
-<section class={twMerge(clsx('py-20 md:py-28', className))}>
-  <div class="container-wide">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-      <div>
-        <h2 class="text-3xl sm:text-4xl font-bold text-pm-text font-display">
-          {title}
-        </h2>
-        <p class="mt-6 text-lg text-pm-text-muted leading-relaxed">
-          {description}
-        </p>
-        <div class="mt-8">
-          <CtaButton href="/portfolio" variant="primary">{m.common_more()}</CtaButton>
-        </div>
-      </div>
-      <div class="aspect-video rounded-xl overflow-hidden bg-pm-bg-sunken flex items-center justify-center text-pm-muted text-lg">
-        {title || 'Project'}
-      </div>
+<section id="f22" class={twMerge(clsx('section section-bg-sunken', className))}>
+  <div class="w-full mx-auto" style="max-width: var(--content-default, 80rem); padding-inline: clamp(1rem, 3vw, 3rem);">
+    <h2 class="section-title">{title}</h2>
+    <div class="flex flex-col items-center text-center max-w-2xl mx-auto">
+      <p class="section-body-text">{description || m.common_note()}</p>
+      <CtaButton href="/#contact" variant="primary" size="lg">{m.nav_contact()}</CtaButton>
     </div>
   </div>
 </section>
+
+<style>
+  .section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-block-start: calc(var(--header-height, 72px) + var(--space-12));
+    padding-block-end: var(--space-16);
+    scroll-margin-top: 0;
+  }
+  .section-bg-sunken { background: var(--color-pm-bg-sunken); }
+  .section-title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--leading-tight);
+    margin-block-end: var(--space-8);
+    text-align: center;
+  }
+  .section-body-text {
+    font-size: clamp(1.4rem, 3.2vw, 1.875rem);
+    font-weight: var(--font-weight-normal);
+    color: var(--color-pm-text-secondary);
+    line-height: 1.6;
+    margin-block-end: var(--space-8);
+  }
+</style>

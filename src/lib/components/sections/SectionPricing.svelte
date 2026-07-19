@@ -1,9 +1,4 @@
 <script lang="ts">
-  /**
-   * SectionPricing — Pricing tiers (from API or config)
-   * i18n: sections_pricing, nav_pricing
-   * Rule #1: class prop + twMerge
-   */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
@@ -26,19 +21,42 @@
   } = $props()
 </script>
 
-<section class={twMerge(clsx('py-20 md:py-28', className))}>
-  <div class="container-wide">
-    <h2 class="text-3xl sm:text-4xl font-bold text-pm-text font-display text-center">
-      {m.sections_pricing()}
-    </h2>
-    <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+<section id="pricing" class={twMerge(clsx('section section-bg-elevated', className))}>
+  <div class="w-full mx-auto" style="max-width: var(--content-default, 80rem); padding-inline: clamp(1rem, 3vw, 3rem);">
+    <h2 class="section-title">{m.sections_pricing()}</h2>
+
+    <div class="pricing-grid">
       {#each tiers as tier}
         <PricingCard {...tier} />
       {:else}
-        <div class="col-span-full">
-          <p class="text-center text-pm-muted py-16">{m.common_note()}</p>
-        </div>
+        <p class="text-center text-pm-muted col-span-full py-16">{m.common_note()}</p>
       {/each}
     </div>
   </div>
 </section>
+
+<style>
+  .section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-block-start: calc(var(--header-height, 72px) + var(--space-12));
+    padding-block-end: var(--space-16);
+    scroll-margin-top: 0;
+  }
+  .section-bg-elevated { background: var(--color-pm-bg-elevated); }
+  .section-title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--leading-tight);
+    margin-block-end: var(--space-8);
+    text-align: center;
+  }
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--gap-lg);
+    align-items: start;
+  }
+  @media (min-width: 768px) { .pricing-grid { grid-template-columns: repeat(3, 1fr); } }
+</style>

@@ -1,9 +1,4 @@
 <script lang="ts">
-  /**
-   * SectionFeatures — Feature cards (from API)
-   * i18n: sections_features, nav_features
-   * Rule #1: class prop + twMerge
-   */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
@@ -17,25 +12,66 @@
   } = $props()
 </script>
 
-<section class={twMerge(clsx('py-20 md:py-28', className))}>
-  <div class="container-wide">
-    <h2 class="text-3xl sm:text-4xl font-bold text-pm-text font-display text-center">
-      {m.sections_features()}
-    </h2>
-    <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<section id="features" class={twMerge(clsx('section', className))}>
+  <div class="w-full mx-auto" style="max-width: var(--content-default, 80rem); padding-inline: clamp(1rem, 3vw, 3rem);">
+    <h2 class="section-title">{m.sections_features()}</h2>
+
+    <div class="features-grid">
       {#each features as feature}
-        <div class="text-center p-6 rounded-xl bg-pm-bg border border-pm-border shadow-md">
+        <div class="feature-card">
           {#if feature.icon}
-            <span class="text-3xl">{feature.icon}</span>
+            <span class="feature-card-icon">{feature.icon}</span>
           {/if}
-          <h3 class="mt-4 text-lg font-bold text-pm-text">{feature.title}</h3>
-          <p class="mt-2 text-sm text-pm-text-muted">{feature.description}</p>
+          <h3 class="feature-card-title">{feature.title}</h3>
+          <p class="feature-card-desc">{feature.description}</p>
         </div>
       {:else}
-        <div class="col-span-full">
-          <p class="text-center text-pm-muted py-16">{m.common_note()}</p>
-        </div>
+        <p class="text-center text-pm-muted col-span-full py-16">{m.common_note()}</p>
       {/each}
     </div>
   </div>
 </section>
+
+<style>
+  .section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-block-start: calc(var(--header-height, 72px) + var(--space-12));
+    padding-block-end: var(--space-16);
+    scroll-margin-top: 0;
+  }
+  .section-title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--leading-tight);
+    margin-block-end: var(--space-8);
+    text-align: center;
+  }
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--gap-lg);
+  }
+  .feature-card {
+    text-align: center;
+    padding: var(--space-6);
+    border-radius: var(--radius-xl);
+    background: var(--color-pm-bg-elevated);
+    border: 1px solid var(--color-pm-border);
+  }
+  .feature-card-icon { font-size: 2rem; display: block; margin-block-end: var(--space-3); }
+  .feature-card-title {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-pm-text);
+    margin-block-end: var(--space-2);
+  }
+  .feature-card-desc {
+    font-size: var(--text-sm);
+    color: var(--color-pm-text-muted);
+    line-height: 1.6;
+  }
+  @media (min-width: 640px) { .features-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .features-grid { grid-template-columns: repeat(3, 1fr); } }
+</style>
