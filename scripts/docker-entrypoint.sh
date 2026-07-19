@@ -4,9 +4,11 @@ set -eu
 DB_PATH="${DATABASE_URL:-/app/data/sqlite.db}"
 UPLOAD_PATH="${UPLOAD_DIR:-/app/uploads}"
 
-mkdir -p "$(dirname "$DB_PATH")" "$UPLOAD_PATH" /app/data/temp
+mkdir -p "$(dirname "$DB_PATH")" "$UPLOAD_PATH"
 
-# Schema sync is performed by setup/deploy as a serialized external step.
-# First-time setup prepares the blank database before the first app boot.
-echo "[entrypoint] Starting Nuxt server"
+# Run DB schema push on first boot (non-fatal if it fails)
+echo "[entrypoint] Running DB schema push..."
+npx drizzle-kit push 2>/dev/null || echo "[entrypoint] DB push skipped"
+
+echo "[entrypoint] Starting SvelteKit server"
 exec node .output/server/index.mjs
