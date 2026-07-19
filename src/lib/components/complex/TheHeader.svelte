@@ -18,6 +18,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { FEATURES } from '$lib/config/site'
+  import { IconHome } from '@tabler/icons-svelte'
   import { getNavState } from '$lib/stores/navigation.svelte'
   import Logo from '$lib/components/atoms/Logo.svelte'
   import NavLinks from '$lib/components/molecules/NavLinks.svelte'
@@ -89,7 +90,7 @@
     <!-- Nav: icon-only with tooltips -->
     <nav class="flex-1 flex flex-col items-center gap-1 py-3">
       <a href="/" class="relative flex items-center justify-center size-10 rounded-md transition-colors group text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <IconHome class="size-5" />
         <span class="absolute start-full ms-2 px-2 py-1 rounded-md bg-pm-bg-elevated border border-pm-border text-xs text-pm-text shadow-md whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-tooltip">Home</span>
       </a>
     </nav>
