@@ -45,17 +45,71 @@ AI safely writes: `<Button variant="primary" class="mt-4 w-full">` — NO wrappe
 
 ### Rule #1.5: Design Tokens — NO Arbitrary Values (CRITICAL)
 
-**ABSOLUTE PROHIBITION:** Do NOT use Tailwind arbitrary values `[...]` for typography, spacing, or sizing. All sizing/typography values MUST come from `@theme` tokens. See `docs/STYLE-RULES.md` for the complete token catalog.
+**ABSOLUTE PROHIBITION:** Do NOT use Tailwind arbitrary values `[...]` for typography, spacing, or sizing.
 
+#### ❌ FORBIDDEN
 ```svelte
-<!-- ❌ FORBIDDEN: text-[clamp(...)], max-w-[1280px], pt-[calc(...)] -->
-<!-- ✅ CORRECT:   text-fluid-hero,  max-w-container,  pt-[var(--pt-section)] -->
+<!-- NEVER use arbitrary values for sizing/typography/spacing -->
+text-[clamp(1.75rem,4vw,2.5rem)]        max-w-[1280px]
+text-[clamp(2.5rem,6vw,4.5rem)]         max-w-[62.5rem]
+text-[clamp(1.4rem,3.2vw,1.875rem)]     max-w-[65ch]
+pt-[calc(clamp(56px,8vh,72px)+3rem)]    gap-[1.5rem]
+h-[clamp(56px,8vh,72px)]                px-[clamp(1rem,3vw,3rem)]
+size-[44px]      w-[4rem]               bg-[#901504]
 ```
 
+#### ✅ REQUIRED TOKENS (all defined in `src/app.css` → `@theme`)
+
+**Fluid Typography:**
+| Token | Use |
+|-------|-----|
+| `text-fluid-hero` | Hero h1 (clamp(2.5rem,3vw+1rem,4.5rem)) |
+| `text-fluid-3xl` | ALL section titles (clamp(1.75rem,1.5rem+1.875vw,2.5rem)) |
+| `text-fluid-2xl` | Section body text (clamp(1.5rem,1.2rem+1.5vw,2rem)) |
+| `text-fluid-xl` | Subtitle (clamp(1.25rem,1.1rem+0.75vw,1.5rem)) |
+| `text-fluid-base` | Default text |
+| `text-fluid-xs..5xl` | Other sizes |
+
+**Semantic Sizing (use with `var()`):**
+| Token | Use |
+|-------|-----|
+| `h-[var(--h-header)]` | Header height |
+| `h-[var(--h-header-scrolled)]` | Scrolled header height |
+| `pt-[var(--pt-section)]` | Section top padding |
+| `style="padding-inline: var(--px-container)"` | Container horizontal padding |
+
+**Container Widths:**
+| Token | Use |
+|-------|-----|
+| `max-w-container` | Sections, header, footer (min(80rem,100%)) |
+| `max-w-content` | Admin pages (min(62.5rem,100%)) |
+| `max-w-prose` | Blog, legal (min(65ch,100%)) |
+| `max-w-narrow` | FAQ, testimonials (min(48rem,100%)) |
+
+#### ✅ ALLOWED arbitrary values — CSS functions only
+```
+backdrop-blur-[16px]    (CSS filter — no Tailwind utility)
+shadow-[0_1px_3px_oklch(...)]  (complex shadow)
+grid-cols-[auto_1fr_auto]    (CSS grid template)
+transition-[height,box-shadow]  (CSS property list)
+max-w-[min(420px,42vw)]    (CSS calc/min/max function)
+leading-[0.9]              (display font line-height)
+text-[9px]                 (badge — one-off, not a design pattern)
+```
+
+#### 🔍 Decision Process
+```
+1. Ищешь Tailwind-утилиту (p-4, text-lg, size-11, w-16)
+2. Ищешь токен в @theme (text-fluid-3xl, max-w-container)
+3. Если токена нет → ДОБАВЬ в @theme
+4. CSS-функция? (backdrop-blur, shadow, grid) → можно [...]
+```
+
+#### 🛡️ Enforcement
 ```bash
-# Pre-commit check — MUST return 0:
-grep -r "text-[" src/lib/ src/routes/ --include="*.svelte"
-grep -r "max-w-[1280px]|max-w-[80rem]|max-w-[62.5rem]|max-w-[65ch]" src/lib/ src/routes/ --include="*.svelte"
+# Pre-commit hook (.git/hooks/pre-commit) blocks commits with arbitrary sizing values
+# Manual check:
+grep -r "text-\[" src/lib/components/ src/routes/ --include="*.svelte" | grep -v "text-\[9px\]"
 ```
 ### Rule #2: Composition Over Monolithic Sections (CRITICAL)
 
