@@ -1,25 +1,11 @@
 /**
- * Social Icon Registry — import all icon atoms here
- * Add new icons by creating a file in this directory and adding it to the map.
+ * Social Icon Registry — reference for adding new icons
+ *
+ * To add a platform:
+ *   1. Create IconName.svelte in this directory using BaseIcon
+ *   2. Add import + if-chain to ../SocialIcon.svelte
+ *   3. Add seed data with key social.{platform}
+ *
+ * The directory structure IS the registry — filenames match platform names.
  */
-import TelegramIcon from './TelegramIcon.svelte'
-import GithubIcon from './GithubIcon.svelte'
-import InstagramIcon from './InstagramIcon.svelte'
-import YoutubeIcon from './YoutubeIcon.svelte'
-import VkIcon from './VkIcon.svelte'
-import XIcon from './XIcon.svelte'
-import LinkedinIcon from './LinkedinIcon.svelte'
-import WhatsappIcon from './WhatsappIcon.svelte'
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const ICON_MAP: Record<string, any> = {
-  telegram: TelegramIcon,
-  github: GithubIcon,
-  instagram: InstagramIcon,
-  youtube: YoutubeIcon,
-  vk: VkIcon,
-  x: XIcon,
-  twitter: XIcon,
-  linkedin: LinkedinIcon,
-  whatsapp: WhatsappIcon
-}
+// No barrel export needed — SocialIcon uses direct Svelte imports for type safety.
