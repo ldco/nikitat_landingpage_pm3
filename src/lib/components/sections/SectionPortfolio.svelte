@@ -13,99 +13,34 @@
   } = $props()
 </script>
 
-<section id="portfolio" class={twMerge(clsx('section section-bg-elevated', className))}>
-  <div class="w-full mx-auto" style="max-width: var(--content-default, 80rem); padding-inline: clamp(1rem, 3vw, 3rem);">
-    <h2 class="section-title">{m.sections_portfolio()}</h2>
-
-    <div class="portfolio-grid">
-      {#if items.length > 0}
-        {#each items as item (item.id)}
-          <a href="/portfolio/{item.slug}" class="portfolio-card">
-            {#if item.coverImageUrl}
-              <img src={item.coverImageUrl} alt={item.name} class="portfolio-card-image" />
-            {:else}
-              <div class="portfolio-card-image bg-pm-bg-sunken flex items-center justify-center text-pm-text-muted">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-              </div>
-            {/if}
-            <div class="portfolio-card-overlay">
-              <span class="portfolio-card-name">{item.name}</span>
-              <span class="portfolio-card-type">{item.type}</span>
+<section id="portfolio" class={twMerge(clsx(
+  'flex flex-col items-center bg-pm-bg-elevated',
+  'pt-[calc(clamp(56px,8vh,72px)+3rem)] pb-16',
+  className
+))}>
+  <div class="w-full mx-auto max-w-[1280px]" style="padding-inline: clamp(1rem, 3vw, 3rem);">
+    <h2 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight mb-8 text-center">{m.sections_portfolio()}</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[var(--gap-lg)]">
+      {#each items as item (item.id)}
+        <a href="/portfolio/{item.slug}" class="relative block rounded-xl overflow-hidden aspect-4/3 transition-transform hover:-translate-y-0.5 hover:shadow-lg">
+          {#if item.coverImageUrl}
+            <img src={item.coverImageUrl} alt={item.name} class="w-full h-full object-cover" />
+          {:else}
+            <div class="w-full h-full bg-pm-bg-sunken flex items-center justify-center text-pm-text-muted">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
             </div>
-          </a>
-        {/each}
+          {/if}
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-4 text-white">
+            <span class="text-lg font-semibold">{item.name}</span>
+            <span class="text-sm opacity-80">{item.type}</span>
+          </div>
+        </a>
       {:else}
         <p class="text-center text-pm-muted col-span-full py-12">{m.common_note()}</p>
-      {/if}
+      {/each}
     </div>
-
     <div class="flex justify-center mt-10">
       <CtaButton href="/portfolio" variant="outline" size="lg">{m.common_more()}</CtaButton>
     </div>
   </div>
 </section>
-
-<style>
-  .section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-block-start: calc(var(--header-height, 72px) + var(--space-12));
-    padding-block-end: var(--space-16);
-    scroll-margin-top: 0;
-  }
-  .section-bg-elevated { background: var(--color-pm-bg-elevated); }
-  .section-title {
-    font-size: clamp(1.75rem, 4vw, 2.5rem);
-    font-weight: var(--font-weight-bold);
-    line-height: var(--leading-tight);
-    margin-block-end: var(--space-8);
-    text-align: center;
-  }
-  .portfolio-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--gap-lg);
-  }
-  .portfolio-card {
-    position: relative;
-    display: block;
-    border-radius: var(--radius-xl);
-    overflow: hidden;
-    aspect-ratio: 4/3;
-    transition: transform var(--transition-normal) ease, box-shadow var(--transition-normal) ease;
-  }
-  .portfolio-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-  }
-  .portfolio-card-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .portfolio-card-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, oklch(0% 0 0 / 70%), transparent 60%);
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: var(--space-4);
-    color: white;
-  }
-  .portfolio-card-name {
-    font-size: var(--text-lg);
-    font-weight: var(--font-weight-semibold);
-  }
-  .portfolio-card-type {
-    font-size: var(--text-sm);
-    opacity: 0.8;
-  }
-  @media (min-width: 640px) {
-    .portfolio-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (min-width: 1024px) {
-    .portfolio-grid { grid-template-columns: repeat(3, 1fr); }
-  }
-</style>

@@ -13,11 +13,14 @@
   } = $props()
 </script>
 
-<section id="blog" class={twMerge(clsx('section section-bg-elevated', className))}>
-  <div class="w-full mx-auto" style="max-width: var(--content-default, 80rem); padding-inline: clamp(1rem, 3vw, 3rem);">
-    <h2 class="section-title">{m.sections_blog()}</h2>
-
-    <div class="blog-grid">
+<section id="blog" class={twMerge(clsx(
+  'flex flex-col items-center bg-pm-bg-elevated',
+  'pt-[calc(clamp(56px,8vh,72px)+3rem)] pb-16',
+  className
+))}>
+  <div class="w-full mx-auto max-w-[1280px]" style="padding-inline: clamp(1rem, 3vw, 3rem);">
+    <h2 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight mb-8 text-center">{m.sections_blog()}</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[var(--gap-lg)]">
       {#each posts as post}
         <BlogPostCard {...post} />
       {:else}
@@ -26,29 +29,3 @@
     </div>
   </div>
 </section>
-
-<style>
-  .section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-block-start: calc(var(--header-height, 72px) + var(--space-12));
-    padding-block-end: var(--space-16);
-    scroll-margin-top: 0;
-  }
-  .section-bg-elevated { background: var(--color-pm-bg-elevated); }
-  .section-title {
-    font-size: clamp(1.75rem, 4vw, 2.5rem);
-    font-weight: var(--font-weight-bold);
-    line-height: var(--leading-tight);
-    margin-block-end: var(--space-8);
-    text-align: center;
-  }
-  .blog-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--gap-lg);
-  }
-  @media (min-width: 640px) { .blog-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (min-width: 1024px) { .blog-grid { grid-template-columns: repeat(3, 1fr); } }
-</style>
