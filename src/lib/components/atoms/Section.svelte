@@ -30,11 +30,11 @@
 
   const layout: Record<Variant, string> = {
     // .section: display flex, flex-col, padding with header offset
-    default: 'flex flex-col items-center pt-[calc(72px+3rem)] pb-16 scroll-mt-0',
+    default: 'flex flex-col items-center pt-[var(--pt-section)] pb-16 scroll-mt-0',
     // .section-hero: less top padding (header is transparent overlay)
-    hero: 'flex flex-col items-center pt-[calc(72px+2rem)] pb-16 scroll-mt-0',
+    hero: 'flex flex-col items-center pt-[var(--pt-section)] pb-16 scroll-mt-0',
     // .section-fullscreen: min-height viewport
-    fullscreen: 'flex flex-col items-center pt-[calc(72px+3rem)] pb-16 min-h-dvh scroll-mt-0'
+    fullscreen: 'flex flex-col items-center pt-[var(--pt-section)] pb-16 min-h-dvh scroll-mt-0'
   }
 
   const bg: Record<Background, string> = {

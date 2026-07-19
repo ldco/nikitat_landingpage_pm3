@@ -43,6 +43,20 @@ This prevents AI from creating wrapper divs or modifying components.
 
 AI safely writes: `<Button variant="primary" class="mt-4 w-full">` — NO wrapper div needed.
 
+### Rule #1.5: Design Tokens — NO Arbitrary Values (CRITICAL)
+
+**ABSOLUTE PROHIBITION:** Do NOT use Tailwind arbitrary values `[...]` for typography, spacing, or sizing. All sizing/typography values MUST come from `@theme` tokens. See `docs/STYLE-RULES.md` for the complete token catalog.
+
+```svelte
+<!-- ❌ FORBIDDEN: text-[clamp(...)], max-w-[1280px], pt-[calc(...)] -->
+<!-- ✅ CORRECT:   text-fluid-hero,  max-w-container,  pt-[var(--pt-section)] -->
+```
+
+```bash
+# Pre-commit check — MUST return 0:
+grep -r "text-[" src/lib/ src/routes/ --include="*.svelte"
+grep -r "max-w-[1280px]|max-w-[80rem]|max-w-[62.5rem]|max-w-[65ch]" src/lib/ src/routes/ --include="*.svelte"
+```
 ### Rule #2: Composition Over Monolithic Sections (CRITICAL)
 
 DO NOT create monolithic components like `<SectionHero>`, `<SectionAbout>`.

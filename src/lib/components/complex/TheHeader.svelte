@@ -120,7 +120,7 @@
     'min-h-[var(--h-header)]',
     'transition-[height,box-shadow,transform,background,backdrop-filter] duration-300 ease-out',
     scrolled
-      ? 'h-[clamp(48px,6vh,56px)] bg-pm-bg/85 dark:bg-pm-black/85 shadow-[0_1px_3px_oklch(0%_0_0_/_8%)] backdrop-blur-[16px]'
+      ? 'h-[var(--h-header-scrolled)] bg-pm-bg/85 dark:bg-pm-black/85 shadow-[0_1px_3px_oklch(0%_0_0_/_8%)] backdrop-blur-[16px]'
       : isInteractive ? 'h-[var(--h-header)] bg-pm-bg' : 'h-[var(--h-header)] bg-pm-bg',
     hidden ? '-translate-y-full pointer-events-none' : 'translate-y-0',
     className
