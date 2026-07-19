@@ -1,14 +1,18 @@
 <script lang="ts">
   /**
-   * TheHeader — PM v2 header with full scroll behaviors
+   * TheHeader — PM v2 header (skeleton/header.css 515 lines + mobile-nav.css 279 lines)
    *
-   * Source: app-nuxt/app/assets/css/skeleton/header.css (515 lines)
-   * - Fluid height: clamp(56px, 8vh, 72px)
-   * - 3-column grid: Logo | CENTERED Nav | Actions
-   * - Scroll glass morphism (with light-theme opacity fix)
-   * - Hide on scroll down, show on scroll up
-   * - Mobile: centered logo (absolute), hamburger left, actions right
+   * Desktop (≥1120px):
+   *   grid: [logo] [centered nav] [actions]
+   *   fluid height: clamp(56px, 8vh, 72px)
+   *   scroll glass: backdrop-blur-[16px] + semi-transparent bg
+   *   animated logo shrink on scroll
    *
+   * Mobile/tablet (<1120px):
+   *   hamburger left, logo absolute-centered, actions right
+   *   drawer slides in from left with backdrop
+   *
+   * RTL: logical properties (start/end) used throughout
    * Rule #1: class prop + twMerge
    */
   import { clsx } from 'clsx'
@@ -33,11 +37,14 @@
   let scrolled = $state(false)
   let hidden = $state(false)
   let lastScrollY = $state(0)
+  let showMobileNav = $state(false)
+
   const SCROLL_THRESHOLD = 80
 
   function onScroll() {
     const sy = window.scrollY
     scrolled = sy > SCROLL_THRESHOLD
+    // Hide on scroll down, show on scroll up (>120px depth)
     if (sy > SCROLL_THRESHOLD + 40) {
       hidden = sy > lastScrollY
     } else {
@@ -48,70 +55,125 @@
 
   function handleHamburger() {
     mobileOpen = !mobileOpen
+    if (mobileOpen) {
+      setTimeout(() => showMobileNav = true, 200)
+    } else {
+      showMobileNav = false
+    }
+  }
+
+  function closeMobileNav() {
+    mobileOpen = false
+    showMobileNav = false
   }
 </script>
 
 <svelte:window onscroll={onScroll} />
+<svelte:body onkeydown={(e) => e.key === 'Escape' && closeMobileNav()} />
 
+<!-- ═══ HEADER BAR ═══ -->
 <header
   class={twMerge(clsx(
-    'fixed top-0 left-0 right-0 z-fixed',
+    'fixed top-0 start-0 end-0 z-fixed',
     'border-b border-pm-border',
+    // Base height + transition
     'min-h-[clamp(56px,8vh,72px)]',
-    'transition-[height,box-shadow,transform] duration-300 ease-out',
-    // Scrolled state: glass morphism for dark, opaque for light
+    'transition-[height,box-shadow,transform,background,backdrop-filter] duration-300 ease-out',
+    // Scrolled state: glass morphism (dark gets frosted, light stays solid per PM v2)
     scrolled
-      ? 'backdrop-blur-md bg-pm-white/80 dark:bg-pm-black/80 shadow-sm'
-      : 'bg-pm-bg',
+      ? 'h-[clamp(48px,6vh,56px)] bg-pm-bg/85 dark:bg-pm-black/85 shadow-[0_1px_3px_oklch(0%_0_0_/_8%)] backdrop-blur-[16px]'
+      : 'h-[clamp(56px,8vh,72px)] bg-pm-bg',
     // Hide on scroll down
     hidden ? '-translate-y-full pointer-events-none' : 'translate-y-0',
     className
   ))}>
-  <!-- .header-inner: Desktop grid (3-col), mobile flex -->
-  <div class={clsx(
-    'w-full mx-auto',
-    'h-[clamp(56px,8vh,72px)] flex items-center',
-    'md:grid md:grid-cols-[auto_max-content_auto]',
-    scrolled && 'h-[clamp(48px,6vh,56px)]'
-  )}
-    style="max-width: var(--content-default, 80rem); padding-inline: clamp(1rem, 3vw, 3rem);">
-    <!-- Grid col 1: Logo — centered on mobile (absolute), left on desktop -->
+  <!-- .header-inner: desktop grid [logo | centered nav | actions], mobile flex -->
+  <div
+    class="flex items-center h-full mx-auto"
+    style="padding-inline: clamp(1rem, 3vw, 3rem); max-width: var(--content-default, 80rem);"
+  >
+    <!-- Hamburger: shown on mobile/tablet (< 1120px) only -->
+    <div class="flex header:hidden me-auto">
+      <HamburgerIcon active={mobileOpen} type="spin" onclick={handleHamburger} />
+    </div>
+
+    <!-- Logo: centered on mobile (absolute), left on desktop -->
     <div class={clsx(
       'flex items-center',
-      'md:justify-self-start md:static md:transform-none',
-      'absolute left-1/2 -translate-x-1/2 md:relative'
+      // Mobile: absolute center
+      'absolute start-1/2 -translate-x-1/2 header:static header:transform-none header:justify-self-start',
+      // Logo shrinks on scroll
+      scrolled ? 'h-[var(--logo-scrolled-height)]' : 'h-[var(--logo-desktop-height)]'
     )}>
-      <div class={scrolled ? '[&_img]:h-7' : '[&_img]:h-10'}>
-        <Logo shape="horizontal" />
-      </div>
+      <Logo shape="horizontal" />
     </div>
 
-    <!-- Grid col 2: Nav — centered on desktop, hidden on mobile -->
-    <div class="hidden md:flex md:justify-self-center">
+    <!-- Nav: centered on desktop, hidden on mobile/tablet -->
+    <nav class="hidden header:flex header:justify-self-center" style="gap: clamp(1.5rem, 3vw, 2.5rem);">
       <NavLinks activeId={activeSection} />
+    </nav>
+
+    <!-- Actions rail: right-aligned, hidden on mobile -->
+    <div class="hidden header:flex header:justify-self-end header:items-center header:gap-3 ms-auto header:ms-0">
+      <LangSwitcher mode="side" />
+      <ThemeToggle />
     </div>
 
-    <!-- Grid col 3: Actions right-aligned -->
-    <div class="flex items-center gap-2 md:justify-self-end md:gap-3 ml-auto md:ml-0">
-      <div class="hidden md:flex">
-        <LangSwitcher mode="side" />
-      </div>
+    <!-- Mobile contact/actions: right side, outside nav rail -->
+    <div class="flex header:hidden items-center gap-1 ms-auto">
       <ThemeToggle />
-      <div class="md:hidden">
-        <HamburgerIcon active={mobileOpen} type="spin" onclick={handleHamburger} />
-      </div>
     </div>
   </div>
+</header>
 
-  <!-- Mobile menu -->
-  {#if mobileOpen}
-    <div class="md:hidden border-t border-pm-border bg-pm-bg">
-      <div class="px-4 py-4">
-        <NavLinks vertical activeId={activeSection} onClick={() => mobileOpen = false} />
-        <div class="mt-4 pt-4 border-t border-pm-border">
-          <LangSwitcher mode="inline" />
-        </div>
+<!-- ═══ MOBILE NAV DRAWER ═══ -->
+<!-- ═══ MOBILE NAV BACKDROP ═══ -->
+{#if showMobileNav}
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <div
+    class="fixed inset-0 z-drawer-backdrop bg-black/40 backdrop-blur-[4px]"
+    onclick={closeMobileNav}
+    role="presentation"
+  />
+{/if}
+
+<!-- ═══ MOBILE NAV DRAWER ═══ -->
+{#if mobileOpen}
+  <nav
+    class={clsx(
+      'fixed inset-y-0 start-0 z-drawer',
+      'w-[min(280px,85vw)] bg-pm-bg',
+      'shadow-[4px_0_20px_oklch(0%_0_0_/_10%)]',
+      'flex flex-col',
+      'transition-[inset-inline-start] duration-[400ms]',
+      showMobileNav ? '[inset-inline-start:0]' : '[inset-inline-start:calc(-1*min(280px,85vw))]'
+    )}>
+    <!-- Header: logo + close -->
+    <div class="flex items-center justify-between p-4 border-b border-pm-border">
+      <Logo shape="horizontal" />
+      <button
+        type="button"
+        class="flex items-center justify-center w-[44px] h-[44px] rounded-md text-pm-text-secondary hover:bg-pm-bg-sunken hover:text-pm-text transition-colors"
+        aria-label="Close menu"
+        onclick={closeMobileNav}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Nav links -->
+    <div class="flex-1 overflow-y-auto p-4">
+      <NavLinks vertical activeId={activeSection} onClick={closeMobileNav} />
+
+      <!-- CTA section -->
+      <div class="mt-4 pt-4 border-t border-pm-border">
+        <LangSwitcher mode="inline" />
       </div>
     </div>
-  {/if}
-</header>
+
+    <!-- Settings: theme + lang at bottom -->
+    <div class="relative mt-auto p-4 border-t border-pm-border flex items-center gap-3">
+      <ThemeToggle />
+    </div>
+  </nav>
+{/if}
