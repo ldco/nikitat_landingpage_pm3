@@ -1,11 +1,13 @@
 <script lang="ts">
   /**
    * Admin Layout — MD3 responsive admin panel
+   * PM v2: admin.vue (452 lines) + admin-header.css (592) + admin-sidebar.css (74)
    *
-   * Phone: bottom navigation
+   * Phone: mobile header + bottom navigation
    * Tablet: sidebar rail
    * Desktop: full sidebar
    *
+   * Config-driven: FEATURES.appVerticalNav → vertical sidebar or horizontal header
    * Rule #1: class prop + twMerge
    */
   import { clsx } from 'clsx'
@@ -19,96 +21,173 @@
   let { data, children }: { data: PageData; children?: import('svelte').Snippet } = $props()
   const user = $derived(data.user)
 
-  // Config-driven header: vertical sidebar vs horizontal header
   const useVerticalNav = $derived(FEATURES.appVerticalNav)
 
-  // Filter admin sections by user role
-  const roleHierarchy: Record<string, number> = { master: 3, admin: 2, editor: 1 }
-  const userLevel = $derived(roleHierarchy[user?.role ?? 'editor'] ?? 0)
-
-  // Sections from config
-  const adminSections: Array<{ id: string; label: string; icon: string }> = [
-    { id: 'dashboard', label: 'Dashboard', icon: 'home' },
-    { id: 'users', label: 'Users', icon: 'users' },
-    { id: 'roles', label: 'Roles', icon: 'shield' },
-    { id: 'translations', label: 'Translations', icon: 'globe' },
-    { id: 'settings', label: 'Settings', icon: 'settings' },
-    { id: 'portfolios', label: 'Portfolios', icon: 'image' },
-    { id: 'blog', label: 'Blog', icon: 'file-text' },
-    { id: 'team', label: 'Team', icon: 'users' },
-    { id: 'testimonials', label: 'Testimonials', icon: 'message-square' },
-    { id: 'faq', label: 'FAQ', icon: 'help-circle' },
-    { id: 'clients', label: 'Clients', icon: 'briefcase' },
-    { id: 'pricing', label: 'Pricing', icon: 'dollar-sign' },
-    { id: 'features', label: 'Features', icon: 'zap' },
-    { id: 'contacts', label: 'Contacts', icon: 'mail' },
-    { id: 'audit', label: 'Audit', icon: 'clipboard' },
-    { id: 'health', label: 'Health', icon: 'activity' }
+  const adminSections: Array<{ id: string; label: string }> = [
+    { id: 'dashboard', label: 'Dashboard' },
+    { id: 'users', label: 'Users' },
+    { id: 'roles', label: 'Roles' },
+    { id: 'translations', label: 'Translations' },
+    { id: 'settings', label: 'Settings' },
+    { id: 'portfolios', label: 'Portfolios' },
+    { id: 'blog', label: 'Blog' },
+    { id: 'team', label: 'Team' },
+    { id: 'testimonials', label: 'Testimonials' },
+    { id: 'faq', label: 'FAQ' },
+    { id: 'clients', label: 'Clients' },
+    { id: 'pricing', label: 'Pricing' },
+    { id: 'features', label: 'Features' },
+    { id: 'contacts', label: 'Contacts' },
+    { id: 'audit', label: 'Audit' },
+    { id: 'health', label: 'Health' }
   ]
 
   const currentPath = $derived($page.url.pathname)
   const isActive = (id: string) =>
     currentPath === `/admin/${id}` || (id === 'dashboard' && currentPath === '/admin')
 
+  const currentPageTitle = $derived(() => {
+    for (const s of adminSections) {
+      if (isActive(s.id)) return s.label
+    }
+    return 'Dashboard'
+  })
+
+  const userInitials = $derived(
+    user ? (user.name ?? user.email).charAt(0).toUpperCase() : '?'
+  )
+
   let mobileOpen = $state(false)
+  let userMenuOpen = $state(false)
+  let mobileUserMenuOpen = $state(false)
+
+  function toggleUserMenu() { userMenuOpen = !userMenuOpen }
+  function toggleMobileUserMenu() { mobileUserMenuOpen = !mobileUserMenuOpen }
 </script>
 
-<div class="min-h-screen bg-pm-bg">
+<div class="min-h-screen bg-pm-bg" onclick={(e) => {
+  const t = e.target as HTMLElement
+  if (!t.closest('.user-menu-wrapper')) { userMenuOpen = false }
+  if (!t.closest('.mobile-user-wrapper')) { mobileUserMenuOpen = false }
+}}>
   {#if useVerticalNav}
-    <!-- VERTICAL MODE: Desktop Sidebar -->
-    <aside class="fixed top-0 left-0 z-sticky hidden lg:flex flex-col w-56 h-full bg-pm-bg-elevated border-r border-pm-border">
-      <div class="flex items-center h-16 px-4 border-b border-pm-border">
-        <a href="/admin" class="text-lg font-bold text-pm-text">PM Admin</a>
+    <!-- VERTICAL MODE: Desktop Sidebar (PM v2: admin.vue lines 286-364) -->
+    <aside class="fixed top-0 start-0 z-sticky hidden lg:flex flex-col w-[4rem] h-full bg-pm-bg-elevated border-e border-pm-border">
+      <div class="flex items-center justify-center h-16 border-b border-pm-border">
+        <a href="/admin" class="text-lg font-bold text-pm-text">P</a>
       </div>
-      <nav class="flex-1 overflow-y-auto py-2">
+      <nav class="flex-1 flex flex-col items-center gap-1 py-3 px-1">
         {#each adminSections as section}
           <a href={section.id === 'dashboard' ? '/admin' : `/admin/${section.id}`}
-            class={clsx('flex items-center gap-3 px-4 py-2 mx-2 rounded-md text-sm transition-colors',
-              isActive(section.id) ? 'bg-pm-brand-subtle text-pm-brand font-medium' : 'text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken'
-            )}>
-            {section.label}
+            class="relative flex items-center justify-center size-10 rounded-md transition-colors group"
+            class:bg-pm-brand-subtle:text-pm-brand={isActive(section.id)}
+            class:text-pm-text-secondary:hover:text-pm-text:hover:bg-pm-bg-sunken={!isActive(section.id)}
+          >
+            <span class="text-xs font-bold">{section.label.charAt(0)}</span>
+            <!-- Tooltip -->
+            <span class="absolute start-full ms-2 px-2 py-1 rounded-md bg-pm-bg-elevated border border-pm-border text-xs text-pm-text shadow-md whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-tooltip">
+              {section.label}
+            </span>
           </a>
         {/each}
       </nav>
-      <div class="p-4 border-t border-pm-border">
+      <div class="p-2 border-t border-pm-border user-menu-wrapper">
         {#if user}
-          <div class="flex items-center gap-3 mb-3 px-2">
-            <div class="size-8 rounded-full bg-pm-brand-subtle text-pm-brand flex items-center justify-center text-sm font-bold">{(user.name ?? user.email).charAt(0).toUpperCase()}</div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-pm-text truncate">{user.name ?? user.email}</p>
-              <p class="text-xs text-pm-text-muted">{user.role}</p>
+          <button type="button" onclick={toggleUserMenu}
+            class="flex items-center justify-center size-10 rounded-full bg-pm-brand-subtle text-pm-brand text-sm font-bold mx-auto hover:scale-105 transition-transform"
+          >
+            {userInitials}
+          </button>
+          {#if userMenuOpen}
+            <div class="absolute bottom-full mb-2 start-2 w-56 bg-pm-bg-elevated border border-pm-border rounded-xl shadow-xl z-popover p-3">
+              <div class="flex flex-col gap-1 mb-3 pb-3 border-b border-pm-border">
+                <span class="text-sm font-medium text-pm-text">{user.name ?? user.email}</span>
+                <span class="text-xs text-pm-text-muted">{user.email}</span>
+                <span class="text-xs text-pm-text-muted capitalize">{user.role}</span>
+              </div>
+              <a href="/api/auth/logout" class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Logout
+              </a>
             </div>
-          </div>
+          {/if}
         {/if}
-        <a href="/api/auth/logout" class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors">Logout</a>
       </div>
     </aside>
   {:else}
-    <!-- HORIZONTAL MODE: Desktop Header -->
+    <!-- HORIZONTAL MODE: Desktop Header (PM v2: admin.vue lines 198-281) -->
     <header class="sticky top-0 z-sticky bg-pm-bg-elevated border-b border-pm-border">
-      <div class="flex items-center justify-between gap-4 px-4 py-3">
-        <a href="/admin" class="text-lg font-bold text-pm-text">PM Admin</a>
-        <nav class="flex items-center gap-1">
+      <div class="flex items-center justify-between gap-4 px-4 py-2">
+        <a href="/admin" class="text-lg font-bold text-pm-text shrink-0">PM Admin</a>
+        <nav class="flex items-center gap-1 flex-1 justify-center">
           {#each adminSections as section}
             <a href={section.id === 'dashboard' ? '/admin' : `/admin/${section.id}`}
-              class={clsx('flex items-center justify-center size-10 rounded-md transition-colors',
-                isActive(section.id) ? 'bg-pm-brand-subtle text-pm-brand' : 'text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken'
-              )}>
-              {section.label.charAt(0)}
+              class="relative flex items-center justify-center size-10 rounded-md transition-colors group"
+              class:bg-pm-brand-subtle:text-pm-brand={isActive(section.id)}
+              class:text-pm-text-secondary:hover:text-pm-text:hover:bg-pm-bg-sunken={!isActive(section.id)}
+            >
+              <span class="text-xs font-bold">{section.label.charAt(0)}</span>
+              <span class="absolute top-full mt-2 px-2 py-1 rounded-md bg-pm-bg-elevated border border-pm-border text-xs text-pm-text shadow-md whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-tooltip">
+                {section.label}
+              </span>
             </a>
           {/each}
         </nav>
-        {#if user}
-          <div class="flex items-center gap-2 text-sm text-pm-text-muted">
-            <span>{(user.name ?? user.email).charAt(0).toUpperCase()}</span>
-          </div>
-        {/if}
+        <div class="flex items-center gap-2 user-menu-wrapper">
+          {#if user}
+            <button type="button" onclick={toggleUserMenu}
+              class="size-9 rounded-full bg-pm-brand-subtle text-pm-brand text-sm font-bold flex items-center justify-center hover:scale-105 transition-transform"
+            >
+              {userInitials}
+            </button>
+            {#if userMenuOpen}
+              <div class="absolute top-full end-0 mt-2 w-56 bg-pm-bg-elevated border border-pm-border rounded-xl shadow-xl z-popover p-3">
+                <div class="flex flex-col gap-1 mb-3 pb-3 border-b border-pm-border">
+                  <span class="text-sm font-medium text-pm-text">{user.name ?? user.email}</span>
+                  <span class="text-xs text-pm-text-muted">{user.email}</span>
+                  <span class="text-xs text-pm-text-muted capitalize">{user.role}</span>
+                </div>
+                <a href="/api/auth/logout" class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  Logout
+                </a>
+              </div>
+            {/if}
+          {/if}
+        </div>
       </div>
     </header>
   {/if}
 
-  <!-- Mobile Bottom Nav (both modes) -->
-  <nav class="fixed bottom-0 left-0 right-0 z-sticky lg:hidden flex items-center justify-around h-14 bg-pm-bg-elevated border-t border-pm-border">
+  <!-- Mobile Header (PM v2: admin.vue lines 374-426) — shown on phones -->
+  <header class="sticky top-0 z-sticky lg:hidden flex items-center justify-between gap-3 px-4 py-2.5 bg-pm-bg-elevated border-b border-pm-border sm:hidden">
+    <span class="text-sm font-medium text-pm-text">{currentPageTitle()}</span>
+    <div class="relative mobile-user-wrapper">
+      <button type="button" onclick={toggleMobileUserMenu}
+        class="size-9 rounded-full bg-pm-brand-subtle text-pm-brand text-sm font-bold flex items-center justify-center"
+      >
+        {userInitials}
+      </button>
+      {#if mobileUserMenuOpen}
+        <div class="absolute end-0 top-full mt-2 w-64 bg-pm-bg-elevated border border-pm-border rounded-xl shadow-xl z-popover p-3">
+          {#if user}
+            <div class="flex flex-col gap-1 mb-3 pb-3 border-b border-pm-border">
+              <span class="text-sm font-medium text-pm-text">{user.name ?? user.email}</span>
+              <span class="text-xs text-pm-text-muted">{user.email}</span>
+              <span class="text-xs text-pm-text-muted capitalize">{user.role}</span>
+            </div>
+          {/if}
+          <a href="/api/auth/logout" class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Logout
+          </a>
+        </div>
+      {/if}
+    </div>
+  </header>
+
+  <!-- Mobile Bottom Nav (PM v2: admin.vue lines 433-438) -->
+  <nav class="fixed bottom-0 left-0 right-0 z-sticky lg:hidden flex items-center justify-around h-14 bg-pm-bg-elevated border-t border-pm-border sm:flex md:hidden">
     {#each adminSections.slice(0, 5) as section}
       <a href={section.id === 'dashboard' ? '/admin' : `/admin/${section.id}`}
         class={clsx('flex flex-col items-center gap-0.5 px-2 py-1 text-xs transition-colors',
@@ -119,16 +198,16 @@
     {/each}
   </nav>
 
-  <!-- Mobile Hamburger Toggle -->
-  <button class="fixed top-3 right-3 z-[60] lg:hidden flex items-center justify-center size-10 rounded-md bg-pm-bg-elevated border border-pm-border shadow-md"
+  <!-- Mobile Hamburger Toggle (phone only) -->
+  <button class="fixed top-3 end-3 z-[60] sm:hidden flex items-center justify-center size-10 rounded-md bg-pm-bg-elevated border border-pm-border shadow-md"
     onclick={() => mobileOpen = !mobileOpen} aria-label="Toggle menu">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
   </button>
 
-  <!-- Mobile Menu Overlay -->
+  <!-- Mobile Menu Overlay (phone only) -->
   {#if mobileOpen}
-    <div class="fixed inset-0 z-50 bg-black/50 lg:hidden" onclick={() => mobileOpen = false}></div>
-    <div class="fixed inset-y-0 right-0 z-50 w-64 bg-pm-bg-elevated shadow-xl lg:hidden">
+    <div class="fixed inset-0 z-50 bg-black/50 sm:hidden" onclick={() => mobileOpen = false}></div>
+    <div class="fixed inset-y-0 end-0 z-50 w-64 bg-pm-bg-elevated shadow-xl sm:hidden">
       <div class="flex items-center justify-between h-16 px-4 border-b border-pm-border">
         <span class="text-lg font-bold text-pm-text">PM Admin</span>
         <button onclick={() => mobileOpen = false} class="p-1 text-pm-text-muted hover:text-pm-text"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></button>
@@ -147,8 +226,8 @@
   {/if}
 
   <!-- Main Content -->
-  <main class={clsx('pb-14 mb-1 min-h-screen', useVerticalNav && 'lg:ml-56')}>
-    <div class="p-6">
+  <main class={clsx('min-h-screen', 'pb-14 sm:pb-0', useVerticalNav && 'lg:ms-16')}>
+    <div class="p-4 sm:p-6 lg:p-10 mx-auto" style="max-width: min(62.5rem, 100%);">
       {@render children?.()}
     </div>
   </main>
