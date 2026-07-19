@@ -61,8 +61,8 @@
 |----------|----------|-----------------|--------|
 | headerFooterWidthMode | 'contained'/'full' | TheHeader, TheFooter | ✅ |
 | bodyWidthMode | 'contained'/'full' | 13 секций + 5 роутов | ✅ |
-| appVerticalNav | true/false | admin +layout.svelte | ⚠️ базовый переключатель |
-| verticalNav | true/false | — | ❌ UNUSED (website icon sidebar — not needed) |
+| appVerticalNav | true/false | admin +layout.svelte | ✅ |
+| verticalNav | true/false | TheHeader (sidebar mode) | ✅ |
 | interactiveHeader | true/false | TheHeader | ✅ |
 | hideHeaderOnScroll | true/false | TheHeader | ✅ |
 | mobileInteractiveHeader | true/false | TheHeader | ✅ |
@@ -76,12 +76,12 @@
 | footerMadeWith | true/false | TheFooter | ✅ |
 | footerCta | true/false | TheFooter | ✅ |
 | onepager | true/false | SectionRenderer | ✅ |
-| scrollytelling | true/false | — | ❌ UNUSED (action exists but not applied in components) |
-| heroParallax | true/false | — | ❌ UNUSED |
-| pageTransitions | fade/slide/zoom/'' | — | ❌ UNIMPLEMENTED |
-| contactEmailConfirmation | true/false | — | ❌ UNUSED |
-| contactTelegramNotify | true/false | — | ❌ UNUSED |
-| pwa | true/false | — | ❌ UNIMPLEMENTED |
+| heroParallax | true/false | SectionHero | ✅ |
+| contactEmailConfirmation | true/false | SectionContact | ✅ |
+| contactTelegramNotify | true/false | SectionContact | ✅ |
+| pageTransitions | fade/slide/scale/zoom/''| root layout | ✅ |
+| scrollytelling | true/false | — | ❌ (action exists, not applied) |
+| pwa | true/false | — | ❌ (P3)
 
 ---
 
