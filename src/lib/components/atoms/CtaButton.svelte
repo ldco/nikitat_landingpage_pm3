@@ -81,7 +81,7 @@
   }
 
   // ── Full width modifier ───────────────────────────────────────────────────
-  const widthClass = fullWidth ? 'w-full' : ''
+  const widthClass = $derived(fullWidth ? 'w-full' : '')
 
   const merged = $derived(twMerge(clsx(base, variants[variant], sizes[size], widthClass, className)))
 </script>

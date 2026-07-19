@@ -15,8 +15,14 @@
   const faqModule = MODULES.faq
   const faqConfig = faqModule ? faqModule.config : { expandFirst: true, allowMultipleOpen: false }
   const allowMultiple = faqConfig.allowMultipleOpen
-  const firstItemId = $derived(items[0]?.id ?? null)
-  let openId = $state<number | null>(faqConfig.expandFirst ? firstItemId : null)
+  // Expand first item when data is loaded
+  let openId = $state<number | null>(null)
+  $effect(() => {
+    if (faqConfig.expandFirst && items.length > 0) {
+      const first = items[0]
+      if (first && openId === null) openId = first.id
+    }
+  })
   function toggle(id: number) {
     if (allowMultiple) {
       openId = openId === id ? null : id

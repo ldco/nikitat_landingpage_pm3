@@ -6,6 +6,7 @@ const config = {
   preprocess: vitePreprocess(),
   kit: {
     adapter: adapter(),
+    files: { assets: './public' },
     alias: {
       $lib: './src/lib'
     }

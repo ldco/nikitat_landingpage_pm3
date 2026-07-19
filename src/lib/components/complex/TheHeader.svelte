@@ -149,7 +149,7 @@
     class="fixed inset-0 z-drawer-backdrop bg-black/40 backdrop-blur-[4px]"
     onclick={closeMobileNav}
     role="presentation"
-  />
+  ></div>
 
   <nav
     class={clsx(

@@ -46,15 +46,15 @@
         </div>
         {#if testimonials.length > 1}
           <div class="flex items-center justify-center gap-4 mt-6">
-            <button class="p-2 rounded-full border border-pm-border text-pm-text-secondary hover:bg-pm-bg-sunken transition-colors cursor-pointer" onclick={prev}>
+            <button aria-label="Previous" class="p-2 rounded-full border border-pm-border text-pm-text-secondary hover:bg-pm-bg-sunken transition-colors cursor-pointer" onclick={prev}>
               <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6" /></svg>
             </button>
             <div class="flex gap-2">
               {#each testimonials as _, i}
-                <button class="w-2 h-2 rounded-full transition-colors cursor-pointer" class:bg-pm-brand={i === current} class:bg-pm-text-muted={i !== current} onclick={() => current = i} />
+                <button aria-label="Go to testimonial {i + 1}" class="w-2 h-2 rounded-full transition-colors cursor-pointer" class:bg-pm-brand={i === current} class:bg-pm-text-muted={i !== current} onclick={() => current = i}></button>
               {/each}
             </div>
-            <button class="p-2 rounded-full border border-pm-border text-pm-text-secondary hover:bg-pm-bg-sunken transition-colors cursor-pointer" onclick={next}>
+            <button aria-label="Next" class="p-2 rounded-full border border-pm-border text-pm-text-secondary hover:bg-pm-bg-sunken transition-colors cursor-pointer" onclick={next}>
               <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6" /></svg>
             </button>
           </div>
