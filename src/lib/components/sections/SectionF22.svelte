@@ -20,13 +20,13 @@
 
 <section id="f22" class={twMerge(clsx(
   'flex flex-col items-center bg-pm-bg-sunken',
-  'pt-[calc(clamp(56px,8vh,72px)+3rem)] pb-16',
+  'pt-[var(--pt-section)] pb-16',
   className
 ))}>
-  <div class={clsx('w-full mx-auto', isContained && 'max-w-[1280px]')} style="padding-inline: clamp(1rem, 3vw, 3rem);">
-    <h2 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight mb-8 text-center">{title}</h2>
+  <div class={clsx('w-full mx-auto', isContained && 'max-w-container')} style="padding-inline: var(--px-container);">
+    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{title}</h2>
     <div class="flex flex-col items-center text-center max-w-2xl mx-auto">
-      <p class="text-[clamp(1.4rem,3.2vw,1.875rem)] text-pm-text-secondary leading-relaxed mb-8">{description || m.common_note()}</p>
+      <p class="text-fluid-2xl text-pm-text-secondary leading-relaxed mb-8">{description || m.common_note()}</p>
       <CtaButton href="/#contact" variant="primary" size="lg">{m.nav_contact()}</CtaButton>
     </div>
   </div>

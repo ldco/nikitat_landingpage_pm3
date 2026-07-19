@@ -30,7 +30,7 @@
   const linkSizes: Record<Size, string> = {
     sm: 'size-7',
     md: 'size-9',
-    lg: 'size-[44px]'
+    lg: 'size-11'
   }
 
   const iconSizes: Record<Size, number> = {

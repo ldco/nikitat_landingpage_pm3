@@ -18,7 +18,7 @@
   <title>{post.title} — {m.nav_blog()}</title>
 </svelte:head>
 
-<article class={clsx('w-full mx-auto px-6 md:px-8 py-24', isContained && 'max-w-[65ch]')}>
+<article class={clsx('w-full mx-auto px-6 md:px-8 py-24', isContained && 'max-w-prose')}>
   <!-- Back link -->
   <a href="/blog" class="inline-flex items-center gap-2 text-sm text-pm-text-muted hover:text-pm-brand transition-colors mb-8">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="19 12 5 12" /><polyline points="12 19 5 12 12 5" /></svg>

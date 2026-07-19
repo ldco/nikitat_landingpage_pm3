@@ -42,7 +42,7 @@
   const base =
     'fixed bottom-6 right-6 z-sticky ' +
     'flex items-center justify-center ' +
-    'size-[44px] rounded-full ' +
+    'size-11 rounded-full ' +
     'bg-pm-bg-elevated text-pm-text-secondary ' +
     'border border-pm-border shadow-lg ' +
     'hover:bg-pm-brand hover:text-pm-white hover:-translate-y-0.5 hover:shadow-xl ' +

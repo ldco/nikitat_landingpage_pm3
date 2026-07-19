@@ -117,15 +117,15 @@
   class={twMerge(clsx(
     'fixed top-0 start-0 end-0 z-fixed',
     'border-b border-pm-border',
-    'min-h-[clamp(56px,8vh,72px)]',
+    'min-h-[var(--h-header)]',
     'transition-[height,box-shadow,transform,background,backdrop-filter] duration-300 ease-out',
     scrolled
       ? 'h-[clamp(48px,6vh,56px)] bg-pm-bg/85 dark:bg-pm-black/85 shadow-[0_1px_3px_oklch(0%_0_0_/_8%)] backdrop-blur-[16px]'
-      : isInteractive ? 'h-[clamp(56px,8vh,72px)] bg-pm-bg' : 'h-[clamp(56px,8vh,72px)] bg-pm-bg',
+      : isInteractive ? 'h-[var(--h-header)] bg-pm-bg' : 'h-[var(--h-header)] bg-pm-bg',
     hidden ? '-translate-y-full pointer-events-none' : 'translate-y-0',
     className
   ))}>
-  <div class={clsx('flex items-center h-full', !isFullWidth && 'mx-auto max-w-[80rem]')} style="padding-inline: clamp(1rem, 3vw, 3rem);">
+  <div class={clsx('flex items-center h-full', !isFullWidth && 'mx-auto max-w-container')} style="padding-inline: var(--px-container);">
     <div class="flex header:hidden me-auto">
       <HamburgerIcon active={mobileOpen} type="spin" onclick={handleHamburger} />
     </div>
@@ -176,7 +176,7 @@
       <Logo shape="horizontal" />
       <button
         type="button"
-        class="flex items-center justify-center w-[44px] h-[44px] rounded-md text-pm-text-secondary hover:bg-pm-bg-sunken hover:text-pm-text transition-colors"
+        class="flex items-center justify-center size-11 h-[44px] rounded-md text-pm-text-secondary hover:bg-pm-bg-sunken hover:text-pm-text transition-colors"
         aria-label="Close menu"
         onclick={closeMobileNav}
       >

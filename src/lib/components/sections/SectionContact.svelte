@@ -18,11 +18,11 @@
 
 <section id="contact" class={twMerge(clsx(
   'flex flex-col items-center bg-pm-bg-elevated',
-  'pt-[calc(clamp(56px,8vh,72px)+3rem)] pb-16',
+  'pt-[var(--pt-section)] pb-16',
   className
 ))}>
-  <div class={clsx('w-full mx-auto', isContained && 'max-w-4xl')} style="padding-inline: clamp(1rem, 3vw, 3rem);">
-    <h2 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight mb-8 text-center">{m.sections_contact()}</h2>
+  <div class={clsx('w-full mx-auto', isContained && 'max-w-4xl')} style="padding-inline: var(--px-container);">
+    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_contact()}</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-[var(--gap-xl)]">
       <div class="rounded-xl border border-pm-border bg-pm-bg p-6 shadow-sm">
         {#if showEmailConfirm}

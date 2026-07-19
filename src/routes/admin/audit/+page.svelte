@@ -4,7 +4,7 @@
   const items = $derived(data.items)
 </script>
 
-<div class="max-w-[62.5rem] mx-auto">
+<div class="max-w-content mx-auto">
   <div class="flex items-center justify-between gap-4 py-4 mb-6 border-b border-pm-border">
     <h1 class="text-2xl font-bold text-pm-text">Audit Log</h1>
     <span class="text-sm text-pm-text-muted">{items.length} entries</span>

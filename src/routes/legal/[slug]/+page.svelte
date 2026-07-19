@@ -14,6 +14,6 @@
   <title>Legal — {SEO.title}</title>
 </svelte:head>
 
-<article class={clsx('w-full mx-auto px-6 md:px-8 py-24 prose-headings:text-pm-text prose-p:text-pm-text-secondary prose-a:text-pm-brand', isContained && 'max-w-[65ch]')}>
+<article class={clsx('w-full mx-auto px-6 md:px-8 py-24 prose-headings:text-pm-text prose-p:text-pm-text-secondary prose-a:text-pm-brand', isContained && 'max-w-prose')}>
   {data.markdown}
 </article>

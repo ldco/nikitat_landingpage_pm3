@@ -36,7 +36,7 @@
   'py-8 md:py-8',
   className
 ))}>
-  <div class={clsx('w-full', !isFullWidth && 'mx-auto max-w-[80rem]')} style="padding-inline: clamp(1rem, 3vw, 3rem);">
+  <div class={clsx('w-full', !isFullWidth && 'mx-auto max-w-container')} style="padding-inline: clamp(1rem, 3vw, 3rem);">
     {#if showMadeBy || FRAMEWORK.url || showNav}
     <!-- Footer Grid: brand | actions -->
     <div class="grid grid-cols-1 sm:grid-cols-[auto_minmax(0,1fr)] gap-6 sm:gap-8 items-start">

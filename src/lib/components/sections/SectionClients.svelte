@@ -19,11 +19,11 @@
 
 <section id="clients" class={twMerge(clsx(
   'flex flex-col items-center bg-pm-bg-sunken',
-  'pt-[calc(clamp(56px,8vh,72px)+3rem)] pb-16',
+  'pt-[var(--pt-section)] pb-16',
   className
 ))}>
-  <div class={clsx('w-full mx-auto', isContained && 'max-w-[1280px]')} style="padding-inline: clamp(1rem, 3vw, 3rem);">
-    <h2 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight mb-8 text-center">{m.sections_clients()}</h2>
+  <div class={clsx('w-full mx-auto', isContained && 'max-w-container')} style="padding-inline: var(--px-container);">
+    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_clients()}</h2>
     <div class={clsx('flex flex-wrap items-center justify-center gap-8 transition-all duration-500',
       clientsConfig.grayscale && 'opacity-50 grayscale hover:opacity-100 hover:grayscale-0',
     )}>

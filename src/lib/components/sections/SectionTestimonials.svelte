@@ -30,11 +30,11 @@
 
 <section id="testimonials" class={twMerge(clsx(
   'flex flex-col items-center',
-  'pt-[calc(clamp(56px,8vh,72px)+3rem)] pb-16',
+  'pt-[var(--pt-section)] pb-16',
   className
 ))}>
-  <div class={clsx('w-full mx-auto', isContained && 'max-w-[min(768px,100%)]')} style="padding-inline: clamp(1rem, 3vw, 3rem);">
-    <h2 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight mb-8 text-center">{m.sections_testimonials()}</h2>
+  <div class={clsx('w-full mx-auto', isContained && 'max-w-narrow')} style="padding-inline: var(--px-container);">
+    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_testimonials()}</h2>
     {#if testimonials.length > 0}
       <div class="text-center p-8 rounded-xl bg-pm-bg-elevated border border-pm-border shadow-md">
         <blockquote class="text-lg text-pm-text-secondary italic leading-relaxed">"{testimonials[current]?.text}"</blockquote>

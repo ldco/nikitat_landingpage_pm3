@@ -30,20 +30,20 @@
   const width = widthProp ?? 'default'
 
   const maxWidth: Record<Width, string> = {
-    default: 'max-w-[1280px]',
+    default: 'max-w-container',
     narrow: 'max-w-[768px]',
     wide: 'max-w-[1536px]',
-    prose: 'max-w-[65ch]',
+    prose: 'max-w-prose',
     full: 'max-w-full',
     bleed: 'max-w-none'
   }
 
   const padding: Record<Width, string> = {
-    default: 'px-[clamp(1rem,3vw,3rem)]',
-    narrow: 'px-[clamp(1rem,3vw,3rem)]',
-    wide: 'px-[clamp(1rem,3vw,3rem)]',
-    prose: 'px-[clamp(1rem,3vw,3rem)]',
-    full: 'px-[clamp(1rem,3vw,3rem)]',
+    default: '',
+    narrow: '',
+    wide: '',
+    prose: '',
+    full: '',
     bleed: 'px-0'
   }
 

@@ -18,7 +18,7 @@
   <title>{m.nav_blog()} — {SEO.title}</title>
 </svelte:head>
 
-<div class={clsx('w-full mx-auto px-6 md:px-8 py-24', isContained && 'max-w-[80rem]')}>
+<div class={clsx('w-full mx-auto px-6 md:px-8 py-24', isContained && 'max-w-container')}>
   <h1 class="text-4xl font-bold text-pm-text font-display text-center mb-12">{m.nav_blog()}</h1>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

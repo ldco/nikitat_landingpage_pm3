@@ -58,9 +58,9 @@
   }
 
   const iconSizes: Record<Size, string> = {
-    compact: 'size-[60px]',
-    default: 'size-[100px]',
-    large: 'size-[140px]'
+    compact: 'size-15',
+    default: 'size-28',
+    large: 'size-36'
   }
 
   const titleSizes: Record<Size, string> = {

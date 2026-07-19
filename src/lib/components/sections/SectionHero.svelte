@@ -38,7 +38,7 @@
   'relative grid grid-cols-1 md:grid-cols-2 items-center gap-8 min-h-dvh',
   parallaxEnabled && 'z-[1]',
   'px-[max(1.5rem,calc((100vw-1280px)/2))]',
-  'pt-[calc(clamp(56px,8vh,72px)+2rem)] pb-4',
+  'pt-[var(--pt-section)] pb-4',
   'bg-pm-bg',
   className
 ))}>
@@ -49,7 +49,7 @@
 
   <!-- Left: Text -->
   <div class="flex flex-col justify-center z-10 min-w-0">
-    <h1 class="text-[clamp(2.5rem,6vw,4.5rem)] font-black leading-[0.9] tracking-normal text-pm-text mb-5 space-y-2">
+    <h1 class="text-fluid-hero font-black leading-[0.9] tracking-normal text-pm-text mb-5 space-y-2">
       {#each segments as segment}
         <span class="block w-fit" class:text-pm-brand={segment.brand}>
           {segment.text}
@@ -57,7 +57,7 @@
       {/each}
     </h1>
     {#if subtitle}
-      <p class="text-[clamp(1.125rem,2.5vw,1.5rem)] text-pm-text-secondary max-w-[700px] leading-relaxed mb-8">
+      <p class="text-fluid-xl text-pm-text-secondary max-w-[700px] leading-relaxed mb-8">
         {subtitle}
       </p>
     {/if}

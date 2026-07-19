@@ -147,6 +147,36 @@
   --container-default: 80rem;
   --container-wide: 96rem;
 
+  /* --- Fluid Typography (replaces ALL arbitrary clamp() in components) --- */
+  --text-fluid-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --text-fluid-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+  --text-fluid-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
+  --text-fluid-lg: clamp(1.125rem, 1rem + 0.6vw, 1.25rem);
+  --text-fluid-xl: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);
+  --text-fluid-2xl: clamp(1.5rem, 1.2rem + 1.5vw, 2rem);
+  --text-fluid-3xl: clamp(1.75rem, 1.5rem + 1.875vw, 2.5rem);
+  --text-fluid-4xl: clamp(2.25rem, 1.75rem + 2.5vw, 3.5rem);
+  --text-fluid-5xl: clamp(3rem, 2rem + 5vw, 5rem);
+  --text-fluid-hero: clamp(2.5rem, 3vw + 1rem, 4.5rem);
+
+  /* --- Fluid Spacing (replaces ALL arbitrary clamp() for sizes) --- */
+  --spacing-fluid-xs: clamp(0.25rem, 0.2rem + 0.25vw, 0.5rem);
+  --spacing-fluid-sm: clamp(0.5rem, 0.4rem + 0.5vw, 0.75rem);
+  --spacing-fluid-md: clamp(1rem, 0.8rem + 1vw, 1.5rem);
+  --spacing-fluid-lg: clamp(1.5rem, 1.2rem + 1.5vw, 2.5rem);
+  --spacing-fluid-xl: clamp(2rem, 1.5rem + 2.5vw, 4rem);
+  --spacing-fluid-2xl: clamp(3rem, 2rem + 5vw, 6rem);
+
+  /* --- Semantic Tokens (header, container, section) --- */
+  --h-header: clamp(3.5rem, 8vh, 4.5rem);
+  --h-header-scrolled: clamp(3rem, 6vh, 3.5rem);
+  --pt-section: calc(var(--h-header) + var(--spacing-fluid-2xl));
+  --px-container: clamp(1rem, 3vw, 3rem);
+  --max-w-container: min(80rem, 100%);
+  --max-w-content: min(62.5rem, 100%);
+  --max-w-narrow: min(48rem, 100%);
+  --max-w-prose: min(65ch, 100%);
+
   /* --- Breakpoints (extend only) --- */
   --breakpoint-xs: 480px;
   --breakpoint-header: 1120px;

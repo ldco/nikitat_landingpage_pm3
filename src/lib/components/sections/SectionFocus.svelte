@@ -18,11 +18,11 @@
 
 <section id="focus" class={twMerge(clsx(
   'flex flex-col items-center bg-pm-bg-elevated',
-  'pt-[calc(clamp(56px,8vh,72px)+3rem)] pb-16',
+  'pt-[var(--pt-section)] pb-16',
   className
 ))}>
-  <div class={clsx('w-full mx-auto', isContained && 'max-w-[1280px]')} style="padding-inline: clamp(1rem, 3vw, 3rem);">
-    <h2 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight mb-8 text-center">{m.sections_services()}</h2>
+  <div class={clsx('w-full mx-auto', isContained && 'max-w-container')} style="padding-inline: var(--px-container);">
+    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_services()}</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[var(--gap-lg)]">
       {#each areas as area}
         <div class="bg-pm-bg border border-pm-border rounded-xl p-6 transition-transform hover:-translate-y-0.5 hover:shadow-md">
