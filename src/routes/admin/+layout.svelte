@@ -112,7 +112,7 @@
 }}>
   {#if useVerticalNav}
     <!-- VERTICAL MODE: Desktop Sidebar (PM v2: admin.vue lines 286-364) -->
-    <aside class="fixed top-0 start-0 z-sticky hidden lg:flex flex-col w-[4rem] h-full bg-pm-bg-elevated border-e border-pm-border">
+    <aside class="fixed top-0 start-0 z-sticky hidden lg:flex flex-col w-16 h-full bg-pm-bg-elevated border-e border-pm-border">
       <div class="flex items-center justify-center h-16 border-b border-pm-border">
         <a href="/admin" class="text-lg font-bold text-pm-text">P</a>
       </div>
@@ -244,7 +244,7 @@
   </nav>
 
   <!-- Mobile Hamburger Toggle (phone only) -->
-  <button class="fixed top-3 end-3 z-[60] sm:hidden flex items-center justify-center size-10 rounded-md bg-pm-bg-elevated border border-pm-border shadow-md"
+  <button class="fixed top-3 end-3 z-hamburger sm:hidden flex items-center justify-center size-10 rounded-md bg-pm-bg-elevated border border-pm-border shadow-md"
     onclick={() => mobileOpen = !mobileOpen} aria-label="Toggle menu">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
   </button>

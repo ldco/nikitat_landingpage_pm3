@@ -181,6 +181,7 @@
   /* --- Breakpoints (extend only) --- */
   --breakpoint-xs: 480px;
   --breakpoint-header: 1120px;
+  --z-hamburger: 60;
 }
 
 /* ── Base Layer (PM v2 reset from reset.css) ─────────────────────────────────────── */
