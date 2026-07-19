@@ -5,11 +5,12 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import * as m from '$lib/i18n'
   import * as runtime from '$lib/paraglide/runtime.js'
   import { getTheme } from '$lib/stores/theme.svelte'
 
   let {
-    text = '',
+    text = m.footer_madeBy(),
     url = 'https://fabrica22.pro',
     basePath = '/madebylogos',
     class: className = ''
