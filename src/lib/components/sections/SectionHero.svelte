@@ -17,6 +17,7 @@
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import Logo from '$lib/components/atoms/Logo.svelte'
   import { breakHeroTitle } from '$lib/utils/titleBreaker'
+  import { gsapIntro } from '$lib/actions/gsapIntro'
 
   let {
     title = m.sections_hero(),
@@ -66,7 +67,7 @@
 
   <!-- Right: Logo -->
   {#if showLogo}
-    <div class="hero-logo">
+    <div class="hero-logo" use:gsapIntro>
       <div class="hero-logo__img">
         <Logo shape="circle" />
       </div>
