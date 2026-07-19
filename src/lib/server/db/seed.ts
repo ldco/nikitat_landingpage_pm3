@@ -162,6 +162,77 @@ function seed() {
     console.log(`   ${existingTranslations.length} translations exist, skipping.\n`)
   }
 
+  // ── Content: Features ────────────────────────────────────────────────
+  const existingFeatures = db.select().from(schema.features).all()
+  if (existingFeatures.length === 0) {
+    console.log('✨ Seeding features...')
+    const featureData = [
+      { slug: 'config-driven', category: 'framework', order: 1,
+        title: { ru: 'Конфигурация', en: 'Config-driven structure', fr: 'Configuration', he: 'תצורה' },
+        desc: { ru: 'Управление через конфигурацию', en: 'Project type, sections, modules, and locales are controlled from PM configuration.',
+                fr: 'Configuration centralisée', he: 'ניהול דרך תצורה' } },
+      { slug: 'typed-content', category: 'framework', order: 2,
+        title: { ru: 'Типизированный контент', en: 'Typed content workflow', fr: 'Contenu typé', he: 'תוכן ממודר' },
+        desc: { ru: 'SvelteKit, Drizzle и Zod обеспечивают валидацию', en: 'SvelteKit, Drizzle, and Zod provide validated content workflow.',
+                fr: 'Workflow de contenu validé', he: 'זרימת עבודת תוכן מאומתת' } },
+      { slug: 'ai-ready', category: 'greenfield', order: 3,
+        title: { ru: 'AI-готовность', en: 'Agent-ready greenfield intake', fr: 'Prêt pour l\'IA', he: 'מוכן ל-AI' },
+        desc: { ru: 'Документация и defaults для AI-агентов', en: 'Concept docs and defaults are bundled for AI agents before project generation.',
+                fr: 'Documentation prête pour les agents IA', he: 'תיעוד מוכן לסוכני AI' } }
+    ]
+    for (const f of featureData) {
+      const result = db.insert(schema.features).values({
+        slug: f.slug, category: f.category, order: f.order, published: true
+      }).run()
+      const featureId = Number(result.lastInsertRowid)
+      // Add translations directly
+      for (const [locale, title] of Object.entries(f.title)) {
+        try { db.insert(schema.translations).values({ locale, key: `feature.${featureId}.title`, value: title }).run() } catch {}
+        try { db.insert(schema.translations).values({ locale, key: `feature.${featureId}.description`, value: f.desc[locale as keyof typeof f.desc] }).run() } catch {}
+      }
+      console.log(`   ✓ ${f.slug}`)
+    }
+    console.log('')
+  } else {
+    console.log(`   ${existingFeatures.length} features exist, skipping.\n`)
+  }
+
+  // ── Content: FAQ ──────────────────────────────────────────────────────
+  const existingFaq = db.select().from(schema.faqItems).all()
+  if (existingFaq.length === 0) {
+    console.log('❓ Seeding FAQ...')
+    const faqData = [
+      { slug: 'what-is-pm', category: 'framework', order: 1,
+        question: { ru: 'Что такое Puppet Master?', en: 'What is Puppet Master?', fr: 'Qu\'est-ce que Puppet Master?', he: 'מה זה Puppet Master?' },
+        answer: { ru: 'SvelteKit meta-framework для создания сайтов.', en: 'PM is a SvelteKit meta-framework for building websites with reusable components.',
+                 fr: 'Un meta-framework SvelteKit pour sites web.', he: 'מטה-פרמוורק SvelteKit לבניית אתרים.' } },
+      { slug: 'how-to-start', category: 'greenfield', order: 2,
+        question: { ru: 'Как начать проект?', en: 'How to start a project?', fr: 'Comment commencer?', he: 'איך להתחיל פרויקט?' },
+        answer: { ru: 'Запустите генератор и выберите AI-агента.', en: 'Run the greenfield intake and let the AI agent replace demo content.',
+                 fr: 'Lancez le générateur et laissez l\'agent IA faire.', he: 'הפעל את המחולל ותן לסוכן AI לעבוד.' } },
+      { slug: 'defaults', category: 'defaults', order: 3,
+        question: { ru: 'Что по умолчанию?', en: 'What are the defaults?', fr: 'Quels sont les paramètres par défaut?', he: 'מה ברירות המחדל?' },
+        answer: { ru: 'Английский сайт с админкой, онпейджер навигацией, контактами, FAQ, функциями и USD валютой.',
+                 en: 'Neutral English website with admin, onepager navigation, contact, FAQ, features, and USD currency.',
+                 fr: 'Site anglais neutre avec admin, navigation onepager, contact, FAQ et devise USD.',
+                 he: 'אתר אנגלי ניטרלי עם ניהול, ניווט onepager, יצירת קשר, שאלות נפוצות ומטבע USD.' } }
+    ]
+    for (const f of faqData) {
+      const result = db.insert(schema.faqItems).values({
+        slug: f.slug, category: f.category, order: f.order, published: true
+      }).run()
+      const faqId = Number(result.lastInsertRowid)
+      for (const [locale, question] of Object.entries(f.question)) {
+        try { db.insert(schema.translations).values({ locale, key: `faq.${faqId}.question`, value: question }).run() } catch {}
+        try { db.insert(schema.translations).values({ locale, key: `faq.${faqId}.answer`, value: f.answer[locale as keyof typeof f.answer] }).run() } catch {}
+      }
+      console.log(`   ✓ ${f.slug}`)
+    }
+    console.log('')
+  } else {
+    console.log(`   ${existingFaq.length} FAQ items exist, skipping.\n`)
+  }
+
   console.log('✅ Seed complete.\n')
 }
 
