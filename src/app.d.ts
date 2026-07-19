@@ -8,6 +8,13 @@ declare global {
         name: string | null
       }
       nonce?: string
+      paraglide?: {
+        lang: string
+        textDirection: 'ltr' | 'rtl'
+      }
+      i18n?: {
+        lang: string
+      }
     }
   }
 }
