@@ -484,9 +484,6 @@ Source CSS to translate per section: see Phase 6 CSS→Component map.
 
 ---
 
-## Phase 6: Section Components (13 sections — REWRITE with PM v2 CSS)
-
-
 ## Phase 6: Section Components (13 sections)
 
 ### Step 6.1 — Core Sections (Self-contained, i18n-powered)
@@ -511,28 +508,28 @@ Source CSS to translate per section: see Phase 6 CSS→Component map.
 ## Phase 7: Navigation & Routing
 
 ### Step 7.1 — Onepager/SPA Mode
-- [ ] Create `src/routes/+page.svelte`:
+- [x] Create `src/routes/+page.svelte`:
   - If `features.onepager` → render all sections via SectionRenderer
   - If SPA → render hero only
   - SEO meta from i18n
-- [ ] Create `src/routes/[section]/+page.svelte`:
+- [x] Create `src/routes/[section]/+page.svelte`:
   - SPA mode only — renders section via SectionRenderer  
   - 404 if section not in config
-- [ ] Create `src/lib/utils/navigation.ts`:
+- [x] Create `src/lib/utils/navigation.ts`:
   - `resolveSectionHref(id)` — onepager: `#id`, SPA: `/id`
   - `isSectionPage(section)` — checks `renderMode: 'page'`
 - **Verify:** Onepager shows all sections as anchors, SPA shows separate routes
 
 ### Step 7.2 — ScrollSpy (for Onepager)
-- [ ] Create Svelte action `use:scrollSpy`:
+- [x] Create Svelte action `use:scrollSpy`:
   - DOM-based detection (not IntersectionObserver — better for locale switches)
   - RAF-throttled
   - Updates active section state
-- [ ] Integrate with `TheHeader` nav — highlight active section
+- [x] Integrate with `TheHeader` nav — highlight active section
 - **Verify:** Scroll highlights correct nav item
 
 ### Step 7.3 — Website Navigation (replaces `useWebsiteNavigation`)
-- [ ] Create `src/lib/utils/navigation.ts`:
+- [x] Create `src/lib/utils/navigation.ts`:
   - `resolveSectionHref(sectionId)` → anchor vs route
   - `resolveWebsiteHref(href)` → handles #links
   - Config-driven from `siteConfig`
@@ -841,7 +838,7 @@ git: {
 | 4 — Atoms | 1 | 14 atomic components (incl. enhanced AppImage/PictureImage, mandatory alt) |
 | 5 — Molecules & Organisms | 2 | 12 components (Header, Footer, SectionRenderer, etc.) |
 | 6 — Sections | 2 | 13 section components (self-contained, i18n-powered) |
-| 7 — Navigation | 3 | Onepager/SPA + ScrollSpy + website navigation |
+| 7 — Navigation | 3 | Onepager/SPA + ScrollSpy + website nav + nav action |
 | 8 — Animations | 6 | AnimateOnScroll/PhysicsBox wrappers + GSAP Hero + FallingLetters + Scrollytelling + Reveal + Transitions |
 | 9 — Module Plugins | 3 | Portfolio(4 viewers) + Blog + Pricing/FAQ/Features |
 | 10 — Admin | 6 | Layout + 17 pages + shared components |
