@@ -3,6 +3,8 @@
    * Root Layout — Wraps all pages with header, footer, and global UI
    */
   import '../app.css'
+  import { page } from '$app/stores'
+  import { fade } from 'svelte/transition'
   import { scrollSpy } from '$lib/actions/scrollSpy'
   import TheHeader from '$lib/components/complex/TheHeader.svelte'
   import TheFooter from '$lib/components/complex/TheFooter.svelte'
@@ -15,7 +17,11 @@
 
 <TheHeader />
 <main class="min-h-screen pt-16" use:scrollSpy>
-  {@render children?.()}
+  {#key $page.url.pathname}
+    <div transition:fade={{ duration: 200 }}>
+      {@render children?.()}
+    </div>
+  {/key}
 </main>
 <TheFooter />
 <BackToTop />
