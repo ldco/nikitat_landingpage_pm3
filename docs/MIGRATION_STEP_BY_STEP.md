@@ -68,24 +68,8 @@ Build: `npm run check` 0 errors, `npm run build` ✓
 
 ---
 
-## PM v2 CSS Inventory (124 files)
+## CSS Translation Scope
 
-Source: `../app-nuxt/app/assets/css/`
+124 PM v2 CSS files (24 done, 55 partial, 26 not done, 19 utility/index).
+Full inventory and architecture analysis: **PM-ARCHITECTURE-COMPLETE.md**
 
-### Translated (24 files)
-Design tokens, reset, hamburger, buttons, inputs, cards, badges, avatars,
-app-image, page-header, empty-states, lang-switcher, back-to-top, cookie-consent,
-modal, toast, lightbox, nav, social-nav, contact-info.
-
-### Partially Done (55 files)
-Header (scroll/glass/logo missing), footer (grid + legal bar missing),
-hero/sections, portfolio card/fullscreen, blog, falling-letters,
-all 12 runtime section CSS files, all 11 admin CSS files, 6 animation files.
-
-### Not Done (26 files)
-Portfolio before-after slider, portfolio grid, error pages, legal pages,
-loading placeholders, admin inbox/health/init, settings form, onepager parallax,
-tabs (not created), data-table (not created), service-card, scrollbars,
-search, master-detail layout, init wizard, page transitions, scrollytelling.
-
-See PM-ARCHITECTURE-COMPLETE.md sections 16-34 for the full CSS architecture.
