@@ -1,3 +1,5 @@
+# ⚠️ HISTORICAL REFERENCE — see docs/MIGRATION_STEP_BY_STEP.md for current state
+
 # Puppet Master Framework — Complete Architecture
 
 ## 1. Config-Driven Everything
