@@ -334,6 +334,15 @@ export type PmMode = 'unconfigured' | 'build' | 'develop'
 
 export const PM_MODE: PmMode = 'build'
 
+// ── Framework Credits (controlled — never hardcoded) ─────────────────────────
+
+export const FRAMEWORK = {
+  /** URL for "Made with" link. Empty = not shown. */
+  url: '' as string,
+  /** Label override (uses i18n footer_puppetMaster by default). */
+  label: '' as string
+}
+
 // ── Entities ─────────────────────────────────────────────────────────────────
 
 export const ENTITIES = {

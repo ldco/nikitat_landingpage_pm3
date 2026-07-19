@@ -13,9 +13,10 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
-  import { SEO } from '$lib/config/site'
+  import { SEO, FRAMEWORK } from '$lib/config/site'
   import NavLinks from '$lib/components/molecules/NavLinks.svelte'
   import MadeBy from '$lib/components/atoms/MadeBy.svelte'
+  import MadeWith from '$lib/components/atoms/MadeWith.svelte'
 
   let {
     class: className = ''
@@ -32,7 +33,10 @@
     <div class="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 md:gap-8 items-start">
       <!-- Brand column (left) -->
       <div class="flex flex-col items-center md:items-start gap-2 min-w-0">
-        <MadeBy text="Made by" />
+        <MadeBy />
+        {#if FRAMEWORK.url}
+          <MadeWith url={FRAMEWORK.url} />
+        {/if}
       </div>
 
       <!-- Actions column (right) -->
