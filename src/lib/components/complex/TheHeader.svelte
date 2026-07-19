@@ -38,6 +38,7 @@
   const hideOnScroll = $derived(FEATURES.hideHeaderOnScroll)
   const showThemeToggle = $derived(FEATURES.doubleTheme)
   const showLangSwitcher = $derived(FEATURES.multiLangs)
+  const mobileInteractive = $derived(FEATURES.mobileInteractiveHeader)
 
   let mobileOpen = $state(false)
   let scrolled = $state(false)
@@ -49,9 +50,9 @@
 
   function onScroll() {
     const sy = window.scrollY
-    scrolled = isInteractive && sy > SCROLL_THRESHOLD
-    // Hide on scroll down, show on scroll up (>120px depth)
-    if (hideOnScroll && sy > SCROLL_THRESHOLD + 40) {
+    const isMobile = window.innerWidth < 640
+    scrolled = isInteractive && sy > SCROLL_THRESHOLD && (mobileInteractive || !isMobile)
+    if (hideOnScroll && sy > SCROLL_THRESHOLD + 40 && (mobileInteractive || !isMobile)) {
       hidden = sy > lastScrollY
     } else {
       hidden = false

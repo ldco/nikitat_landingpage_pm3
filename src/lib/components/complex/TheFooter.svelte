@@ -27,6 +27,7 @@
   const showNav = $derived(FEATURES.footerNav)
   const showLegalLinks = $derived(FEATURES.footerLegalLinks)
   const showMadeBy = $derived(FEATURES.footerMadeBy)
+  const showFooterCta = $derived(FEATURES.footerCta)
 </script>
 
 <footer class={twMerge(clsx(
@@ -52,6 +53,9 @@
       <!-- Actions column (right) — centered on mobile, flex-end on desktop -->
       {#if showNav}
       <div class="flex flex-col items-center sm:items-end gap-4 w-full min-w-0">
+        {#if showFooterCta}
+          <a href="/#contact" class="px-5 py-2.5 text-sm font-medium bg-pm-brand text-pm-white rounded-md hover:bg-pm-brand-light transition-colors">{m.nav_contact()}</a>
+        {/if}
         <SocialNav class="justify-center sm:justify-end" />
       </div>
       {/if}
