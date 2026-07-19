@@ -37,13 +37,13 @@
         <div class="text-center p-8 rounded-xl bg-white dark:bg-pm-gray-800 border border-pm-gray-200 dark:border-pm-gray-700 shadow-card">
           <blockquote class="text-lg text-pm-gray-700 dark:text-pm-gray-300 italic leading-relaxed">
             {#if testimonials[current]}
-              "{testimonials[current]!.text}"
+              "{testimonials[current]?.text}"
             {/if}
           </blockquote>
           <div class="mt-6">
             <p class="font-bold text-pm-gray-900 dark:text-pm-white">{testimonials[current]?.name}</p>
             {#if testimonials[current]?.company}
-              <p class="text-sm text-pm-muted">{testimonials[current]!.company}</p>
+              <p class="text-sm text-pm-text-muted">{testimonials[current]?.company}</p>
             {/if}
           </div>
         </div>

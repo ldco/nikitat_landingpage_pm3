@@ -118,7 +118,23 @@ type Align = 'left' | 'center' | 'right'
 let { size = 'md' }: { size?: string } = $props()  // AI writes size="big"
 ```
 
-## Rule #4: Isolate GSAP / Matter.js / Three.js
+## Rule #4: Isolate GSAP / Matter.js / Three.js [STRENGTHENED]
+
+**CRITICAL: Never import gsap or matter-js directly.**
+Use ONLY pre-built wrapper components.
+
+```svelte
+<!-- FORBIDDEN — AI must never write this: -->
+import gsap from 'gsap'
+import Matter from 'matter-js'
+
+<!-- ALLOWED — AI uses pre-built isolated components: -->
+<AnimateOnScroll animation="fadeIn">
+  <Card>Content</Card>
+</AnimateOnScroll>
+
+<FallingLetters enabled={true} />
+```
 
 ```svelte
 <!-- FallingLetters.svelte — self-contained, no logic leaks -->
@@ -149,6 +165,21 @@ let { size = 'md' }: { size?: string } = $props()  // AI writes size="big"
 <canvas bind:this={canvas} class="fixed inset-0 pointer-events-none -z-10" />
 ```
 
+
+## i18n — Paraglide Pattern
+
+```svelte
+<script lang="ts">
+  import * as m from '$lib/i18n'
+</script>
+
+<h1>{m.hero_title()}</h1>
+<p>{m.hero_subtitle()}</p>
+<Button>{m.cta_primary()}</Button>
+```
+
+TypeScript checks all keys at compile time — AI cannot write non-existent keys.
+
 ## Svelte 5 Runes
 
 ```svelte
@@ -160,16 +191,54 @@ let { title }: Props = $props()
 onclick={handler}
 ```
 
-## i18n
+## i18n — Paraglide (UI) + DB (Content)
+
+**UI strings** use Paraglide — TypeScript-checked at compile time:
 
 ```svelte
 <script lang="ts">
-  import { getI18n } from '$lib/stores/i18n.svelte'
-  const i18n = getI18n()
+  import * as m from '$lib/i18n'
 </script>
-<h1>{i18n.t('hero.title')}</h1>
+<h1>{m.hero_title()}</h1>
+<p>{m.hero_subtitle()}</p>
+<Button>{m.cta_primary()}</Button>
 ```
 
+**Dynamic content** loads from DB via $page.data — admin-editable without rebuild:
+
+```svelte
+<script lang="ts">
+  let { data } = $props()
+</script>
+<h2>{data.post.title}</h2>
+<p>{data.post.content}</p>
+```
+
+Never use `t('key')` string-based API — it allows AI to hallucinate keys.
+
+
+## Superforms Pattern
+
+Every form uses superforms + Zod — shared schemas, auto validation.
+
+```svelte
+<script lang="ts">
+  import { superForm } from 'sveltekit-superforms'
+  import { zodClient } from 'sveltekit-superforms/adapters'
+  import { loginSchema } from '$lib/server/forms/login.schema'
+  import FormField from '$lib/components/atoms/FormField.svelte'
+
+  let { data } = $props()
+  const form = superForm(data.form, { validators: zodClient(loginSchema) })
+  const { enhance, errors, constraints } = form
+</script>
+
+<form method="POST" use:enhance>
+  <FormField name="email" label="Email" {errors} {constraints} class="mb-md" />
+  <FormField name="password" label="Password" type="password" {errors} {constraints} />
+  <button type="submit">Submit</button>
+</form>
+```
 ## API
 
 ```ts

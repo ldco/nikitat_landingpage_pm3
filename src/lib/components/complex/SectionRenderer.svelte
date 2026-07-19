@@ -26,22 +26,6 @@
   import SectionTestimonials from '../sections/SectionTestimonials.svelte'
   import SectionClients from '../sections/SectionClients.svelte'
 
-  const COMPONENT_MAP: Record<string, any> = {
-    SectionHero,
-    SectionAbout,
-    SectionFocus,
-    SectionF22,
-    SectionPortfolio,
-    SectionContact,
-    SectionBlog,
-    SectionFeatures,
-    SectionFaq,
-    SectionPricing,
-    SectionTeam,
-    SectionTestimonials,
-    SectionClients
-  }
-
   let {
     sectionId,
     class: className = ''

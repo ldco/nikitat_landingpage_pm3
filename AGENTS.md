@@ -92,7 +92,17 @@ let { size = 'md', variant = 'primary' }: { size?: string; variant?: string } = 
 ### Rule #4: Isolate Complex Logic (GSAP / Matter.js / Three.js)
 
 Animation and physics logic MUST be in dedicated, isolated components.
-AI forgets `.kill()` and `.destroy()` — create memory leaks.
+AI forgets `.kill()` and `.destroy()` --- create memory leaks.
+
+**CRITICAL: NEVER import gsap or matter-js directly in pages or components.**
+Use ONLY pre-built isolated components: <AnimateOnScroll>, <PhysicsBox>, <FallingLetters>.
+These handle $effect cleanup (.kill(), .destroy()) automatically.
+
+```
+X import gsap from 'gsap'            -> FORBIDDEN in non-animation components
+X import Matter from 'matter-js'     -> FORBIDDEN in non-animation components
+OK <FallingLetters enabled={true} /> -> ALLOWED --- isolated, pre-tested
+```
 
 ```svelte
 <!-- FallingLetters.svelte — isolated component -->
@@ -124,7 +134,31 @@ AI forgets `.kill()` and `.destroy()` — create memory leaks.
 
 ---
 
-### UI System — Our Design Framework (Tailwind-based, like Nuxt UI)
+
+
+### Rule #5: State Management — $page.data + local $state ONLY
+
+95% of state lives in: $page.data (loaded from server via load()) or local $state().
+Global stores (.svelte.ts files) ONLY for UI state: theme.svelte.ts, i18n.svelte.ts.
+
+X Creating global stores for form data    -> FORBIDDEN
+X Creating global stores for API responses -> FORBIDDEN
+OK $state() inside component        -> CORRECT
+OK $page.data from load()           -> CORRECT
+
+### Rule #6: $bindable() for Two-Way Binding
+
+For parent<->child two-way binding, use $bindable():
+```svelte
+let { value = $bindable(''), ...rest }: Props = $props()
+<input bind:value />
+```
+X export let value          -> Svelte 4, FORBIDDEN
+OK $bindable()              -> Svelte 5, CORRECT
+
+---
+
+### UI System
 
 ```
 Layer 1: @theme (framework-level design tokens — in app.css)
@@ -178,10 +212,10 @@ Plugins (NOT in components/):
 - No hardcoded arrays in components
 - Navigation from config, sections from config
 
-### i18n — Zero Untranslated Text
-- ALL text through `i18n.t('key')`
-- Translations in DB → layout → Context API
-- Fallback: DB → content.ts → key
+### i18n — Paraglide (UI) + DB (Content)
+- **UI strings:** {m.hero_title()} — compile-time type-checked via Paraglide
+- **Dynamic content:** {data.post.title} — from DB via $page.data
+- Never use t("key") string-based API — TypeScript checks all keys at compile time
 
 ### API — Consistent Envelope
 - `{ success: true, data }` on every response

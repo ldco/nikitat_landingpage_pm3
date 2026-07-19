@@ -1,9 +1,10 @@
 <script lang="ts">
   /**
-   * SocialIcon — Renders the correct social icon from the icons registry
+   * SocialIcon — Renders the correct social icon from social-icons/ subfolder
    *
-   * Registry: src/lib/components/atoms/social-icons/index.ts
-   * To add a platform: create IconName.svelte in social-icons/ and register in index.ts
+   * Icons are in src/lib/components/atoms/social-icons/ — one file per platform.
+   * All share BaseIcon.svelte for common SVG attributes (stroke, viewBox, etc.).
+   * To add a platform: create IconName.svelte and add an {:else if} chain here.
    *
    * Rule #1: class prop + twMerge
    */
