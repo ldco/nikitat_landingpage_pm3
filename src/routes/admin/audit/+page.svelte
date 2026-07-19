@@ -10,13 +10,13 @@
   <table class="w-full">
     <thead class="bg-pm-bg-sunken">
       <tr>
-        <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">ID</th><th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">Action</th><th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">Actor</th><th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">Date</th>
+        <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">ID</th><th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">Action</th><th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">User</th><th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">Date</th>
       </tr>
     </thead>
     <tbody>
       {#each items as item}
         <tr class="border-b border-pm-border">
-          <td class="px-4 py-3 text-sm text-pm-text-muted">item.id</td><td class="px-4 py-3 text-sm text-pm-text-muted">item.action</td><td class="px-4 py-3 text-sm text-pm-text-muted">item.userId</td><td class="px-4 py-3 text-sm text-pm-text-muted">item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ""</td>
+          <td class="px-4 py-3 text-sm text-pm-text-muted">{item.id}</td><td class="px-4 py-3 text-sm text-pm-text-muted">{item.action}</td><td class="px-4 py-3 text-sm text-pm-text-muted">{item.userId}</td><td class="px-4 py-3 text-sm text-pm-text-muted">{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ""}</td>
         </tr>
       {/each}
     </tbody>

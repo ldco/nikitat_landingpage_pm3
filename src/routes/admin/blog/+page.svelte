@@ -16,7 +16,7 @@
     <tbody>
       {#each items as item}
         <tr class="border-b border-pm-border">
-          <td class="px-4 py-3 text-sm text-pm-text-muted">item.id</td><td class="px-4 py-3 text-sm text-pm-text-muted">item.slug</td><td class="px-4 py-3 text-sm text-pm-text-muted">item.published ? "Yes" : "No"</td><td class="px-4 py-3 text-sm text-pm-text-muted">item.publishedAt ? new Date(item.publishedAt * 1000).toLocaleDateString() : ""</td>
+          <td class="px-4 py-3 text-sm text-pm-text-muted">{item.id}</td><td class="px-4 py-3 text-sm text-pm-text-muted">{item.slug}</td><td class="px-4 py-3 text-sm text-pm-text-muted">{item.published ? "Yes" : "No"}</td><td class="px-4 py-3 text-sm text-pm-text-muted">{item.publishedAt ? new Date(Number(item.publishedAt) * 1000).toLocaleDateString() : ""}</td>
         </tr>
       {/each}
     </tbody>

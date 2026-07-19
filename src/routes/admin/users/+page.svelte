@@ -16,7 +16,7 @@
     <tbody>
       {#each items as item}
         <tr class="border-b border-pm-border">
-          <td class="px-4 py-3 text-sm text-pm-text-muted">item.id</td><td class="px-4 py-3 text-sm text-pm-text-muted">item.email</td><td class="px-4 py-3 text-sm text-pm-text-muted">item.name ?? ""</td><td class="px-4 py-3 text-sm text-pm-text-muted">item.role</td>
+          <td class="px-4 py-3 text-sm text-pm-text-muted">{item.id}</td><td class="px-4 py-3 text-sm text-pm-text-muted">{item.email}</td><td class="px-4 py-3 text-sm text-pm-text-muted">{item.name ?? ""}</td><td class="px-4 py-3 text-sm text-pm-text-muted">{item.role}</td>
         </tr>
       {/each}
     </tbody>

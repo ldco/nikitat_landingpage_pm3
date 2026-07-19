@@ -20,7 +20,7 @@
   /* --- Brand Mixes (color-mix pre-calculated for Tailwind v4 compat) --- */
   --color-pm-brand-light: #a1382a;   /* color-mix(in srgb, #901504, white 15%) */
   --color-pm-brand-dark: #821304;    /* color-mix(in srgb, #901504, black 10%) */
-  --color-pm-brand-subtle: light-dark(#f0dcd0, #480b02); /* color-mix srgb + transparent */
+  --color-pm-brand-subtle: #f0dcd0; /* color-mix srgb + transparent */
 
   /* --- Gray Scale (kept from Phase 2 — used in admin) --- */
   --color-pm-gray-50: #f9fafb;
@@ -35,9 +35,9 @@
   --color-pm-gray-900: #111827;
 
   /* --- Background Tokens (from colors/auto.css) --- */
-  --color-pm-bg: light-dark(#fbf2e7, #3b0902);
-  --color-pm-bg-elevated: light-dark(#f5ebe0, #45150d);
-  --color-pm-bg-sunken: light-dark(#efe4d9, #3f0e07);
+  --color-pm-bg: #fbf2e7;
+  --color-pm-bg-elevated: #f5ebe0;
+  --color-pm-bg-sunken: #efe4d9;
   --color-pm-surface: var(--color-pm-bg-elevated);
 
   /* --- Legacy Background Aliases (kept for component compat — Phase 4+ refactors) --- */
@@ -46,13 +46,13 @@
   --color-pm-bg-dark-muted: #45150d;
 
   /* --- Border Tokens (from colors/auto.css, oklch mix pre-calculated) --- */
-  --color-pm-border: light-dark(#e4d6cb, #582c24);
-  --color-pm-border-strong: light-dark(#cbb8ae, #754f47);
+  --color-pm-border: #e4d6cb;
+  --color-pm-border-strong: #cbb8ae;
 
   /* --- Text Tokens (from colors/auto.css) --- */
-  --color-pm-text: light-dark(#3b0902, #fbf2e7);
-  --color-pm-text-secondary: light-dark(#664d42, #c4a498);
-  --color-pm-text-muted: light-dark(#8c7568, #9a7a6e);
+  --color-pm-text: #3b0902;
+  --color-pm-text-secondary: #664d42;
+  --color-pm-text-muted: #8c7568;
 
   /* --- Muted Aliases --- */
   --color-pm-muted: var(--color-pm-text-muted);
@@ -60,13 +60,13 @@
 
   /* --- Semantic Colors (oklch from colors/auto.css) --- */
   --color-pm-success: oklch(65% 0.2 145);
-  --color-pm-success-bg: light-dark(oklch(95% 0.05 145), oklch(25% 0.05 145));
+  --color-pm-success-bg: oklch(95% 0.05 145);
   --color-pm-warning: oklch(75% 0.15 85);
-  --color-pm-warning-bg: light-dark(oklch(95% 0.05 85), oklch(25% 0.05 85));
+  --color-pm-warning-bg: oklch(95% 0.05 85);
   --color-pm-danger: oklch(55% 0.22 25);
-  --color-pm-danger-bg: light-dark(oklch(95% 0.05 25), oklch(25% 0.05 25));
+  --color-pm-danger-bg: oklch(95% 0.05 25);
   --color-pm-info: oklch(60% 0.18 250);
-  --color-pm-info-bg: light-dark(oklch(95% 0.05 250), oklch(25% 0.05 250));
+  --color-pm-info-bg: oklch(95% 0.05 250);
 
   /* --- Focus Ring --- */
   --color-pm-focus-ring: rgba(144, 21, 4, 0.5);
@@ -165,11 +165,6 @@
     font-family: var(--font-sans);
   }
 
-  /* Dark mode body (uses light-dark() through tokens, but keep for explicit overrides) */
-  .dark body {
-    @apply bg-pm-black text-pm-white;
-  }
-
   a {
     @apply text-pm-brand transition-colors;
     transition-duration: 150ms;
@@ -195,6 +190,22 @@
   :focus-visible {
     outline: 2px solid var(--color-pm-focus-ring);
     outline-offset: 2px;
+  }
+
+  .dark {
+    --color-pm-bg: #3b0902;
+    --color-pm-bg-elevated: #45150d;
+    --color-pm-bg-sunken: #3f0e07;
+    --color-pm-border: #582c24;
+    --color-pm-border-strong: #754f47;
+    --color-pm-text: #fbf2e7;
+    --color-pm-text-secondary: #c4a498;
+    --color-pm-text-muted: #9a7a6e;
+    --color-pm-brand-subtle: #480b02;
+    --color-pm-success-bg: oklch(25% 0.05 145);
+    --color-pm-warning-bg: oklch(25% 0.05 85);
+    --color-pm-danger-bg: oklch(25% 0.05 25);
+    --color-pm-info-bg: oklch(25% 0.05 250);
   }
 }
 

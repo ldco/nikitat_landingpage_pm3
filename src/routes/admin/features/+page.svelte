@@ -10,13 +10,13 @@
   <table class="w-full">
     <thead class="bg-pm-bg-sunken">
       <tr>
-        <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">ID</th><th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">Title</th><th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">Published</th><th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">Order</th>
+        <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">ID</th><th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">Slug</th><th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">Published</th><th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">Order</th>
       </tr>
     </thead>
     <tbody>
       {#each items as item}
         <tr class="border-b border-pm-border">
-          <td class="px-4 py-3 text-sm text-pm-text-muted">item.id</td><td class="px-4 py-3 text-sm text-pm-text-muted">item.slug</td><td class="px-4 py-3 text-sm text-pm-text-muted">item.published ? "Yes" : "No"</td><td class="px-4 py-3 text-sm text-pm-text-muted">item.order ?? 0</td>
+          <td class="px-4 py-3 text-sm text-pm-text-muted">{item.id}</td><td class="px-4 py-3 text-sm text-pm-text-muted">{item.slug}</td><td class="px-4 py-3 text-sm text-pm-text-muted">{item.published ? "Yes" : "No"}</td><td class="px-4 py-3 text-sm text-pm-text-muted">{item.order ?? 0}</td>
         </tr>
       {/each}
     </tbody>

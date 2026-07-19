@@ -10,8 +10,8 @@
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
 
   let {
-    title = 'F22 Project',
-    description = 'A flagship project showcasing modern web capabilities.',
+    title = '',
+    description = '',
     class: className = ''
   }: {
     title?: string
@@ -35,7 +35,7 @@
         </div>
       </div>
       <div class="aspect-video rounded-xl overflow-hidden bg-pm-bg-sunken flex items-center justify-center text-pm-muted text-lg">
-        F22 Project
+        {title || 'Project'}
       </div>
     </div>
   </div>

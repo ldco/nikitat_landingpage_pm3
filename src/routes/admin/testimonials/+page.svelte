@@ -10,13 +10,13 @@
   <table class="w-full">
     <thead class="bg-pm-bg-sunken">
       <tr>
-        <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">ID</th><th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">Name</th><th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">Company</th><th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">Rating</th>
+        <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">ID</th><th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">Author</th><th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">Company</th><th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">Rating</th>
       </tr>
     </thead>
     <tbody>
       {#each items as item}
         <tr class="border-b border-pm-border">
-          <td class="px-4 py-3 text-sm text-pm-text-muted">item.id</td><td class="px-4 py-3 text-sm text-pm-text-muted">item.name</td><td class="px-4 py-3 text-sm text-pm-text-muted">item.company ?? ""</td><td class="px-4 py-3 text-sm text-pm-text-muted">item.rating ?? 0</td>
+          <td class="px-4 py-3 text-sm text-pm-text-muted">{item.id}</td><td class="px-4 py-3 text-sm text-pm-text-muted">{item.authorName}</td><td class="px-4 py-3 text-sm text-pm-text-muted">{item.authorCompany ?? ""}</td><td class="px-4 py-3 text-sm text-pm-text-muted">{item.rating ?? 0}</td>
         </tr>
       {/each}
     </tbody>

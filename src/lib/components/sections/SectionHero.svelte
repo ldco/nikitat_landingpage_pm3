@@ -10,7 +10,7 @@
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
 
   let {
-    subtitle = 'SvelteKit Meta-Framework',
+    subtitle = '',
     class: className = ''
   }: {
     subtitle?: string

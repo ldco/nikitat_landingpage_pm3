@@ -104,7 +104,7 @@
 
     <!-- Subtitle -->
     <p bind:this={subtitleRef} class="mt-6 text-lg sm:text-xl text-pm-text-muted max-w-2xl mx-auto">
-      {subtitle || 'SvelteKit Meta-Framework'}
+      {subtitle || ' '}
     </p>
 
     <!-- CTA Buttons -->
