@@ -8,6 +8,8 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import AppImage from '$lib/components/atoms/AppImage.svelte'
+  import Badge from '$lib/components/atoms/Badge.svelte'
 
   let {
     title = '',
@@ -45,7 +47,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       {#each screenshots as img}
         <div class="rounded-lg overflow-hidden border border-pm-border">
-          <img src={img.url} alt={img.caption ?? title} class="w-full object-cover" />
+          <AppImage src={img.url} alt={img.caption ?? title} class="w-full object-cover" />
           {#if img.caption}
             <p class="p-2 text-xs text-pm-text-muted">{img.caption}</p>
           {/if}
@@ -57,7 +59,7 @@
   {#if tags.length > 0}
     <div class="flex flex-wrap gap-2">
       {#each tags as tag}
-        <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-pm-bg-sunken text-pm-text-muted">{tag}</span>
+        <Badge variant="default">{tag}</Badge>
       {/each}
     </div>
   {/if}

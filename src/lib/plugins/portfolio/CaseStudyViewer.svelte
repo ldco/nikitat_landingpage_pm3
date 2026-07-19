@@ -6,6 +6,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import Badge from '$lib/components/atoms/Badge.svelte'
 
   let {
     title = '',
@@ -30,7 +31,7 @@
   {#if tags.length > 0}
     <div class="flex flex-wrap gap-2 pt-4 border-t border-pm-border">
       {#each tags as tag}
-        <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-pm-bg-sunken text-pm-text-muted">{tag}</span>
+        <Badge variant="default">{tag}</Badge>
       {/each}
     </div>
   {/if}

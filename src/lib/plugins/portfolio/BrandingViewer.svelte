@@ -1,13 +1,15 @@
 <script lang="ts">
   /**
-   * BrandingViewer — Portfolio branding/gallery content viewer
+   * BrandingViewer — Portfolio branding/gallery content viewer (PM v2)
    *
    * Source: app-nuxt/app/assets/css/ui/content/portfolio-branding.css
+   * Uses: AppImage for all image rendering.
    *
    * Rule #1: class prop + twMerge
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import AppImage from '$lib/components/atoms/AppImage.svelte'
 
   let {
     title = '',
@@ -33,7 +35,7 @@
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     {#each images as img}
       <div class="aspect-[4/3] rounded-lg overflow-hidden bg-pm-bg-sunken">
-        <img src={img.url} alt={img.caption ?? title} class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+        <AppImage src={img.url} alt={img.caption ?? title} class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
         {#if img.caption}
           <p class="p-2 text-xs text-pm-text-muted">{img.caption}</p>
         {/if}
