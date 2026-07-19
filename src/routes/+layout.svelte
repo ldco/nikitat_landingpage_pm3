@@ -17,8 +17,10 @@
   const isVerticalNav = $derived(FEATURES.verticalNav)
 </script>
 
-<TheHeader />
-<main class={clsx('min-h-screen', isVerticalNav ? 'ms-16' : 'pt-16')} use:scrollSpy>
+{#if !$page.url.pathname.startsWith('/admin')}
+  <TheHeader />
+{/if}
+<main class={clsx('min-h-screen', !$page.url.pathname.startsWith('/admin') && (isVerticalNav ? 'ms-16' : 'pt-16'))} use:scrollSpy>
   {#key $page.url.pathname}
     {#if transitionType === 'fade'}
       <div transition:fade={{ duration: 200 }}>{@render children?.()}</div>
@@ -37,7 +39,9 @@
     {/if}
   {/key}
 </main>
-<TheFooter />
-<BackToTop />
-<CookieConsent />
+{#if !$page.url.pathname.startsWith('/admin')}
+  <TheFooter />
+  <BackToTop />
+  <CookieConsent />
+{/if}
 <ToastContainer />

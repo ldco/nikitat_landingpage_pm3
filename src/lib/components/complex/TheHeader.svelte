@@ -45,7 +45,6 @@
   let scrolled = $state(false)
   let hidden = $state(false)
   let lastScrollY = $state(0)
-  let showMobileNav = $state(false)
 
   const SCROLL_THRESHOLD = 80
 
@@ -63,16 +62,10 @@
 
   function handleHamburger() {
     mobileOpen = !mobileOpen
-    if (mobileOpen) {
-      setTimeout(() => showMobileNav = true, 200)
-    } else {
-      showMobileNav = false
-    }
   }
 
   function closeMobileNav() {
     mobileOpen = false
-    showMobileNav = false
   }
 </script>
 
@@ -150,18 +143,14 @@
 {/if}
 
 <!-- ═══ MOBILE NAV DRAWER ═══ -->
-<!-- ═══ MOBILE NAV BACKDROP ═══ -->
-{#if showMobileNav}
+{#if mobileOpen}
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <div
     class="fixed inset-0 z-drawer-backdrop bg-black/40 backdrop-blur-[4px]"
     onclick={closeMobileNav}
     role="presentation"
   />
-{/if}
 
-<!-- ═══ MOBILE NAV DRAWER ═══ -->
-{#if mobileOpen}
   <nav
     class={clsx(
       'fixed inset-y-0 start-0 z-drawer',
@@ -169,7 +158,7 @@
       'shadow-[4px_0_20px_oklch(0%_0_0_/_10%)]',
       'flex flex-col',
       'transition-[inset-inline-start] duration-[400ms]',
-      showMobileNav ? '[inset-inline-start:0]' : '[inset-inline-start:calc(-1*min(280px,85vw))]'
+      mobileOpen ? '[inset-inline-start:0]' : '[inset-inline-start:calc(-1*min(280px,85vw))]'
     )}>
     <!-- Header: logo + close -->
     <div class="flex items-center justify-between p-4 border-b border-pm-border">
