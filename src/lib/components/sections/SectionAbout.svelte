@@ -19,11 +19,11 @@
 
 <section class={twMerge(clsx('py-20 md:py-28', className))}>
   <div class="container-narrow">
-    <h2 class="text-3xl sm:text-4xl font-bold text-pm-gray-900 dark:text-pm-white font-display text-center">
+    <h2 class="text-3xl sm:text-4xl font-bold text-pm-text font-display text-center">
       {m.sections_about()}
     </h2>
     {#if content}
-      <div class="mt-8 text-lg text-pm-gray-600 dark:text-pm-gray-400 leading-relaxed">
+      <div class="mt-8 text-lg text-pm-text-secondary leading-relaxed">
         {content}
       </div>
     {:else}

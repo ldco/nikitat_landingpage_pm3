@@ -20,10 +20,10 @@
 
 <section class={twMerge(clsx('relative flex flex-col items-center justify-center min-h-[80vh] px-4 text-center', className))}>
   <div class="max-w-3xl mx-auto">
-    <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-pm-gray-900 dark:text-pm-white font-display">
+    <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-pm-text font-display">
       {m.sections_hero()}
     </h1>
-    <p class="mt-6 text-lg sm:text-xl text-pm-muted dark:text-pm-muted-dark max-w-2xl mx-auto">
+    <p class="mt-6 text-lg sm:text-xl text-pm-text-muted max-w-2xl mx-auto">
       {subtitle}
     </p>
     <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">

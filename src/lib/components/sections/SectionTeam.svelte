@@ -19,23 +19,23 @@
 
 <section class={twMerge(clsx('py-20 md:py-28', className))}>
   <div class="container-wide">
-    <h2 class="text-3xl sm:text-4xl font-bold text-pm-gray-900 dark:text-pm-white font-display text-center">
+    <h2 class="text-3xl sm:text-4xl font-bold text-pm-text font-display text-center">
       {m.nav_team()}
     </h2>
     <div class="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {#each members as member}
-        <div class="text-center p-6 rounded-xl bg-white dark:bg-pm-gray-800 border border-pm-gray-200 dark:border-pm-gray-700">
+        <div class="text-center p-6 rounded-xl bg-pm-bg border border-pm-border">
           {#if member.photoUrl}
             <img src={member.photoUrl} alt={member.name} class="w-20 h-20 rounded-full mx-auto object-cover" />
           {:else}
-            <div class="w-20 h-20 rounded-full mx-auto bg-pm-gray-200 dark:bg-pm-gray-700 flex items-center justify-center text-pm-muted text-xl">
+            <div class="w-20 h-20 rounded-full mx-auto bg-pm-bg-sunken flex items-center justify-center text-pm-muted text-xl">
               {member.name.charAt(0)}
             </div>
           {/if}
-          <h3 class="mt-4 font-bold text-pm-gray-900 dark:text-pm-white">{member.name}</h3>
+          <h3 class="mt-4 font-bold text-pm-text">{member.name}</h3>
           <p class="text-sm text-pm-brand">{member.role}</p>
           {#if member.bio}
-            <p class="mt-2 text-xs text-pm-muted dark:text-pm-muted-dark">{member.bio}</p>
+            <p class="mt-2 text-xs text-pm-text-muted">{member.bio}</p>
           {/if}
         </div>
       {:else}

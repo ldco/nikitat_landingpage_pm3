@@ -24,17 +24,17 @@
   <div class="container-wide">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
       <div>
-        <h2 class="text-3xl sm:text-4xl font-bold text-pm-gray-900 dark:text-pm-white font-display">
+        <h2 class="text-3xl sm:text-4xl font-bold text-pm-text font-display">
           {title}
         </h2>
-        <p class="mt-6 text-lg text-pm-muted dark:text-pm-muted-dark leading-relaxed">
+        <p class="mt-6 text-lg text-pm-text-muted leading-relaxed">
           {description}
         </p>
         <div class="mt-8">
           <CtaButton href="/portfolio" variant="primary">{m.common_more()}</CtaButton>
         </div>
       </div>
-      <div class="aspect-video rounded-xl overflow-hidden bg-pm-gray-100 dark:bg-pm-gray-800 flex items-center justify-center text-pm-muted text-lg">
+      <div class="aspect-video rounded-xl overflow-hidden bg-pm-bg-sunken flex items-center justify-center text-pm-muted text-lg">
         F22 Project
       </div>
     </div>

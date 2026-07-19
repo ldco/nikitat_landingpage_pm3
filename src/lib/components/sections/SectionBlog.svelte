@@ -18,9 +18,9 @@
   } = $props()
 </script>
 
-<section class={twMerge(clsx('py-20 md:py-28 bg-pm-bg-muted dark:bg-pm-bg-dark-muted', className))}>
+<section class={twMerge(clsx('py-20 md:py-28 bg-pm-bg-elevated', className))}>
   <div class="container-wide">
-    <h2 class="text-3xl sm:text-4xl font-bold text-pm-gray-900 dark:text-pm-white font-display text-center">
+    <h2 class="text-3xl sm:text-4xl font-bold text-pm-text font-display text-center">
       {m.sections_blog()}
     </h2>
     <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

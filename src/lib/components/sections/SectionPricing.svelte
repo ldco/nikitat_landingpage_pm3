@@ -28,7 +28,7 @@
 
 <section class={twMerge(clsx('py-20 md:py-28', className))}>
   <div class="container-wide">
-    <h2 class="text-3xl sm:text-4xl font-bold text-pm-gray-900 dark:text-pm-white font-display text-center">
+    <h2 class="text-3xl sm:text-4xl font-bold text-pm-text font-display text-center">
       {m.sections_pricing()}
     </h2>
     <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 items-start">

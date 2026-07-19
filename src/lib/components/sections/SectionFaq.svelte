@@ -23,20 +23,20 @@
   }
 </script>
 
-<section class={twMerge(clsx('py-20 md:py-28 bg-pm-bg-muted dark:bg-pm-bg-dark-muted', className))}>
+<section class={twMerge(clsx('py-20 md:py-28 bg-pm-bg-elevated', className))}>
   <div class="container-narrow">
-    <h2 class="text-3xl sm:text-4xl font-bold text-pm-gray-900 dark:text-pm-white font-display text-center">
+    <h2 class="text-3xl sm:text-4xl font-bold text-pm-text font-display text-center">
       {m.sections_faq()}
     </h2>
     <div class="mt-12 space-y-3">
       {#each items as item}
-        <div class="rounded-xl border border-pm-gray-200 dark:border-pm-gray-700 bg-white dark:bg-pm-gray-800 overflow-hidden">
-          <button class="flex items-center justify-between w-full px-6 py-4 text-left font-medium text-pm-gray-900 dark:text-pm-white hover:bg-pm-gray-50 dark:hover:bg-pm-gray-750 transition-colors" onclick={() => toggle(item.id)}>
+        <div class="rounded-xl border border-pm-border bg-pm-bg overflow-hidden">
+          <button class="flex items-center justify-between w-full px-6 py-4 text-left font-medium text-pm-text hover:bg-pm-bg-sunken dark:hover:bg-pm-gray-750 transition-colors" onclick={() => toggle(item.id)}>
             <span>{item.question}</span>
             <svg class={clsx('w-5 h-5 text-pm-muted transition-transform duration-200', openId === item.id && 'rotate-180')} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9" /></svg>
           </button>
           {#if openId === item.id}
-            <div class="px-6 pb-4 text-sm text-pm-gray-600 dark:text-pm-gray-400">
+            <div class="px-6 pb-4 text-sm text-pm-text-secondary">
               {item.answer}
             </div>
           {/if}

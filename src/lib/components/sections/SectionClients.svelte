@@ -19,7 +19,7 @@
 
 <section class={twMerge(clsx('py-16 md:py-20', className))}>
   <div class="container-wide">
-    <h2 class="text-2xl font-bold text-pm-gray-900 dark:text-pm-white font-display text-center mb-8">
+    <h2 class="text-2xl font-bold text-pm-text font-display text-center mb-8">
       {m.sections_clients()}
     </h2>
     <div class="flex flex-wrap items-center justify-center gap-8 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">

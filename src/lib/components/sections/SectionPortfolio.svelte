@@ -19,12 +19,12 @@
 
 <section class={twMerge(clsx('py-20 md:py-28', className))}>
   <div class="container-wide">
-    <h2 class="text-3xl sm:text-4xl font-bold text-pm-gray-900 dark:text-pm-white font-display text-center">
+    <h2 class="text-3xl sm:text-4xl font-bold text-pm-text font-display text-center">
       {m.sections_portfolio()}
     </h2>
     <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {#each items as item}
-        <a href={`/portfolio/${item.slug}`} class="group block overflow-hidden rounded-xl border border-pm-gray-200 dark:border-pm-gray-700 bg-white dark:bg-pm-gray-800 shadow-card hover:shadow-card-hover transition-all duration-300">
+        <a href={`/portfolio/${item.slug}`} class="group block overflow-hidden rounded-xl border border-pm-border bg-pm-bg shadow-md hover:shadow-md-hover transition-all duration-300">
           {#if item.coverImageUrl}
             <div class="aspect-video overflow-hidden">
               <img src={item.coverImageUrl} alt={item.name} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -32,7 +32,7 @@
           {/if}
           <div class="p-5">
             <span class="text-xs font-medium uppercase tracking-wider text-pm-brand">{item.type}</span>
-            <h3 class="mt-1 text-lg font-bold text-pm-gray-900 dark:text-pm-white">{item.name}</h3>
+            <h3 class="mt-1 text-lg font-bold text-pm-text">{item.name}</h3>
           </div>
         </a>
       {:else}
