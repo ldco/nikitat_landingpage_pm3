@@ -1,7 +1,8 @@
 <script lang="ts">
   import '../app.css'
+  import { clsx } from 'clsx'
   import { page } from '$app/stores'
-  import { fade, slide } from 'svelte/transition'
+  import { fade, slide, scale, fly } from 'svelte/transition'
   import { FEATURES } from '$lib/config/site'
   import { scrollSpy } from '$lib/actions/scrollSpy'
   import TheHeader from '$lib/components/complex/TheHeader.svelte'
@@ -11,14 +12,29 @@
   import ToastContainer from '$lib/components/complex/ToastContainer.svelte'
 
   let { children }: { children?: import('svelte').Snippet } = $props()
+  const isOnepager = $derived(FEATURES.onepager)
+  const transitionType = $derived(!isOnepager ? FEATURES.pageTransitions : '')
+  const isVerticalNav = $derived(FEATURES.verticalNav)
 </script>
 
 <TheHeader />
-<main class="min-h-screen pt-16" use:scrollSpy>
+<main class={clsx('min-h-screen', isVerticalNav ? 'ms-16' : 'pt-16')} use:scrollSpy>
   {#key $page.url.pathname}
-    <div transition:fade={{ duration: 200 }}>
-      {@render children?.()}
-    </div>
+    {#if transitionType === 'fade'}
+      <div transition:fade={{ duration: 200 }}>{@render children?.()}</div>
+    {:else if transitionType === 'slide-left'}
+      <div transition:slide={{ duration: 200, axis: 'x' }}>{@render children?.()}</div>
+    {:else if transitionType === 'slide-up'}
+      <div transition:slide={{ duration: 200, axis: 'y' }}>{@render children?.()}</div>
+    {:else if transitionType === 'scale'}
+      <div transition:scale={{ duration: 200, start: 0.95 }}>{@render children?.()}</div>
+    {:else if transitionType === 'zoom'}
+      <div transition:scale={{ duration: 200, start: 1.1 }}>{@render children?.()}</div>
+    {:else if transitionType === 'flip'}
+      <div transition:fly={{ duration: 200, x: 300 }}>{@render children?.()}</div>
+    {:else}
+      <div transition:fade={{ duration: 200 }}>{@render children?.()}</div>
+    {/if}
   {/key}
 </main>
 <TheFooter />

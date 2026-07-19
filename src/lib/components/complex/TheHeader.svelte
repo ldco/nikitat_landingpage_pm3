@@ -39,6 +39,7 @@
   const showThemeToggle = $derived(FEATURES.doubleTheme)
   const showLangSwitcher = $derived(FEATURES.multiLangs)
   const mobileInteractive = $derived(FEATURES.mobileInteractiveHeader)
+  const isVerticalNav = $derived(FEATURES.verticalNav)
 
   let mobileOpen = $state(false)
   let scrolled = $state(false)
@@ -78,60 +79,30 @@
 <svelte:window onscroll={onScroll} />
 <svelte:body onkeydown={(e) => e.key === 'Escape' && closeMobileNav()} />
 
-<!-- ═══ HEADER BAR ═══ -->
-<header
-  class={twMerge(clsx(
-    'fixed top-0 start-0 end-0 z-fixed',
-    'border-b border-pm-border',
-    // Base height + transition
-    'min-h-[clamp(56px,8vh,72px)]',
-    'transition-[height,box-shadow,transform,background,backdrop-filter] duration-300 ease-out',
-    // Interactive: scroll glass + logo shrink; Non-interactive: fixed height, solid bg
-    scrolled
-      ? 'h-[clamp(48px,6vh,56px)] bg-pm-bg/85 dark:bg-pm-black/85 shadow-[0_1px_3px_oklch(0%_0_0_/_8%)] backdrop-blur-[16px]'
-      : isInteractive ? 'h-[clamp(56px,8vh,72px)] bg-pm-bg' : 'h-[clamp(56px,8vh,72px)] bg-pm-bg',
-    // Hide on scroll down
-    hidden ? '-translate-y-full pointer-events-none' : 'translate-y-0',
+{#if isVerticalNav}
+  <!-- ═══ VERTICAL NAV: Icon Sidebar (FEATURES.verticalNav) ═══ -->
+  <aside class={twMerge(clsx(
+    'fixed top-0 start-0 z-fixed h-full',
+    'w-16 border-e border-pm-border',
+    'bg-pm-bg-elevated',
+    'flex flex-col',
     className
   ))}>
-  <!-- .header-inner: desktop grid [logo | centered nav | actions], mobile flex -->
-  <div
-    class={clsx('flex items-center h-full', !isFullWidth && 'mx-auto max-w-[80rem]')}
-    style="padding-inline: clamp(1rem, 3vw, 3rem);"
-  >
-    <!-- Hamburger: shown on mobile/tablet (< 1120px) only -->
-    <div class="flex header:hidden me-auto">
-      <HamburgerIcon active={mobileOpen} type="spin" onclick={handleHamburger} />
+    <!-- Logo (short) at top -->
+    <div class="flex items-center justify-center h-16 border-b border-pm-border">
+      <Logo shape="circle" />
     </div>
 
-    <!-- Logo: centered on mobile (absolute), left on desktop -->
-    <div class={clsx(
-      'flex items-center',
-      // Mobile: absolute center
-      'absolute start-1/2 -translate-x-1/2 header:static header:transform-none header:justify-self-start',
-      // Logo shrinks on scroll
-      scrolled ? 'h-[var(--logo-scrolled-height)]' : 'h-[var(--logo-desktop-height)]'
-    )}>
-      <Logo shape="horizontal" />
-    </div>
-
-    <!-- Nav: centered on desktop, hidden on mobile/tablet -->
-    <nav class="hidden header:flex header:justify-self-center" style="gap: clamp(1.5rem, 3vw, 2.5rem);">
-      <NavLinks activeId={activeSection} />
+    <!-- Nav: icon-only with tooltips -->
+    <nav class="flex-1 flex flex-col items-center gap-1 py-3">
+      <a href="/" class="relative flex items-center justify-center size-10 rounded-md transition-colors group text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="absolute start-full ms-2 px-2 py-1 rounded-md bg-pm-bg-elevated border border-pm-border text-xs text-pm-text shadow-md whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-tooltip">Home</span>
+      </a>
     </nav>
 
-    <!-- Actions rail: right-aligned, hidden on mobile -->
-    <div class="hidden header:flex header:justify-self-end header:items-center header:gap-3 ms-auto header:ms-0">
-      {#if showLangSwitcher}
-          <LangSwitcher mode="side" />
-        {/if}
-        {#if showThemeToggle}
-          <ThemeToggle />
-        {/if}
-    </div>
-
-    <!-- Mobile contact/actions: right side, outside nav rail -->
-    <div class="flex header:hidden items-center gap-1 ms-auto">
+    <!-- Toggles at bottom -->
+    <div class="flex flex-col items-center gap-2 py-3 border-t border-pm-border">
       {#if showLangSwitcher}
         <LangSwitcher mode="side" />
       {/if}
@@ -139,8 +110,44 @@
         <ThemeToggle />
       {/if}
     </div>
+  </aside>
+{:else}
+<!-- ═══ HORIZONTAL HEADER BAR (default) ═══ -->
+<header
+  class={twMerge(clsx(
+    'fixed top-0 start-0 end-0 z-fixed',
+    'border-b border-pm-border',
+    'min-h-[clamp(56px,8vh,72px)]',
+    'transition-[height,box-shadow,transform,background,backdrop-filter] duration-300 ease-out',
+    scrolled
+      ? 'h-[clamp(48px,6vh,56px)] bg-pm-bg/85 dark:bg-pm-black/85 shadow-[0_1px_3px_oklch(0%_0_0_/_8%)] backdrop-blur-[16px]'
+      : isInteractive ? 'h-[clamp(56px,8vh,72px)] bg-pm-bg' : 'h-[clamp(56px,8vh,72px)] bg-pm-bg',
+    hidden ? '-translate-y-full pointer-events-none' : 'translate-y-0',
+    className
+  ))}>
+  <div class={clsx('flex items-center h-full', !isFullWidth && 'mx-auto max-w-[80rem]')} style="padding-inline: clamp(1rem, 3vw, 3rem);">
+    <div class="flex header:hidden me-auto">
+      <HamburgerIcon active={mobileOpen} type="spin" onclick={handleHamburger} />
+    </div>
+    <div class={clsx('flex items-center', 'absolute start-1/2 -translate-x-1/2 header:static header:transform-none header:justify-self-start',
+      scrolled ? 'h-[var(--logo-scrolled-height)]' : 'h-[var(--logo-desktop-height)]'
+    )}>
+      <Logo shape="horizontal" />
+    </div>
+    <nav class="hidden header:flex header:justify-self-center" style="gap: clamp(1.5rem, 3vw, 2.5rem);">
+      <NavLinks activeId={activeSection} />
+    </nav>
+    <div class="hidden header:flex header:justify-self-end header:items-center header:gap-3 ms-auto header:ms-0">
+      {#if showLangSwitcher}<LangSwitcher mode="side" />{/if}
+      {#if showThemeToggle}<ThemeToggle />{/if}
+    </div>
+    <div class="flex header:hidden items-center gap-1 ms-auto">
+      {#if showLangSwitcher}<LangSwitcher mode="side" />{/if}
+      {#if showThemeToggle}<ThemeToggle />{/if}
+    </div>
   </div>
 </header>
+{/if}
 
 <!-- ═══ MOBILE NAV DRAWER ═══ -->
 <!-- ═══ MOBILE NAV BACKDROP ═══ -->
