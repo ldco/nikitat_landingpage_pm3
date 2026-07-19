@@ -1,0 +1,41 @@
+<script lang="ts">
+  /**
+   * Portfolio Listing — Grid of portfolio items
+   * Rule #1: class prop + twMerge
+   */
+  import AppImage from '$lib/components/atoms/AppImage.svelte'
+  import Badge from '$lib/components/atoms/Badge.svelte'
+  import * as m from '$lib/i18n'
+  import type { PageData } from './$types'
+  let { data }: { data: PageData } = $props()
+</script>
+
+<svelte:head>
+  <title>{m.nav_portfolio()} — Puppet Master</title>
+</svelte:head>
+
+<div class="container-wide py-24">
+  <h1 class="text-4xl font-bold text-pm-text font-display text-center mb-12">{m.nav_portfolio()}</h1>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {#each data.items as item}
+      <a href={`/portfolio/${item.slug}`} class="group block overflow-hidden rounded-xl border border-pm-border bg-pm-bg hover:shadow-lg transition-all duration-200">
+        {#if item.coverImageUrl}
+          <div class="aspect-video overflow-hidden">
+            <AppImage src={item.coverImageUrl} alt={item.name} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          </div>
+        {/if}
+        <div class="p-5">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <h2 class="text-lg font-bold text-pm-text group-hover:text-pm-brand transition-colors">{item.name}</h2>
+            <Badge variant="default">{item.type}</Badge>
+          </div>
+        </div>
+      </a>
+    {/each}
+  </div>
+
+  {#if data.items.length === 0}
+    <p class="text-center text-pm-text-muted py-16">{m.common_note()}</p>
+  {/if}
+</div>
