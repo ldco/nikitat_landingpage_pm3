@@ -2,6 +2,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
+  import { FEATURES } from '$lib/config/site'
 
   let {
     testimonials = [] as Array<{ id: number; name: string; company?: string; text: string; photoUrl?: string; rating?: number }>,
@@ -14,6 +15,7 @@
   let current = $state(0)
   function next() { current = (current + 1) % Math.max(testimonials.length, 1) }
   function prev() { current = (current - 1 + testimonials.length) % Math.max(testimonials.length, 1) }
+  const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
 </script>
 
 <section id="testimonials" class={twMerge(clsx(
@@ -21,7 +23,7 @@
   'pt-[calc(clamp(56px,8vh,72px)+3rem)] pb-16',
   className
 ))}>
-  <div class="w-full mx-auto" style="max-width: min(768px, 100%); padding-inline: clamp(1rem, 3vw, 3rem);">
+  <div class={clsx('w-full mx-auto', isContained && 'max-w-[min(768px,100%)]')} style="padding-inline: clamp(1rem, 3vw, 3rem);">
     <h2 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight mb-8 text-center">{m.sections_testimonials()}</h2>
     {#if testimonials.length > 0}
       <div class="text-center p-8 rounded-xl bg-pm-bg-elevated border border-pm-border shadow-md">

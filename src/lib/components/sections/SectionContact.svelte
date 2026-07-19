@@ -2,6 +2,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
+  import { FEATURES } from '$lib/config/site'
   import ContactInfo from '$lib/components/molecules/ContactInfo.svelte'
 
   let {
@@ -9,6 +10,8 @@
   }: {
     class?: string
   } = $props()
+
+  const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
 </script>
 
 <section id="contact" class={twMerge(clsx(
@@ -16,7 +19,7 @@
   'pt-[calc(clamp(56px,8vh,72px)+3rem)] pb-16',
   className
 ))}>
-  <div class="w-full mx-auto max-w-4xl" style="padding-inline: clamp(1rem, 3vw, 3rem);">
+  <div class={clsx('w-full mx-auto', isContained && 'max-w-4xl')} style="padding-inline: clamp(1rem, 3vw, 3rem);">
     <h2 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight mb-8 text-center">{m.sections_contact()}</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-[var(--gap-xl)]">
       <div class="rounded-xl border border-pm-border bg-pm-bg p-6 shadow-sm">

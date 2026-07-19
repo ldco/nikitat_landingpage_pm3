@@ -2,6 +2,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
+  import { FEATURES } from '$lib/config/site'
 
   let {
     items = [] as Array<{ id: number; question: string; answer: string }>,
@@ -13,6 +14,7 @@
 
   let openId = $state<number | null>(null)
   function toggle(id: number) { openId = openId === id ? null : id }
+  const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
 </script>
 
 <section id="faq" class={twMerge(clsx(
@@ -20,7 +22,7 @@
   'pt-[calc(clamp(56px,8vh,72px)+3rem)] pb-16',
   className
 ))}>
-  <div class="w-full mx-auto" style="max-width: min(768px, 100%); padding-inline: clamp(1rem, 3vw, 3rem);">
+  <div class={clsx('w-full mx-auto', isContained && 'max-w-[min(768px,100%)]')} style="padding-inline: clamp(1rem, 3vw, 3rem);">
     <h2 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight mb-8 text-center">{m.sections_faq()}</h2>
     <div class="flex flex-col gap-[var(--gap-sm)]">
       {#each items as item}

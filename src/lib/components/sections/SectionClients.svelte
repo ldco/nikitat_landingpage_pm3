@@ -2,6 +2,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
+  import { FEATURES } from '$lib/config/site'
 
   let {
     clients = [] as Array<{ id: number; name: string; logoUrl?: string; websiteUrl?: string }>,
@@ -10,6 +11,8 @@
     clients?: Array<{ id: number; name: string; logoUrl?: string; websiteUrl?: string }>
     class?: string
   } = $props()
+
+  const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
 </script>
 
 <section id="clients" class={twMerge(clsx(
@@ -17,7 +20,7 @@
   'pt-[calc(clamp(56px,8vh,72px)+3rem)] pb-16',
   className
 ))}>
-  <div class="w-full mx-auto max-w-[1280px]" style="padding-inline: clamp(1rem, 3vw, 3rem);">
+  <div class={clsx('w-full mx-auto', isContained && 'max-w-[1280px]')} style="padding-inline: clamp(1rem, 3vw, 3rem);">
     <h2 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight mb-8 text-center">{m.sections_clients()}</h2>
     <div class="flex flex-wrap items-center justify-center gap-8 opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-500">
       {#each clients as client}

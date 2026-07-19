@@ -7,17 +7,18 @@
   import { twMerge } from 'tailwind-merge'
   import AppImage from '$lib/components/atoms/AppImage.svelte'
   import * as m from '$lib/i18n'
-  import { SEO } from '$lib/config/site'
+  import { FEATURES, SEO } from '$lib/config/site'
   import type { PageData } from './$types'
 
   let { data }: { data: PageData } = $props()
+  const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
 </script>
 
 <svelte:head>
   <title>{m.nav_blog()} — {SEO.title}</title>
 </svelte:head>
 
-<div class="w-full mx-auto max-w-[80rem] px-6 md:px-8 py-24">
+<div class={clsx('w-full mx-auto px-6 md:px-8 py-24', isContained && 'max-w-[80rem]')}>
   <h1 class="text-4xl font-bold text-pm-text font-display text-center mb-12">{m.nav_blog()}</h1>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -17,6 +17,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import { FEATURES } from '$lib/config/site'
   import { getNavState } from '$lib/stores/navigation.svelte'
   import Logo from '$lib/components/atoms/Logo.svelte'
   import NavLinks from '$lib/components/molecules/NavLinks.svelte'
@@ -32,6 +33,9 @@
 
   const navState = getNavState()
   const activeSection = $derived(navState.activeSection)
+  const isFullWidth = $derived(FEATURES.headerFooterWidthMode === 'full')
+  const isInteractive = $derived(FEATURES.interactiveHeader)
+  const hideOnScroll = $derived(FEATURES.hideHeaderOnScroll)
 
   let mobileOpen = $state(false)
   let scrolled = $state(false)
@@ -43,9 +47,9 @@
 
   function onScroll() {
     const sy = window.scrollY
-    scrolled = sy > SCROLL_THRESHOLD
+    scrolled = isInteractive && sy > SCROLL_THRESHOLD
     // Hide on scroll down, show on scroll up (>120px depth)
-    if (sy > SCROLL_THRESHOLD + 40) {
+    if (hideOnScroll && sy > SCROLL_THRESHOLD + 40) {
       hidden = sy > lastScrollY
     } else {
       hidden = false
@@ -79,18 +83,18 @@
     // Base height + transition
     'min-h-[clamp(56px,8vh,72px)]',
     'transition-[height,box-shadow,transform,background,backdrop-filter] duration-300 ease-out',
-    // Scrolled state: glass morphism (dark gets frosted, light stays solid per PM v2)
+    // Interactive: scroll glass + logo shrink; Non-interactive: fixed height, solid bg
     scrolled
       ? 'h-[clamp(48px,6vh,56px)] bg-pm-bg/85 dark:bg-pm-black/85 shadow-[0_1px_3px_oklch(0%_0_0_/_8%)] backdrop-blur-[16px]'
-      : 'h-[clamp(56px,8vh,72px)] bg-pm-bg',
+      : isInteractive ? 'h-[clamp(56px,8vh,72px)] bg-pm-bg' : 'h-[clamp(56px,8vh,72px)] bg-pm-bg',
     // Hide on scroll down
     hidden ? '-translate-y-full pointer-events-none' : 'translate-y-0',
     className
   ))}>
   <!-- .header-inner: desktop grid [logo | centered nav | actions], mobile flex -->
   <div
-    class="flex items-center h-full mx-auto"
-    style="padding-inline: clamp(1rem, 3vw, 3rem); max-width: var(--content-default, 80rem);"
+    class={clsx('flex items-center h-full', !isFullWidth && 'mx-auto max-w-[80rem]')}
+    style="padding-inline: clamp(1rem, 3vw, 3rem);"
   >
     <!-- Hamburger: shown on mobile/tablet (< 1120px) only -->
     <div class="flex header:hidden me-auto">

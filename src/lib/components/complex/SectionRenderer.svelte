@@ -9,7 +9,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import { HOMEPAGE_SECTIONS } from '$lib/config/site'
+  import { HOMEPAGE_SECTIONS, MODULES } from '$lib/config/site'
 
   // Direct imports for all section components (code-split by Vite)
   import SectionHero from '../sections/SectionHero.svelte'
@@ -34,10 +34,16 @@
     class?: string
   } = $props()
 
+  // Check if the module for this section is enabled
+  function isModuleEnabled(sectionId: string): boolean {
+    const module = MODULES[sectionId]
+    return module ? module.enabled !== false : true
+  }
+
   const sections = $derived(
     sectionId
-      ? HOMEPAGE_SECTIONS.filter(s => s.id === sectionId && s.enabled)
-      : HOMEPAGE_SECTIONS.filter(s => s.enabled)
+      ? HOMEPAGE_SECTIONS.filter(s => s.id === sectionId && s.enabled && isModuleEnabled(s.id))
+      : HOMEPAGE_SECTIONS.filter(s => s.enabled && isModuleEnabled(s.id))
   )
 </script>
 
