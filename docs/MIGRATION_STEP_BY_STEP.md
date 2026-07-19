@@ -421,7 +421,7 @@ into Tailwind utilities inside its matching Svelte component.
 ## Phase 5: Molecules & Organisms
 
 ### Step 5.1 — Molecules (6 for core functionality)
-- [ ] `NavLinks.svelte` — from `siteConfig.nav` + i18n
+- [x] `NavLinks.svelte` — from `siteConfig.nav` + i18n
 - [ ] `SocialNav.svelte` — from settings social.* 
 - [ ] `PricingCard.svelte` — tier display with features
 - [ ] `BlogPostCard.svelte` — blog excerpt with image + meta
@@ -429,20 +429,68 @@ into Tailwind utilities inside its matching Svelte component.
 - [ ] `PortfolioLightbox.svelte` — keyboard nav, captions
 
 ### Step 5.2 — Organisms (6 for core framework)
-- [ ] `TheHeader.svelte` — **Glass morphism**, logo + nav from `siteConfig.nav` + i18n labels, theme toggle, lang switcher, mobile menu
+- [x] `TheHeader.svelte` — **Glass morphism**, logo + nav from `siteConfig.nav` + i18n labels, theme toggle, lang switcher, mobile menu
 - [ ] `TheFooter.svelte` — nav from `siteConfig.nav`, MadeBy, MadeWith, copyright
 - [ ] `SectionRenderer.svelte` — **Onepager/SPA aware**, dynamic component loader, passes `title` from i18n
 - [ ] `CookieConsent.svelte` — **152-ФЗ + GDPR** compliant, 3 states
 - [ ] `ConfirmDialog.svelte` — modal with confirm/cancel
 - [ ] `ToastContainer.svelte` — auto-dismiss notifications
-- **Verify:** Full site layout renders with header/nav/footer
+- [x] **Verify:** Full site layout renders with header/nav/footer
 
 ---
+
+---
+
+## Phase 5.5 — Audit & Fixes (before Phase 6)
+
+### Critical Violations Found
+
+**1. `any` type violation — ZERO `any` rule**
+File: `src/lib/components/complex/SectionRenderer.svelte:29`
+```ts
+const COMPONENT_MAP: Record<string, any> = {  // ❌ any
+```
+Fix: Replace with explicit import typing:
+```ts
+import type { ComponentType } from 'svelte'
+const COMPONENT_MAP: Record<string, ComponentType> = {  // ✅ typed
+```
+
+**2. `!` non-null assertion — ZERO `!` rule**
+File: `src/lib/components/sections/SectionTestimonials.svelte:40,46`
+```svelte
+{testimonials[current]!.text}     // ❌ !
+{testimonials[current]!.company}  // ❌ !
+```
+Fix: Use optional chaining `testimonials[current]?.text` and render nothing on undefined.
+
+### Uncommitted Changes
+- `AGENTS.md` — Rule #4 additions (gsap/matter-js warning)
+- `docs/STYLE_GUIDE.md` — improvements
+- `src/lib/components/atoms/SocialIcon.svelte` — comment update
+
+### Phase 6 Readiness
+All 13 section components exist but use OLD generic Tailwind tokens:
+- `text-pm-gray-900 dark:text-pm-white` → `text-pm-text`
+- `bg-white dark:bg-pm-gray-800` → `bg-pm-bg`
+- `border-pm-gray-200 dark:border-pm-gray-700` → `border-pm-border`
+- `shadow-card hover:shadow-card-hover` → `shadow-md hover:shadow-lg`
+- `bg-pm-bg-muted dark:bg-pm-bg-dark-muted` → `bg-pm-bg-elevated`
+- `text-pm-muted dark:text-pm-muted-dark` → `text-pm-text-muted`
+
+Every section heading, card, wrapper, paragraph, button, and border in all 13 section files needs PM v2 token replacements.
+
+Source CSS to translate per section: see Phase 6 CSS→Component map.
+
+---
+
+## Phase 6: Section Components (13 sections — REWRITE with PM v2 CSS)
+
 
 ## Phase 6: Section Components (13 sections)
 
 ### Step 6.1 — Core Sections (Self-contained, i18n-powered)
-- [ ] `SectionHero.svelte` — Hero section with GSAP intro (port from old), titles from i18n
+- [x] `SectionHero.svelte` — Hero section with GSAP intro (port from old), titles from i18n
 - [ ] `SectionAbout.svelte` — BeforeAfter images, text from i18n
 - [ ] `SectionFocus.svelte` — 6-card grid from API/i18n
 - [ ] `SectionF22.svelte` — F22 project description from i18n
