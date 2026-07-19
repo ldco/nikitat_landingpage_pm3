@@ -6,12 +6,13 @@
   import AppImage from '$lib/components/atoms/AppImage.svelte'
   import Badge from '$lib/components/atoms/Badge.svelte'
   import * as m from '$lib/i18n'
+  import { SEO } from '$lib/config/site'
   import type { PageData } from './$types'
   let { data }: { data: PageData } = $props()
 </script>
 
 <svelte:head>
-  <title>{m.nav_portfolio()} — Puppet Master</title>
+  <title>{m.nav_portfolio()} — {SEO.title}</title>
 </svelte:head>
 
 <div class="container-wide py-24">

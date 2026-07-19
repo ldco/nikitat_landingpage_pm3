@@ -9,7 +9,7 @@
   import { getTheme } from '$lib/stores/theme.svelte'
 
   let {
-    text = 'Made by',
+    text = '',
     url = 'https://fabrica22.pro',
     basePath = '/madebylogos',
     class: className = ''

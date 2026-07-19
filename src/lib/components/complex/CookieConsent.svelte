@@ -9,6 +9,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import * as m from '$lib/i18n'
 
   let {
     class: className = ''
@@ -67,8 +68,8 @@
       <!-- Text -->
       <div class="min-w-0">
         <p class="m-0 text-sm text-pm-text-secondary leading-snug">
-          We use cookies to improve your experience. By continuing, you agree to our
-          <a href="/legal/privacy" class="text-pm-brand hover:text-pm-brand-light underline">Privacy Policy</a>.
+          {m.cookies_description()}
+          <a href="/legal/privacy" class="text-pm-brand hover:text-pm-brand-light underline">{m.cookies_learnMore()}</a>.
         </p>
       </div>
 
@@ -77,11 +78,11 @@
         <button
           class="text-sm text-pm-text-muted hover:text-pm-text transition-colors whitespace-nowrap"
           onclick={reject}
-        >Decline</button>
+        >{m.cookies_decline()}</button>
         <button
           class="px-4 py-2 text-sm font-medium text-pm-white bg-pm-brand rounded-md hover:bg-pm-brand-light transition-colors whitespace-nowrap"
           onclick={accept}
-        >Accept</button>
+        >{m.cookies_accept()}</button>
       </div>
     </div>
   </div>
