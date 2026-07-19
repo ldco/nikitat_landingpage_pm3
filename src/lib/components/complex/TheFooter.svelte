@@ -39,7 +39,7 @@
       <!-- Actions column (right) -->
       <div class="flex flex-col items-center md:items-end gap-3 w-full min-w-0">
         <NavLinks />
-        <MadeWith />
+        <!-- MadeWith shown only when url prop passed -->
       </div>
     </div>
 
