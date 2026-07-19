@@ -1,9 +1,12 @@
 <script lang="ts">
   /**
-   * TheFooter — Site footer (PM v2 design)
-   * Nav links + MadeBy + MadeWith + copyright
+   * TheFooter — PM v2 footer with full grid + legal bar
    *
-   * Source: app-nuxt/app/assets/css/skeleton/footer.css
+   * Source: app-nuxt/app/assets/css/skeleton/footer.css (478 lines)
+   * Layout: grid-cols-[auto_1fr] with brand left, actions right
+   * Legal bar with links, separators, copyright
+   * Theme-aware logos via CSS (light-logo/dark-logo)
+   * RTL support for logos
    *
    * Rule #1: class prop + twMerge
    */
@@ -19,20 +22,35 @@
     class?: string
   } = $props()
 
-  const base = 'border-t border-pm-border/50 bg-pm-bg'
+  const year = new Date().getFullYear()
 </script>
 
-<footer class={twMerge(clsx(base, className))}>
-  <div class="container-wide py-12">
-    <div class="flex flex-col md:flex-row items-center justify-between gap-8">
-      <NavLinks />
-      <div class="flex flex-col items-center md:items-end gap-2">
-        <MadeBy />
+<footer class={twMerge(clsx('border-t border-pm-border/50 bg-pm-bg py-8 md:py-8', className))}>
+  <div class="w-full mx-auto" style="max-width: var(--content-default, 80rem); padding-inline: clamp(1rem, 3vw, 3rem);">
+    <!-- Footer Grid: brand left, actions right -->
+    <div class="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 md:gap-8 items-start">
+      <!-- Brand column (left) -->
+      <div class="flex flex-col items-center md:items-start gap-2 min-w-0">
+        <MadeBy text="Made by" />
+      </div>
+
+      <!-- Actions column (right) -->
+      <div class="flex flex-col items-center md:items-end gap-3 w-full min-w-0">
+        <NavLinks />
         <MadeWith />
       </div>
     </div>
-    <div class="mt-8 pt-6 border-t border-pm-border/50 text-center text-xs text-pm-text-muted">
-      &copy; {new Date().getFullYear()} Puppet Master. All rights reserved.
+
+    <!-- Legal Bar -->
+    <div class="flex flex-col gap-1 mt-4 pt-4 border-0 text-xs text-pm-text-muted">
+      <div class="flex flex-wrap items-center gap-x-1 gap-y-0.5
+        justify-center md:justify-between">
+        <span>&copy; {year} Puppet Master. All rights reserved.</span>
+        <div class="flex gap-2 text-sm">
+          <a href="/legal/privacy-policy" class="text-pm-text-muted underline underline-offset-2 decoration-1 hover:text-pm-text transition-colors decoration-pm-border/50">{'Privacy Policy'}</a>
+          <a href="/legal/terms-of-service" class="text-pm-text-muted underline underline-offset-2 decoration-1 hover:text-pm-text transition-colors decoration-pm-border/50">{'Terms of Service'}</a>
+        </div>
+      </div>
     </div>
   </div>
 </footer>
