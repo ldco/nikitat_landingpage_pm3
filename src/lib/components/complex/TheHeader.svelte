@@ -36,6 +36,8 @@
   const isFullWidth = $derived(FEATURES.headerFooterWidthMode === 'full')
   const isInteractive = $derived(FEATURES.interactiveHeader)
   const hideOnScroll = $derived(FEATURES.hideHeaderOnScroll)
+  const showThemeToggle = $derived(FEATURES.doubleTheme)
+  const showLangSwitcher = $derived(FEATURES.multiLangs)
 
   let mobileOpen = $state(false)
   let scrolled = $state(false)
@@ -119,13 +121,22 @@
 
     <!-- Actions rail: right-aligned, hidden on mobile -->
     <div class="hidden header:flex header:justify-self-end header:items-center header:gap-3 ms-auto header:ms-0">
-      <LangSwitcher mode="side" />
-      <ThemeToggle />
+      {#if showLangSwitcher}
+          <LangSwitcher mode="side" />
+        {/if}
+        {#if showThemeToggle}
+          <ThemeToggle />
+        {/if}
     </div>
 
     <!-- Mobile contact/actions: right side, outside nav rail -->
     <div class="flex header:hidden items-center gap-1 ms-auto">
-      <ThemeToggle />
+      {#if showLangSwitcher}
+        <LangSwitcher mode="side" />
+      {/if}
+      {#if showThemeToggle}
+        <ThemeToggle />
+      {/if}
     </div>
   </div>
 </header>
@@ -169,15 +180,19 @@
     <div class="flex-1 overflow-y-auto p-4">
       <NavLinks vertical activeId={activeSection} onClick={closeMobileNav} />
 
-      <!-- CTA section -->
-      <div class="mt-4 pt-4 border-t border-pm-border">
-        <LangSwitcher mode="inline" />
+        <!-- CTA section -->
+        <div class="mt-4 pt-4 border-t border-pm-border">
+          {#if showLangSwitcher}
+            <LangSwitcher mode="inline" />
+          {/if}
+        </div>
       </div>
-    </div>
 
-    <!-- Settings: theme + lang at bottom -->
-    <div class="relative mt-auto p-4 border-t border-pm-border flex items-center gap-3">
-      <ThemeToggle />
-    </div>
+      <!-- Settings: theme + lang at bottom -->
+      <div class="relative mt-auto p-4 border-t border-pm-border flex items-center gap-3">
+        {#if showThemeToggle}
+          <ThemeToggle />
+        {/if}
+      </div>
   </nav>
 {/if}

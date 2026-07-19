@@ -10,6 +10,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
+  import { FEATURES } from '$lib/config/site'
 
   let {
     class: className = ''
@@ -19,6 +20,7 @@
 
   const STORAGE_KEY = 'pm-cookie-consent'
   type ConsentState = 'hidden' | 'info' | 'accept'
+  const cookiesEnabled = $derived(FEATURES.cookies)
 
   let state = $state<ConsentState>('info')
 
@@ -50,7 +52,7 @@
     'bg-pm-bg-elevated border border-pm-border-strong rounded-xl shadow-xl'
 </script>
 
-{#if state === 'info'}
+{#if cookiesEnabled && state === 'info'}
   <div class={twMerge(clsx(base, className))}>
     <div class={panel}>
       <!-- Cookie icon -->

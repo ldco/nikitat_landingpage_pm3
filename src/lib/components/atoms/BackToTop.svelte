@@ -11,6 +11,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import { FEATURES } from '$lib/config/site'
 
   let {
     threshold = 300,
@@ -19,6 +20,8 @@
     threshold?: number
     class?: string
   } = $props()
+
+  const backToTopEnabled = $derived(FEATURES.backToTop)
 
   let visible = $state(false)
 
@@ -48,7 +51,7 @@
     'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pm-focus-ring'
 </script>
 
-{#if visible}
+{#if backToTopEnabled && visible}
   <button class={twMerge(clsx(base, className))} onclick={scrollToTop} aria-label="Back to top">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="18 15 12 9 6 15" />
