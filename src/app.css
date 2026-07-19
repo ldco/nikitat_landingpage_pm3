@@ -153,45 +153,115 @@
 
 /* ── Base Layer (PM v2 reset from reset.css) ─────────────────────────────────────── */
 @layer base {
-  html {
-    scroll-behavior: smooth;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    scroll-padding-top: 72px;
+  /* ══════════════════════════════════════════════════════════
+   * PM v2 DESIGN VARIABLES (from common/spacing.css + layout/*.css + skeleton/*.css)
+   * Used by components via CSS custom properties
+   * ══════════════════════════════════════════════════════════ */
+  :root {
+    /* --- Spacing Scale (4px base from common/spacing.css) --- */
+    --space-0: 0;
+    --space-px: 1px;
+    --space-0-5: 0.125rem;
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
+    --space-20: 5rem;
+    --space-24: 6rem;
+    --space-32: 8rem;
+
+    /* --- Fluid Spacing (responsive, no breakpoints) --- */
+    --space-fluid-sm: clamp(0.5rem, 0.25rem + 1vw, 1rem);
+    --space-fluid-md: clamp(1rem, 0.5rem + 2vw, 2rem);
+    --space-fluid-lg: clamp(2rem, 1rem + 4vw, 4rem);
+    --space-fluid-xl: clamp(3rem, 1.5rem + 6vw, 6rem);
+    --space-section: var(--space-fluid-lg);
+    --space-section-lg: var(--space-fluid-xl);
+
+    /* --- Gap Tokens (for grid/flex gaps) --- */
+    --gap-0: var(--space-0);
+    --gap-2xs: var(--space-0-5);
+    --gap-xxs: var(--space-1);
+    --gap-xs: var(--space-2);
+    --gap-sm: var(--space-3);
+    --gap-md: var(--space-4);
+    --gap-lg: var(--space-6);
+    --gap-xl: var(--space-8);
+
+    /* --- Icon Sizes --- */
+    --icon-xs: 16px;
+    --icon-sm: 18px;
+    --icon-md: 20px;
+    --icon-lg: 24px;
+    --icon-xl: 28px;
+    --icon-2xl: 32px;
+
+    /* --- Touch Targets (WCAG 2.5.8) --- */
+    --touch-target: 44px;
+    --touch-target-lg: 48px;
+
+    /* --- Avatar Sizes --- */
+    --avatar-xs: 24px;
+    --avatar-sm: 32px;
+    --avatar-md: 40px;
+    --avatar-lg: 56px;
+    --avatar-xl: 80px;
+
+    /* --- Content Widths (from layout/containers.css) --- */
+    --content-prose: 65ch;
+    --content-narrow: min(768px, 100%);
+    --content-default: min(1280px, 100%);
+    --container-max: 1280px;
+    --content-wide: min(1536px, 100%);
+    --content-full: 100%;
+    --container-padding: clamp(1rem, 3vw, 3rem);
+    --safe-edge: max(1rem, env(safe-area-inset-left, 0px));
+
+    /* --- Section Spacing (from layout/sections.css) --- */
+    --section-padding-top: calc(var(--header-height, 72px) + var(--space-12));
+    --section-padding-bottom: var(--space-16);
+
+    /* --- Header Sizing (from skeleton/header.css) --- */
+    --header-height: clamp(56px, 8vh, 72px);
+    --header-column-gap: clamp(var(--space-6), 3vw, var(--space-10));
+    --header-max-width: var(--content-default);
+    --header-scrolled-height: clamp(48px, 6vh, 56px);
+    --header-scrolled-bg: var(--surface-frosted-bg);
+    --header-scrolled-shadow: var(--surface-frosted-shadow);
+    --header-scrolled-backdrop: var(--surface-frosted-backdrop);
+    --header-transition: var(--transition-slow) var(--ease-out);
+
+    /* --- Logo Sizing (from skeleton/header.css) --- */
+    --logo-desktop-height: 40px;
+    --logo-desktop-max-width: 200px;
+    --logo-mobile-height: 36px;
+    --logo-mobile-max-width: 160px;
+    --logo-scrolled-height: 28px;
+
+    /* --- Footer Sizing (from skeleton/footer.css) --- */
+    --footer-padding-block: var(--space-8) var(--space-4);
+    --footer-link-height: 28px;
+    --footer-link-gap: var(--gap-xs);
+
+    /* --- Frosted Glass / Surface (from colors/auto.css) --- */
+    --surface-frosted-bg: color-mix(in oklch, var(--color-pm-bg), transparent 15%);
+    --surface-frosted-shadow: 0 1px 3px oklch(0% 0 0 / 8%);
+    --surface-frosted-backdrop: blur(16px) saturate(1.06);
+
+    /* --- Scrollytelling CSS Var (from animations/scrollytelling.css) --- */
+    --pm-scene-progress: 0;
+
+    /* --- Hero Title Line Gap (from layout/sections.css) --- */
+    --hero-title-line-gap: var(--space-2);
   }
 
-  body {
-    @apply bg-pm-bg text-pm-text antialiased;
-    font-family: var(--font-sans);
-  }
-
-  a {
-    @apply text-pm-brand transition-colors;
-    transition-duration: 150ms;
-    text-decoration: none;
-  }
-
-  a:hover {
-    @apply text-pm-brand-light;
-  }
-
-  *,
-  *::before,
-  *::after {
-    border-color: var(--color-pm-border);
-  }
-
-  .dark *,
-  .dark *::before,
-  .dark *::after {
-    border-color: var(--color-pm-border);
-  }
-
-  :focus-visible {
-    outline: 2px solid var(--color-pm-focus-ring);
-    outline-offset: 2px;
-  }
-
+  /* Dark mode overrides for frosted surface */
   .dark {
     --color-pm-bg: #3b0902;
     --color-pm-bg-elevated: #45150d;
@@ -206,12 +276,161 @@
     --color-pm-warning-bg: oklch(25% 0.05 85);
     --color-pm-danger-bg: oklch(25% 0.05 25);
     --color-pm-info-bg: oklch(25% 0.05 250);
+
+    /* Dark frosted surface */
+    --surface-frosted-bg: color-mix(in oklch, var(--color-pm-bg-elevated), transparent 20%);
+    --surface-frosted-shadow: 0 1px 3px oklch(0% 0 0 / 20%);
+  }
+
+  /* ══════════════════════════════════════════════════════════
+   * PM v2 RESET (from reset.css)
+   * ══════════════════════════════════════════════════════════ */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-padding-top: 72px;
+    -moz-text-size-adjust: none;
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+  }
+
+  body {
+    @apply bg-pm-bg text-pm-text;
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    line-height: 1.5;
+    font-variation-settings: 'CRSV' 1;
+  }
+
+  /* Headings: shorter line-height + balance */
+  h1, h2, h3, h4, h5, h6 {
+    text-wrap: balance;
+    line-height: 1.1;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: var(--font-weight-bold);
+  }
+
+  /* Lists */
+  ul, ol {
+    list-style: none;
+  }
+
+  /* Links */
+  a {
+    @apply text-pm-brand transition-colors;
+    transition-duration: 150ms;
+    text-decoration: none;
+  }
+
+  a:hover {
+    @apply text-pm-brand-light;
+  }
+
+  a:not([class]) {
+    text-decoration-skip-ink: auto;
+    color: currentColor;
+  }
+
+  /* Images, media */
+  img, picture, video, canvas, svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  /* Inherit fonts for inputs/buttons */
+  input, button, textarea, select {
+    font-family: inherit;
+    font-size: inherit;
+  }
+
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* Prevent input zoom on mobile (Samsung fix) */
+  input, select, textarea {
+    font-size: 16px;
+  }
+
+  /* Textarea default */
+  textarea:not([rows]) {
+    min-height: 10em;
+  }
+
+  /* Selection */
+  ::selection {
+    background-color: var(--color-pm-brand-subtle);
+    color: var(--color-pm-text);
+  }
+
+  ::-moz-selection {
+    background-color: var(--color-pm-brand-subtle);
+    color: var(--color-pm-text);
+  }
+
+  /* Border defaults */
+  *,
+  *::before,
+  *::after {
+    border-color: var(--color-pm-border);
+  }
+
+  .dark *,
+  .dark *::before,
+  .dark *::after {
+    border-color: var(--color-pm-border);
+  }
+
+  /* Focus */
+  :focus-visible {
+    outline: 2px solid var(--color-pm-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* Anchor targets */
+  :target {
+    scroll-margin-block: 5ex;
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    html:focus-within { scroll-behavior: auto; }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
-/* ── Component Layer (KEPT temporarily — Phase 4 creates Container atom) ──────────── */
+/* ── Component Layer — ВРЕМЕННЫЕ container-классы (удалить в Фазе 1, см. docs/CSS-ARCHITECTURE.md) ─── */
 @layer components {
-  /* --- Container System --- */
+  /* ══════════════════════════════════════════════════════════
+   * CONTAINER SYSTEM — ВРЕМЕННО, migrate to Tailwind in Phase 1
+   * ══════════════════════════════════════════════════════════ */
   .container-narrow {
     max-width: 48rem;
     margin-left: auto;
@@ -252,58 +471,6 @@
     }
   }
 
-  /* --- Responsive Grid Utilities --- */
-  .grid-2 {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-  }
-
-  .grid-3 {
-    display: grid;
-    grid-template-columns: repeat(1, 1fr);
-    gap: 1.5rem;
-  }
-
-  @media (min-width: 768px) {
-    .grid-3 {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .grid-3 {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-
-  .grid-4 {
-    display: grid;
-    grid-template-columns: repeat(1, 1fr);
-    gap: 1.5rem;
-  }
-
-  @media (min-width: 768px) {
-    .grid-4 {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .grid-4 {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-
-  /* --- Page Title --- */
-  .page-title {
-    @apply text-3xl font-bold tracking-tight sm:text-4xl;
-    font-family: var(--font-display);
-  }
-
-  .lead {
-    @apply mt-4 text-lg text-pm-muted dark:text-pm-muted-dark;
-  }
 }
 
 /* ── Hamburger CSS Animations ──────────────────────────────────────────────────────── */
