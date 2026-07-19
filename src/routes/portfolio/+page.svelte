@@ -15,7 +15,7 @@
   <title>{m.nav_portfolio()} — {SEO.title}</title>
 </svelte:head>
 
-<div class="container-wide py-24">
+<div class="w-full mx-auto max-w-[80rem] px-6 md:px-8 py-24">
   <h1 class="text-4xl font-bold text-pm-text font-display text-center mb-12">{m.nav_portfolio()}</h1>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

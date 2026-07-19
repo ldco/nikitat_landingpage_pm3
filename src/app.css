@@ -149,6 +149,7 @@
 
   /* --- Breakpoints (extend only) --- */
   --breakpoint-xs: 480px;
+  --breakpoint-header: 1120px;
 }
 
 /* ── Base Layer (PM v2 reset from reset.css) ─────────────────────────────────────── */
@@ -424,53 +425,87 @@
       scroll-behavior: auto !important;
     }
   }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+   * BROWSER-SPECIFIC HACKS (from PM v2 audit, see docs/CSS-EDGECASES.md §13)
+   * Each hack verified on caniuse.com + MDN before inclusion
+   * ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* iOS viewport height fallback (Safari < 15.4). Source: caniuse viewport-unit-variants */
+  .min-h-dvh {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    min-height: 100dvh;
+  }
+
+  /* Remove tap highlight on mobile (iOS Safari + Chrome Android) */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Safari search input normalization — hide native clear/search buttons */
+  input[type="search"]::-webkit-search-cancel-button,
+  input[type="search"]::-webkit-search-decoration,
+  input[type="search"]::-webkit-search-results-button,
+  input[type="search"]::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+    display: none;
+  }
+
+  /* Date/time picker icon consistent styling */
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator,
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.6;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator:hover,
+  input[type="time"]::-webkit-calendar-picker-indicator:hover,
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+  }
+
+  /* Custom scrollbar (Firefox: scrollbar-width/color is standard since 2023) */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--color-pm-text) 20%, transparent) transparent;
+  }
+
+  /* Custom scrollbar (WebKit: Chrome, Safari, Edge) */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklch, var(--color-pm-text) 20%, transparent);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklch, var(--color-pm-text) 40%, transparent);
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-corner { background: transparent; }
+
+  /* Windows High Contrast Mode (forced-colors). WCAG 1.4.11 */
+  @media (forced-colors: active) {
+    button, [role="button"] { border: 1px solid currentColor; }
+    input, select, textarea { border: 1px solid currentColor; }
+    :focus-visible { outline: 3px solid currentColor; outline-offset: 2px; }
+  }
+
+  /* Hebrew font override */
+  :lang(he) {
+    --font-brand-primary: 'Heebo Variable', 'Heebo', var(--font-sans);
+  }
 }
 
-/* ── Component Layer — ВРЕМЕННЫЕ container-классы (удалить в Фазе 1, см. docs/CSS-ARCHITECTURE.md) ─── */
-@layer components {
-  /* ══════════════════════════════════════════════════════════
-   * CONTAINER SYSTEM — ВРЕМЕННО, migrate to Tailwind in Phase 1
-   * ══════════════════════════════════════════════════════════ */
-  .container-narrow {
-    max-width: 48rem;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-
-  .container-wide {
-    max-width: 80rem;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-
-  .container-prose {
-    max-width: 65ch;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-
-  .container-full {
-    width: 100%;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-
-  @media (min-width: 768px) {
-    .container-narrow,
-    .container-wide,
-    .container-prose,
-    .container-full {
-      padding-left: 2rem;
-      padding-right: 2rem;
-    }
-  }
-
+/* ── @layer utilities: кастомные утилиты-хаки (см. docs/CSS-EDGECASES.md §13) ───────── */
+@layer utilities {
+  /* iOS safe area (notch + home indicator). Поддержка: Safari 11.1+, Chrome 69+, Firefox 65+ */
+  .safe-area-top { padding-top: env(safe-area-inset-top); }
+  .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .safe-area-left { padding-left: env(safe-area-inset-left); }
+  .safe-area-right { padding-right: env(safe-area-inset-right); }
 }
 
 /* ── Hamburger CSS Animations ──────────────────────────────────────────────────────── */
