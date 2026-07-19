@@ -26,12 +26,16 @@
 
   const locales = $derived(Object.entries(LOCALE_CONFIG) as [string, { iso: string; name: string; rtl: boolean }][])
 
-  const currentPath = $derived($page.url.pathname)
-  const currentLocale = $derived(runtime.languageTag() ?? 'ru')
+  const currentLocale = $derived(($page.data.locale as string) ?? runtime.languageTag() ?? 'ru')
 
   function localeHref(locale: Locale): string {
-    const canonical = i18n.route(currentPath)
-    return i18n.resolveRoute(canonical, locale)
+    try {
+      const canonical = i18n.route($page.url.pathname)
+      return i18n.resolveRoute(canonical, locale)
+    } catch {
+      // Fallback: just change locale prefix on the current path
+      return `/${locale}${$page.url.pathname}`
+    }
   }
 
   let dropdownOpen = $state(false)

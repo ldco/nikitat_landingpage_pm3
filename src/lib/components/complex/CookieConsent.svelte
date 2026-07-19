@@ -22,16 +22,15 @@
   type ConsentState = 'hidden' | 'info' | 'accept'
   const cookiesEnabled = $derived(FEATURES.cookies)
 
-  let state = $state<ConsentState>('info')
+  function getInitialState(): ConsentState {
+    if (typeof localStorage === 'undefined') return 'info'
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored === 'accepted') return 'accept'
+    if (stored === 'rejected') return 'hidden'
+    return 'info'
+  }
 
-  $effect(() => {
-    const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null
-    if (stored === 'accepted') {
-      state = 'accept'
-    } else if (stored === 'rejected') {
-      state = 'hidden'
-    }
-  })
+  let state = $state<ConsentState>(getInitialState())
 
   function accept() {
     localStorage.setItem(STORAGE_KEY, 'accepted')

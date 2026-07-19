@@ -97,7 +97,7 @@
     return () => clearInterval(interval)
   })
 </script>
-{#if $page.url.pathname === '/admin/login'}
+{#if $page.url.pathname.startsWith('/admin/login')}
   <main class="min-h-screen bg-pm-bg">
     <div class="p-4 sm:p-6 mx-auto" style="max-width: min(62.5rem, 100%);">
       {@render children?.()}
