@@ -15,6 +15,12 @@
   import { page } from '$app/stores'
   import type { AdminPageId } from '$lib/server/db/schema'
   import * as m from '$lib/i18n'
+  import {
+    IconHome, IconUsers, IconSettings, IconLanguage, IconPhoto,
+    IconArticle, IconUsersGroup, IconQuote, IconHelpCircle, IconBuilding,
+    IconCreditCard, IconSparkles, IconMail, IconClipboardList, IconActivity,
+    IconLogout, IconShieldCheck, IconQuestionMark
+  } from '@tabler/icons-svelte'
   import { FEATURES } from '$lib/config/site'
 
   import type { PageData } from './$types'
@@ -24,24 +30,7 @@
 
   const useVerticalNav = $derived(FEATURES.appVerticalNav)
 
-  const iconMap: Record<string, string> = {
-    dashboard: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
-    users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-    roles: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
-    translations: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
-    settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
-    portfolios: '<rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M2 16h20"/>',
-    blog: '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>',
-    team: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-    testimonials: '<path d="M4 4h16v12H5.17L4 19.17V4z"/><path d="m8 8 4 4-4 4"/>',
-    faq: '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
-    clients: '<rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="13" y2="14"/><line x1="9" y1="18" x2="9.01" y2="18"/>',
-    pricing: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
-    features: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
-    contacts: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
-    audit: '<path d="M12 2 H2v8l10-8z"/><path d="M12 2 H22v8L12 2z"/><path d="M2 12 H22v10H2z"/><line x1="2" y1="12" x2="12" y2="22"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="22" y1="12" x2="12" y2="22"/>',
-    health: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>'
-  }
+  
 
   const adminSections: Array<{ id: string; label: string }> = [
     { id: 'dashboard', label: 'Dashboard' },
@@ -61,6 +50,15 @@
     { id: 'audit', label: 'Audit' },
     { id: 'health', label: 'Health' }
   ]
+
+  const iconComponentMap: Record<string, any> = {
+    dashboard: IconHome, users: IconUsers, roles: IconShieldCheck,
+    translations: IconLanguage, settings: IconSettings,
+    portfolios: IconPhoto, blog: IconArticle, team: IconUsersGroup,
+    testimonials: IconQuote, faq: IconHelpCircle, clients: IconBuilding,
+    pricing: IconCreditCard, features: IconSparkles, contacts: IconMail,
+    audit: IconClipboardList, health: IconActivity
+  }
 
   const currentPath = $derived($page.url.pathname)
   const isActive = (id: string) =>
@@ -125,9 +123,9 @@
             class:bg-pm-brand-subtle:text-pm-brand={isActive(section.id)}
             class:text-pm-text-secondary:hover:text-pm-text:hover:bg-pm-bg-sunken={!isActive(section.id)}
           >
-            <svg class="size-5" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{@html iconMap[section.id] || ""}</svg>
+            <svelte:component this={iconComponentMap[section.id] || IconSettings} class="size-5" />
             {#if section.id === 'contacts' && unreadCount > 0}
-              <span class="absolute -top-0.5 -end-0.5 flex items-center justify-center min-w-[14px] h-3.5 px-1 rounded-full bg-pm-danger text-[9px] font-bold text-white leading-none">{unreadCount > 9 ? '9+' : unreadCount}</span>
+              <span class="absolute -top-0.5 -end-0.5 flex items-center justify-center min-w-3.5 h-3.5 px-1 rounded-full bg-pm-danger text-2xs font-bold text-white leading-none">{unreadCount > 9 ? '9+' : unreadCount}</span>
             {/if}
             <!-- Tooltip -->
             <span class="absolute start-full ms-2 px-2 py-1 rounded-md bg-pm-bg-elevated border border-pm-border text-xs text-pm-text shadow-md whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-tooltip">
@@ -171,7 +169,7 @@
               class:bg-pm-brand-subtle:text-pm-brand={isActive(section.id)}
               class:text-pm-text-secondary:hover:text-pm-text:hover:bg-pm-bg-sunken={!isActive(section.id)}
             >
-              <svg class="size-5" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{@html iconMap[section.id] || ""}</svg>
+              <svelte:component this={iconComponentMap[section.id] || IconSettings} class="size-5" />
               <span class="absolute top-full mt-2 px-2 py-1 rounded-md bg-pm-bg-elevated border border-pm-border text-xs text-pm-text shadow-md whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-tooltip">
                 {section.label}
               </span>
@@ -236,7 +234,7 @@
     <div class="flex overflow-x-auto snap-x snap-mandatory scrollbar-none h-14">
       {#each adminSections.slice(0, 8) as section}
         <a href={section.id === 'dashboard' ? '/admin' : `/admin/${section.id}`}
-          class={clsx('flex flex-col items-center justify-center gap-0.5 px-3 py-1 text-xs snap-start shrink-0 min-w-[4rem] transition-colors',
+          class={clsx('flex flex-col items-center justify-center gap-0.5 px-3 py-1 text-xs snap-start shrink-0 min-w-16 transition-colors',
             isActive(section.id) ? 'text-pm-brand' : 'text-pm-text-muted hover:text-pm-text'
           )}>
           <span class="text-xs font-medium">{section.label}</span>

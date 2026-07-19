@@ -42,7 +42,7 @@
   <div class={twMerge(clsx('fixed bottom-4 right-4 z-modal flex flex-col gap-2 pointer-events-none', className))}>
     {#each toasts as toast (toast.id)}
       <div class={clsx(
-        'pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg min-w-[16rem] max-w-sm animate-[slide-up_0.2s_ease]',
+        'pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg min-w-64 max-w-sm animate-[slide-up_0.2s_ease]',
         toast.type === 'success' && 'bg-pm-success-bg border-pm-success text-pm-success',
         toast.type === 'error' && 'bg-pm-danger-bg border-pm-danger text-pm-danger',
         toast.type === 'info' && 'bg-pm-bg-elevated border-pm-border text-pm-text'

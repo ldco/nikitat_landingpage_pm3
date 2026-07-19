@@ -76,7 +76,7 @@
           'pointer-events-auto',
           'bg-pm-bg-elevated border border-pm-border rounded-lg p-4 shadow-lg',
           'flex items-center gap-3',
-          'min-w-[280px] max-w-[400px]',
+          'min-w-72 max-w-96',
           'border-l-4',
           borderClasses[toast.type]
         )}
