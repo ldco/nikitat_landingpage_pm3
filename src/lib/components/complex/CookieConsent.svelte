@@ -1,7 +1,10 @@
 <script lang="ts">
   /**
-   * CookieConsent — 152-ФЗ + GDPR compliant cookie consent banner
-   * 3 states: hidden | info | accept
+   * CookieConsent — 152-ФЗ + GDPR compliant cookie consent (PM v2 design)
+   *
+   * Source: app-nuxt/app/assets/css/ui/content/cookie-consent.css (126 lines)
+   * Fixed bottom banner, cookie icon, accept/decline buttons
+   *
    * Rule #1: class prop + twMerge
    */
   import { clsx } from 'clsx'
@@ -18,7 +21,6 @@
 
   let state = $state<ConsentState>('info')
 
-  // Check stored consent on mount
   $effect(() => {
     const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null
     if (stored === 'accepted') {
@@ -38,19 +40,48 @@
     state = 'hidden'
   }
 
-  const base = 'fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-pm-gray-800 border-t border-pm-gray-200 dark:border-pm-gray-700 shadow-toast'
+  // PM v2: fixed bottom, z-fixed, panel with gradient bg + border + shadow-xl
+  const base =
+    'fixed bottom-0 left-0 right-0 z-fixed px-4 py-3 pointer-events-none'
+  const panel =
+    'pointer-events-auto w-full max-w-[92rem] mx-auto ' +
+    'grid grid-cols-[auto_1fr_auto] items-center gap-3 p-3 ' +
+    'bg-pm-bg-elevated border border-pm-border-strong rounded-xl shadow-xl'
 </script>
 
 {#if state === 'info'}
   <div class={twMerge(clsx(base, className))}>
-    <div class="container-wide py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <p class="text-sm text-pm-gray-600 dark:text-pm-gray-400">
-        We use cookies to improve your experience. By continuing, you agree to our
-        <a href="/legal/privacy" class="text-pm-brand hover:text-pm-brand-light underline">Privacy Policy</a>.
-      </p>
-      <div class="flex items-center gap-3 flex-shrink-0">
-        <button class="text-sm text-pm-gray-500 hover:text-pm-gray-700 dark:text-pm-gray-400 dark:hover:text-pm-white transition-colors" onclick={reject}>Decline</button>
-        <button class="px-4 py-2 text-sm font-medium text-white bg-pm-brand rounded-md hover:bg-pm-brand-light transition-colors" onclick={accept}>Accept</button>
+    <div class={panel}>
+      <!-- Cookie icon -->
+      <div class="flex items-center justify-center size-10 flex-shrink-0 bg-pm-brand-subtle text-pm-brand rounded-full">
+        <svg class="size-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5" />
+          <path d="M8.5 8.5v.01" />
+          <path d="M16 15.5v.01" />
+          <path d="M12 12v.01" />
+          <path d="M11 17v.01" />
+          <path d="M7 14v.01" />
+        </svg>
+      </div>
+
+      <!-- Text -->
+      <div class="min-w-0">
+        <p class="m-0 text-sm text-pm-text-secondary leading-snug">
+          We use cookies to improve your experience. By continuing, you agree to our
+          <a href="/legal/privacy" class="text-pm-brand hover:text-pm-brand-light underline">Privacy Policy</a>.
+        </p>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <button
+          class="text-sm text-pm-text-muted hover:text-pm-text transition-colors whitespace-nowrap"
+          onclick={reject}
+        >Decline</button>
+        <button
+          class="px-4 py-2 text-sm font-medium text-pm-white bg-pm-brand rounded-md hover:bg-pm-brand-light transition-colors whitespace-nowrap"
+          onclick={accept}
+        >Accept</button>
       </div>
     </div>
   </div>

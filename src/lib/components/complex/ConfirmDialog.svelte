@@ -1,6 +1,8 @@
 <script lang="ts">
   /**
-   * ConfirmDialog — Modal dialog with confirm/cancel
+   * ConfirmDialog — Modal dialog (PM v2 modal.css design)
+   *
+   * Source: app-nuxt/app/assets/css/ui/overlays/modal.css (253 lines)
    * Rule #1: class prop + twMerge
    * Rule #6: $bindable for open state
    */
@@ -28,10 +30,9 @@
   } = $props()
 
   const confirmClass = variant === 'danger'
-    ? 'bg-pm-danger text-white hover:bg-pm-danger/90'
-    : 'bg-pm-brand text-white hover:bg-pm-brand-light'
+    ? 'bg-pm-danger text-white hover:bg-pm-danger'
+    : 'bg-pm-brand text-pm-white hover:bg-pm-brand-light'
 
-  // Close on Escape
   $effect(() => {
     if (!open) return
     const handler = (e: KeyboardEvent) => {
@@ -43,15 +44,35 @@
 </script>
 
 {#if open}
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onclick={() => open = false} role="dialog" aria-modal="true">
-    <div class="bg-white dark:bg-pm-gray-800 rounded-xl shadow-modal max-w-md w-full mx-4 p-6" onclick={(e) => e.stopPropagation()}>
-      <h3 class="text-lg font-bold text-pm-gray-900 dark:text-pm-white">{title}</h3>
-      <p class="mt-2 text-sm text-pm-gray-600 dark:text-pm-gray-400">{message}</p>
-      <div class="mt-6 flex items-center justify-end gap-3">
-        <button class="px-4 py-2 text-sm font-medium text-pm-gray-600 dark:text-pm-gray-400 hover:text-pm-gray-900 dark:hover:text-pm-white transition-colors" onclick={() => open = false}>
+  <!-- .modal-backdrop: fixed inset, 50% black, z-modal-backdrop -->
+  <div
+    class="fixed inset-0 z-modal-backdrop flex items-center justify-center bg-black/50 p-4"
+    onclick={() => open = false}
+    role="dialog"
+    aria-modal="true"
+  >
+    <!-- .modal: bg-pm-bg, rounded-lg, shadow-xl, z-modal -->
+    <div
+      class="bg-pm-bg rounded-lg shadow-xl w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-auto"
+      onclick={(e) => e.stopPropagation()}
+    >
+      <!-- .modal-body: p-6 -->
+      <div class="p-6">
+        <h3 class="text-lg font-semibold text-pm-text m-0 leading-normal">{title}</h3>
+        <p class="mt-2 text-sm text-pm-text-secondary m-0">{message}</p>
+      </div>
+      <!-- .modal-footer: flex justify-end, gap-sm, p-4, border-top -->
+      <div class="flex justify-end gap-3 px-6 py-4 border-t border-pm-border">
+        <button
+          class="px-4 py-2 text-sm font-medium text-pm-text-secondary hover:text-pm-text transition-colors"
+          onclick={() => open = false}
+        >
           {cancelText}
         </button>
-        <button class={twMerge(clsx('px-4 py-2 text-sm font-medium rounded-md transition-colors', confirmClass))} onclick={() => { onConfirm?.(); open = false }}>
+        <button
+          class={twMerge(clsx('px-4 py-2 text-sm font-medium rounded-md transition-colors', confirmClass))}
+          onclick={() => { onConfirm?.(); open = false }}
+        >
           {confirmText}
         </button>
       </div>

@@ -1,6 +1,7 @@
 <script lang="ts">
   /**
-   * PricingCard — Pricing tier card with feature list
+   * PricingCard — Pricing tier card (PM v2 tokens)
+   *
    * Rule #1: class prop + twMerge
    */
   import { clsx } from 'clsx'
@@ -34,28 +35,28 @@
     class?: string
   } = $props()
 
-  const base = 'flex flex-col rounded-xl border p-6 transition-shadow duration-300'
-  const normal = 'border-pm-gray-200 dark:border-pm-gray-700 bg-white dark:bg-pm-gray-800 shadow-card hover:shadow-card-hover'
-  const featuredClass = 'border-pm-brand dark:border-pm-brand-light ring-2 ring-pm-brand/20 shadow-card-hover'
+  const base = 'flex flex-col rounded-xl border p-6 transition-shadow duration-200'
+  const normal = 'border-pm-border bg-pm-bg-elevated hover:shadow-lg'
+  const featuredClass = 'border-pm-brand ring-2 ring-pm-brand/20 shadow-lg'
 </script>
 
 <div class={twMerge(clsx(base, featured ? featuredClass : normal, className))}>
   {#if featured}
-    <span class="inline-block px-3 py-1 mb-3 text-xs font-semibold uppercase tracking-wider text-white bg-pm-brand rounded-full w-fit">Popular</span>
+    <span class="inline-block px-3 py-1 mb-3 text-xs font-semibold uppercase tracking-wider text-pm-white bg-pm-brand rounded-full w-fit">Popular</span>
   {/if}
 
-  <h3 class="text-xl font-bold text-pm-gray-900 dark:text-pm-white">{name}</h3>
+  <h3 class="text-xl font-bold text-pm-text">{name}</h3>
 
   {#if description}
-    <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">{description}</p>
+    <p class="mt-1 text-sm text-pm-text-muted">{description}</p>
   {/if}
 
   <div class="mt-4 mb-6">
-    <span class="text-3xl font-bold text-pm-gray-900 dark:text-pm-white">
+    <span class="text-3xl font-bold text-pm-text">
       {price === null ? 'Custom' : `${currency === 'USD' ? '$' : ''}${price}`}
     </span>
     {#if price !== null}
-      <span class="text-sm text-pm-muted dark:text-pm-muted-dark">/{period}</span>
+      <span class="text-sm text-pm-text-muted">/{period}</span>
     {/if}
   </div>
 
@@ -67,12 +68,12 @@
             <polyline points="20 6 9 17 4 12" />
           </svg>
         {:else}
-          <svg class="w-4 h-4 mt-0.5 text-pm-gray-300 dark:text-pm-gray-600 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="w-4 h-4 mt-0.5 text-pm-text-muted/50 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         {/if}
-        <span class={feature.included ? 'text-pm-gray-700 dark:text-pm-gray-300' : 'text-pm-gray-400 dark:text-pm-gray-500 line-through'}>{feature.text}</span>
+        <span class={feature.included ? 'text-pm-text' : 'text-pm-text-muted line-through'}>{feature.text}</span>
       </li>
     {/each}
   </ul>

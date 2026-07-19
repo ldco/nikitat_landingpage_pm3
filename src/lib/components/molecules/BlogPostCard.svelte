@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * BlogPostCard — Blog post excerpt with image + meta
+   * BlogPostCard — Blog post excerpt (PM v2 tokens)
    * Rule #1: class prop + twMerge
    */
   import { clsx } from 'clsx'
@@ -27,7 +27,7 @@
     class?: string
   } = $props()
 
-  const base = 'group flex flex-col overflow-hidden rounded-xl border border-pm-gray-200 dark:border-pm-gray-700 bg-white dark:bg-pm-gray-800 shadow-card hover:shadow-card-hover transition-all duration-300'
+  const base = 'group flex flex-col overflow-hidden rounded-xl border border-pm-border bg-pm-bg-elevated hover:shadow-lg transition-all duration-200'
 </script>
 
 <article class={twMerge(clsx(base, className))}>
@@ -42,15 +42,15 @@
       <span class="text-xs font-medium uppercase tracking-wider text-pm-brand mb-2">{category}</span>
     {/if}
 
-    <h3 class="text-lg font-bold text-pm-gray-900 dark:text-pm-white group-hover:text-pm-brand transition-colors">
+    <h3 class="text-lg font-bold text-pm-text group-hover:text-pm-brand transition-colors">
       <a href={`/blog/${slug}`}>{title}</a>
     </h3>
 
     {#if excerpt}
-      <p class="mt-2 text-sm text-pm-muted dark:text-pm-muted-dark line-clamp-3">{excerpt}</p>
+      <p class="mt-2 text-sm text-pm-text-muted line-clamp-3">{excerpt}</p>
     {/if}
 
-    <div class="flex items-center gap-3 mt-auto pt-4 text-xs text-pm-gray-400 dark:text-pm-gray-500">
+    <div class="flex items-center gap-3 mt-auto pt-4 text-xs text-pm-text-muted">
       {#if authorName}
         <span>{authorName}</span>
       {/if}

@@ -1,11 +1,13 @@
 <script lang="ts">
   /**
-   * ToastContainer — Auto-dismiss notification system
-   * Rule #1: class prop + twMerge
+   * ToastContainer — Auto-dismiss notifications (PM v2 design)
    *
-   * Usage:
-   *   import { toast } from '$lib/stores/toast.svelte'
-   *   toast.show('Message sent!', 'success')
+   * Source: app-nuxt/app/assets/css/ui/overlays/toast.css (142 lines)
+   * - bg-elevated with left-side colored border
+   * - 4 variants: success, error, warning, info
+   * - Fixed bottom-right, z-toast
+   *
+   * Rule #1: class prop + twMerge
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
@@ -30,7 +32,6 @@
   function show(message: string, type: ToastType = 'info', duration = 4000) {
     const id = nextId++
     toasts.push({ id, message, type })
-
     setTimeout(() => {
       const idx = toasts.findIndex(t => t.id === id)
       if (idx >= 0) toasts.splice(idx, 1)
@@ -42,34 +43,64 @@
     if (idx >= 0) toasts.splice(idx, 1)
   }
 
-  // show function is accessible via component export
-  // Usage: <ToastContainer bind:this={toast} /> then toast.show(...)
-
-  const typeClasses: Record<ToastType, string> = {
-    success: 'bg-pm-success text-white',
-    error: 'bg-pm-danger text-white',
-    info: 'bg-pm-info text-white',
-    warning: 'bg-pm-warning text-white'
+  // PM v2: left-side colored border per type
+  const borderClasses: Record<ToastType, string> = {
+    success: 'border-l-pm-success',
+    error: 'border-l-pm-danger',
+    warning: 'border-l-pm-warning',
+    info: 'border-l-pm-info'
   }
 
-  const iconClasses: Record<ToastType, string> = {
+  const iconPaths: Record<ToastType, string> = {
     success: 'M22 11.08V12a10 10 0 1 1-5.93-9.14 M22 4L12 14.01 9 11.01',
     error: 'M18 6L6 18 M6 6l12 12',
     info: 'M12 16v-4 M12 8h.01',
     warning: 'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z M12 9v4 M12 17h.01'
   }
+
+  const iconColors: Record<ToastType, string> = {
+    success: 'text-pm-success',
+    error: 'text-pm-danger',
+    warning: 'text-pm-warning',
+    info: 'text-pm-info'
+  }
 </script>
 
 {#if toasts.length > 0}
-  <div class={twMerge(clsx('fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm', className))}>
+  <!-- .toast-container: fixed bottom-right, z-toast -->
+  <div class={twMerge(clsx('fixed bottom-4 right-4 z-toast flex flex-col gap-3 pointer-events-none', className))}>
     {#each toasts as toast (toast.id)}
-      <div class={clsx('flex items-center gap-3 px-4 py-3 rounded-lg shadow-toast animate-slide-in', typeClasses[toast.type])}>
-        <svg class="w-5 h-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d={iconClasses[toast.type]} />
+      <!-- .toast: bg-elevated, border-l-4, rounded-lg, shadow-lg -->
+      <div
+        class={clsx(
+          'pointer-events-auto',
+          'bg-pm-bg-elevated border border-pm-border rounded-lg p-4 shadow-lg',
+          'flex items-center gap-3',
+          'min-w-[280px] max-w-[400px]',
+          'border-l-4',
+          borderClasses[toast.type]
+        )}
+      >
+        <!-- .toast-icon -->
+        <svg class={clsx('size-5 flex-shrink-0', iconColors[toast.type])} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d={iconPaths[toast.type]} />
         </svg>
-        <p class="text-sm flex-1">{toast.message}</p>
-        <button class="p-1 hover:opacity-80 transition-opacity" onclick={() => dismiss(toast.id)} aria-label="Dismiss">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+
+        <!-- .toast-content -->
+        <div class="flex-1">
+          <p class="text-sm text-pm-text-secondary">{toast.message}</p>
+        </div>
+
+        <!-- .toast-close -->
+        <button
+          class="flex items-center justify-center size-8 rounded-full text-pm-text-muted hover:bg-pm-bg-sunken hover:text-pm-text transition-colors flex-shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pm-focus-ring"
+          onclick={() => dismiss(toast.id)}
+          aria-label="Dismiss"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       </div>
     {/each}

@@ -1,6 +1,9 @@
 <script lang="ts">
   /**
-   * NavLinks — Navigation links rendered from siteConfig.nav + i18n
+   * NavLinks — Navigation links from siteConfig.nav (PM v2 design)
+   *
+   * Source: app-nuxt/app/assets/css/skeleton/nav.css
+   *
    * Rule #1: class prop + twMerge
    */
   import { clsx } from 'clsx'
@@ -19,15 +22,18 @@
   } = $props()
 
   const base = 'flex items-center gap-1'
-  const verticalClass = 'flex-col gap-2'
-  const linkBase = 'text-sm font-medium px-3 py-2 rounded-md transition-colors duration-150 text-pm-gray-600 hover:text-pm-brand hover:bg-pm-gray-100 dark:text-pm-gray-400 dark:hover:text-pm-brand-light dark:hover:bg-pm-gray-800'
+  const verticalClass = 'flex-col items-stretch'
 
-  // Resolve Paraglide message function by key
+  // .nav-link from PM v2: text-secondary, hover → brand-subtle bg
+  const linkBase =
+    'text-sm font-medium px-3 py-2 rounded-sm ' +
+    'text-pm-text-secondary hover:text-pm-text hover:bg-pm-brand-subtle ' +
+    'transition-colors duration-150'
+
   function resolveLabel(key: string): string {
     const msgKey = key.replace(/\./g, '_') as keyof typeof m
     const fn = m[msgKey]
     if (typeof fn === 'function') {
-      // Paraglide messages accept (params?, options?)
       return (fn as (params?: Record<string, string>) => string)({})
     }
     return key

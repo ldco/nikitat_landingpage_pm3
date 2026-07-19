@@ -1,7 +1,10 @@
 <script lang="ts">
   /**
-   * TheHeader — Site header with glass morphism
+   * TheHeader — Site header with glass morphism (PM v2 design)
    * Logo + NavLinks + ThemeToggle + LangSwitcher + mobile hamburger menu
+   *
+   * Source: app-nuxt/app/assets/css/skeleton/header.css
+   *
    * Rule #1: class prop + twMerge
    */
   import { clsx } from 'clsx'
@@ -20,7 +23,11 @@
 
   let mobileOpen = $state(false)
 
-  const base = 'fixed top-0 left-0 right-0 z-30 backdrop-blur-md bg-white/80 dark:bg-pm-bg-dark/80 border-b border-pm-gray-200/50 dark:border-pm-gray-700/50'
+  // Glass morphism: backdrop-blur, bg with transparency, border-bottom
+  const base =
+    'fixed top-0 left-0 right-0 z-sticky ' +
+    'backdrop-blur-md bg-pm-white/80 dark:bg-pm-black/80 ' +
+    'border-b border-pm-border/50'
 </script>
 
 <header class={twMerge(clsx(base, className))}>
@@ -31,7 +38,7 @@
     <!-- Desktop Nav -->
     <div class="hidden md:flex items-center gap-4">
       <NavLinks />
-      <div class="flex items-center gap-2 ml-4 pl-4 border-l border-pm-gray-200 dark:border-pm-gray-700">
+      <div class="flex items-center gap-2 ml-4 pl-4 border-l border-pm-border/50">
         <LangSwitcher mode="side" />
         <ThemeToggle />
       </div>
@@ -46,10 +53,10 @@
 
   <!-- Mobile Menu -->
   {#if mobileOpen}
-    <div class="md:hidden border-t border-pm-gray-200 dark:border-pm-gray-700 bg-white dark:bg-pm-bg-dark">
+    <div class="md:hidden border-t border-pm-border/50 bg-pm-white dark:bg-pm-black">
       <div class="container-wide py-4">
         <NavLinks vertical onClick={() => mobileOpen = false} />
-        <div class="mt-4 pt-4 border-t border-pm-gray-200 dark:border-pm-gray-700">
+        <div class="mt-4 pt-4 border-t border-pm-border/50">
           <LangSwitcher mode="inline" />
         </div>
       </div>

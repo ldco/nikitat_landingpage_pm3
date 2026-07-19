@@ -1,7 +1,10 @@
 <script lang="ts">
   /**
-   * TheFooter — Site footer
+   * TheFooter — Site footer (PM v2 design)
    * Nav links + MadeBy + MadeWith + copyright
+   *
+   * Source: app-nuxt/app/assets/css/skeleton/footer.css
+   *
    * Rule #1: class prop + twMerge
    */
   import { clsx } from 'clsx'
@@ -16,7 +19,7 @@
     class?: string
   } = $props()
 
-  const base = 'border-t border-pm-gray-200 dark:border-pm-gray-700 bg-pm-bg dark:bg-pm-bg-dark-muted'
+  const base = 'border-t border-pm-border/50 bg-pm-bg'
 </script>
 
 <footer class={twMerge(clsx(base, className))}>
@@ -28,7 +31,7 @@
         <MadeWith />
       </div>
     </div>
-    <div class="mt-8 pt-6 border-t border-pm-gray-200 dark:border-pm-gray-700 text-center text-xs text-pm-muted dark:text-pm-muted-dark">
+    <div class="mt-8 pt-6 border-t border-pm-border/50 text-center text-xs text-pm-text-muted">
       &copy; {new Date().getFullYear()} Puppet Master. All rights reserved.
     </div>
   </div>
