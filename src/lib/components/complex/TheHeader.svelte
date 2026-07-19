@@ -118,7 +118,7 @@
     hidden ? '-translate-y-full pointer-events-none' : 'translate-y-0',
     className
   ))}>
-  <div class={clsx('flex items-center h-full', !isFullWidth && 'mx-auto max-w-container')} style="padding-inline: var(--px-container);">
+  <div class={clsx('flex header:grid header:grid-cols-[auto_1fr_auto] items-center h-full', !isFullWidth && 'mx-auto max-w-container')} style="padding-inline: var(--px-container);">
     <div class="flex header:hidden me-auto">
       <HamburgerIcon active={mobileOpen} type="spin" onclick={handleHamburger} />
     </div>

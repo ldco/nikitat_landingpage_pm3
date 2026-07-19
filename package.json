@@ -28,6 +28,7 @@
     "@inlang/plugin-message-format": "^4.4.0",
     "@sveltejs/adapter-node": "^5.2.0",
     "@sveltejs/kit": "^2.20.0",
+    "@tabler/icons-svelte": "^3.45.0",
     "better-sqlite3": "^12.5.0",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.1",
