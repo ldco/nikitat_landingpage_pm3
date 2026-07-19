@@ -2,7 +2,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
-  import { FEATURES } from '$lib/config/site'
+  import { FEATURES, MODULES } from '$lib/config/site'
 
   let {
     items = [] as Array<{ id: number; question: string; answer: string }>,
@@ -12,8 +12,18 @@
     class?: string
   } = $props()
 
-  let openId = $state<number | null>(null)
-  function toggle(id: number) { openId = openId === id ? null : id }
+  const faqModule = MODULES.faq
+  const faqConfig = faqModule ? faqModule.config : { expandFirst: true, allowMultipleOpen: false }
+  const allowMultiple = faqConfig.allowMultipleOpen
+  const firstItemId = $derived(items[0]?.id ?? null)
+  let openId = $state<number | null>(faqConfig.expandFirst ? firstItemId : null)
+  function toggle(id: number) {
+    if (allowMultiple) {
+      openId = openId === id ? null : id
+    } else {
+      openId = openId === id ? null : id
+    }
+  }
   const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
 </script>
 

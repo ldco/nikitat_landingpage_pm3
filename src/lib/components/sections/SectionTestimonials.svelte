@@ -2,7 +2,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
-  import { FEATURES } from '$lib/config/site'
+  import { FEATURES, MODULES } from '$lib/config/site'
 
   let {
     testimonials = [] as Array<{ id: number; name: string; company?: string; text: string; photoUrl?: string; rating?: number }>,
@@ -16,6 +16,16 @@
   function next() { current = (current + 1) % Math.max(testimonials.length, 1) }
   function prev() { current = (current - 1 + testimonials.length) % Math.max(testimonials.length, 1) }
   const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
+
+  // Module sub-configs
+  const testimonialModule = MODULES.testimonials as { enabled?: boolean; config: { autoPlay?: boolean; autoPlayInterval?: number } } | undefined
+  const testimonialConfig = testimonialModule ? testimonialModule.config : { autoPlay: false, autoPlayInterval: 5000 }
+
+  $effect(() => {
+    if (!testimonialConfig.autoPlay || testimonials.length <= 1) return
+    const interval = setInterval(next, testimonialConfig.autoPlayInterval ?? 5000)
+    return () => clearInterval(interval)
+  })
 </script>
 
 <section id="testimonials" class={twMerge(clsx(

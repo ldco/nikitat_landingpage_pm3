@@ -2,7 +2,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
-  import { FEATURES } from '$lib/config/site'
+  import { FEATURES, MODULES } from '$lib/config/site'
 
   let {
     members = [] as Array<{ id: number; name: string; role: string; bio?: string; photoUrl?: string }>,
@@ -13,6 +13,9 @@
   } = $props()
 
   const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
+  const teamModule = MODULES.team as { enabled?: boolean; config: { columnsDesktop?: number; columnsMobile?: number; showBio?: boolean } } | undefined
+  const teamConfig = teamModule ? teamModule.config : { columnsDesktop: 4, columnsMobile: 1, showBio: true }
+  const colsDesktopTeam = $derived(teamConfig.columnsDesktop ?? 4)
 </script>
 
 <section id="team" class={twMerge(clsx(
@@ -22,7 +25,11 @@
 ))}>
   <div class={clsx('w-full mx-auto', isContained && 'max-w-[1280px]')} style="padding-inline: clamp(1rem, 3vw, 3rem);">
     <h2 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight mb-8 text-center">{m.sections_team()}</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[var(--gap-lg)]">
+    <div class={clsx('grid grid-cols-1 gap-[var(--gap-lg)]',
+      colsDesktopTeam >= 2 && 'sm:grid-cols-2',
+      colsDesktopTeam >= 3 && 'lg:grid-cols-3',
+      colsDesktopTeam >= 4 && 'xl:grid-cols-4',
+    )}>
       {#each members as member}
         <div class="text-center p-6 rounded-xl bg-pm-bg-elevated border border-pm-border">
           {#if member.photoUrl}

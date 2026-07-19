@@ -2,7 +2,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
-  import { FEATURES } from '$lib/config/site'
+  import { FEATURES, MODULES } from '$lib/config/site'
 
   let {
     features = [] as Array<{ title: string; description: string; icon?: string }>,
@@ -13,6 +13,9 @@
   } = $props()
 
   const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
+  const featuresModule = MODULES.features as { enabled?: boolean; config: { columnsDesktop?: number; columnsMobile?: number } } | undefined
+  const featuresConfig = featuresModule ? featuresModule.config : { columnsDesktop: 3, columnsMobile: 1 }
+  const colsDesktop = $derived(featuresConfig.columnsDesktop ?? 3)
 </script>
 
 <section id="features" class={twMerge(clsx(
@@ -22,7 +25,11 @@
 ))}>
   <div class={clsx('w-full mx-auto', isContained && 'max-w-[1280px]')} style="padding-inline: clamp(1rem, 3vw, 3rem);">
     <h2 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight mb-8 text-center">{m.sections_features()}</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[var(--gap-lg)]">
+    <div class={clsx('grid grid-cols-1 gap-[var(--gap-lg)]',
+      colsDesktop >= 2 && 'sm:grid-cols-2',
+      colsDesktop >= 3 && 'lg:grid-cols-3',
+      colsDesktop >= 4 && 'xl:grid-cols-4',
+    )}>
       {#each features as feature}
         <div class="text-center p-6 rounded-xl bg-pm-bg-elevated border border-pm-border">
           {#if feature.icon}
