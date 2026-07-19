@@ -7,26 +7,29 @@
 
 ---
 
-## Текущее состояние (кратко)
+## Текущее состояние (актуально на 2026-07-19)
 
 | Аспект | Статус | Детали |
 |--------|--------|--------|
 | Схема БД (31 таблица) | ✅ 1:1 | Идентична PM v2, включая translation tables |
-| Компоненты (21+6+8+13) | ⚠️ Скелеты | Структура есть, Tailwind стили — общие, не PM v2 |
+| Компоненты (15: header, footer, 13 секций) | ✅ PM v2 визуальный паритет | Все через Tailwind утилиты, 0 CSS классов |
 | Роуты (public + admin + API) | ✅ Есть | 15 public API, 27 admin API, 17 admin страниц |
-| CSS (app.css 579 строк) | ⚠️ Частично | Токены FABRICA22, гамбургеры, keyframes. НЕТ PM v2 вёрстки |
+| app.css (781 строк) | ✅ Чисто | @theme + @layer base (reset, :root, browser hacks) + @layer utilities (safe-area) + @layer components (hamburger) + @keyframes |
 | i18n (Paraglide) | ✅ 364 ключа | UI строки. Контент — в БД |
-| Содержимое БД | ❌ Пусто | 20 content-таблиц пусты |
+| Содержимое БД | ❌ Пусто | 20 content-таблиц пусты. PM v2 DB тоже пуст (0 bytes) |
+| Config-driven widths | ✅ Реализовано | headerFooterWidthMode + bodyWidthMode + module enabled-checks |
+| Feature-flag checks | ⚠️ Частично | interactiveHeader, hideHeaderOnScroll, footerNav, footerLegalLinks, footerMadeBy — реализованы. doubleTheme, multiLangs, cookies — в TheHeader пока не реализованы |
 | Админ CRUD | ❌ Read-only | Таблицы рендерятся, но Create/Edit/Delete нет |
 | Деплой (Ansible) | ⚠️ 12 NUXT_BUILD_* | Нужно переименовать в BUILD_* |
-| Жёсткий текст | ⚠️ 3 места | TOTP issuer, SVG логотип, seed emails |
-| GSAP анимации | ❌ Отсутствуют | Hero intro, HeroAnimatedLogo |
-| Scrollytelling | ❌ Отсутствует | Scene progress, parallax |
-| Line-break алгоритм | ❌ Отсутствует | Title breaking в SectionHero |
-| RTL (Hebrew) | ❌ Не реализован | |
+| Жёсткий текст | ⚠️ TOTP issuer | TOTP issuer в totp.ts — 'Puppet Master' fallback |
+| GSAP анимации | ⚠️ В src/project/ | gsapIntro.ts вынесен из framework |
+| Scrollytelling | ✅ Есть | scrollyScene.ts action в src/lib/actions/ |
+| Line-break алгоритм | ✅ Есть | titleBreaker.ts + brand-colored сегменты в SectionHero |
+| RTL (Hebrew) | ✅ На уровне HTML | dir="%paraglide.textDirection%" в app.html |
+| Проект-специфичный код | ✅ В src/project/ | FallingLetters.svelte + gsapIntro.ts |
 | Тесты | ❌ Нет | Ни одного теста |
 
-**Вывод:** Инфраструктура кода написана, но визуально и функционально это НЕ PM v2. Это скелет с generic-Tailwind стилями.
+**Вывод:** Фундамент готов, визуальный паритет достигнут. Основные разрывы: пустая БД, read-only админка, Ansible deploy.
 
 ---
 

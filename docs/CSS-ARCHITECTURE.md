@@ -249,3 +249,60 @@ Tailwind автоматически подхватывает `.dark` через 
 ```
 
 Это единственная правда. Если AI делает глобальный CSS-класс — он нарушает архитектуру.
+
+---
+
+## 9. Config-Driven Container Widths
+
+Компоненты читают конфиг (`FEATURES` из `$lib/config/site`) и применяют Tailwind-классы
+условно. Никаких глобальных CSS-классов.
+
+### Header/Footer — `headerFooterWidthMode`
+
+```svelte
+<script>
+  import { clsx } from 'clsx'
+  import { FEATURES } from '$lib/config/site'
+  const isFullWidth = $derived(FEATURES.headerFooterWidthMode === 'full')
+</script>
+
+<div class={clsx('w-full', !isFullWidth && 'mx-auto max-w-[80rem]')}>
+```
+
+- `contained` (default): `w-full mx-auto max-w-[80rem]` — центрировано
+- `full`: `w-full` — на всю ширину, без max-width
+
+### Секции/контент — `bodyWidthMode`
+
+```svelte
+<script>
+  import { clsx } from 'clsx'
+  import { FEATURES } from '$lib/config/site'
+  const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
+</script>
+
+<div class={clsx('w-full mx-auto', isContained && 'max-w-[1280px]')}>
+```
+
+- `contained` (default): `max-w-[1280px]` — ширина ограничена
+- `full`: без max-width — на всю ширину
+
+### Список компонентов, которые читают конфиг
+
+| Компонент | Параметр | Условный класс |
+|-----------|----------|---------------|
+| TheHeader | `headerFooterWidthMode` | `max-w-[80rem]` на inner div |
+| TheFooter | `headerFooterWidthMode` | `max-w-[80rem]` на inner div |
+| Все 13 секций | `bodyWidthMode` | `max-w-[1280px]` на container |
+| 5 роутов | `bodyWidthMode` | `max-w-[80rem]` или `max-w-[65ch]` |
+
+### Module enabled-флаги
+
+```svelte
+<script>
+  import { MODULES } from '$lib/config/site'
+  // MODULES.team.enabled === false → секция не рендерится
+</script>
+```
+
+SectionRenderer проверяет `MODULES[sectionId].enabled` перед рендером секции.

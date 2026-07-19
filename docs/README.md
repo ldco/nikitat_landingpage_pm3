@@ -9,14 +9,16 @@
 | Аспект | Статус |
 |--------|--------|
 | Схема БД (31 таблица) | ✅ Полный паритет с PM v2 |
-| Компоненты (48 шт: 21+6+8+13) | ⚠️ Скелеты с generic-Tailwind |
+| Компоненты (TheHeader + TheFooter + 13 секций) | ✅ PM v2 визуальный паритет (Tailwind-only) |
 | Роуты (public + admin + API) | ✅ Все существуют |
-| CSS (app.css, 579 строк) | ⚠️ Токены есть, вёрстки нет |
+| CSS (app.css, 781 строк) | ✅ Токены, reset, browser hacks, safe-area, hamburger |
 | i18n (Paraglide, 364 ключа) | ✅ UI строки, контент в БД |
-| Контент БД (20 таблиц) | ❌ Пусто |
+| Config-driven container widths | ✅ headerFooterWidthMode + bodyWidthMode |
+| Feature-flag checks | ⚠️ Частично (header/footer основные, остальные — P2) |
+| Контент БД (20 таблиц) | ❌ Пусто (PM v2 DB тоже пуст) |
 | Admin CRUD (17 страниц) | ❌ Read-only |
-| GSAP анимации | ❌ Отсутствуют |
-| Scrollytelling / RTL | ❌ Отсутствуют |
+| GSAP анимации | ⚠️ В src/project/ (проект-специфичный) |
+| Scrollytelling / RTL | ✅ Реализованы |
 | Деплой (Ansible) | ⚠️ 12 NUXT_BUILD_* → BUILD_* |
 
 Финальный план миграции: **7 фаз** → **PLAN.md**
