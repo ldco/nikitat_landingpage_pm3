@@ -15,7 +15,7 @@ function getSystem(): Theme {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
-// SINGLETON state — one source of truth for ALL ThemeToggle instances
+// Module-level $state — shared across ALL getTheme() callers (singleton)
 let current = $state<Theme>(getStored() ?? getSystem())
 
 function applyTheme(t: Theme) {
@@ -23,30 +23,41 @@ function applyTheme(t: Theme) {
   document.documentElement.classList.toggle('dark', t === 'dark')
 }
 
-// Apply on first load
-applyTheme(current)
-
-// Persist + apply on every change
-$effect(() => {
-  localStorage.setItem(STORAGE_KEY, current)
-  applyTheme(current)
-})
-
-// Listen for system preference changes
-$effect(() => {
+function persistTheme(t: Theme) {
   if (!browser) return
+  try { localStorage.setItem(STORAGE_KEY, t) } catch { /* quota exceeded / private mode */ }
+}
+
+// Apply on first real client render (called from root layout $effect)
+let _initialized = false
+export function initTheme() {
+  if (_initialized) return
+  _initialized = true
+  applyTheme(current)
+  
+  // Listen for system preference changes (only if user hasn't set preference)
   const mq = window.matchMedia('(prefers-color-scheme: dark)')
   const handler = (e: MediaQueryListEvent) => {
-    if (!getStored()) current = e.matches ? 'dark' : 'light'
+    if (!getStored()) {
+      current = e.matches ? 'dark' : 'light'
+      persistTheme(current)
+    }
   }
   mq.addEventListener('change', handler)
-  return () => mq.removeEventListener('change', handler)
-})
+}
 
 export function getTheme() {
   return {
     get current() { return current },
-    toggle() { current = current === 'light' ? 'dark' : 'light' },
-    set(t: Theme) { current = t }
+    toggle() {
+      current = current === 'light' ? 'dark' : 'light'
+      persistTheme(current)
+      applyTheme(current)
+    },
+    set(t: Theme) {
+      current = t
+      persistTheme(current)
+      applyTheme(current)
+    }
   }
 }

@@ -4,6 +4,7 @@
   import { page } from '$app/stores'
   import { fade, slide, scale, fly } from 'svelte/transition'
   import { FEATURES } from '$lib/config/site'
+  import { initTheme } from '$lib/stores/theme.svelte'
   import { scrollSpy } from '$lib/actions/scrollSpy'
   import TheHeader from '$lib/components/complex/TheHeader.svelte'
   import TheFooter from '$lib/components/complex/TheFooter.svelte'
@@ -13,6 +14,10 @@
 
   let { children }: { children?: import('svelte').Snippet } = $props()
   const isOnepager = $derived(FEATURES.onepager)
+  
+  // Initialize theme (apply dark class + system preference listener)
+  // $state and $effect inside .svelte components work correctly
+  $effect(() => { initTheme() })
   const transitionType = $derived(!isOnepager ? FEATURES.pageTransitions : '')
   const isVerticalNav = $derived(FEATURES.verticalNav)
 </script>
