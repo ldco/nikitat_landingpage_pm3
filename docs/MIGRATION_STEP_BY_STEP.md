@@ -247,68 +247,173 @@ Based on 58-section framework analysis in `docs/PM-ARCHITECTURE-COMPLETE.md`.
 ---
 *Phase 2 completed: 2026-07-19. All 5 steps implemented. See build verification: `npm run build` passes with 0 Svelte errors.*
 
-## Phase 3: CSS & UI Kit (PM Design System on Tailwind)
-- **NOTE:** Form CSS classes removed from Step 3.2 — forms handled by Superforms + <FormField> in Phase 2.4
+## Phase 3: CSS Foundation (PM v2 → Tailwind Design Tokens)
 
-### Step 3.1 — Tailwind @theme (PM Design Tokens)
-- [ ] Write `src/app.css`:
-  - `@import "tailwindcss"`
-  - `@theme {}` with PM tokens:
-    - Colors: pm-black, pm-white, pm-brand, pm-brand-light, pm-brand-dark
-    - Typography: font-sans (Inter), font-display, font-mono
-    - Shadows: shadow-card, shadow-card-hover
-    - Easings: ease-out-expo, ease-smooth
-  - `@layer base {}` — reset (html, body, a tags)
-- **Verify:** `bg-pm-brand`, `text-pm-muted` classes work in components
+**Architecture:**
+```
+PM v3 CSS Architecture:
+  1. app.css @theme    → Design tokens (colors, spacing, typography, shadows, etc.)
+  2. app.css @layer base → HTML/body reset, focus-visible, smooth scroll
+  3. app.css @keyframes → Animation definitions
+  4. Svelte components  → Styles live INSIDE .svelte files as Tailwind utilities
+                           using design tokens. class prop + twMerge for overrides.
+  5. NO global .btn/.card/.section BEM classes — components ARE the reuse unit.
+```
 
-### Step 3.2 — PM Components Layer (@layer components)
-- [ ] Add to `app.css` @layer components:
-  - **Container system** — `.container` variants (narrow, wide, prose, full)
-  - **Grid** — `.grid-2`, `.grid-3` responsive
-  - **Buttons** — `.btn`, `.btn-primary`, `.btn-outline`, `.btn-ghost`, sizes
-  - **Hero** — `.hero`, `.hero__title`, `.hero__subtitle`
-  - **Section** — `.section`, `.section-title`, `.section-intro`
-  - **Cards** — `.card`, `.card__title`
-  - **Header** — `.header`, `.header__inner`, `.header__nav`, `.header__link`
-  - **Footer** — `.footer`, `.footer__inner`, `.footer__nav`, `.footer__link`
-  - **Badge** — `.badge`, `.badge--outline`
-  - **Lightbox** — `.lightbox`, `.lightbox__nav`, `.lightbox__img`
-  - **Toast** — `.toast`, `.toast--success/error/info`
-  - **Modal** — `.modal-overlay`, `.modal`, `.modal__actions`
-  - **Page title** — `.page-title`, `.lead`
-  - ~~**Forms**~~ — REMOVED. Forms use Superforms + <FormField> component (Phase 2.4)
-- **Verify:** Component classes produce EXACT original PM visual design
+Container utility classes (`.container-wide`, `.container-narrow`) are KEPT temporarily
+in `@layer components` until Phase 4 creates the `<Container>` atom and refactors
+all 16 component usages. Then removed.
 
-### Step 3.3 — Hamburger Animations (Custom, replaces `hamburgers` library)
-- [ ] Add to `app.css` @layer components:
-  - 12 animation types: spin, elastic, slider, spring, squeeze, arrow, etc.
-  - Pure CSS, no JS dependency
-  - ~200 lines total
-- **Verify:** HamburgerIcon renders with correct animation type
+### Step 3.1 — Design Tokens (@theme)
+- [x] Replace `app.css` @theme block with ALL PM v2 design tokens:
+  - **Colors:** 4 primitives (black `#3b0902`, white `#fbf2e7`, brand `#901504`, accent `#901504`)
+    + color-mix derived: brand-light, brand-dark, brand-subtle
+    + background tokens bg/bg-elevated/bg-sunken via `light-dark()`
+    + border tokens (border/border-strong) via `light-dark()`
+    + text tokens (text/text-secondary/text-muted) via `light-dark()`
+    + semantic oklch colors (success/warning/danger/info + their bg variants)
+    + `color-mix()` pre-calculated to hex (Tailwind v4 compat)
+  - **Typography:** Geologica + Inter + JetBrains Mono stacks, font sizes (base 1.25rem),
+    weights, line heights
+  - **Shadows:** sm/md/lg/xl via oklch()
+  - **Radius:** xs/sm/md/lg/xl/full
+  - **Z-index:** base/dropdown/sticky/fixed/drawer/modal/popover/toast
+  - **Transitions & Easings:** fast/normal/slow/slower durations, 5 easing curves
+  - **Container widths:** narrow (48rem), default (80rem), wide (96rem)
+  - **Breakpoints:** xs (480px) extension
+  - **Legacy aliases:** pm-muted-dark, pm-bg-dark, pm-bg-dark-muted (kept for component compat)
+- **Verify:** `bg-pm-brand` renders `#901504` (FABRICA22 red), NOT `#0066cc` (blue)
+- **Verify:** `bg-pm-bg` renders `#fbf2e7` light / `#3b0902` dark
 
-### Step 3.4 — Font Faces (Self-hosted)
-- [ ] Copy woff2 files to `public/fonts/`
-- [ ] Add to `app.css`: @font-face declarations for Geologica + Heebo
-- **Verify:** Fonts load from local, no Google Fonts dependency
+
+  **Token Reference (from `../app-nuxt/app/assets/css/`):**
+  - `colors/primitives.css` → 4 primitives: `#3b0902`, `#fbf2e7`, `#901504`, `#901504`
+  - `colors/auto.css` → 150+ auto-calculated tokens via `light-dark()` + `color-mix()`
+  - `common/spacing.css` → space scale (4px base), fluid spacing, gaps, radius, shadows, z-index, transitions/easings, touch/icon/avatar sizes
+  - `typography/variables.css` → 4-layer font system: Geologica body, fallback stacks, sizes (base 1.25rem), weights, line heights, letter spacing
+  - `layout/containers.css` → container widths: narrow 48rem, default 80rem, wide 96rem
+  - All `color-mix()` values pre-calculated to hex (Tailwind v4 @theme does not evaluate `color-mix()`)
+
+### Step 3.2 — @layer base
+- [x] Replace `app.css` @layer base with PM v2 reset:
+  - `html`: scroll-behavior smooth, antialiased, scroll-padding-top 72px
+  - `body`: bg-pm-bg, text-pm-text, font-sans
+  - `a`: text-pm-brand, hover → text-pm-brand-light, transition-colors
+  - `*, *::before, *::after`: border-color var(--color-pm-border)
+  - `:focus-visible`: outline with pm-focus-ring
+  - Remove hardcoded dark mode body class (handle via light-dark())
+- **Verify:** Focus ring uses brand-consistent outline
+
+### Step 3.3 — Container Classes (KEEP temporarily)
+- [x] `container-narrow`, `container-wide`, `container-prose`, `container-full` remain
+- [x] 16 components depend on these: TheHeader, TheFooter, CookieConsent, 13 sections
+- [ ] Phase 4: Create `<Container>` atom + refactor all usages → remove @layer components
+
+### Step 3.4 — Keyframe Animations
+- [x] Verify (including formStatusSlideIn, formStatusSpin) existing: fade-in, fade-in-up, fade-in-down, scale-in, slide-up, slide-down,
+  pulse-soft, spin-slow (all from PM v2)
+- [x] Add if missing: formStatusSlideIn, formStatusSpin (form validation animations)
+- [ ] Phase 8: Add reveal animations, scrollytelling, page transitions
+
+### Step 3.5 — Hamburger Animations — VERIFIED
+- [x] All 12 animation types present in app.css: spin, elastic, slider, spring, squeeze,
+  arrow, arrow-right, collapse, minus, turn, cross + base hamburger
+- [x] Matches PM v2 `ui/hamburger.css`
+
+### Step 3.6 — Font Faces — VERIFIED
+- [x] @fontsource packages installed: Geologica, Inter Variable, Heebo Variable, JetBrains Mono
+- [x] Imported in app.css, matches PM v2 `typography/font-faces.css`
 
 ---
 
-## Phase 4: Atomic UI Components (13 atoms)
 
-### Step 4.1 — All Atoms (Svelte 5 + Tailwind + PM classes)
-- [ ] `CtaButton.svelte` — variants (primary/secondary/outline/ghost), sizes, anchor/route/button
-- [ ] `NavLink.svelte` — active state from URL
-- [ ] `Logo.svelte` — theme+locale aware via `/logos/{shape}_{theme}_{lang}.svg`
-- [ ] `ThemeToggle.svelte` — light↔dark with localStorage
-- [ ] `LangSwitcher.svelte` — 3 modes (down/side/inline), 4 locales, no page reload
-- [ ] `HamburgerIcon.svelte` — CSS animation types
-- [ ] `BackToTop.svelte` — scroll visibility with smooth scroll
-- [ ] `AppImage.svelte` — loading/error states, fallback
-- [ ] `PictureImage.svelte` — AVIF/WebP fallback
-- [ ] `SocialIcon.svelte` — brand-aware icon mapping
-- [ ] `MadeBy.svelte` — attribution with light/dark logos
-- [ ] `MadeWith.svelte` — framework credit link
-- [ ] `EmptyState.svelte` — 4 illustrations (empty-box, search, error, success)
+### CSS → Component Translation Map (Phases 4-10)
+
+Source CSS at `../app-nuxt/app/assets/css/`. Each file's visual design is translated
+into Tailwind utilities inside its matching Svelte component.
+
+| PM v2 CSS File | Svelte Component | Phase |
+|---|---|---|
+| `ui/forms/buttons.css` (235 lines) | `atoms/CtaButton.svelte` — REWRITE | 4 |
+| `ui/forms/inputs.css` (854 lines) | `atoms/FormField.svelte` — REWRITE | 4 |
+| `ui/content/cards.css` (68 lines) | `atoms/Card.svelte` — NEW atom | 4 |
+| `ui/content/badges.css` (74 lines) | `atoms/Badge.svelte` — NEW atom | 4 |
+| `ui/content/avatars.css` | `atoms/Avatar.svelte` — NEW atom | 4 |
+| `ui/content/content-card.css` | Merge into `atoms/Card.svelte` | 4 |
+| `ui/hamburger.css` | `atoms/HamburgerIcon.svelte` — CSS in app.css, verify | 4 |
+| `layout/containers.css` | `atoms/Container.svelte` — NEW atom | 4 |
+| `layout/sections.css` (485 lines) | `atoms/Section.svelte` — NEW atom | 4 |
+| — | `atoms/Grid.svelte` — NEW atom (cols: 2/3/4, auto-fit) | 4 |
+| `ui/content/page-header.css` | `atoms/PageHeader.svelte` — NEW atom | 10 |
+| `ui/content/tabs.css` | `molecules/Tabs.svelte` — NEW molecule | 5 |
+| `ui/overlays/modal.css` (253 lines) | `molecules/Modal.svelte` (ConfirmDialog) — REWRITE | 5 |
+| `ui/overlays/lightbox.css` | `molecules/PortfolioLightbox.svelte` — REWRITE | 5 |
+| `skeleton/nav.css` | `molecules/NavLinks.svelte` — REWRITE | 5 |
+| `ui/content/data-table.css` | `molecules/DataTable.svelte` — NEW | 10 |
+| `ui/overlays/toast.css` (142 lines) | `complex/ToastContainer.svelte` — REWRITE | 5 |
+| `skeleton/header.css` + `mobile-nav.css` | `complex/TheHeader.svelte` — REWRITE (glass morphism) | 5 |
+| `skeleton/footer.css` | `complex/TheFooter.svelte` — REWRITE | 5 |
+| `ui/content/hero-parallax.css` | `sections/SectionHero.svelte` — REWRITE | 6 |
+| `ui/content/contact.css` | `sections/SectionContact.svelte` — REWRITE | 6 |
+| `ui/content/blog.css` | `sections/SectionBlog.svelte` — REWRITE | 6 |
+| `ui/content/features.css` | `sections/SectionFeatures.svelte` — REWRITE | 6 |
+| `ui/content/faq.css` | `sections/SectionFaq.svelte` — REWRITE | 6 |
+| `ui/content/pricing.css` | `sections/SectionPricing.svelte` — REWRITE | 6 |
+| `ui/content/team.css` + `testimonials.css` + `clients.css` | Sections — REWRITE | 6 |
+| `runtime/section-focus.css` | `sections/SectionFocus.svelte` — REWRITE | 6 |
+| `ui/content/state-indicators.css` | `atoms/EmptyState.svelte` — REWRITE (loading/empty/error) | 4 |
+| `ui/forms/action-states.css` | Shared button/input state styles | 4 |
+| `ui/content/app-image.css`, `picture-image.css` | `atoms/AppImage.svelte`, `PictureImage.svelte` — REWRITE | 4 |
+| `layout/page.css` | Inline in `+layout.svelte` | 5 |
+| `animations/keyframes.css` (350 lines) | `app.css` @keyframes | 3 |
+| `animations/reveal.css` (208 lines) | Svelte action `use:reveal` | 8 |
+| `animations/scrollytelling.css` | Svelte action `use:scrollyScene` | 8 |
+| `animations/transitions.css` (298 lines) | Svelte transitions + `app.css` | 8 |
+| `animations/page-transitions.css` | SvelteKit page transitions | 8 |
+| `ui/admin/pages.css`, `layout/admin-*.css` | Admin components | 10 |
+| `ui/content/cookie-consent.css`, `contact-info.css`, `lang-switcher.css`, `back-to-top.css`, `portfolio-*.css`, `before-after-slider.css`, `falling-letters.css`, `inbox.css`, `settings-form.css`, `error-pages.css`, `legal-pages.css`, `loading-placeholders.css`, `init.css`, `health.css`, `list.css`, `onepager-parallax.css` | Respective components | 5-10 |
+| CtaButton | `ui/forms/buttons.css` | ✅ atoms/CtaButton.svelte |
+| Card | `ui/content/cards.css` | ✅ atoms/Card.svelte (new) |
+| Badge | `ui/content/badges.css` | ✅ atoms/Badge.svelte (new) |
+| Avatar | `ui/content/avatars.css` | ✅ atoms/Avatar.svelte (new) |
+| Container | `layout/containers.css` | ✅ atoms/Container.svelte (new) |
+| Section | `layout/sections.css` | ✅ atoms/Section.svelte (new) |
+| Grid | `layout/grid.css` | ✅ atoms/Grid.svelte (new) |
+| PageHeader | `ui/content/page-header.css` | ✅ atoms/PageHeader.svelte (new) |
+
+
+---
+
+
+**Phase 3 Verification:**
+- [x] `npm run check` → 0 errors
+- [x] `npm run build` → 0 errors
+- [x] `bg-pm-brand` renders `#901504` (FABRICA22 red), NOT `#0066cc` (blue)
+- [x] `bg-pm-bg` renders `#fbf2e7` light / `#3b0902` dark
+- [x] No `.btn`, `.card`, `.section` BEM classes exist in app.css
+- [x] `container-wide` and `container-narrow` classes still work
+- [x] `HamburgerIcon.svelte` renders 12 animation types correctly
+
+## Phase 4: Atomic UI Components (13 atoms — REWRITE with translated PM v2 styles)
+
+> **Each atom is REWRITTEN from scratch.** Existing atoms use generic Tailwind (#0066cc blue).
+> New atoms use the EXACT visual design from PM v2 CSS, translated to Tailwind
+> utilities using @theme tokens. Every atom has `class` prop + `twMerge`.
+
+### Step 4.1 — All Atoms (Svelte 5 + Tailwind + PM tokens)
+- [x] `CtaButton.svelte` (PM v2 tokens) — variants (primary/secondary/outline/ghost), sizes, anchor/route/button
+- [x] `NavLink.svelte` (PM v2 tokens) — active state from URL
+- [x] `Logo.svelte` (PM v2 tokens) — theme+locale aware via `/logos/{shape}_{theme}_{lang}.svg`
+- [x] `ThemeToggle.svelte` (PM v2 tokens) — light↔dark with localStorage
+- [x] `LangSwitcher.svelte` (PM v2 tokens) — 3 modes (down/side/inline), 4 locales, no page reload
+- [x] `HamburgerIcon.svelte` (PM v2 tokens) — CSS animation types
+- [x] `BackToTop.svelte` (PM v2 tokens) — scroll visibility with smooth scroll
+- [x] `AppImage.svelte` (PM v2 tokens) — loading/error states, fallback
+- [x] `PictureImage.svelte` (PM v2 tokens) — AVIF/WebP fallback
+- [x] `SocialIcon.svelte` (PM v2 tokens) — brand-aware icon mapping
+- [x] `MadeBy.svelte` (PM v2 tokens) — attribution with light/dark logos
+- [x] `MadeWith.svelte` (PM v2 tokens) — framework credit link
+- [x] `EmptyState.svelte` (PM v2 tokens) — 4 illustrations (empty-box, search, error, success)
 - **Verify:** Each atom renders with correct PM design
 
 ---
@@ -684,7 +789,7 @@ git: {
 | 0 — Reset | 3 | Git reset + SvelteKit scaffold + clean scripts |
 | 1 — DB & Server | 7 | Schema (31 tables) + utils + hooks + API (42 endpoints) |
 | 2 — Config, i18n, Forms, Theme | 5 | Site config + Paraglide UI strings + DB content + Superforms + Theme |
-| 3 — CSS & UI Kit | 4 | Tailwind @theme + PM @layer components + hamburger + fonts |
+| 3 — CSS Foundation | 6 | @theme tokens + @layer base + keyframes + hamburger + fonts |
 | 4 — Atoms | 1 | 14 atomic components (incl. enhanced AppImage/PictureImage, mandatory alt) |
 | 5 — Molecules & Organisms | 2 | 12 components (Header, Footer, SectionRenderer, etc.) |
 | 6 — Sections | 2 | 13 section components (self-contained, i18n-powered) |

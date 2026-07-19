@@ -1,9 +1,8 @@
 <script lang="ts">
   /**
    * SocialIcon — Brand-aware social media icon link
+   * Uses PM v2 tokens
    * Rule #1: class prop + twMerge
-   *
-   * Platform icon mapping via simple inline SVGs for common platforms.
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
@@ -22,7 +21,7 @@
     class?: string
   } = $props()
 
-  const base = 'inline-flex items-center justify-center text-pm-gray-500 hover:text-pm-brand dark:text-pm-gray-400 dark:hover:text-pm-brand-light transition-colors duration-150'
+  const base = 'inline-flex items-center justify-center text-pm-text-muted hover:text-pm-brand transition-colors duration-150'
 </script>
 
 <a href={url} target="_blank" rel="noopener noreferrer"
@@ -44,7 +43,6 @@
     {:else if platform === 'vk'}
       <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm5.15 13.95h-1.88c-.66 0-.86-.51-2.04-1.67-1.03-1.01-1.49-1.14-1.74-1.14-.36 0-.46.14-.46.56v1.48c0 .38-.12.6-1.11.6-1.64 0-3.45-1-4.72-2.86-1.8-2.57-2.29-4.48-2.29-4.88 0-.2.1-.38.4-.38h1.87c.38 0 .52.17.66.56.73 1.9 1.95 3.56 2.45 3.56.19 0 .23-.08.23-.27v-2.14c0-.97-.57-1.06-.57-1.42 0-.17.13-.32.36-.32h2.92c.3 0 .42.16.42.51v2.73c0 .3.13.4.21.4.17 0 .35-.14.65-.44 1.1-1.13 1.65-2.54 1.65-2.54.1-.2.27-.33.58-.33h1.87c.4 0 .49.2.4.48-.17.79-2.1 3.02-2.1 3.02-.17.23-.22.34 0 .6.15.2.66.64 1.02 1.04.61.7.95 1.23 1.04 1.7.08.46-.37.66-.74.66z" />
     {:else}
-      <!-- Generic link icon for unlisted platforms -->
       <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
       <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
     {/if}

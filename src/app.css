@@ -9,16 +9,20 @@
 /* ── Class-based dark mode (controlled by theme.svelte.ts) ─────────────────── */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ── Design Tokens ───────────────────────────────────────────────────────────────── */
+/* ── Design Tokens (PM v2 → Tailwind) ─────────────────────────────────────────────── */
 @theme {
-  /* --- Brand Colors --- */
-  --color-pm-black: #0d0d0d;
-  --color-pm-white: #ffffff;
-  --color-pm-brand: #0066cc;
-  --color-pm-brand-light: #3388dd;
-  --color-pm-brand-dark: #004499;
+  /* --- Brand Primitives (from colors/primitives.css) --- */
+  --color-pm-black: #3b0902;
+  --color-pm-white: #fbf2e7;
+  --color-pm-brand: #901504;
+  --color-pm-accent: #901504;
 
-  /* --- Neutral Scale --- */
+  /* --- Brand Mixes (color-mix pre-calculated for Tailwind v4 compat) --- */
+  --color-pm-brand-light: #a1382a;   /* color-mix(in srgb, #901504, white 15%) */
+  --color-pm-brand-dark: #821304;    /* color-mix(in srgb, #901504, black 10%) */
+  --color-pm-brand-subtle: light-dark(#f0dcd0, #480b02); /* color-mix srgb + transparent */
+
+  /* --- Gray Scale (kept from Phase 2 — used in admin) --- */
   --color-pm-gray-50: #f9fafb;
   --color-pm-gray-100: #f3f4f6;
   --color-pm-gray-200: #e5e7eb;
@@ -30,57 +34,146 @@
   --color-pm-gray-800: #1f2937;
   --color-pm-gray-900: #111827;
 
-  /* --- Semantic Colors --- */
-  --color-pm-success: #10b981;
-  --color-pm-warning: #f59e0b;
-  --color-pm-danger: #ef4444;
-  --color-pm-info: #3b82f6;
+  /* --- Background Tokens (from colors/auto.css) --- */
+  --color-pm-bg: light-dark(#fbf2e7, #3b0902);
+  --color-pm-bg-elevated: light-dark(#f5ebe0, #45150d);
+  --color-pm-bg-sunken: light-dark(#efe4d9, #3f0e07);
+  --color-pm-surface: var(--color-pm-bg-elevated);
 
-  /* --- Backgrounds --- */
-  --color-pm-bg: #f9fafb;
-  --color-pm-bg-muted: #f3f4f6;
-  --color-pm-bg-dark: #1a1a2e;
-  --color-pm-bg-dark-muted: #16213e;
+  /* --- Legacy Background Aliases (kept for component compat — Phase 4+ refactors) --- */
+  --color-pm-bg-muted: var(--color-pm-bg-elevated);
+  --color-pm-bg-dark: #3b0902;
+  --color-pm-bg-dark-muted: #45150d;
 
-  /* --- Text --- */
-  --color-pm-muted: #6b7280;
+  /* --- Border Tokens (from colors/auto.css, oklch mix pre-calculated) --- */
+  --color-pm-border: light-dark(#e4d6cb, #582c24);
+  --color-pm-border-strong: light-dark(#cbb8ae, #754f47);
+
+  /* --- Text Tokens (from colors/auto.css) --- */
+  --color-pm-text: light-dark(#3b0902, #fbf2e7);
+  --color-pm-text-secondary: light-dark(#664d42, #c4a498);
+  --color-pm-text-muted: light-dark(#8c7568, #9a7a6e);
+
+  /* --- Muted Aliases --- */
+  --color-pm-muted: var(--color-pm-text-muted);
   --color-pm-muted-dark: #9ca3af;
 
-  /* --- Typography --- */
-  --font-sans: 'Inter Variable', 'Inter', 'Geologica', 'Heebo Variable', 'Heebo', sans-serif;
-  --font-display: 'Geologica', 'Inter Variable', 'Inter', sans-serif;
+  /* --- Semantic Colors (oklch from colors/auto.css) --- */
+  --color-pm-success: oklch(65% 0.2 145);
+  --color-pm-success-bg: light-dark(oklch(95% 0.05 145), oklch(25% 0.05 145));
+  --color-pm-warning: oklch(75% 0.15 85);
+  --color-pm-warning-bg: light-dark(oklch(95% 0.05 85), oklch(25% 0.05 85));
+  --color-pm-danger: oklch(55% 0.22 25);
+  --color-pm-danger-bg: light-dark(oklch(95% 0.05 25), oklch(25% 0.05 25));
+  --color-pm-info: oklch(60% 0.18 250);
+  --color-pm-info-bg: light-dark(oklch(95% 0.05 250), oklch(25% 0.05 250));
+
+  /* --- Focus Ring --- */
+  --color-pm-focus-ring: rgba(144, 21, 4, 0.5);
+  --color-pm-focus-outline: var(--color-pm-focus-ring);
+
+  /* --- Typography (from typography/variables.css) --- */
+  --font-sans: 'Geologica', 'Inter Variable', 'Inter', system-ui, -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: var(--font-sans);
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
-  /* --- Shadows --- */
-  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-  --shadow-card-hover: 0 10px 25px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
-  --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  --shadow-toast: 0 4px 12px rgba(0, 0, 0, 0.15);
+  /* --- Font Sizes (PM v2 scale — base is 1.25rem/20px) --- */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1.25rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+
+  /* --- Font Weights --- */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-black: 900;
+
+  /* --- Line Heights --- */
+  --leading-small: 0.8;
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  /* --- Shadows (from common/spacing.css, oklch values) --- */
+  --shadow-sm: 0 1px 2px oklch(0% 0 0 / 5%);
+  --shadow-md: 0 4px 6px -1px oklch(0% 0 0 / 7%), 0 2px 4px -2px oklch(0% 0 0 / 6%);
+  --shadow-lg: 0 10px 15px -3px oklch(0% 0 0 / 10%), 0 4px 6px -4px oklch(0% 0 0 / 5%);
+  --shadow-xl: 0 20px 25px -5px oklch(0% 0 0 / 10%), 0 8px 10px -6px oklch(0% 0 0 / 4%);
+
+  /* --- Border Radius --- */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+
+  /* --- Z-Index Scale --- */
+  --z-base: 1;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-drawer-backdrop: 400;
+  --z-drawer: 500;
+  --z-modal-backdrop: 600;
+  --z-modal: 700;
+  --z-popover: 800;
+  --z-toast: 900;
+
+  /* --- Transition Durations --- */
+  --transition-fast: 150ms;
+  --transition-normal: 200ms;
+  --transition-slow: 300ms;
+  --transition-slower: 400ms;
 
   /* --- Easings --- */
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* --- Container Widths --- */
+  --container-narrow: 48rem;
+  --container-default: 80rem;
+  --container-wide: 96rem;
 
   /* --- Breakpoints (extend only) --- */
   --breakpoint-xs: 480px;
 }
 
-/* ── Base Layer ──────────────────────────────────────────────────────────────────── */
+/* ── Base Layer (PM v2 reset from reset.css) ─────────────────────────────────────── */
 @layer base {
   html {
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    scroll-padding-top: 72px;
   }
 
   body {
-    @apply bg-pm-bg text-pm-gray-900 antialiased dark:bg-pm-bg-dark dark:text-pm-white;
+    @apply bg-pm-bg text-pm-text antialiased;
     font-family: var(--font-sans);
   }
 
+  /* Dark mode body (uses light-dark() through tokens, but keep for explicit overrides) */
+  .dark body {
+    @apply bg-pm-black text-pm-white;
+  }
+
   a {
-    @apply text-pm-brand transition-colors duration-150;
+    @apply text-pm-brand transition-colors;
+    transition-duration: 150ms;
+    text-decoration: none;
   }
 
   a:hover {
@@ -90,21 +183,22 @@
   *,
   *::before,
   *::after {
-    border-color: var(--color-pm-gray-200);
+    border-color: var(--color-pm-border);
   }
 
   .dark *,
   .dark *::before,
   .dark *::after {
-    border-color: var(--color-pm-gray-700);
+    border-color: var(--color-pm-border);
   }
 
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-pm-brand;
+    outline: 2px solid var(--color-pm-focus-ring);
+    outline-offset: 2px;
   }
 }
 
-/* ── Component Layer (layout utilities only — NOT component classes) ─────────────── */
+/* ── Component Layer (KEPT temporarily — Phase 4 creates Container atom) ──────────── */
 @layer components {
   /* --- Container System --- */
   .container-narrow {
@@ -453,5 +547,22 @@
 
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Form validation status — slide in messages */
+@keyframes formStatusSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Form validation status — spinner */
+@keyframes formStatusSpin {
   to { transform: rotate(360deg); }
 }

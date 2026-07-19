@@ -1,13 +1,18 @@
 <script lang="ts">
   /**
-   * CtaButton — Primary call-to-action button
+   * CtaButton — PM v2 button system translated to Tailwind
+   *
+   * Source: app-nuxt/app/assets/css/ui/forms/buttons.css (235 lines)
+   * Variants: primary, secondary, outline, ghost, danger, ghost-danger
+   * Sizes: sm, md, lg
+   *
    * Rule #1: class prop + twMerge
    * Rule #3: strict union types
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
 
-  type Variant = 'primary' | 'secondary' | 'outline' | 'ghost'
+  type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'ghost-danger'
   type Size = 'sm' | 'md' | 'lg'
 
   let {
@@ -16,6 +21,7 @@
     href,
     type = 'button',
     disabled = false,
+    fullWidth = false,
     class: className = '',
     onclick,
     children
@@ -25,31 +31,63 @@
     href?: string
     type?: 'button' | 'submit' | 'reset'
     disabled?: boolean
+    fullWidth?: boolean
     class?: string
     onclick?: (e: MouseEvent) => void
     children?: import('svelte').Snippet
   } = $props()
 
-  const base = 'inline-flex items-center justify-center rounded-md font-medium transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pm-brand disabled:opacity-50 disabled:pointer-events-none'
+  // ── Base: matches .btn from buttons.css ──────────────────────────────────
+  const base =
+    'inline-flex items-center justify-center rounded-md font-normal ' +
+    'transition-colors duration-150 ' +
+    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pm-focus-ring ' +
+    'disabled:opacity-50 disabled:cursor-not-allowed ' +
+    'no-underline cursor-pointer border-0'
 
+  // ── Variants: maps .btn-primary, .btn-secondary, etc. ─────────────────────
   const variants: Record<Variant, string> = {
-    primary: 'bg-pm-brand text-white hover:bg-pm-brand-light active:bg-pm-brand-dark shadow-sm',
-    secondary: 'bg-pm-gray-100 text-pm-gray-900 hover:bg-pm-gray-200 dark:bg-pm-gray-800 dark:text-pm-white dark:hover:bg-pm-gray-700',
-    outline: 'border-2 border-pm-brand text-pm-brand hover:bg-pm-brand hover:text-white',
-    ghost: 'text-pm-brand hover:bg-pm-brand/10'
+    primary:
+      'bg-pm-brand text-pm-white ' +
+      'hover:bg-pm-brand-light ' +
+      'active:bg-pm-brand-dark',
+    secondary:
+      'bg-pm-bg-elevated text-pm-text border border-pm-border-strong ' +
+      'hover:bg-pm-bg-sunken ' +
+      'active:bg-pm-bg-sunken',
+    outline:
+      'bg-transparent text-pm-text border-2 border-pm-brand ' +
+      'hover:bg-pm-brand hover:text-pm-white ' +
+      'active:bg-pm-brand-dark active:text-pm-white',
+    ghost:
+      'bg-transparent text-pm-text ' +
+      'hover:bg-pm-bg-sunken ' +
+      'active:bg-pm-bg-sunken',
+    danger:
+      'bg-pm-danger text-white ' +
+      'hover:bg-pm-danger ' +
+      'active:bg-pm-danger',
+    'ghost-danger':
+      'bg-transparent text-pm-text-secondary ' +
+      'hover:bg-pm-danger/10 hover:text-pm-danger ' +
+      'active:bg-pm-danger/15 active:text-pm-danger'
   }
 
+  // ── Sizes: maps .btn-sm, .btn-md (default), .btn-lg ───────────────────────
   const sizes: Record<Size, string> = {
-    sm: 'px-3 py-1.5 text-sm gap-1.5',
-    md: 'px-5 py-2.5 text-base gap-2',
-    lg: 'px-7 py-3 text-lg gap-2.5'
+    sm: 'px-3 py-1 text-sm gap-2',
+    md: 'px-4 py-2 text-base gap-2',
+    lg: 'px-6 py-3 text-lg gap-2'
   }
 
-  const merged = $derived(twMerge(clsx(base, variants[variant], sizes[size], className)))
+  // ── Full width modifier ───────────────────────────────────────────────────
+  const widthClass = fullWidth ? 'w-full' : ''
+
+  const merged = $derived(twMerge(clsx(base, variants[variant], sizes[size], widthClass, className)))
 </script>
 
 {#if href}
-  <a {href} class={merged} onclick={onclick}>
+  <a {href} class={merged} {onclick}>
     {@render children?.()}
   </a>
 {:else}

@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * MadeWith — Framework credit link
+   * MadeWith — Framework credit link (PM v2 tokens)
    * Rule #1: class prop + twMerge
    */
   import { clsx } from 'clsx'
@@ -12,7 +12,7 @@
     class?: string
   } = $props()
 
-  const base = 'inline-flex items-center gap-1 text-xs text-pm-muted dark:text-pm-muted-dark'
+  const base = 'inline-flex items-center gap-1 text-xs text-pm-text-muted'
 </script>
 
 <div class={twMerge(clsx(base, className))}>

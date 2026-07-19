@@ -6,6 +6,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as runtime from '$lib/paraglide/runtime.js'
+  import { getTheme } from '$lib/stores/theme.svelte'
 
   let {
     text = 'Made by',
@@ -19,15 +20,14 @@
     class?: string
   } = $props()
 
-  const theme = $derived('dark') // Will be connected to theme store later
+  const theme = $derived(getTheme())
   const lang = $derived(runtime.languageTag() ?? 'en')
   const langFallback: Record<string, string> = { en: 'en', fr: 'en', he: 'en' }
   const resolvedLang = $derived(langFallback[lang] ?? 'en')
 
-  // Determine which logo to show based on theme
-  const logoSrc = $derived(`${basePath}/horizontal_${theme}_${resolvedLang}.svg`)
+  const logoSrc = $derived(`${basePath}/horizontal_${theme.current}_${resolvedLang}.svg`)
 
-  const base = 'inline-flex items-center gap-2 text-sm text-pm-muted dark:text-pm-muted-dark'
+  const base = 'inline-flex items-center gap-2 text-sm text-pm-text-muted'
 </script>
 
 <div class={twMerge(clsx(base, className))}>

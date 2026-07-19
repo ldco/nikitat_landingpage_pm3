@@ -16,7 +16,7 @@
 
   const theme = getTheme()
 
-  const base = 'inline-flex items-center justify-center rounded-md p-2 text-pm-gray-600 hover:text-pm-brand hover:bg-pm-gray-100 dark:text-pm-gray-400 dark:hover:text-pm-brand-light dark:hover:bg-pm-gray-800 transition-colors duration-150'
+  const base = 'inline-flex items-center justify-center rounded-md p-2 text-pm-text-secondary hover:text-pm-brand hover:bg-pm-bg-sunken transition-colors duration-150'
 </script>
 
 <button class={twMerge(clsx(base, className))} onclick={() => theme.toggle()} aria-label="Toggle theme">
