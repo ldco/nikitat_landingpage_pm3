@@ -25,7 +25,7 @@
 </script>
 
 <section id="focus" class="flex flex-col items-center pt-[var(--pt-section)] pb-[var(--space-16)] bg-pm-bg-sunken">
-  <div style="padding-inline: var(--px-container);" class="w-full max-w-container mx-auto">
+  <div class="px-container w-full max-w-container mx-auto">
     <h2 class="text-[var(--section-heading)] font-black leading-tight text-center mb-[var(--space-8)]">{title}</h2>
     {#if cards.length > 0}
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[var(--gap-lg)]">

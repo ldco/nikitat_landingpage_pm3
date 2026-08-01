@@ -10,7 +10,7 @@
 </script>
 
 <section id="about" class="flex flex-col items-center pt-[var(--pt-section)] pb-[var(--space-16)] bg-pm-bg-elevated">
-  <div style="padding-inline: var(--px-container);" class="w-full max-w-container mx-auto">
+  <div class="px-container w-full max-w-container mx-auto">
     <h2 class="text-[var(--section-heading)] font-black leading-tight text-center mb-[var(--space-8)]">{title}</h2>
 
     <div class="flex flex-col items-center gap-[var(--gap-xl)]">
@@ -21,7 +21,7 @@
       <div class="w-full">
         {#if hasContent}
           <!-- Brand accent bar (PM2 ::before pseudo-element → real div) -->
-          <div class="w-12 h-[3px] bg-pm-brand rounded-full mb-[var(--space-4)]"></div>
+          <div class="w-12 h-[var(--about-accent-height)] bg-pm-brand rounded-full mb-[var(--space-4)]"></div>
           <p class="mb-[var(--space-5)] text-[var(--section-body-size)] text-pm-text leading-relaxed">
             {paragraph1}
           </p>

@@ -209,6 +209,8 @@
   /* ── Section Component Tokens ── */
   --about-visual-width: 62.5%;
   --about-visual-radius: 40%;
+  --about-accent-height: 3px;
+  --contact-form-max-w: 40rem;
   --hero-leading: 0.9;
   --hero-leading-mobile: 0.8;
   --hero-title-mobile: clamp(1.75rem, 9.6vw, 2.55rem);
@@ -493,99 +495,6 @@
   textarea:not([rows]) {
     min-height: 10em;
   }
-
-  /* ── Button System (PM2 ui/forms/buttons.css parity) ── */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--gap-xs);
-    font-weight: var(--font-weight-medium);
-    border-radius: var(--radius-md);
-    border: none;
-    cursor: pointer;
-    transition: background-color 150ms var(--ease-smooth), color 150ms var(--ease-smooth), transform 150ms var(--ease-smooth), box-shadow 150ms var(--ease-smooth);
-    text-decoration: none;
-    white-space: nowrap;
-  }
-  .btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  .btn:focus-visible {
-    outline: 2px solid var(--i-focus-ring);
-    outline-offset: 2px;
-  }
-
-  /* Variants */
-  .btn-primary { background: var(--color-pm-brand); color: var(--color-pm-white); }
-  .btn-primary:hover { background: var(--color-pm-brand-light); }
-  .btn-primary:active { background: var(--color-pm-brand-dark); }
-
-  .btn-secondary { background: var(--color-pm-bg-elevated); color: var(--color-pm-text); border: 1px solid var(--color-pm-border-strong); }
-  .btn-secondary:hover { background: var(--color-pm-bg-sunken); }
-  .btn-secondary:active { background: var(--color-pm-bg-sunken); }
-
-  .btn-outline { background: transparent; color: var(--color-pm-text); border: 2px solid var(--color-pm-brand); }
-  .btn-outline:hover { background: var(--color-pm-brand); color: var(--color-pm-white); }
-  .btn-outline:active { background: var(--color-pm-brand-dark); color: var(--color-pm-white); }
-
-  .btn-ghost { background: transparent; color: var(--color-pm-text); }
-  .btn-ghost:hover { background: var(--color-pm-bg-sunken); }
-  .btn-ghost:active { background: var(--color-pm-bg-sunken); }
-
-  .btn-danger { background: var(--color-pm-danger); color: white; }
-  .btn-danger:hover { opacity: 0.9; }
-
-  .btn-ghost-danger { background: transparent; color: var(--color-pm-text-secondary); }
-  .btn-ghost-danger:hover { background: color-mix(in srgb, var(--color-pm-danger) 10%, transparent); color: var(--color-pm-danger); }
-
-  /* Sizes */
-  .btn-sm { padding: var(--space-1) var(--space-3); font-size: var(--text-sm); border-radius: var(--radius-sm); }
-  .btn-md { padding: var(--space-2) var(--space-4); font-size: var(--text-base); }
-  .btn-lg { padding: var(--space-3) var(--space-6); font-size: var(--text-lg); }
-  .btn-icon { padding: var(--space-2); width: var(--touch-target); height: var(--touch-target); }
-  .btn-full { width: 100%; }
-
-  /* ── Form Input System (PM2 ui/forms/inputs.css parity) ── */
-  .input {
-    width: 100%;
-    padding: var(--space-2) var(--space-3);
-    background: var(--color-pm-bg);
-    border: 1px solid var(--color-pm-border);
-    border-radius: var(--radius-md);
-    color: var(--color-pm-text);
-    font-size: var(--text-base);
-    transition: border-color 150ms var(--ease-smooth), box-shadow 150ms var(--ease-smooth);
-  }
-  .input:focus {
-    outline: none;
-    border-color: var(--color-pm-brand);
-    box-shadow: 0 0 0 3px var(--i-focus-ring);
-  }
-  .input::placeholder { color: var(--color-pm-text-muted); }
-  .input--error { border-color: var(--color-pm-danger); }
-  .input--error:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-pm-danger) 30%, transparent); }
-
-  .form-group { display: flex; flex-direction: column; gap: var(--space-1); }
-  .form-label { font-size: var(--text-sm); font-weight: var(--font-weight-medium); color: var(--color-pm-text); }
-  .form-hint { font-size: var(--text-sm); color: var(--color-pm-text-muted); }
-  .form-hint--error { color: var(--color-pm-danger); }
-
-  .form-checkbox { display: flex; align-items: center; gap: var(--gap-xs); cursor: pointer; }
-
-  textarea.input { resize: vertical; min-height: 6em; }
-
-
-
-  /* ── Frosted Glass Surface (PM2 common/spacing.css parity) ── */
-  .surface-frosted {
-    background: color-mix(in srgb, var(--color-pm-bg-elevated) 86%, transparent);
-    backdrop-filter: var(--glass-backdrop-blur);
-    -webkit-backdrop-filter: var(--glass-backdrop-blur);
-    box-shadow: var(--shadow-frosted);
-  }
-
   /* Selection */
   ::selection {
     background-color: var(--color-pm-brand-subtle);
@@ -760,10 +669,10 @@
 /* ── @layer utilities: кастомные утилиты-хаки (см. docs/CSS-EDGECASES.md §13) ───────── */
 @layer utilities {
   /* iOS safe area (notch + home indicator). Поддержка: Safari 11.1+, Chrome 69+, Firefox 65+ */
-  .safe-area-top { padding-top: env(safe-area-inset-top); }
-  .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
-  .safe-area-left { padding-left: env(safe-area-inset-left); }
-  .safe-area-right { padding-right: env(safe-area-inset-right); }
+  
+  
+  
+  
 }
 
 /* ── Hamburger CSS Animations ──────────────────────────────────────────────────────── */
@@ -977,6 +886,15 @@
   will-change: transform;
 }
 
+
+@utility max-w-content {
+  max-width: var(--max-w-content);
+}
+
+@utility max-w-container {
+  max-width: var(--max-w-container);
+}
+
 @utility max-w-container-narrow {
   max-width: var(--content-narrow);
 }
@@ -1168,6 +1086,28 @@
   color: var(--color-pm-text-muted);
 }
 
+
+
+@utility safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+@utility safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@utility safe-area-left {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+
+@utility safe-area-right {
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+
+@utility min-h-form-textarea {
+  min-height: 150px;
+}
 
 @keyframes fade-in-up {
   from {

@@ -61,7 +61,7 @@
   'py-8 md:py-8',
   className
 ))}>
-  <div class={clsx('w-full', !isFullWidth && 'mx-auto max-w-container')} style="padding-inline: clamp(1rem, 3vw, 3rem);">
+  <div class={clsx('w-full', !isFullWidth && 'mx-auto max-w-container', 'px-container')}>
     <!-- ═══ Footer Grid: Logo+Social | CTA+FooterNav (app-nuxt: .footer-grid) ═══ -->
     {#if showNav || showFooterCta}
     <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">

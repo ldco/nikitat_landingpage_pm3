@@ -8,11 +8,11 @@
   const ctaText = $derived(t('f22.cta', m.nav_contact()))
 </script>
 
-<section id="f22" class="section">
-  <div class="section-body text-center" style="padding-inline: var(--px-container); max-width: var(--max-w-content); margin-inline: auto;">
-    <h2 class="section-title text-center">{title}</h2>
-    <div class="section-body">
-      <p class="text-fluid-2xl text-pm-text-secondary leading-relaxed mb-8">
+<section id="f22" class="flex flex-col items-center pt-[var(--pt-section)] pb-[var(--space-16)]">
+  <div class="px-container max-w-content mx-auto flex flex-col items-center text-center w-full">
+    <h2 class="text-[var(--section-heading)] font-black leading-tight text-center mb-[var(--space-8)]">{title}</h2>
+    <div class="flex flex-col items-center">
+      <p class="text-fluid-2xl text-pm-text-secondary leading-relaxed mb-[var(--space-8)]">
         {description || m.common_note()}
       </p>
       <CtaButton href="/#contact" variant="primary" size="lg">{ctaText}</CtaButton>

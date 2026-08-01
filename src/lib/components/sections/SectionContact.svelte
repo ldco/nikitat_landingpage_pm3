@@ -34,13 +34,13 @@
 </script>
 
 <section id="contact" class="flex flex-col items-center pt-[var(--pt-section)] pb-[var(--space-16)] bg-pm-bg-elevated">
-  <div style="padding-inline: var(--px-container); max-width: var(--max-w-container);" class="w-full mx-auto">
+  <div class="px-container max-w-container w-full mx-auto">
     <h2 class="text-[var(--section-heading)] font-black leading-tight text-center mb-[var(--space-4)]">{title}</h2>
     {#if intro}
       <p class="text-center text-pm-text-secondary mb-[var(--space-6)] max-w-xl mx-auto">{intro}</p>
     {/if}
 
-    <div class="max-w-[40rem] mx-auto">
+    <div class="max-w-[var(--contact-form-max-w)] mx-auto">
       <form onsubmit={handleSubmit} class="contact-card">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-[var(--space-4)]">
           <div class="flex flex-col gap-[var(--space-2)]">
@@ -55,7 +55,7 @@
 
         <div class="flex flex-col gap-[var(--space-2)]">
           <label for="c-msg" class="text-sm font-medium text-pm-text">{messageLabel}</label>
-          <textarea id="c-msg" bind:value={message} rows={4} class="w-full px-[var(--space-3)] py-[var(--space-2)] bg-pm-bg border border-pm-border rounded-lg text-fluid-base text-pm-text placeholder-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring focus:ring-pm-brand/30 transition min-h-[150px] resize-y" placeholder={messageLabel} required></textarea>
+          <textarea id="c-msg" bind:value={message} rows={4} class="w-full px-[var(--space-3)] py-[var(--space-2)] bg-pm-bg border border-pm-border rounded-lg text-fluid-base text-pm-text placeholder-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring focus:ring-pm-brand/30 transition min-h-form-textarea resize-y" placeholder={messageLabel} required></textarea>
         </div>
 
         <label class="flex items-start gap-[var(--gap-xs)] leading-relaxed cursor-pointer">

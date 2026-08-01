@@ -101,7 +101,7 @@
 </script>
 {#if $page.url.pathname.startsWith('/admin/login')}
   <main class="min-h-screen bg-pm-bg">
-    <div class="p-4 sm:p-6 mx-auto" style="max-width: min(62.5rem, 100%);">
+    <div class="p-4 sm:p-6 mx-auto max-w-content">
       {@render children?.()}
     </div>
   </main>
@@ -274,7 +274,7 @@
 
   <!-- Main Content -->
   <main class={clsx('min-h-screen', 'pb-14 sm:pb-0', useVerticalNav && 'lg:ms-16')}>
-    <div class="p-4 sm:p-6 lg:p-10 mx-auto" style="max-width: min(62.5rem, 100%);">
+    <div class="p-4 sm:p-6 lg:p-10 mx-auto max-w-content">
       {@render children?.()}
     </div>
   </main>
