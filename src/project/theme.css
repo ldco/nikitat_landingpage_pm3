@@ -1,0 +1,14 @@
+/**
+ * Project Theme — nikitat.pro brand primitives
+ *
+ * These 4 values define the entire color system.
+ * Everything else is auto-derived by the framework (src/app.css @theme).
+ * Change these to rebrand the entire site.
+ */
+:root {
+  --p-brand: #901504;
+  --p-black: #3b0902;
+  --p-white: #fbf2e7;
+  --p-accent: #901504;
+  color-scheme: light dark;
+}

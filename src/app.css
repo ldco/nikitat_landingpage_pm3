@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./project/theme.css";
 
 /* ── Self-hosted fonts (npm @fontsource packages) ──────────────────────────── */
 @import "@fontsource-variable/inter";
@@ -16,15 +17,15 @@
 /* ── Design Tokens (PM v2 → Tailwind) ─────────────────────────────────────────────── */
 @theme {
   /* --- Brand Primitives (from colors/primitives.css) --- */
-  --color-pm-black: #3b0902;
-  --color-pm-white: #fbf2e7;
-  --color-pm-brand: #901504;
-  --color-pm-accent: #901504;
+  --color-pm-black: var(--p-black);
+  --color-pm-white: var(--p-white);
+  --color-pm-brand: var(--p-brand);
+  --color-pm-accent: var(--p-accent);
 
   /* --- Brand Mixes (color-mix pre-calculated for Tailwind v4 compat) --- */
-  --color-pm-brand-light: #a1382a;   /* color-mix(in srgb, #901504, white 15%) */
-  --color-pm-brand-dark: #821304;    /* color-mix(in srgb, #901504, black 10%) */
-  --color-pm-brand-subtle: #f0dcd0; /* color-mix srgb + transparent */
+  --color-pm-brand-light: color-mix(in srgb, var(--p-brand), white 15%);
+  --color-pm-brand-dark: color-mix(in srgb, var(--p-brand), black 10%);
+  --color-pm-brand-subtle: color-mix(in srgb, var(--p-brand), transparent 88%);
 
   /* --- Gray Scale (kept from Phase 2 — used in admin) --- */
   --color-pm-gray-50: #f9fafb;
@@ -39,24 +40,24 @@
   --color-pm-gray-900: #111827;
 
   /* --- Background Tokens (from colors/auto.css) --- */
-  --color-pm-bg: #fbf2e7;
-  --color-pm-bg-elevated: #f5ebe0;
-  --color-pm-bg-sunken: #efe4d9;
+  --color-pm-bg: light-dark(var(--p-white), var(--p-black));
+  --color-pm-bg-elevated: color-mix(in srgb, var(--p-white), var(--p-black) 3%);
+  --color-pm-bg-sunken: color-mix(in srgb, var(--p-white), var(--p-black) 6%);
   --color-pm-surface: var(--color-pm-bg-elevated);
 
   /* --- Legacy Background Aliases (kept for component compat — Phase 4+ refactors) --- */
   --color-pm-bg-muted: var(--color-pm-bg-elevated);
-  --color-pm-bg-dark: #3b0902;
-  --color-pm-bg-dark-muted: #45150d;
+  --color-pm-bg-dark: var(--p-black);
+  --color-pm-bg-dark-muted: color-mix(in srgb, var(--p-black), var(--p-white) 10%);
 
   /* --- Border Tokens (from colors/auto.css, oklch mix pre-calculated) --- */
-  --color-pm-border: #e4d6cb;
-  --color-pm-border-strong: #cbb8ae;
+  --color-pm-border: color-mix(in srgb, var(--p-black), transparent 88%);
+  --color-pm-border-strong: color-mix(in srgb, var(--p-black), transparent 75%);
 
   /* --- Text Tokens (from colors/auto.css) --- */
-  --color-pm-text: #3b0902;
-  --color-pm-text-secondary: #664d42;
-  --color-pm-text-muted: #8c7568;
+  --color-pm-text: light-dark(var(--p-black), var(--p-white));
+  --color-pm-text-secondary: color-mix(in srgb, var(--p-black), transparent 40%);
+  --color-pm-text-muted: color-mix(in srgb, var(--p-black), transparent 55%);
 
   /* --- Muted Aliases --- */
   --color-pm-muted: var(--color-pm-text-muted);
@@ -73,7 +74,7 @@
   --color-pm-info-bg: oklch(95% 0.05 250);
 
   /* --- Focus Ring --- */
-  --color-pm-focus-ring: rgba(144, 21, 4, 0.5);
+  --color-pm-focus-ring: color-mix(in srgb, var(--p-brand), transparent 50%);
   --color-pm-focus-outline: var(--color-pm-focus-ring);
 
   /* --- Typography (from typography/variables.css) --- */
