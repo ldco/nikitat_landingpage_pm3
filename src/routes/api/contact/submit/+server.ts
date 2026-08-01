@@ -4,6 +4,8 @@ import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
 import { contactRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
 import { logger } from '$lib/server/utils/logger'
+import { FEATURES } from '$lib/config/site'
+import { notifyNewContact } from '$lib/server/telegram'
 
 const contactSchema = z.object({
   name: z.string().min(1).max(100),
@@ -36,16 +38,23 @@ export async function POST(event: RequestEvent) {
   }
 
   const db = useDatabase()
-  db.insert(schema.contactSubmissions).values({
+  const inserted = db.insert(schema.contactSubmissions).values({
     name,
     email,
     phone: phone || null,
     subject: subject || null,
     message,
     consent: true
-  }).run()
+  }).returning({ id: schema.contactSubmissions.id, createdAt: schema.contactSubmissions.createdAt }).get()
 
   logger.info({ email, subject }, 'Contact form submission received')
+
+  // Notify admin via Telegram (fire-and-forget, gated by feature flag)
+  if (FEATURES.contactTelegramNotify) {
+    notifyNewContact({ submissionId: inserted.id, createdAt: inserted.createdAt }).catch((e: unknown) => {
+      logger.error({ error: e instanceof Error ? e.message : e }, 'Telegram notification failed')
+    })
+  }
 
   return json({ success: true, data: { message: 'Message sent successfully' } })
 }
