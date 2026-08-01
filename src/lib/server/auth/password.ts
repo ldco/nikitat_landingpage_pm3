@@ -125,18 +125,21 @@ export function generateSecurePassword(length: number = 16): string {
   let password = ''
   const ensure = [uppercase, lowercase, numbers, special]
   for (const chars of ensure) {
-    password += chars[randomBytes(1)[0]! % chars.length]!
+    const byte = randomBytes(1)[0] ?? 0
+    password += chars[byte % chars.length] ?? ''
   }
 
   for (let i = password.length; i < length; i++) {
-    password += String.fromCharCode(allBytes[randomBytes(1)[0]! % allBytes.length]!)
+    const byte = randomBytes(1)[0] ?? 0
+    password += String.fromCharCode(allBytes[byte % allBytes.length] ?? 0)
   }
 
   const chars = password.split('')
   for (let i = chars.length - 1; i > 0; i--) {
-    const j = randomBytes(1)[0]! % (i + 1)
-    const tmp = chars[i]!
-    chars[i] = chars[j]!
+    const byte = randomBytes(1)[0] ?? 0
+    const j = byte % (i + 1)
+    const tmp = chars[i] ?? ''
+    chars[i] = chars[j] ?? ''
     chars[j] = tmp
   }
 
@@ -153,8 +156,8 @@ export function verifyPassword(password: string, storedHash: string): boolean {
   try {
     const [salt, hash] = storedHash.split(':')
     if (!salt || !hash) return false
-    const hashBuffer = Buffer.from(hash!, 'hex')
-    const suppliedHashBuffer = scryptSync(password, salt!, KEY_LENGTH)
+    const hashBuffer = Buffer.from(hash, 'hex')
+    const suppliedHashBuffer = scryptSync(password, salt, KEY_LENGTH)
     return timingSafeEqual(hashBuffer, suppliedHashBuffer)
   } catch {
     return false

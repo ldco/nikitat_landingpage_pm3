@@ -53,7 +53,7 @@
     { id: 'health', label: 'Health' }
   ]
 
-  const iconComponentMap: Record<string, any> = {
+  const iconComponentMap: Record<string, typeof IconHome> = {
     dashboard: IconHome, users: IconUsers, roles: IconShieldCheck,
     translations: IconLanguage, settings: IconSettings,
     portfolios: IconPhoto, blog: IconArticle, team: IconUsersGroup,

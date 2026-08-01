@@ -25,8 +25,8 @@ function detectLocale(event: RequestEvent): string {
   const acceptLang = event.request.headers.get('accept-language')
   if (acceptLang) {
     for (const lang of acceptLang.split(',')) {
-      const code = lang.split(';')[0]!.trim()
-      const short = code.split('-')[0]!
+      const code = lang.split(';')[0]?.trim() ?? ''
+      const short = code.split('-')[0] ?? ''
       if (SUPPORTED_LOCALES.includes(short)) return short
     }
   }

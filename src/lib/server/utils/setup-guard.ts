@@ -7,14 +7,13 @@
  * Security: Fails CLOSED — denies access when config cannot be read.
  */
 import { error } from '@sveltejs/kit'
-import type { RequestEvent } from '@sveltejs/kit'
 import { PM_MODE, type PmMode } from '$lib/config/site'
 
 /**
  * Assert the site is in setup mode. Throws 403 if already configured.
  * Call at the top of setup-only endpoints.
  */
-export function requireSetupMode(event: RequestEvent): PmMode {
+export function requireSetupMode(): PmMode {
   if (PM_MODE !== 'unconfigured') {
     error(403, 'Setup is not allowed: the site is already configured')
   }

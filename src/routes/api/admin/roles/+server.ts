@@ -36,6 +36,6 @@ export async function POST(event: RequestEvent) {
   }).returning().get()
   const ip = getClientIp(event.request)
   const ua = event.request.headers.get('user-agent')
-  audit.roleCreate(ip, ua, actor.id, result!.id, parsed.data.name, parsed.data.slug)
+  audit.roleCreate(ip, ua, actor.id, result.id, parsed.data.name, parsed.data.slug)
   return json(jsonSuccess(result))
 }

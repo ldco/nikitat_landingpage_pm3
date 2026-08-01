@@ -1,6 +1,5 @@
 import type { RequestEvent } from '@sveltejs/kit'
 import { error, json } from '@sveltejs/kit'
-import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
 import { requireAdmin } from '$lib/server/utils/admin-rbac'

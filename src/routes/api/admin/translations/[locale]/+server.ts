@@ -11,8 +11,8 @@ const updateSchema = z.record(z.string(), z.string())
 
 export async function PUT(event: RequestEvent) {
   requireAdmin(event)
-  const locale = event.params.locale
-  if (!LOCALE_STRINGS.includes(locale!)) throw error(400)
+  const locale = event.params.locale ?? ''
+  if (!LOCALE_STRINGS.includes(locale)) throw error(400)
   const body = await event.request.json().catch(() => null)
   if (!body) throw error(400)
   const parsed = updateSchema.safeParse(body)
@@ -21,7 +21,7 @@ export async function PUT(event: RequestEvent) {
   let count = 0
   for (const [key, value] of Object.entries(parsed.data)) {
     const existing = db.select().from(schema.translations)
-      .where(and(eq(schema.translations.locale, locale!), eq(schema.translations.key, key)))
+      .where(and(eq(schema.translations.locale, locale), eq(schema.translations.key, key)))
       .get()
     if (existing) {
       db.update(schema.translations).set({ value, updatedAt: new Date() })

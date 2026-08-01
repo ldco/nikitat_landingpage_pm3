@@ -144,7 +144,7 @@
         ctx.fillText(char, tx, ty)
       }
     } else {
-      Matter.Runner.run(runner!, engine)
+      if (runner) Matter.Runner.run(runner, engine)
 
       let animFrame = requestAnimationFrame(function loop() {
         render()

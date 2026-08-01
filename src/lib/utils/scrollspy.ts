@@ -79,8 +79,8 @@ export function scrollSpy(node: HTMLElement, options: ScrollSpyOptions = {}) {
   window.addEventListener('resize', check)
 
   return {
-    update(newOptions: ScrollSpyOptions) {
-      // Update options if needed
+    update() {
+      // ScrollSpy reads DOM sections dynamically; no update needed.
     },
     destroy() {
       if (rafId !== null) cancelAnimationFrame(rafId)

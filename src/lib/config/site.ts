@@ -43,7 +43,7 @@ const RTL_CODES = new Set([
  * Detected automatically from locale code — no per-language flag needed.
  */
 export function isRtlLocale(locale: string): boolean {
-  const code = locale.split(/[-_]/)[0]!.toLowerCase()
+  const code = locale.split(/[-_]/)[0]?.toLowerCase() ?? ''
   return RTL_CODES.has(code)
 }
 

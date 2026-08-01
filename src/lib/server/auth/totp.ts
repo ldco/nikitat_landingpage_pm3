@@ -86,13 +86,14 @@ export function decryptTotpSecret(encryptedSecret: string): string {
   if (parts.length !== 3) throw new Error('Invalid encrypted secret format')
 
   const [ivHex, authTagHex, encrypted] = parts
-  const iv = Buffer.from(ivHex!, 'hex')
-  const authTag = Buffer.from(authTagHex!, 'hex')
+  if (!ivHex || !authTagHex || !encrypted) throw new Error('Invalid encrypted secret format')
+  const iv = Buffer.from(ivHex, 'hex')
+  const authTag = Buffer.from(authTagHex, 'hex')
 
   const decipher = createDecipheriv(ENCRYPTION_ALGORITHM, key, iv)
   decipher.setAuthTag(authTag)
 
-  let decrypted = decipher.update(encrypted!, 'hex', 'utf8')
+  let decrypted = decipher.update(encrypted, 'hex', 'utf8')
   decrypted += decipher.final('utf8')
 
   return decrypted

@@ -18,12 +18,11 @@ const createUserSchema = z.object({
 })
 
 export function GET(event: RequestEvent) {
-  const user = requireAdmin(event)
+  requireAdmin(event)
   const db = useDatabase()
   const { page, pageSize, offset } = getPaginationParams(event.url)
   const all = db.select().from(schema.users).limit(pageSize).offset(offset).all()
   const total = db.select({ id: schema.users.id }).from(schema.users).all().length
-  const ip = getClientIp(event.request)
   return json(jsonPaginated(all, page, pageSize, total))
 }
 
@@ -44,6 +43,6 @@ export async function POST(event: RequestEvent) {
   }).returning().get()
   const ip = getClientIp(event.request)
   const ua = event.request.headers.get('user-agent')
-  audit.userCreate(ip, ua, actor.id, result!.id, parsed.data.email, parsed.data.role)
+  audit.userCreate(ip, ua, actor.id, result.id, parsed.data.email, parsed.data.role)
   return json(jsonSuccess(result))
 }

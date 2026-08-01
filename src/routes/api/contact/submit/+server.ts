@@ -6,6 +6,7 @@ import { contactRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
 import { logger } from '$lib/server/utils/logger'
 import { FEATURES } from '$lib/config/site'
 import { notifyNewContact } from '$lib/server/telegram'
+import { sendContactConfirmation } from '$lib/server/email'
 
 const contactSchema = z.object({
   name: z.string().min(1).max(100),
@@ -53,6 +54,13 @@ export async function POST(event: RequestEvent) {
   if (FEATURES.contactTelegramNotify) {
     notifyNewContact({ submissionId: inserted.id, createdAt: inserted.createdAt }).catch((e: unknown) => {
       logger.error({ error: e instanceof Error ? e.message : e }, 'Telegram notification failed')
+    })
+  }
+
+  // Send confirmation email to the submitter (gated by feature flag)
+  if (FEATURES.contactEmailConfirmation) {
+    sendContactConfirmation(email, name).catch((e: unknown) => {
+      logger.error({ error: e instanceof Error ? e.message : e }, 'Confirmation email failed')
     })
   }
 

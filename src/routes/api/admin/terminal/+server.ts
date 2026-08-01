@@ -38,8 +38,7 @@ export async function POST(event: RequestEvent) {
     const output = execSync(cmd, { timeout: 10000, encoding: 'utf-8' })
     const ip = getClientIp(event.request)
     const ua = event.request.headers.get('user-agent')
-    // audit via logger for now
-    logger.info({ cmd, actor: actor.id }, 'Terminal command executed')
+    logger.info({ cmd, actor: actor.id, ip, ua }, 'Terminal command executed')
     return json(jsonSuccess({ output, command: cmd }))
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e)

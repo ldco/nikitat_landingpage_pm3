@@ -1,7 +1,5 @@
 import type { RequestEvent } from '@sveltejs/kit'
-import { jsonSuccess } from '$lib/server/utils/api'
 import { useDatabase, schema } from '$lib/server/db'
-import { eq } from 'drizzle-orm'
 
 export function load(_event: RequestEvent) {
   const db = useDatabase()

@@ -4,16 +4,14 @@
  * IP-based rate limiting for API endpoints.
  * Uses a simple Map-based store. For multi-instance deploys, swap in Redis.
  */
-import { logger } from '$lib/server/utils/logger'
 
 interface RateLimitEntry {
   count: number
   resetAt: number
 }
 
-export function createRateLimiter(limit: number, windowMs: number, prefix = 'rl') {
+export function createRateLimiter(limit: number, windowMs: number, _prefix?: string) {
   const store = new Map<string, RateLimitEntry>()
-  const windowSec = Math.ceil(windowMs / 1000)
 
   // Periodic cleanup of expired entries (every 5 min)
   setInterval(() => {

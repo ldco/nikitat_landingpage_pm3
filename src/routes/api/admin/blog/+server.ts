@@ -23,13 +23,12 @@ export function GET(event: RequestEvent) {
 }
 
 export async function POST(event: RequestEvent) {
-  requireAdmin(event)
+  const actor = requireAdmin(event)
   const body = await event.request.json().catch(() => null)
   if (!body) throw error(400)
   const parsed = createSchema.safeParse(body)
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
   const db = useDatabase()
-  const actor = event.locals.user
-  const result = db.insert(schema.blogPosts).values({ ...parsed.data, authorId: actor!.id }).returning().get()
+  const result = db.insert(schema.blogPosts).values({ ...parsed.data, authorId: actor.id }).returning().get()
   return json(jsonSuccess(result))
 }

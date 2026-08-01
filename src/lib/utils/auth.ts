@@ -22,7 +22,8 @@ export interface LoginResult {
 export function getCsrfToken(): string {
   if (typeof document === 'undefined') return ''
   const match = document.cookie.match(/(?:^|;\s*)pm-csrf=([^;]+)/)
-  return match ? decodeURIComponent(match[1]!) : ''
+  if (!match?.[1]) return ''
+  return decodeURIComponent(match[1])
 }
 
 export async function login(email: string, password: string): Promise<LoginResult> {
