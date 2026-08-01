@@ -1,4 +1,7 @@
 <script lang="ts">
+  /**
+   * Admin Pricing List — CRUD listing
+   */
   import type { PageData } from './$types'
   import { page } from '$app/stores'
   import { getAdminT } from '$lib/utils/admin-translations'

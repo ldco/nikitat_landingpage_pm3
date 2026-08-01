@@ -1,4 +1,7 @@
 <script lang="ts">
+  /**
+   * Admin Portfolio Edit — Edit portfolio form
+   */
   import type { PageData } from './$types'
   import * as m from '$lib/i18n'
   import { page } from '$app/stores'

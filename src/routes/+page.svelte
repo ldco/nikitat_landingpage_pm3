@@ -1,4 +1,7 @@
 <script lang="ts">
+  /**
+   * Homepage — Onepager sections: hero + config-driven SectionRenderer chain
+   */
   import { FEATURES, HOMEPAGE_SECTIONS } from '$lib/config/site'
   import SectionHero from '$lib/components/sections/SectionHero.svelte'
   import SectionRenderer from '$lib/components/complex/SectionRenderer.svelte'

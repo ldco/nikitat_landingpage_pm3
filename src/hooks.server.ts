@@ -131,6 +131,44 @@ const logHandle: Handle = async ({ event, resolve }) => {
   return response
 }
 
+
+// ── API Error Format (rule 11) ─────────────────────────────────────────────
+// Transforms all API route errors into { success: false, error: { code, message } }
+const errorFormatHandle: Handle = async ({ event, resolve }) => {
+  const response = await resolve(event)
+  
+  // Only transform API routes that return error status codes
+  if (event.url.pathname.startsWith('/api/') && response.status >= 400) {
+    let body = { message: 'Unknown error' }
+    try {
+      const text = await response.clone().text()
+      body = text ? JSON.parse(text) : body
+    } catch {
+      // Non-JSON response — keep as-is (e.g. HTML error page)
+      return response
+    }
+    
+    // If already in contract format, pass through
+    if (body && typeof body === 'object' && 'success' in body && body.success === false) {
+      return response
+    }
+    
+    // Transform to contract format
+    return new Response(JSON.stringify({
+      success: false,
+      error: {
+        code: `http.${response.status}`,
+        message: typeof body === 'string' ? (body as string) : (body && 'message' in body ? ((body as {message: string}).message) : 'Request failed')
+      }
+    }), {
+      status: response.status,
+      headers: { 'content-type': 'application/json' }
+    })
+  }
+  
+  return response
+}
+
 // ── Export sequence ─────────────────────────────────────────────────────────
 // Order: i18n (lang/dir/html) → logger → session → rate-limit → CSRF → CSP
 export const handle = sequence(
@@ -139,7 +177,8 @@ export const handle = sequence(
   sessionHandle,
   rateLimitHandle,
   csrfHandle,
-  cspHandle
+  cspHandle,
+  errorFormatHandle
 )
 
 // ── Error contract (rule 11) ───────────────────────────────────────────────

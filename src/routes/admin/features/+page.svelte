@@ -1,4 +1,7 @@
 <script lang="ts">
+  /**
+   * Admin Features List — CRUD listing
+   */
   import type { PageData } from './$types'
   let { data }: { data: PageData } = $props()
   const items = $derived(data.items)

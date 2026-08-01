@@ -1,4 +1,7 @@
 <script lang="ts">
+  /**
+   * Admin Feature Edit — Edit feature form
+   */
   import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
   import type { PageData } from './$types'
   import * as m from '$lib/i18n'

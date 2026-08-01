@@ -1,4 +1,7 @@
 <script lang="ts">
+  /**
+   * Admin Clients — Manage client list
+   */
   let items: Array<{ id: number; name: string; logoUrl?: string; websiteUrl?: string }> = []
 </script>
 

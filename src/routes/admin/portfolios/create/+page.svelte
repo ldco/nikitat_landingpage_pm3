@@ -1,4 +1,7 @@
 <script lang="ts">
+  /**
+   * Admin Portfolio Create — New portfolio form
+   */
   import * as m from '$lib/i18n'
   import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
   import { page } from '$app/stores'

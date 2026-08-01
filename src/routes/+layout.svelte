@@ -1,4 +1,7 @@
 <script lang="ts">
+  /**
+   * Root Layout — Shell: header, footer, theme, content store, page transitions
+   */
   import '../app.css'
   import { clsx } from 'clsx'
   import { page } from '$app/stores'

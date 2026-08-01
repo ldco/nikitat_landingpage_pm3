@@ -1,4 +1,7 @@
 <script lang="ts">
+  /**
+   * Admin Portfolios List — CRUD listing
+   */
   import type { PageData } from './$types'
   import { page } from '$app/stores'
   import * as m from '$lib/i18n'

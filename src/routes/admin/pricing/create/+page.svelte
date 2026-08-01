@@ -1,4 +1,7 @@
 <script lang="ts">
+  /**
+   * Admin Pricing Create — New tier form
+   */
   import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
   import * as m from '$lib/i18n'
   import { page } from '$app/stores'

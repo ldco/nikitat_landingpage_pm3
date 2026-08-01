@@ -433,19 +433,9 @@
   h3 { font-size: var(--heading-3); }
   h4 { font-size: var(--heading-4); }
 
-  /* ── Section-level typography (PM2 layout/sections.css) ── */
-  .section-title {
-    font-size: var(--heading-2);
-    font-weight: var(--font-weight-black);
-    line-height: var(--leading-tight);
-    margin-block-end: var(--space-8);
-  }
-  .section-body {
-    font-size: clamp(1.4rem, 3.2vw, 1.875rem);
-    font-weight: var(--font-weight-normal);
-    color: var(--color-pm-text-secondary);
-    line-height: 1.6;
-  }
+
+
+
 
   /* Lists */
   ul, ol {
@@ -598,12 +588,7 @@
    * Each hack verified on caniuse.com + MDN before inclusion
    * ═══════════════════════════════════════════════════════════════════════════ */
 
-  /* iOS viewport height fallback (Safari < 15.4). Source: caniuse viewport-unit-variants */
-  .min-h-dvh {
-    min-height: 100vh;
-    min-height: -webkit-fill-available;
-    min-height: 100dvh;
-  }
+
 
   /* Remove tap highlight on mobile (iOS Safari + Chrome Android) */
   * {
@@ -1109,6 +1094,22 @@
   min-height: 150px;
 }
 
+@utility section-title {
+  font-size: var(--heading-2);
+  font-weight: var(--font-weight-black);
+  line-height: var(--leading-tight);
+  margin-block-end: var(--space-8);
+}
+@utility section-body {
+  font-weight: var(--font-weight-normal);
+  color: var(--color-pm-text-secondary);
+  line-height: 1.6;
+}
+@utility min-h-dvh {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  min-height: 100dvh;
+}
 @keyframes fade-in-up {
   from {
     opacity: 0;

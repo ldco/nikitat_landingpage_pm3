@@ -1,4 +1,7 @@
 <script lang="ts">
+  /**
+   * Admin Login — Auth form
+   */
   import * as m from '$lib/i18n'
   import { FRAMEWORK } from '$lib/config/site'
   import { goto } from '$app/navigation'
