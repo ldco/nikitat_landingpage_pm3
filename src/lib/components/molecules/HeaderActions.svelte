@@ -6,7 +6,16 @@
   import LangSwitcher from '$lib/components/atoms/LangSwitcher.svelte'
   import HeaderContact from '$lib/components/molecules/HeaderContact.svelte'
 
-  let {
+  /**
+ * HeaderActions — Header action rail: theme toggle + language switcher + quick contact
+ *
+ * @props showContact?: boolean — show HeaderContact (default true)
+ * @props langDirection?: 'down' | 'side' | 'inline' — LangSwitcher layout
+ * @props class?: string — merged Tailwind classes
+ * @example <HeaderActions langDirection="down" />
+ */
+
+let {
     showContact = true,
     langDirection = "down",
     class: className = ""

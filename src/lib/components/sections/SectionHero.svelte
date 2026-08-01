@@ -1,4 +1,18 @@
 <script lang="ts">
+  /**
+  * SectionHero — Full-viewport hero: title segments, subtitle, CTAs, logo (PM3 rule 6)
+ *
+ * Content from content store: hero.title, hero.subtitle, hero.primaryCta, hero.secondaryCta
+ *
+ * @props title?: string — hero title (default from content store)
+ * @props subtitle?: string — hero subtitle
+ * @props primaryCta?: string — primary button label
+ * @props primaryHref?: string — primary link (default /#contact)
+ * @props secondaryCta?: string — secondary button label
+ * @props secondaryHref?: string — secondary link (default /portfolio)
+ * @props showLogo?: boolean — show circular logo (default true)
+ * @example <SectionHero />
+  */
   import * as m from '$lib/i18n'
   import { FEATURES } from '$lib/config/site'
   import { t } from '$lib/stores/content.svelte'

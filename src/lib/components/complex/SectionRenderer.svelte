@@ -23,7 +23,17 @@
     SectionPricing, SectionTeam, SectionTestimonials, SectionClients
   }
 
-  let {
+  /**
+ * SectionRenderer — Maps sectionId to its Svelte component (PM3 rule 6)
+ *
+ * Reads HOMEPAGE_SECTIONS config to resolve component + enabled state.
+ *
+ * @props sectionId?: string — section id from HOMEPAGE_SECTIONS
+ * @props class?: string — merged Tailwind classes
+ * @example <SectionRenderer sectionId="about" />
+ */
+
+let {
     sectionId,
     class: className = ''
   }: { sectionId?: string; class?: string } = $props()

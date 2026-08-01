@@ -1,4 +1,11 @@
 <script lang="ts">
+  /**
+  * SectionAbout — About section: brand bar, bio paragraphs, visual (PM3 rule 6)
+ *
+ * Content from content store: about.title, about.paragraph1, about.paragraph2
+ *
+ * @example <SectionAbout />
+  */
   import IconPhoto from '@tabler/icons-svelte/icons/photo'
   import * as m from '$lib/i18n'
   import { t } from '$lib/stores/content.svelte'

@@ -12,7 +12,17 @@
   import HamburgerIcon from '$lib/components/atoms/HamburgerIcon.svelte'
   import { scrollHeader } from '$lib/actions/scrollHeader'
 
-  let { class: className = '' }: { class?: string } = $props()
+  /**
+ * TheHeader — Fixed site header: logo, nav, actions, mobile drawer (PM3 skeleton)
+ *
+ * Config-driven via FEATURES (onepager, interactiveHeader, hideHeaderOnScroll,
+ * verticalNav, headerFooterWidthMode). Uses scrollHeader action for scrolled states.
+ *
+ * @props class?: string — merged Tailwind classes
+ * @example <TheHeader />
+ */
+
+let { class: className = '' }: { class?: string } = $props()
   const navState = getNavState()
   const activeSection = $derived(navState.activeSection)
   const isFullWidth = $derived(FEATURES.headerFooterWidthMode === "full")

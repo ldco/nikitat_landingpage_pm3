@@ -1,4 +1,11 @@
 <script lang="ts">
+  /**
+  * SectionFocus — Focus grid: 6 capability cards with dev/design categories (PM3 rule 6)
+ *
+ * Content from content store: focus.card1-6.title/.desc
+ *
+ * @example <SectionFocus />
+  */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'

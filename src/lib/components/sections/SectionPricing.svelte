@@ -1,4 +1,9 @@
 <script lang="ts">
+  /**
+  * SectionPricing — Pricing tiers (PM3 rule 6)
+ *
+ * @example <SectionPricing />
+  */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'

@@ -1,4 +1,11 @@
 <script lang="ts">
+  /**
+  * SectionF22 — Fabrica22 partnership section: description + CTA (PM3 rule 6)
+ *
+ * Content from content store: f22.title, f22.description, f22.cta
+ *
+ * @example <SectionF22 />
+  */
   import * as m from '$lib/i18n'
   import { t } from '$lib/stores/content.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'

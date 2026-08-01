@@ -1,4 +1,9 @@
 <script lang="ts">
+  /**
+  * SectionFaq — FAQ accordion (PM3 rule 6)
+ *
+ * @example <SectionFaq />
+  */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'

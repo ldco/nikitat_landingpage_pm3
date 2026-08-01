@@ -2,7 +2,14 @@
   import LoadingBase from './LoadingBase.svelte'
   import LoadingText from './LoadingText.svelte'
   interface Props { class?: string }
-  let { class: className = '' }: Props = $props()
+  /**
+ * LoadingCard — Card-shaped loading skeleton (PM3 rule 8)
+ *
+ * @props class?: string — merged Tailwind classes
+ * @example <LoadingCard />
+ */
+
+let { class: className = '' }: Props = $props()
 </script>
 
 <div class="bg-pm-bg-elevated border border-pm-border rounded-xl p-4 {className}" aria-hidden="true">

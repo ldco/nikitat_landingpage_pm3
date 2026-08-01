@@ -1,4 +1,9 @@
 <script lang="ts">
+  /**
+  * SectionPortfolio — Portfolio items grid (PM3 rule 6)
+ *
+ * @example <SectionPortfolio />
+  */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import IconPhoto from '@tabler/icons-svelte/icons/photo'

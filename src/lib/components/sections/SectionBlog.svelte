@@ -1,4 +1,9 @@
 <script lang="ts">
+  /**
+  * SectionBlog — Blog posts grid (PM3 rule 6)
+ *
+ * @example <SectionBlog />
+  */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'

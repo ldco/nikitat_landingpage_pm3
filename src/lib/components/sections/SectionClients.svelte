@@ -1,4 +1,9 @@
 <script lang="ts">
+  /**
+  * SectionClients — Client logos (PM3 rule 6)
+ *
+ * @example <SectionClients />
+  */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'

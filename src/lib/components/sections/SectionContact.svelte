@@ -1,4 +1,11 @@
 <script lang="ts">
+  /**
+  * SectionContact — Contact form with CSRF + validation (PM3 rule 9 reference)
+ *
+ * Form contract: Zod → $state bindings → CSRF header → POST /api/contact/submit
+ *
+ * @example <SectionContact />
+  */
   import * as m from '$lib/i18n'
   import { t } from '$lib/stores/content.svelte'
   import { getCsrfToken } from '$lib/utils/auth'

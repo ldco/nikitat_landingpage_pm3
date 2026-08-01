@@ -1,4 +1,9 @@
 <script lang="ts">
+  /**
+  * SectionTeam — Team member cards (PM3 rule 6)
+ *
+ * @example <SectionTeam />
+  */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
