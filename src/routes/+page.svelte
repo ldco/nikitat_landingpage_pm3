@@ -3,11 +3,11 @@
   import SectionHero from '$lib/components/sections/SectionHero.svelte'
   import SectionRenderer from '$lib/components/complex/SectionRenderer.svelte'
   import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
 
   const isOnepager = $derived(FEATURES.onepager)
 
   // PM v2 parity: sections render from HOMEPAGE_SECTIONS enabled flag only.
-  // Module flags control admin availability, NOT homepage rendering.
   const sections = $derived(
     HOMEPAGE_SECTIONS.filter(s =>
       s.id !== 'hero' && s.enabled && s.renderMode !== 'page'
@@ -19,9 +19,10 @@
   <div class="has-scrolly-bg">
     <div class="scene-full-bleed">
       <SectionHero
-        title={m.sections_hero()}
-        primaryCta={m.nav_contact()}
-        secondaryCta={m.nav_portfolio()}
+        title={t('hero.title', m.sections_hero())}
+        subtitle={t('hero.subtitle', '')}
+        primaryCta={t('hero.primaryCta', m.nav_contact())}
+        secondaryCta={t('hero.secondaryCta', m.nav_portfolio())}
       />
     </div>
 
