@@ -96,6 +96,52 @@ export const CONTACT = {
   email: 'contact@fabrica22.pro'
 }
 
+// ── Header Quick Contact (config-driven from PM v2 headerContact) ─────────────
+
+export const HEADER_CONTACT = {
+  enabled: true,
+  /** Setting keys resolved via settings store (e.g. 'contact.email', 'social.telegram') */
+  items: ['contact.email', 'social.telegram']
+}
+
+// ── Footer "Made by" branding (config-driven from PM v2 footerMadeBy) ─────────
+
+export const FOOTER_MADE_BY = {
+  text: 'Made by',
+  url: 'https://fabrica22.pro',
+  logoAlt: 'Fabrica 22',
+  basePath: '/madebylogos',
+  available: [
+    'horizontal_dark_en',
+    'horizontal_dark_ru',
+    'horizontal_light_en',
+    'horizontal_light_ru',
+    'circle_dark_en',
+    'circle_dark_ru',
+    'circle_light_en',
+    'circle_light_ru'
+  ],
+  langFallback: { en: 'en', fr: 'en', he: 'en' }
+}
+
+// ── Storage (config-driven from PM v2 storage section) ─────────────────────────
+
+export const STORAGE_CONFIG = {
+  provider: 'local' as 'local' | 's3',
+  images: {
+    maxSize: 10 * 1024 * 1024, // 10 MB
+    quality: 85,
+    maxWidth: 2560,
+    maxHeight: 2560,
+    formats: ['avif', 'webp', 'png']
+  },
+  videos: {
+    maxSize: 100 * 1024 * 1024, // 100 MB
+    codec: 'h264' as const,
+    compression: 'medium' as const
+  }
+}
+
 // ── Modules ──────────────────────────────────────────────────────────────────
 
 export interface ModuleConfig {
@@ -270,7 +316,7 @@ export const FEATURES: Features = {
   footerCta: true,
   footerLegalLinks: true,
   footerMadeBy: true,
-  footerMadeWith: true,
+  footerMadeWith: false,
   backToTop: true
 }
 
@@ -320,7 +366,7 @@ export const LOGO = {
     horizontal: 'header' as const,
     circle: 'short' as const
   },
-  langFallback: Object.fromEntries(LOCALES.map(l => [l, DEFAULT_LOCALE])),
+  langFallback: { en: 'en', fr: 'en', he: 'en' },
   available: [
     'horizontal_dark_en',
     'horizontal_dark_ru',
