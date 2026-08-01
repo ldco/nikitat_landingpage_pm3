@@ -9,6 +9,7 @@ import type { LayoutServerLoad } from './$types'
 import { useDatabase, schema } from '$lib/server/db'
 import { eq } from 'drizzle-orm'
 import { getLegalDocuments } from '$lib/utils/legal-documents'
+import { logger } from '$lib/server/utils/logger'
 
 export const load: LayoutServerLoad = async ({ locals }) => {
   const locale = locals.paraglide?.lang ?? 'ru'
@@ -29,8 +30,8 @@ export const load: LayoutServerLoad = async ({ locals }) => {
   let legalDocuments: Array<{ slug: string; file: string }> = []
   try {
     legalDocuments = getLegalDocuments(locale)
-  } catch {
-    // Legal dir missing in dev — footer falls back to no links
+  } catch (e) {
+    logger.debug({ error: e instanceof Error ? e.message : e }, 'Legal documents dir not available')
   }
 
   return { contentTranslations, legalDocuments }

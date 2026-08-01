@@ -58,7 +58,7 @@
     try {
       localStorage.removeItem('pm-color-mode')
       localStorage.removeItem('pm-theme')
-    } catch { /* private mode */ }
+    } catch (e) { console.debug('[cookie] localStorage blocked:', e instanceof Error ? e.message : e) }
   }
 
   function accept() {

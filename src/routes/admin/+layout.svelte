@@ -92,7 +92,7 @@
         const res = await fetch('/api/admin/contacts/unread')
         const json = await res.json()
         if (json.success) unreadCount = json.data ?? 0
-      } catch { /* ignore */ }
+      } catch (e) { console.warn('[admin] unread count fetch failed:', e instanceof Error ? e.message : e) }
     }
     fetchCount()
     const interval = setInterval(fetchCount, 30000)

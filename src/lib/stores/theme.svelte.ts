@@ -21,7 +21,7 @@ function applyTheme(t: Theme) {
 
 function persistTheme(t: Theme) {
   if (!browser) return
-  try { localStorage.setItem(STORAGE_KEY, t) } catch { /* private mode */ }
+  try { localStorage.setItem(STORAGE_KEY, t) } catch (e) { console.debug('[theme] persist blocked:', e instanceof Error ? e.message : e) }
 }
 
 let _initialized = false
