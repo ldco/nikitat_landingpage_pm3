@@ -206,13 +206,17 @@
   --lightbox-image-max-height: 80vh;
   --brandbook-image-max-height: 70vh;
   --cookie-max-width: 92rem;
-  /* ── Content Card Tokens (PM2) ── */
-  --content-card-bg: var(--color-pm-bg-elevated);
-  --content-card-border: 1px solid var(--color-pm-border);
-  --content-card-radius: var(--radius-xl);
-  --content-card-hover-y: -4px;
-  --content-card-transition: 0.2s var(--ease-smooth);
-  --content-card-hover-shadow: var(--shadow-frosted-hover);
+  /* ── Section Component Tokens ── */
+  --about-visual-width: 62.5%;
+  --about-visual-radius: 40%;
+  --hero-leading: 0.9;
+  --hero-leading-mobile: 0.8;
+  --hero-title-mobile: clamp(1.75rem, 9.6vw, 2.55rem);
+  --section-heading: clamp(1.75rem, 4vw, 2.5rem);
+  --section-body-size: clamp(1.4rem, 3.2vw, 1.875rem);
+  --hero-logo-max-w: min(420px, 42vw);
+  --hero-logo-max-w-mobile: min(280px, 65vw);
+  --focus-ring-width: 3px;
 
   --glass-backdrop-blur: 14px; /* PM2 */
   --glass-backdrop-blur-subtle: blur(10px) saturate(1.04);
@@ -1092,6 +1096,79 @@
   animation: parallaxFloat 6s ease-in-out infinite;
 }
 
+
+/* ═══════════════════════════════════════════════════════════
+ * COMPONENT PATTERNS (PM3 @utility system)
+ * ═══════════════════════════════════════════════════════════ */
+
+@utility focus-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: var(--space-6);
+  background: var(--color-pm-bg-elevated);
+  border: 1px solid var(--color-pm-border);
+  border-top-width: 3px;
+  border-top-style: solid;
+  border-top-color: transparent;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-frosted);
+  transition: transform 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
+}
+
+@utility focus-card-branded {
+  border-top-color: var(--color-pm-brand);
+}
+
+@utility focus-card-subtle {
+  border-top-color: var(--color-pm-brand-subtle);
+}
+
+@utility focus-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+@utility focus-icon-box {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+}
+
+@utility contact-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-8);
+  background: var(--color-pm-bg-elevated);
+  border: 1px solid var(--color-pm-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-frosted);
+}
+
+@utility about-visual {
+  width: var(--about-visual-width);
+  aspect-ratio: 1;
+  background: var(--color-pm-bg-sunken);
+  border-radius: var(--about-visual-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--color-pm-text-muted);
+}
+
+
 @keyframes fade-in-up {
   from {
     opacity: 0;
@@ -1223,323 +1300,6 @@
   0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
   50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
 }
-
-
-/* ═══════════════════════════════════════════════════════════
- * SECTION STYLES (PM2 layout/sections.css + runtime/*.css parity)
- * ═══════════════════════════════════════════════════════════ */
-
-/* ── Base Section ── */
-.section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-block-start: calc(var(--h-header) + var(--space-12));
-  padding-block-end: var(--space-16);
-  scroll-margin-top: 0;
-}
-.section-fullscreen { min-height: 100dvh; }
-
-/* ── Section Backgrounds ── */
-.section-bg-elevated { background: var(--color-pm-bg-elevated); }
-.section-bg-sunken { background: var(--color-pm-bg-sunken); }
-
-/* ── Section Body (content area under heading) ── */
-.section-body {
-  flex-grow: 1;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.section-body > * { width: 100%; min-width: 0; }
-
-/* ── Section Grids ── */
-.section-grid-2col {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--gap-xl);
-  align-items: center;
-}
-@media (min-width: 640px) {
-  .section-grid-2col { grid-template-columns: 1fr 1fr; }
-}
-
-.section-grid-auto {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-  gap: var(--gap-lg);
-  justify-content: center;
-}
-
-/* ── Section Image ── */
-.section-image {
-  aspect-ratio: 4/3;
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  background: var(--color-pm-bg-sunken);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-pm-text-muted);
-}
-
-/* ═══════════════════════════════════════════════════════════
- * HERO SECTION (PM2 layout/sections.css lines 98-396)
- * ═══════════════════════════════════════════════════════════ */
-
-.section-hero {
-  position: relative;
-  background-color: var(--color-pm-bg);
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  gap: var(--space-8);
-  padding-block-start: calc(var(--h-header) + var(--space-8));
-  padding-inline: max(var(--space-6), calc((100vw - 80rem) / 2));
-  min-height: 100dvh;
-}
-
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--gap-md);
-  margin-block-start: var(--space-4);
-}
-
-.hero-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: visible;
-  z-index: 3;
-}
-
-.hero-logo__img {
-  width: 100%;
-  max-width: min(420px, 42vw);
-  height: auto;
-}
-
-/* Brand-colored title line */
-.hero-title__line {
-  display: block;
-  inline-size: fit-content;
-  overflow: visible;
-  line-height: inherit;
-}
-.hero-title__line--brand { color: var(--color-pm-brand); }
-
-/* Hero mobile */
-@media (max-width: 639px) {
-  .section-hero {
-    min-height: 100svh;
-    grid-template-columns: 1fr;
-    gap: var(--space-2);
-    padding-inline: var(--space-2);
-    padding-block-start: calc(var(--h-header) + var(--space-2));
-    padding-block-end: var(--space-4);
-  }
-  .hero-actions { width: 100%; justify-content: flex-start; }
-  .hero-logo__img { max-width: min(280px, 65vw); }
-}
-
-/* ═══════════════════════════════════════════════════════════
- * ABOUT SECTION (PM2 runtime/section-about.css)
- * ═══════════════════════════════════════════════════════════ */
-
-.about-grid {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--gap-xl);
-}
-
-.about-content__lead {
-  margin: 0 0 var(--space-5) 0;
-  position: relative;
-  padding-block-start: var(--space-5);
-}
-.about-content__lead::before {
-  content: '';
-  display: block;
-  width: 48px;
-  height: 3px;
-  background: var(--color-pm-brand);
-  border-radius: var(--radius-full);
-  margin-block-end: var(--space-4);
-  position: absolute;
-  top: 0;
-}
-
-.about-content__body { margin: 0; }
-
-.about-visual {
-  width: 62.5%;
-  aspect-ratio: 1/1;
-  background: var(--color-pm-bg-sunken);
-  border-radius: 40%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-/* ═══════════════════════════════════════════════════════════
- * FOCUS SECTION CARDS (PM2 runtime/section-focus.css)
- * ═══════════════════════════════════════════════════════════ */
-
-.focus-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--gap-lg);
-}
-@media (min-width: 640px) { .focus-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1024px) { .focus-grid { grid-template-columns: repeat(3, 1fr); } }
-
-.focus-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: var(--space-6);
-  background: var(--content-card-bg);
-  border: var(--content-card-border);
-  border-top-width: 3px;
-  border-top-style: solid;
-  border-top-color: transparent;
-  border-radius: var(--content-card-radius);
-  box-shadow: var(--shadow-frosted);
-  transition: transform var(--content-card-transition), box-shadow var(--content-card-transition);
-}
-.focus-card:hover {
-  transform: translateY(var(--content-card-hover-y));
-  box-shadow: var(--content-card-hover-shadow);
-}
-
-.focus-card--dev { border-top-color: var(--color-pm-brand); }
-.focus-card--design { border-top-color: var(--color-pm-brand-subtle); }
-
-.focus-card__badge {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--text-xs);
-  font-weight: var(--font-weight-semibold);
-  line-height: 1;
-  border-radius: var(--radius-full);
-  margin-block-end: var(--space-3);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-.focus-card__badge--dev { background: var(--color-pm-brand); color: var(--color-pm-white); }
-.focus-card__badge--design { background: var(--color-pm-brand-subtle); color: var(--color-pm-brand); }
-
-.focus-card__icon {
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-lg);
-  margin-block-end: var(--space-4);
-}
-.focus-card--dev .focus-card__icon { background: var(--color-pm-brand); }
-.focus-card--design .focus-card__icon { background: var(--color-pm-brand-subtle); }
-
-.focus-card__title { margin: 0 0 var(--space-2) 0; }
-.focus-card__desc { margin: 0; }
-
-/* ═══════════════════════════════════════════════════════════
- * CONTACT FORM (PM2 ui/content/contact.css)
- * ═══════════════════════════════════════════════════════════ */
-
-.contact-grid {
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap-xl);
-  max-width: 640px;
-  margin-inline: auto;
-}
-
-.contact-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-  padding: var(--space-8);
-  background: var(--content-card-bg);
-  border: var(--content-card-border);
-  border-radius: var(--content-card-radius);
-  box-shadow: var(--shadow-frosted);
-}
-
-.contact-form__row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
-}
-@media (max-width: 639px) { .contact-form__row { grid-template-columns: 1fr; } }
-
-.contact-form__field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.contact-form__label {
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-pm-text);
-}
-
-.contact-form__input,
-.contact-form__textarea {
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-pm-bg);
-  border: 1px solid var(--color-pm-border);
-  border-radius: var(--radius-lg);
-  font-size: var(--text-base);
-  color: var(--color-pm-text);
-  transition: border-color 200ms var(--ease-smooth), box-shadow 200ms var(--ease-smooth);
-}
-.contact-form__input:focus,
-.contact-form__textarea:focus {
-  outline: none;
-  border-color: var(--color-pm-brand);
-  box-shadow: 0 0 0 3px var(--i-focus-ring);
-}
-
-.contact-form__textarea { min-height: 150px; resize: vertical; }
-
-.contact-form__consent {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--gap-xs);
-  line-height: var(--leading-relaxed);
-}
-.contact-form__consent-link { color: var(--color-pm-brand); }
-.contact-form__consent-link:hover { text-decoration: underline; }
-
-.contact-form__submit {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-3) var(--space-6);
-  background: var(--color-pm-brand);
-  color: var(--color-pm-white);
-  font-weight: var(--font-weight-medium);
-  font-size: var(--text-lg);
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: background-color 150ms var(--ease-smooth);
-}
-.contact-form__submit:hover { background: var(--color-pm-brand-light); }
-.contact-form__submit:disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* Status messages */
-.contact-form__status { padding: var(--space-3); border-radius: var(--radius-md); font-size: var(--text-sm); }
-.contact-form__status--success { background: var(--color-pm-success-bg); color: var(--color-pm-success); }
-.contact-form__status--error { background: var(--color-pm-danger-bg); color: var(--color-pm-danger); }
 
 /* ═══════════════════════════════════════════════════════════════════════
    Page Transitions (ported from PM v2 animations/page-transitions.css)

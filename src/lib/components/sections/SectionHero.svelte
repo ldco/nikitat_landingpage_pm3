@@ -26,34 +26,39 @@
   const parallaxEnabled = $derived(FEATURES.heroParallax)
 </script>
 
-<section id="hero" class="section-hero">
+<section id="hero" class="relative grid grid-cols-1 md:grid-cols-2 items-center gap-[var(--space-8)]
+       min-h-dvh pt-[var(--pt-section)] pb-[var(--space-4)]
+       px-[max(var(--space-6),calc((100vw-var(--max-w-container))/2))]
+       bg-pm-bg scroll-mt-0
+       max-sm:min-h-svh max-sm:gap-[var(--space-2)] max-sm:px-[var(--space-2)]">
   {#if parallaxEnabled}
     <HeroParallaxScene />
   {/if}
 
-  <!-- Left: Text content -->
-  <div class="section-body">
-    <!-- Hero title with brand-colored segments -->
-    <h1 class="hero-title">
+  <!-- Left: Text -->
+  <div class="flex flex-col justify-center">
+    <h1 class="text-fluid-hero font-black text-pm-text mb-[var(--space-5)] space-y-[var(--space-2)]
+              leading-[var(--hero-leading)] tracking-normal
+              max-sm:text-[var(--hero-title-mobile)] max-sm:leading-[var(--hero-leading-mobile)]">
       {#each segments as segment}
-        <span class="hero-title__line" class:hero-title__line--brand={segment.brand}>
+        <span class="block w-fit" class:text-pm-brand={segment.brand}>
           {segment.text}
         </span>
       {/each}
     </h1>
     {#if subtitle}
-      <p class="text-fluid-xl text-pm-text-secondary max-w-prose leading-relaxed mb-5">{subtitle}</p>
+      <p class="text-fluid-xl text-pm-text-secondary max-w-prose leading-relaxed mb-[var(--space-5)]">{subtitle}</p>
     {/if}
-    <div class="hero-actions">
-      <CtaButton href={primaryHref} variant="primary" size="lg">{primaryCta}</CtaButton>
-      <CtaButton href={secondaryHref} variant="outline" size="lg">{secondaryCta}</CtaButton>
+    <div class="flex flex-wrap gap-[var(--gap-md)] mt-[var(--space-4)] max-sm:w-full">
+      <CtaButton href={primaryHref} variant="primary" size="lg" class="max-sm:w-full">{primaryCta}</CtaButton>
+      <CtaButton href={secondaryHref} variant="outline" size="lg" class="max-sm:w-full">{secondaryCta}</CtaButton>
     </div>
   </div>
 
-  <!-- Right: Logo (PM2 .hero-logo) -->
+  <!-- Right: Logo -->
   {#if showLogo}
-    <div class="hero-logo">
-      <div class="hero-logo__img">
+    <div class="flex items-center justify-center overflow-visible z-30">
+      <div class="w-full max-w-[var(--hero-logo-max-w)] max-sm:max-w-[var(--hero-logo-max-w-mobile)]">
         <Logo shape="circle" />
       </div>
     </div>

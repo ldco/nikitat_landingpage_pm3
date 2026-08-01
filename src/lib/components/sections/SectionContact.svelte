@@ -12,75 +12,66 @@
   const consentText = $derived(t('contact.consentPrefix', 'Я согласен на '))
   const consentLink = $derived(t('contact.consentPersonalData', 'обработку персональных данных'))
 
-  let name = $state('')
-  let email = $state('')
-  let message = $state('')
-  let consent = $state(false)
-  let sending = $state(false)
-  let success = $state(false)
-  let errorMsg = $state('')
+  let name = $state(''); let email = $state(''); let message = $state('')
+  let consent = $state(false); let sending = $state(false)
+  let success = $state(false); let errorMsg = $state('')
 
   async function handleSubmit(e: Event) {
     e.preventDefault()
-    if (sending) return
-    errorMsg = ''
-    success = false
+    if (sending) return; errorMsg = ''; success = false
     if (!name.trim() || !email.trim() || !message.trim()) { errorMsg = 'Заполните все обязательные поля'; return }
     if (!consent) { errorMsg = t('contact.consentRequired', 'Требуется согласие'); return }
-    if (message.trim().length < 3) { errorMsg = t('contact.messageTooShort', 'Слишком коротко'); return }
     sending = true
     try {
       const res = await fetch('/api/contact/submit', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-csrf-token': getCsrfToken() },
+        method: 'POST', headers: { 'content-type': 'application/json', 'x-csrf-token': getCsrfToken() },
         body: JSON.stringify({ name: name.trim(), email: email.trim(), message: message.trim(), consent })
       })
       if (res.ok) { success = true; name = ''; email = ''; message = ''; consent = false }
       else { const body = await res.json().catch(() => ({})); errorMsg = body.error?.message || t('contact.errorMessage', 'Ошибка') }
-    } catch { errorMsg = t('contact.errorMessage', 'Ошибка сети') }
-    finally { sending = false }
+    } catch { errorMsg = t('contact.errorMessage', 'Ошибка сети') } finally { sending = false }
   }
 </script>
 
-<section id="contact" class="section section-bg-elevated">
-  <div class="section-body" style="padding-inline: var(--px-container);">
-    <h2 class="section-title text-center">{title}</h2>
+<section id="contact" class="flex flex-col items-center pt-[var(--pt-section)] pb-[var(--space-16)] bg-pm-bg-elevated">
+  <div style="padding-inline: var(--px-container); max-width: var(--max-w-container);" class="w-full mx-auto">
+    <h2 class="text-[var(--section-heading)] font-black leading-tight text-center mb-[var(--space-4)]">{title}</h2>
     {#if intro}
-      <p class="text-center text-pm-text-secondary mb-6 max-w-xl mx-auto">{intro}</p>
+      <p class="text-center text-pm-text-secondary mb-[var(--space-6)] max-w-xl mx-auto">{intro}</p>
     {/if}
 
-    <div class="contact-grid">
-      <form onsubmit={handleSubmit} class="contact-form">
-        <div class="contact-form__row">
-          <div class="contact-form__field">
-            <label for="contact-name" class="contact-form__label contact-form__label--required">{nameLabel}</label>
-            <input id="contact-name" type="text" bind:value={name} class="contact-form__input" placeholder={nameLabel} required />
+    <div class="max-w-[40rem] mx-auto">
+      <form onsubmit={handleSubmit} class="contact-card">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-[var(--space-4)]">
+          <div class="flex flex-col gap-[var(--space-2)]">
+            <label for="c-name" class="text-sm font-medium text-pm-text">{nameLabel}</label>
+            <input id="c-name" bind:value={name} class="w-full px-[var(--space-3)] py-[var(--space-2)] bg-pm-bg border border-pm-border rounded-lg text-fluid-base text-pm-text placeholder-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring focus:ring-pm-brand/30 transition" placeholder={nameLabel} required />
           </div>
-          <div class="contact-form__field">
-            <label for="contact-email" class="contact-form__label contact-form__label--required">{emailLabel}</label>
-            <input id="contact-email" type="email" bind:value={email} class="contact-form__input" placeholder={emailLabel} required />
+          <div class="flex flex-col gap-[var(--space-2)]">
+            <label for="c-email" class="text-sm font-medium text-pm-text">{emailLabel}</label>
+            <input id="c-email" type="email" bind:value={email} class="w-full px-[var(--space-3)] py-[var(--space-2)] bg-pm-bg border border-pm-border rounded-lg text-fluid-base text-pm-text placeholder-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring focus:ring-pm-brand/30 transition" placeholder={emailLabel} required />
           </div>
         </div>
 
-        <div class="contact-form__field">
-          <label for="contact-message" class="contact-form__label contact-form__label--required">{messageLabel}</label>
-          <textarea id="contact-message" bind:value={message} class="contact-form__textarea" placeholder={messageLabel} rows={4} required></textarea>
+        <div class="flex flex-col gap-[var(--space-2)]">
+          <label for="c-msg" class="text-sm font-medium text-pm-text">{messageLabel}</label>
+          <textarea id="c-msg" bind:value={message} rows={4} class="w-full px-[var(--space-3)] py-[var(--space-2)] bg-pm-bg border border-pm-border rounded-lg text-fluid-base text-pm-text placeholder-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring focus:ring-pm-brand/30 transition min-h-[150px] resize-y" placeholder={messageLabel} required></textarea>
         </div>
 
-        <label class="contact-form__consent">
+        <label class="flex items-start gap-[var(--gap-xs)] leading-relaxed cursor-pointer">
           <input type="checkbox" bind:checked={consent} class="mt-1" />
-          <span class="text-xs text-pm-text-secondary">{consentText}<a href="/legal/personal-data-policy" class="contact-form__consent-link" target="_blank">{consentLink}</a></span>
+          <span class="text-xs text-pm-text-secondary">{consentText}<a href="/legal/personal-data-policy" class="text-pm-brand hover:underline" target="_blank">{consentLink}</a></span>
         </label>
 
-        <button type="submit" disabled={sending} class="contact-form__submit btn-full">
+        <button type="submit" disabled={sending} class="btn-style bg-pm-brand text-pm-white hover:bg-pm-brand-light px-[var(--space-6)] py-[var(--space-3)] text-fluid-lg rounded-lg">
           {sending ? t('contact.sending', 'Отправка...') : sendLabel}
         </button>
 
         {#if success}
-          <div class="contact-form__status contact-form__status--success">{t('contact.successMessage', 'Отправлено!')}</div>
+          <div class="p-[var(--space-3)] rounded-md bg-pm-success/10 border border-pm-success/20 text-sm text-pm-success">{t('contact.successMessage', 'Отправлено!')}</div>
         {/if}
         {#if errorMsg}
-          <div class="contact-form__status contact-form__status--error">{errorMsg}</div>
+          <div class="p-[var(--space-3)] rounded-md bg-pm-danger/10 border border-pm-danger/20 text-sm text-pm-danger">{errorMsg}</div>
         {/if}
       </form>
     </div>
