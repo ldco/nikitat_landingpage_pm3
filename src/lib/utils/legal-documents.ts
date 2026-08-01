@@ -67,12 +67,12 @@ export function readLegalDocument(slug: string, locale: string): string | null {
   return null
 }
 
-/** Resolve the Paraglide message key for a legal document title. */
-export function legalDocumentTitleKey(file: string): string {
-  const map: Record<string, string> = {
-    'privacy-policy': 'legal.privacyPolicy',
-    'personal-data-policy': 'legal.personalDataPolicy',
-    'terms-of-service': 'legal.termsOfService'
+/** Resolve the Paraglide message function name for a legal document title. */
+export function legalDocumentTitleKey(file: string): 'footer_privacy' | 'footer_personalData' | 'footer_terms' {
+  const map: Record<string, 'footer_privacy' | 'footer_personalData' | 'footer_terms'> = {
+    'privacy-policy': 'footer_privacy',
+    'personal-data-policy': 'footer_personalData',
+    'terms-of-service': 'footer_terms'
   }
-  return map[file] ?? 'legal.termsOfService'
+  return map[file] ?? 'footer_terms'
 }

@@ -320,5 +320,6 @@
   "validation_email": "Введите корректный email",
   "validation_maxLength": "Максимум {max} символов",
   "validation_minLength": "Минимум {min} символов",
-  "validation_required": "Обязательное поле"
+  "validation_required": "Обязательное поле",
+  "cta_primaryButton": "Связаться"
 }

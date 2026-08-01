@@ -362,5 +362,6 @@
   "validation_email": "Please enter a valid email",
   "validation_maxLength": "Must be at most {max} characters",
   "validation_minLength": "Must be at least {min} characters",
-  "validation_required": "This field is required"
+  "validation_required": "This field is required",
+  "cta_primaryButton": "Get in touch"
 }

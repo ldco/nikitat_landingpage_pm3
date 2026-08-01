@@ -18,11 +18,15 @@
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
   import { FEATURES, FRAMEWORK } from '$lib/config/site'
+  import { languageTag } from '$lib/paraglide/runtime.js'
   import MadeBy from '$lib/components/atoms/MadeBy.svelte'
   import MadeWith from '$lib/components/atoms/MadeWith.svelte'
   import Logo from '$lib/components/atoms/Logo.svelte'
   import SocialNav from '$lib/components/molecules/SocialNav.svelte'
   import FooterNav from '$lib/components/molecules/FooterNav.svelte'
+  import FooterCta from '$lib/components/molecules/FooterCta.svelte'
+  import LegalInfo from '$lib/components/molecules/LegalInfo.svelte'
+  import { getLegalDocuments, legalDocumentTitleKey } from '$lib/utils/legal-documents'
 
   let {
     class: className = ''
@@ -37,6 +41,13 @@
   const showMadeBy = $derived(FEATURES.footerMadeBy)
   const showMadeWith = $derived(FEATURES.footerMadeWith)
   const showFooterCta = $derived(FEATURES.footerCta)
+  const legalDocs = $derived.by(() => {
+    try {
+      return getLegalDocuments(languageTag())
+    } catch {
+      return []
+    }
+  })
 </script>
 
 <footer class={twMerge(clsx(
@@ -58,7 +69,7 @@
       <!-- Right: CTA + FooterNav (app-nuxt: .footer-actions) -->
       <div class="flex flex-col items-center sm:items-end gap-4 w-full min-w-0">
         {#if showFooterCta}
-          <a href="/#contact" class="px-5 py-2.5 text-sm font-medium bg-pm-brand text-pm-white rounded-md hover:bg-pm-brand-light transition-colors">{m.nav_contact()}</a>
+          <FooterCta />
         {/if}
         <FooterNav />
       </div>
@@ -67,11 +78,12 @@
 
     <!-- ═══ Legal Bar (app-nuxt: .legal-bar) ═══ -->
     <div class="flex flex-col sm:flex-row flex-wrap items-center justify-between gap-2 mt-8 pt-4 border-t border-pm-border text-xs text-pm-text-muted">
-      <span>&copy; {year} {m.footer_rights()}</span>
-      {#if showLegalLinks}
+      <LegalInfo />
+      {#if showLegalLinks && legalDocs.length > 0}
       <div class="flex gap-3">
-        <a href="/legal/privacy-policy" class="text-pm-text-muted underline underline-offset-2 decoration-1 hover:text-pm-text transition-colors decoration-pm-border/50">{m.footer_privacy()}</a>
-        <a href="/legal/terms-of-service" class="text-pm-text-muted underline underline-offset-2 decoration-1 hover:text-pm-text transition-colors decoration-pm-border/50">{m.footer_terms()}</a>
+        {#each legalDocs as doc (doc.slug)}
+          <a href={`/legal/${doc.slug}`} class="text-pm-text-muted underline underline-offset-2 decoration-1 hover:text-pm-text transition-colors decoration-pm-border/50">{m[legalDocumentTitleKey(doc.file)]()}</a>
+        {/each}
       </div>
       {/if}
     </div>

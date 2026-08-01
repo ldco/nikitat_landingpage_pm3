@@ -265,5 +265,6 @@
   "validation_email": "הזן כתובת דוא\"ל תקינה",
   "validation_maxLength": "לא יותר מ-{max} תווים",
   "validation_minLength": "לפחות {min} תווים",
-  "validation_required": "שדה חובה"
+  "validation_required": "שדה חובה",
+  "cta_primaryButton": "צור קשר"
 }

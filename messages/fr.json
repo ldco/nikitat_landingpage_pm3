@@ -395,5 +395,6 @@
   "validation_email": "Email invalide",
   "validation_maxLength": "Maximum {max} caractères",
   "validation_minLength": "Minimum {min} caractères",
-  "validation_required": "Ce champ est requis"
+  "validation_required": "Ce champ est requis",
+  "cta_primaryButton": "Me contacter"
 }

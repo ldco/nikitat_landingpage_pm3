@@ -94,7 +94,7 @@
       <div class="min-w-0">
         <p class="m-0 text-sm text-pm-text-secondary leading-snug">
           {m.cookies_description()}
-          <a href="/legal/privacy" class="text-pm-brand hover:text-pm-brand-light underline">{m.cookies_learnMore()}</a>.
+          <a href="/legal/privacy-policy" class="text-pm-brand hover:text-pm-brand-light underline">{m.cookies_learnMore()}</a>.
         </p>
       </div>
 

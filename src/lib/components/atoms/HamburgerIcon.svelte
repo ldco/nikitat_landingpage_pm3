@@ -16,11 +16,13 @@
   let {
     active = false,
     type = 'spin',
+    ariaLabel = 'Toggle menu',
     class: className = '',
     onclick
   }: {
     active?: boolean
     type?: AnimationType
+    ariaLabel?: string
     class?: string
     onclick?: (e: MouseEvent) => void
   } = $props()
@@ -29,7 +31,7 @@
 <button
   class={twMerge(clsx('hamburger', `hamburger--${type}`, active && 'active', className))}
   onclick={onclick}
-  aria-label="Toggle menu"
+  aria-label={ariaLabel}
   aria-expanded={active}
 >
   <span class="hamburger__inner"></span>

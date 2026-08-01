@@ -18,7 +18,7 @@ export interface SiteSettings {
   verification: Record<string, string | null>
 }
 
-const GROUP_KEYS = ['contact', 'social', 'legal', 'footer', 'seo', 'analytics', 'verification'] as const
+type GroupKey = 'contact' | 'social' | 'legal' | 'footer' | 'seo' | 'analytics' | 'verification'
 
 const EMPTY: SiteSettings = {
   contact: {},
@@ -38,9 +38,10 @@ let _error = $state<string | null>(null)
 function groupByPrefix(flat: Record<string, string | null>): SiteSettings {
   const result: SiteSettings = { ...EMPTY, contact: {}, social: {}, legal: {}, footer: {}, seo: {}, analytics: {}, verification: {} }
   for (const [key, value] of Object.entries(flat)) {
-    const prefix = key.split('.')[0] as (typeof GROUP_KEYS)[number]
-    if (prefix in result && typeof result[prefix] === 'object' && result[prefix] !== null) {
-      result[prefix]![key.slice(prefix.length + 1)] = value
+    const prefix = key.split('.')[0] as GroupKey
+    const group = result[prefix]
+    if (group && typeof group === 'object') {
+      group[key.slice(prefix.length + 1)] = value
     }
   }
   return result
@@ -76,7 +77,7 @@ export function getSettings() {
   function get(key: string): string | null {
     const idx = key.indexOf('.')
     if (idx < 0) return null
-    const group = key.slice(0, idx) as (typeof GROUP_KEYS)[number]
+    const group = key.slice(0, idx) as GroupKey
     const field = key.slice(idx + 1)
     const g = _settings[group]
     if (typeof g === 'object' && g !== null) return g[field] ?? null

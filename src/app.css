@@ -921,13 +921,13 @@
 }
 
 @utility h-logo-scrolled {
+  height: var(--logo-scrolled-height);
+}
 
 @utility footer-logo {
   height: var(--footer-logo-height, 2rem);
   max-width: var(--footer-logo-max-width, 220px);
   width: auto;
-}
-  height: var(--logo-scrolled-height);
 }
 
 @utility px-container {
