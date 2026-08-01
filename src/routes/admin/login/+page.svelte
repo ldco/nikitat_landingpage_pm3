@@ -1,11 +1,9 @@
 <script lang="ts">
-  /**
-   * Admin Login — Email + password login form
-   * Rule #1: class prop + twMerge
-   */
-  import { clsx } from 'clsx'
-  import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
+  import { FRAMEWORK } from '$lib/config/site'
+  import { goto } from '$app/navigation'
+  import Logo from '$lib/components/atoms/Logo.svelte'
+  import { page } from '$app/stores'
 
   let email = $state('')
   let password = $state('')
@@ -25,12 +23,12 @@
       })
       const data = await res.json()
       if (data.success) {
-        window.location.href = '/admin'
+        goto('/admin')
       } else {
-        error = data.error?.message ?? 'Login failed'
+        error = m.common_error()
       }
     } catch {
-      error = 'Network error. Try again.'
+      error = m.common_error()
     } finally {
       loading = false
     }
@@ -40,30 +38,32 @@
 <div class="min-h-screen flex items-center justify-center bg-pm-bg">
   <div class="w-full max-w-sm mx-auto">
     <div class="bg-pm-bg-elevated border border-pm-border rounded-xl p-8 shadow-lg">
-      <h1 class="text-2xl font-bold text-pm-text text-center mb-8">PM Admin</h1>
+      <div class="flex justify-center mb-6">
+        <Logo shape="horizontal" />
+      </div>
 
       <form onsubmit={handleSubmit} class="space-y-4">
         <div>
-          <label for="email" class="block text-sm font-medium text-pm-text mb-1">Email</label>
+          <label for="email" class="block text-sm font-medium text-pm-text mb-1">{m.auth_email()}</label>
           <input
             id="email"
             type="email"
             bind:value={email}
             required
             class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-pm-text text-sm focus:outline-none focus:ring-2 focus:ring-pm-focus-ring"
-            placeholder="admin@example.com"
+            placeholder={m.auth_email()}
           />
         </div>
 
         <div>
-          <label for="password" class="block text-sm font-medium text-pm-text mb-1">Password</label>
+          <label for="password" class="block text-sm font-medium text-pm-text mb-1">{m.auth_password()}</label>
           <input
             id="password"
             type="password"
             bind:value={password}
             required
             class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-pm-text text-sm focus:outline-none focus:ring-2 focus:ring-pm-focus-ring"
-            placeholder="••••••••"
+            placeholder={m.auth_password()}
           />
         </div>
 
@@ -76,8 +76,12 @@
           disabled={loading}
           class="w-full py-2.5 px-4 rounded-md bg-pm-brand text-pm-white font-medium text-sm hover:bg-pm-brand-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {loading ? 'Signing in...' : 'Sign in'}
+          {loading ? m.common_loading() + '...' : m.auth_login()}
         </button>
+
+        <p class="text-xs text-center text-pm-text-muted mt-4">
+          {m.footer_madeBy()} — <a href={FRAMEWORK.url} target="_blank" rel="noopener noreferrer" class="hover:text-pm-brand transition-colors">{m.footer_madeBy()}</a>
+        </p>
       </form>
     </div>
   </div>

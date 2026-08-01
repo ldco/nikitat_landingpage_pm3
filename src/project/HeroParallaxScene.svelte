@@ -19,29 +19,25 @@
     Promise.all(['clouds/far', 'clouds/mid', 'clouds/front'].map(k => checkLayer(k)))
       .then(results => { layers = ['clouds/far', 'clouds/mid', 'clouds/front'].filter((_, i) => results[i]) })
   })
+
+  // Map layer suffix to Tailwind classes (matches app-nuxt hero-parallax.css)
+  function layerClass(layer: string): string {
+    const suffix = layer.split('/')[1] ?? layer
+    const map: Record<string, string> = {
+      far: 'opacity-30 blur-xs',
+      mid: 'opacity-60',
+      front: 'opacity-90'
+    }
+    return map[suffix] ?? 'opacity-60'
+  }
 </script>
 
 {#if layers.length > 0}
-  <div class="hero-parallax-scene pointer-events-none select-none" aria-hidden="true">
+  <div class="absolute inset-0 overflow-hidden z-10 pointer-events-none select-none" aria-hidden="true">
     {#each layers as layer}
-      <div class="hero-parallax-scene__cloud hero-parallax-scene__cloud--{layer.split('/')[1] || layer}">
+      <div class={layerClass(layer)}>
         <img src="/images/hero/layers/{layer}.svg" alt="" loading="lazy" decoding="async" fetchpriority="low" />
       </div>
     {/each}
   </div>
 {/if}
-
-<style>
-  .hero-parallax-scene {
-    position: absolute; inset: 0; overflow: hidden; z-index: 1;
-    pointer-events: none; user-select: none;
-  }
-  .hero-parallax-scene__cloud {
-    position: absolute; will-change: transform;
-    animation: parallaxFloat 6s ease-in-out infinite;
-  }
-  .hero-parallax-scene__cloud--far { opacity: 0.3; filter: blur(1px); }
-  .hero-parallax-scene__cloud--mid { opacity: 0.6; }
-  .hero-parallax-scene__cloud--front { opacity: 0.9; }
-  @keyframes parallaxFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-</style>

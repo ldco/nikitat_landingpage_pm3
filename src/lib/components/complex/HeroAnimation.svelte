@@ -32,7 +32,7 @@
     children?: import('svelte').Snippet
   } = $props()
 
-  let logoRef: HTMLDivElement
+  let logoRef = $state.raw() as HTMLDivElement
   let headingRef: HTMLHeadingElement
   let subtitleRef: HTMLParagraphElement
   let buttonsRef: HTMLDivElement
@@ -88,7 +88,7 @@
 </script>
 
 <div
-  class={twMerge(clsx('relative flex flex-col items-center justify-center min-h-[80vh] px-4 text-center', className))}
+  class={twMerge(clsx('relative flex flex-col items-center justify-center min-h-hero px-4 text-center', className))}
 >
   {#if children}
     <div bind:this={logoRef}>

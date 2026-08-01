@@ -118,7 +118,7 @@ function extractBraceBlock(content: string, startKeyword: string): string | null
   if (keywordIndex === -1) return null
 
   // Find the opening brace after the keyword
-  let openBraceIndex = content.indexOf('{', keywordIndex)
+  const openBraceIndex = content.indexOf('{', keywordIndex)
   if (openBraceIndex === -1) return null
 
   // Use brace balancing to find the matching closing brace

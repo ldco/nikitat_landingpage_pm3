@@ -42,9 +42,10 @@
     actions?: import('svelte').Snippet
   } = $props()
 
-  const base =
+  const base = $derived(
     'bg-pm-bg-elevated border border-pm-border rounded-xl overflow-hidden ' +
     (hover ? 'hover:shadow-lg hover:-translate-y-1 transition-all duration-200' : '')
+  )
 
   const bodyPadding: Record<string, string> = {
     none: '',
@@ -78,6 +79,7 @@
     {/if}
   </a>
 {:else}
+  <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <div class={merged} {onclick} role={onclick ? 'button' : undefined} tabindex={onclick ? 0 : undefined}>
     {#if image}{@render image()}{/if}
     {#if header}

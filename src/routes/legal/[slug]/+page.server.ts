@@ -14,7 +14,7 @@ export function load({ params, locals }: RequestEvent) {
   }
 
   const fileSlug = slugToFile[slug]
-  if (!fileSlug) error(404, 'Page not found')
+  if (!fileSlug) error(404)
 
   const filePath = `legal/${locale}/${fileSlug}.md`
   try {
@@ -26,7 +26,7 @@ export function load({ params, locals }: RequestEvent) {
       const markdown = readFileSync(`legal/en/${fileSlug}.md`, 'utf-8')
       return { markdown, slug }
     } catch {
-      error(404, 'Page not found')
+      error(404)
     }
   }
 }

@@ -34,10 +34,10 @@
   const parallaxEnabled = $derived(FEATURES.heroParallax)
 </script>
 
-<section id="home" class={twMerge(clsx(
+<section id="hero" class={twMerge(clsx(
   'relative grid grid-cols-1 md:grid-cols-2 items-center gap-8 min-h-dvh',
-  parallaxEnabled && 'z-[1]',
-  'px-[max(1.5rem,calc((100vw-1280px)/2))]',
+  parallaxEnabled && 'z-10',
+  'px-hero-edge',
   'pt-[var(--pt-section)] pb-4',
   'bg-pm-bg',
   className
@@ -49,7 +49,7 @@
 
   <!-- Left: Text -->
   <div class="flex flex-col justify-center z-10 min-w-0">
-    <h1 class="text-fluid-hero font-black leading-[0.9] tracking-normal text-pm-text mb-5 space-y-2">
+    <h1 class="text-fluid-hero font-black leading-tight tracking-normal text-pm-text mb-5 space-y-2">
       {#each segments as segment}
         <span class="block w-fit" class:text-pm-brand={segment.brand}>
           {segment.text}
@@ -57,11 +57,11 @@
       {/each}
     </h1>
     {#if subtitle}
-      <p class="text-fluid-xl text-pm-text-secondary max-w-[700px] leading-relaxed mb-8">
+      <p class="text-fluid-xl text-pm-text-secondary max-w-prose leading-relaxed mb-8">
         {subtitle}
       </p>
     {/if}
-    <div class="flex flex-wrap gap-[var(--gap-md)] max-sm:w-full">
+    <div class="flex flex-wrap gap-md-custom max-sm:w-full">
       <CtaButton href={primaryHref} variant="primary" size="lg" class="max-sm:w-full">{primaryCta}</CtaButton>
       <CtaButton href={secondaryHref} variant="outline" size="lg" class="max-sm:w-full">{secondaryCta}</CtaButton>
     </div>
@@ -69,8 +69,8 @@
 
   <!-- Right: Logo -->
   {#if showLogo}
-    <div class="flex items-center justify-center overflow-visible z-[3]">
-      <div class="w-full max-w-[min(420px,42vw)] max-sm:max-w-[min(280px,65vw)]">
+    <div class="flex items-center justify-center overflow-visible z-30">
+      <div class="w-full max-w-hero-logo max-sm:max-w-hero-logo-mobile">
         <Logo shape="circle" />
       </div>
     </div>

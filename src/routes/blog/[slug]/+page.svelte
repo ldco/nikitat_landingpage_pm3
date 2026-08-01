@@ -6,11 +6,12 @@
   import { clsx } from 'clsx'
   import AppImage from '$lib/components/atoms/AppImage.svelte'
   import * as m from '$lib/i18n'
+  import IconArrowLeft from '@tabler/icons-svelte/icons/arrow-left'
   import { FEATURES } from '$lib/config/site'
   import type { PageData } from './$types'
 
   let { data }: { data: PageData } = $props()
-  const { post } = data
+  const { post } = $derived(data)
   const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
 </script>
 
@@ -21,7 +22,7 @@
 <article class={clsx('w-full mx-auto px-6 md:px-8 py-24', isContained && 'max-w-prose')}>
   <!-- Back link -->
   <a href="/blog" class="inline-flex items-center gap-2 text-sm text-pm-text-muted hover:text-pm-brand transition-colors mb-8">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="19 12 5 12" /><polyline points="12 19 5 12 12 5" /></svg>
+    <IconArrowLeft class="size-4" />
     {m.nav_blog()}
   </a>
 

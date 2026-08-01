@@ -24,7 +24,7 @@
         {#each items as item (item.id)}
           <tr class="border-b border-pm-border hover:bg-pm-bg-elevated transition-colors">
             <td class="px-4 py-3 font-mono text-xs text-pm-text">{item.key}</td>
-            <td class="px-4 py-3 text-pm-text-muted max-w-[300px] truncate">{item.value ?? '—'}</td>
+            <td class="px-4 py-3 text-pm-text-muted max-w-72 truncate">{item.value ?? '—'}</td>
             <td class="px-4 py-3 text-pm-text-muted">{item.group}</td>
             <td class="px-4 py-3 text-right"><span class="text-xs text-pm-text-muted">—</span></td>
           </tr>

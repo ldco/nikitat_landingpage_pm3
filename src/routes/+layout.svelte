@@ -11,6 +11,7 @@
   import BackToTop from '$lib/components/atoms/BackToTop.svelte'
   import CookieConsent from '$lib/components/complex/CookieConsent.svelte'
   import ToastContainer from '$lib/components/complex/ToastContainer.svelte'
+  import FallingLetters from '../project/FallingLetters.svelte'
 
   let { children }: { children?: import('svelte').Snippet } = $props()
   const isOnepager = $derived(FEATURES.onepager)
@@ -23,9 +24,10 @@
 </script>
 
 {#if !$page.url.pathname.startsWith('/admin')}
+  <FallingLetters />
   <TheHeader />
 {/if}
-<main class={clsx('min-h-screen', !$page.url.pathname.startsWith('/admin') && (isVerticalNav ? 'ms-16' : 'pt-16'))} use:scrollSpy>
+<main id="main-content" class={clsx('min-h-screen', !$page.url.pathname.startsWith('/admin') && (isVerticalNav ? 'ms-16' : 'pt-16'))} use:scrollSpy>
   {#key $page.url.pathname}
     {#if transitionType === 'fade'}
       <div transition:fade={{ duration: 200 }}>{@render children?.()}</div>
@@ -45,8 +47,10 @@
   {/key}
 </main>
 {#if !$page.url.pathname.startsWith('/admin')}
-  <TheFooter />
-  <BackToTop />
+    <TheFooter />
+{#if FEATURES.backToTop}
+<BackToTop />
+{/if}
   <CookieConsent />
 {/if}
 <ToastContainer />

@@ -11,6 +11,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import IconChevronUp from '@tabler/icons-svelte/icons/chevron-up'
   import { FEATURES } from '$lib/config/site'
 
   let {
@@ -53,8 +54,6 @@
 
 {#if backToTopEnabled && visible}
   <button class={twMerge(clsx(base, className))} onclick={scrollToTop} aria-label="Back to top">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="18 15 12 9 6 15" />
-    </svg>
+    <IconChevronUp class="size-5" />
   </button>
 {/if}

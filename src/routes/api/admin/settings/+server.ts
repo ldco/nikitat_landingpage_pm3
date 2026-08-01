@@ -20,7 +20,7 @@ export function GET(event: RequestEvent) {
 export async function PUT(event: RequestEvent) {
   const actor = requireAdmin(event)
   const body = await event.request.json().catch(() => null)
-  if (!body) throw error(400, 'Invalid request body')
+  if (!body) throw error(400)
   const parsed = updateSettingsSchema.safeParse(body)
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
   const db = useDatabase()

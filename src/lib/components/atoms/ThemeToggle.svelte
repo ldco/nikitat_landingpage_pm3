@@ -1,40 +1,126 @@
 <script lang="ts">
   /**
-   * ThemeToggle — Light/dark mode switch
-   * Uses global theme store (Rule #5: UI state — ALLOWED)
-   * Rule #1: class prop + twMerge
+   * ThemeToggle — Light/dark mode switch with View Transitions API animation
+   *
+   * Ported from app-nuxt/app/components/atoms/ThemeToggle.vue (134 lines)
+   * Behavioral parity:
+   * - Circle reveal animation from click position (View Transitions API)
+   * - Falls back instantly if API unsupported or prefers-reduced-motion
+   * - Icon transition (sun <-> moon) via Svelte transition
+   * - SSR-safe: renders placeholder until hydrated
+   * - Cookie consent integration for preference persistence
    */
+  import { browser } from '$app/environment'
   import { getTheme } from '$lib/stores/theme.svelte'
+  import IconSun from '@tabler/icons-svelte/icons/sun'
+  import IconMoon from '@tabler/icons-svelte/icons/moon'
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
 
-  let {
-    class: className = ''
-  }: {
+  interface Props {
     class?: string
-  } = $props()
+  }
+
+  let { class: className = '' }: Props = $props()
 
   const theme = getTheme()
+  const isDark = $derived(theme.current === 'dark')
 
+  // Hydration guard — only render interactive button after mount
+  let mounted = $state(false)
+  $effect(() => { if (browser) mounted = true })
+
+  // CSS classes matching PM v2 action-surface styling
   const base = 'inline-flex items-center justify-center rounded-md p-2 text-pm-text-secondary hover:text-pm-brand hover:bg-pm-bg-sunken transition-colors duration-150'
+
+  /**
+   * Toggle theme with View Transitions API circle reveal animation.
+   * Matches app-nuxt ThemeToggle.vue lines 35-99 exactly.
+   */
+  async function toggleTheme(event: MouseEvent) {
+    if (!browser) return
+
+    const newTheme: 'light' | 'dark' = theme.current === 'dark' ? 'light' : 'dark'
+
+    function applyThemePreference() {
+      // Toggle .dark class directly on html (this is what View Transitions snapshots)
+      document.documentElement.classList.toggle('dark', newTheme === 'dark')
+      // Update Svelte state — Svelte won't re-render during active View Transition
+      theme.set(newTheme)
+    }
+
+    // Check if View Transitions API is supported and motion is allowed
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const supportsViewTransitions = 'startViewTransition' in document
+
+    if (!supportsViewTransitions || prefersReducedMotion) {
+      applyThemePreference()
+      return
+    }
+
+    // Get click coordinates for circle origin
+    const x = event.clientX
+    const y = event.clientY
+
+    // Calculate the maximum radius needed to cover the entire screen
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    )
+
+    // Set CSS custom properties for the animation origin
+    document.documentElement.style.setProperty('--theme-toggle-x', `${x}px`)
+    document.documentElement.style.setProperty('--theme-toggle-y', `${y}px`)
+    document.documentElement.style.setProperty('--theme-toggle-radius', `${endRadius}px`)
+
+    // Start the view transition — TypeScript 5.x includes startViewTransition in DOM lib
+    const transition = document.startViewTransition(() => {
+      applyThemePreference()
+    })
+
+    // Wait for transition to be ready, then run animation
+    await transition.ready
+
+    // Animate the new view with a circle clip-path
+    document.documentElement.animate(
+      {
+        clipPath: [
+          `circle(0px at ${x}px ${y}px)`,
+          `circle(${endRadius}px at ${x}px ${y}px)`
+        ]
+      },
+      {
+        duration: 400,
+        easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+        pseudoElement: '::view-transition-new(root)'
+      }
+    )
+  }
 </script>
 
-<button class={twMerge(clsx(base, className))} onclick={() => theme.toggle()} aria-label="Toggle theme">
-  {#if theme.current === 'dark'}
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="5" />
-      <line x1="12" y1="1" x2="12" y2="3" />
-      <line x1="12" y1="21" x2="12" y2="23" />
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-      <line x1="1" y1="12" x2="3" y2="12" />
-      <line x1="21" y1="12" x2="23" y2="12" />
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-    </svg>
-  {:else}
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-    </svg>
-  {/if}
-</button>
+{#if mounted}
+  <button
+    type="button"
+    class={twMerge(clsx(base, className))}
+    onclick={toggleTheme}
+    aria-label="Toggle theme"
+  >
+    <span class="theme-toggle-icon-wrapper relative size-5">
+      <IconSun
+        class={clsx('absolute inset-0 size-5 transition-all duration-300',
+          isDark ? 'opacity-100 scale-100 rotate-0' : 'opacity-0 scale-50 -rotate-90'
+        )}
+      />
+      <IconMoon
+        class={clsx('absolute inset-0 size-5 transition-all duration-300',
+          !isDark ? 'opacity-100 scale-100 rotate-0' : 'opacity-0 scale-50 rotate-90'
+        )}
+      />
+    </span>
+  </button>
+{:else}
+  <!-- SSR fallback — matches PM v2 ClientOnly fallback -->
+  <button type="button" class={twMerge(clsx(base, className))} aria-label="Theme">
+    <IconSun class="size-5" />
+  </button>
+{/if}

@@ -8,6 +8,7 @@
   import * as m from '$lib/i18n'
   import * as runtime from '$lib/paraglide/runtime.js'
   import { getTheme } from '$lib/stores/theme.svelte'
+  import { LOCALES } from '$lib/config/site'
 
   let {
     text = m.footer_madeBy(),
@@ -21,12 +22,21 @@
     class?: string
   } = $props()
 
-  const theme = $derived(getTheme())
-  const lang = $derived(runtime.languageTag() ?? 'en')
-  const langFallback: Record<string, string> = { en: 'en', fr: 'en', he: 'en' }
-  const resolvedLang = $derived(langFallback[lang] ?? 'en')
+  const themeStore = $derived(getTheme())
+  // PM v2: invert theme — dark mode uses 'light' logo (white on dark bg)
+  //         light mode uses 'dark' logo (dark on light bg)
+  const invertedTheme = $derived(themeStore.current === 'dark' ? 'light' : 'dark')
+  const lang = $derived(runtime.languageTag() ?? LOCALES[0])
+  function makeFallbackMap(list: readonly string[]): Record<string, string> {
+    const map: Record<string, string> = {}
+    const first = list[0]
+    if (first) for (const l of list) map[l] = first
+    return map
+  }
+  const langFallback: Record<string, string> = makeFallbackMap(LOCALES)
+  const resolvedLang = $derived(langFallback[lang] ?? LOCALES[0])
 
-  const logoSrc = $derived(`${basePath}/horizontal_${theme.current}_${resolvedLang}.svg`)
+  const logoSrc = $derived(`${basePath}/horizontal_${invertedTheme}_${resolvedLang}.svg`)
 
   const base = 'inline-flex items-center gap-2 text-sm text-pm-text-muted'
 </script>
@@ -34,6 +44,6 @@
 <div class={twMerge(clsx(base, className))}>
   <span>{text}</span>
   <a href={url} target="_blank" rel="noopener noreferrer" class="opacity-80 hover:opacity-100 transition-opacity">
-    <img src={logoSrc} alt="Fabrica 22" class="h-5 w-auto" />
+    <img src={logoSrc} alt="Fabrica 22" class="h-3.5 w-auto" />
   </a>
 </div>

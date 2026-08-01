@@ -10,15 +10,26 @@
    *
    * Rule #1: class prop + twMerge
    */
+  import { browser } from '$app/environment'
+  import { onMount } from 'svelte'
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { getTheme } from '$lib/stores/theme.svelte'
-  import { LOGO } from '$lib/config/site'
+  import { LOGO, LOCALES } from '$lib/config/site'
   import * as runtime from '$lib/paraglide/runtime.js'
 
   const LOGO_BASE = LOGO.basePath
   const LOGO_AVAILABLE = new Set(LOGO.available)
-  const LANG_FALLBACK = LOGO.langFallback as Record<string, string>
+  function makeFallbackMap(list: readonly string[]): Record<string, string> {
+    const map: Record<string, string> = {}
+    const first = list[0]
+    if (first) for (const l of list) map[l] = first
+    return map
+  }
+  const FALLBACK_MAP = makeFallbackMap(LOCALES)
+  function resolveLang(lang: string): string {
+    return FALLBACK_MAP[lang] ?? LOCALES[0] ?? ''
+  }
 
   type Shape = 'horizontal' | 'circle'
 
@@ -40,13 +51,9 @@
   const currentLocale = $derived(locale ?? runtime.languageTag())
   const effectiveLang = $derived.by(() => {
     const lang = currentLocale
-    // Check if this language has a direct logo variant
     const hasDirect = [...LOGO_AVAILABLE].some(name => name.endsWith(`_${lang}`))
     if (hasDirect) return lang
-    // Use fallback from config
-    if (LANG_FALLBACK[lang]) return LANG_FALLBACK[lang]
-    // Ultimate fallback: english
-    return 'en'
+    return resolveLang(lang)
   })
 
   // PM v2: invert theme — dark mode uses 'light' logo, light mode uses 'dark' logo
@@ -54,19 +61,33 @@
   const currentTheme = $derived(theme ?? themeStore.current)
   const invertedTheme = $derived(currentTheme === 'dark' ? 'light' : 'dark')
 
-  // Build path with fallback chain: shape_theme_lang → shape_theme_en → horizontal_dark_en
+  // Build reactive src path (client-side)
   const src = $derived.by(() => {
     const primary = `${shape}_${invertedTheme}_${effectiveLang}`
     if (LOGO_AVAILABLE.has(primary)) return `${LOGO_BASE}/${primary}.svg`
-
     const fallback = `${shape}_${invertedTheme}_en`
     if (LOGO_AVAILABLE.has(fallback)) return `${LOGO_BASE}/${fallback}.svg`
-
-    // Ultimate fallback
     return `${LOGO_BASE}/horizontal_dark_en.svg`
   })
+
+  // SSR fallback paths (app-nuxt: ssrLightLogo / ssrDarkLogo)
+  const ssrDarkSrc = $derived(`${LOGO_BASE}/${shape}_light_${effectiveLang}.svg`)
+  const ssrLightSrc = $derived(`${LOGO_BASE}/${shape}_dark_${effectiveLang}.svg`)
+
+  // Mounted flag for ClientOnly-like behavior (avoids SSR hydration mismatch)
+  let mounted = $state(false)
+  onMount(() => { mounted = true })
+
+  const imgClass = $derived(twMerge(clsx('h-full w-auto object-contain', className)))
 </script>
 
 {#if src}
-  <img {src} {alt} class={twMerge(clsx('h-8 w-auto', className))} />
+  {#if mounted}
+    <img {src} {alt} class={imgClass} />
+  {:else}
+    <picture>
+      <source srcset={ssrDarkSrc} media="(prefers-color-scheme: dark)" />
+      <img src={ssrLightSrc} {alt} class={imgClass} />
+    </picture>
+  {/if}
 {/if}

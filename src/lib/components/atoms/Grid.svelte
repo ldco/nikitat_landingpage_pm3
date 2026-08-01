@@ -46,9 +46,9 @@
   // Auto-fit uses min() trick for responsive without breakpoints (PM v2 approach)
   const autoFit = 'grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))]'
 
-  const gridBase = cols === 'auto'
+  const gridBase = $derived(cols === 'auto'
     ? clsx('grid', autoFit)
-    : clsx('grid', fixedCols[cols as number])
+    : clsx('grid', fixedCols[cols as number]))
 
   const merged = $derived(twMerge(clsx(gridBase, gaps[gap], className)))
 </script>

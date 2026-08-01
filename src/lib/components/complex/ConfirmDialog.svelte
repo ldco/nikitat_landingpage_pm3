@@ -29,9 +29,9 @@
     class?: string
   } = $props()
 
-  const confirmClass = variant === 'danger'
+  const confirmClass = $derived(variant === 'danger'
     ? 'bg-pm-danger text-white hover:bg-pm-danger'
-    : 'bg-pm-brand text-pm-white hover:bg-pm-brand-light'
+    : 'bg-pm-brand text-pm-white hover:bg-pm-brand-light')
 
   $effect(() => {
     if (!open) return
@@ -44,17 +44,18 @@
 </script>
 
 {#if open}
-  <!-- .modal-backdrop: fixed inset, 50% black, z-modal-backdrop -->
+  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
   <div
     class="fixed inset-0 z-modal-backdrop flex items-center justify-center bg-black/50 p-4"
     onclick={() => open = false}
     role="dialog"
     aria-modal="true"
+    tabindex="-1"
   >
-    <!-- .modal: bg-pm-bg, rounded-lg, shadow-xl, z-modal -->
     <div
-      class="bg-pm-bg rounded-lg shadow-xl w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-auto"
+      class="bg-pm-bg rounded-lg shadow-xl w-full max-w-md max-h-dialog overflow-auto"
       onclick={(e) => e.stopPropagation()}
+      role="presentation"
     >
       <!-- .modal-body: p-6 -->
       <div class="p-6">

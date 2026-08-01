@@ -40,7 +40,7 @@
   {#each pages as page, i}
     {#if i === currentPage}
       <div class="rounded-lg overflow-hidden border border-pm-border bg-pm-bg">
-        <AppImage src={page.url} alt={page.caption ?? title} class="w-full object-contain max-h-[70vh]" />
+        <AppImage src={page.url} alt={page.caption ?? title} class="w-full object-contain max-h-brandbook-image" />
         {#if page.caption}
           <p class="p-3 text-sm text-pm-text-muted border-t border-pm-border">{page.caption}</p>
         {/if}

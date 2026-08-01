@@ -1,6 +1,7 @@
 <script lang="ts">
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import IconPhoto from '@tabler/icons-svelte/icons/photo'
   import * as m from '$lib/i18n'
   import { FEATURES, MODULES } from '$lib/config/site'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
@@ -30,7 +31,7 @@
             <img src={item.coverImageUrl} alt={item.name} class="w-full h-full object-cover" />
           {:else}
             <div class="w-full h-full bg-pm-bg-sunken flex items-center justify-center text-pm-text-muted">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+              <IconPhoto class="size-12" />
             </div>
           {/if}
           <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-4 text-white">

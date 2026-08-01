@@ -25,7 +25,7 @@
           <tr class="border-b border-pm-border hover:bg-pm-bg-elevated transition-colors">
             <td class="px-4 py-3 font-mono text-xs text-pm-text">{item.key}</td>
             <td class="px-4 py-3"><span class="px-1.5 py-0.5 rounded text-xs font-mono bg-pm-bg-sunken text-pm-text-muted uppercase tracking-wider">{item.locale}</span></td>
-            <td class="px-4 py-3 text-pm-text-muted max-w-[300px] truncate">{item.value}</td>
+            <td class="px-4 py-3 text-pm-text-muted max-w-72 truncate">{item.value}</td>
             <td class="px-4 py-3 text-right text-xs text-pm-text-muted">—</td>
           </tr>
         {/each}

@@ -40,7 +40,7 @@
       'w-full max-w-sm bg-pm-bg-elevated border border-pm-border rounded-xl shadow-xl',
       'animate-[scale-in_0.2s_ease]',
       className
-    ))} onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+    ))} onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" tabindex="-1">
       <div class="px-6 py-4 border-b border-pm-border">
         <h2 class="text-lg font-semibold text-pm-text">{title}</h2>
       </div>

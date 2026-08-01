@@ -3,7 +3,8 @@
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
   import { FEATURES, MODULES } from '$lib/config/site'
-  import { IconChevronLeft, IconChevronRight } from '@tabler/icons-svelte'
+  import IconChevronLeft from '@tabler/icons-svelte/icons/chevron-left'
+  import IconChevronRight from '@tabler/icons-svelte/icons/chevron-right'
 
   let {
     testimonials = [] as Array<{ id: number; name: string; company?: string; text: string; photoUrl?: string; rating?: number }>,

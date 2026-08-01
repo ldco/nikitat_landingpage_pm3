@@ -30,12 +30,12 @@ export function GET(event: RequestEvent) {
 export async function POST(event: RequestEvent) {
   const actor = requireAdmin(event)
   const body = await event.request.json().catch(() => null)
-  if (!body) throw error(400, 'Invalid request body')
+  if (!body) error(400)
   const parsed = createUserSchema.safeParse(body)
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
   const db = useDatabase()
   const existing = db.select().from(schema.users).where(eq(schema.users.email, parsed.data.email)).get()
-  if (existing) throw error(409, 'Email already exists')
+  if (existing) error(409)
   const result = db.insert(schema.users).values({
     email: parsed.data.email,
     passwordHash: hashPassword(parsed.data.password),

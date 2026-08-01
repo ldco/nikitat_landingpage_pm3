@@ -18,11 +18,11 @@ export async function POST(event: RequestEvent) {
   const ip = getClientIp(event.request)
 
   if (!contactRateLimiter.check(ip)) {
-    throw error(429, 'Too many messages. Try again later.')
+    error(429)
   }
 
   const body = await event.request.json().catch(() => null)
-  if (!body) throw error(400, 'Invalid request body')
+  if (!body) error(400)
 
   const parsed = contactSchema.safeParse(body)
   if (!parsed.success) {
@@ -32,7 +32,7 @@ export async function POST(event: RequestEvent) {
   const { name, email, phone, subject, message, consent } = parsed.data
 
   if (!consent) {
-    throw error(400, 'Consent to data processing is required')
+    error(400)
   }
 
   const db = useDatabase()

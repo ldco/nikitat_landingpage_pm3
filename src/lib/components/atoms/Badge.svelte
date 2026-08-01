@@ -36,7 +36,7 @@
     info: 'bg-pm-info-bg text-pm-info'
   }
 
-  const base = dot
+  const base = $derived(dot
     ? clsx(
         'min-w-4 h-4 px-1 text-xs font-bold leading-4 text-center rounded-full bg-pm-danger text-white',
         bases[variant]
@@ -45,7 +45,7 @@
         'inline-flex items-center flex-shrink-0 gap-1 px-2 py-1 text-xs font-medium whitespace-nowrap rounded-full',
         bases[variant],
         positioned ? 'absolute top-2 right-2' : ''
-      )
+      ))
 
   const merged = $derived(twMerge(clsx(base, className)))
 </script>

@@ -13,7 +13,7 @@ export function load({ params }: RequestEvent) {
     .get()
 
   if (!portfolio || !portfolio.published) {
-    error(404, 'Portfolio not found')
+    error(404)
   }
 
   const items = db.select()

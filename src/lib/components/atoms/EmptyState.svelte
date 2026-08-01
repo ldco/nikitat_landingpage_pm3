@@ -13,6 +13,10 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import IconArchive from '@tabler/icons-svelte/icons/archive'
+  import IconSearch from '@tabler/icons-svelte/icons/search'
+  import IconCircleX from '@tabler/icons-svelte/icons/circle-x'
+  import IconCircleCheck from '@tabler/icons-svelte/icons/circle-check'
 
   type Illustration = 'empty-box' | 'search' | 'error' | 'success'
   type Size = 'compact' | 'default' | 'large'
@@ -37,9 +41,9 @@
 
   // PM v2 empty-state sizes
   const sizes: Record<Size, string> = {
-    compact: 'py-6 px-4 min-h-[120px]',
-    default: 'py-12 px-6 min-h-[200px]',
-    large: 'py-16 px-8 min-h-[400px]'
+    compact: 'py-6 px-4 min-h-empty-state-compact',
+    default: 'py-12 px-6 min-h-empty-state-default',
+    large: 'py-16 px-8 min-h-empty-state-large'
   }
 
   // PM v2 contextual backgrounds
@@ -87,16 +91,16 @@
     large: 'mt-3'
   }
 
-  const base = clsx(
+  const base = $derived(clsx(
     'flex flex-col items-center justify-center text-center',
     'animate-fade-in-up',
     sizes[size],
     contextualBg[type]
-  )
+  ))
 
-  const iconBase = clsx(iconSizes[size], iconColor[type])
-  const titleBase = clsx('font-semibold text-pm-text', titleSizes[size], titleMargins[size])
-  const descBase = clsx('text-pm-text-muted max-w-xs leading-relaxed', descSizes[size], descMargins[size])
+  const iconBase = $derived(clsx(iconSizes[size], iconColor[type]))
+  const titleBase = $derived(clsx('font-semibold text-pm-text', titleSizes[size], titleMargins[size]))
+  const descBase = $derived(clsx('text-pm-text-muted max-w-xs leading-relaxed', descSizes[size], descMargins[size]))
 
   const merged = $derived(twMerge(clsx(base, className)))
 </script>
@@ -104,28 +108,13 @@
 <div class={merged}>
   <!-- Illustration -->
   {#if type === 'empty-box'}
-    <svg class={iconBase} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-      <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-      <line x1="12" y1="22.08" x2="12" y2="12" />
-    </svg>
+    <IconArchive class={iconBase} />
   {:else if type === 'search'}
-    <svg class={iconBase} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-      <line x1="8" y1="11" x2="14" y2="11" />
-    </svg>
+    <IconSearch class={iconBase} />
   {:else if type === 'error'}
-    <svg class={iconBase} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="15" y1="9" x2="9" y2="15" />
-      <line x1="9" y1="9" x2="15" y2="15" />
-    </svg>
+    <IconCircleX class={iconBase} />
   {:else if type === 'success'}
-    <svg class={iconBase} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-      <polyline points="22 4 12 14.01 9 11.01" />
-    </svg>
+    <IconCircleCheck class={iconBase} />
   {/if}
 
   <!-- Title -->

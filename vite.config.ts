@@ -14,6 +14,11 @@ export default defineConfig({
   ],
   test: {
     include: ['tests/**/*.test.ts'],
-    environment: 'node'
+    environment: 'jsdom',
+    setupFiles: ['tests/setup.ts'],
+    alias: {
+      '$lib': '/src/lib',
+      '$app': '/tests/__mocks__/$app'
+    }
   }
 })

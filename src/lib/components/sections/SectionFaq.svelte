@@ -3,7 +3,7 @@
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
   import { FEATURES, MODULES } from '$lib/config/site'
-  import { IconChevronDown } from '@tabler/icons-svelte'
+  import IconChevronDown from '@tabler/icons-svelte/icons/chevron-down'
 
   let {
     items = [] as Array<{ id: number; question: string; answer: string }>,
@@ -41,7 +41,7 @@
 ))}>
   <div class={clsx('w-full mx-auto', isContained && 'max-w-narrow')} style="padding-inline: var(--px-container);">
     <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_faq()}</h2>
-    <div class="flex flex-col gap-[var(--gap-sm)]">
+    <div class="flex flex-col gap-sm-custom">
       {#each items as item}
         <div class="rounded-xl border border-pm-border bg-pm-bg overflow-hidden">
           <button class="flex items-center justify-between w-full px-6 py-4 text-left font-medium text-pm-text bg-transparent border-none cursor-pointer hover:bg-pm-bg-sunken transition-colors" onclick={() => toggle(item.id)} aria-expanded={openId === item.id}>

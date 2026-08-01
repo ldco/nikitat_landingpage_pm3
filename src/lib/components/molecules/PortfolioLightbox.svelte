@@ -6,6 +6,9 @@
    * IMPORTANT: This isolates keyboard/scroll event handling.
    * Cleanup in $effect return prevents memory leaks (Rule #4).
    */
+  import IconX from '@tabler/icons-svelte/icons/x'
+  import IconChevronLeft from '@tabler/icons-svelte/icons/chevron-left'
+  import IconChevronRight from '@tabler/icons-svelte/icons/chevron-right'
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
 
@@ -53,22 +56,23 @@
 </script>
 
 {#if open && current}
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/90" onclick={close} role="dialog" aria-label="Image lightbox">
+  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/90" onclick={close} role="dialog" aria-label="Image lightbox" tabindex="-1">
     <!-- Close button -->
     <button class="absolute top-4 right-4 z-10 p-2 text-white/80 hover:text-white transition-colors" onclick={close} aria-label="Close">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+      <IconX class="size-6" />
     </button>
 
     <!-- Previous -->
     {#if images.length > 1}
       <button class="absolute left-4 z-10 p-2 text-white/80 hover:text-white transition-colors" onclick={prev} aria-label="Previous image">
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6" /></svg>
+        <IconChevronLeft class="size-8" />
       </button>
     {/if}
 
     <!-- Image -->
-    <div class="max-w-[90vw] max-h-[85vh] flex flex-col items-center" onclick={(e) => e.stopPropagation()}>
-      <img src={current.src} alt={current.alt ?? ''} class="max-w-full max-h-[80vh] object-contain rounded-lg" />
+    <div class="max-w-lightbox max-h-lightbox flex flex-col items-center" onclick={(e) => e.stopPropagation()} role="presentation">
+      <img src={current.src} alt={current.alt ?? ''} class="max-w-full max-h-lightbox-image object-contain rounded-lg" />
 
       {#if current.caption}
         <p class="mt-3 text-sm text-white/70 text-center max-w-lg">{current.caption}</p>
@@ -77,7 +81,7 @@
       {#if images.length > 1}
         <div class="mt-3 flex items-center gap-2">
           {#each images as img, i}
-            <button class={clsx('w-2 h-2 rounded-full transition-colors', i === index ? 'bg-white' : 'bg-white/40')} onclick={() => index = i} aria-label={`Go to image ${i + 1}`} />
+            <button class={clsx('w-2 h-2 rounded-full transition-colors', i === index ? 'bg-white' : 'bg-white/40')} onclick={() => index = i} aria-label={`Go to image ${i + 1}`}></button>
           {/each}
         </div>
       {/if}
@@ -86,7 +90,7 @@
     <!-- Next -->
     {#if images.length > 1}
       <button class="absolute right-4 z-10 p-2 text-white/80 hover:text-white transition-colors" onclick={next} aria-label="Next image">
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6" /></svg>
+        <IconChevronRight class="size-8" />
       </button>
     {/if}
   </div>

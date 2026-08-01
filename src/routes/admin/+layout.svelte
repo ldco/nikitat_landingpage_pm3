@@ -15,11 +15,12 @@
   import { page } from '$app/stores'
   import type { AdminPageId } from '$lib/server/db/schema'
   import * as m from '$lib/i18n'
+  import { getAdminT } from '$lib/utils/admin-translations'
   import {
     IconHome, IconUsers, IconSettings, IconLanguage, IconPhoto,
     IconArticle, IconUsersGroup, IconQuote, IconHelpCircle, IconBuilding,
     IconCreditCard, IconSparkles, IconMail, IconClipboardList, IconActivity,
-    IconLogout, IconShieldCheck, IconQuestionMark
+    IconLogout, IconShieldCheck, IconQuestionMark, IconX, IconMenu2
   } from '@tabler/icons-svelte'
   import { FEATURES } from '$lib/config/site'
 
@@ -27,6 +28,7 @@
 
   let { data, children }: { data: PageData; children?: import('svelte').Snippet } = $props()
   const user = $derived(data.user)
+  const t = $derived(getAdminT($page.data))
 
   const useVerticalNav = $derived(FEATURES.appVerticalNav)
 
@@ -149,7 +151,7 @@
                 <span class="text-xs text-pm-text-muted capitalize">{user.role}</span>
               </div>
               <a href="/api/auth/logout" class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <IconLogout class="size-4" />
                 Logout
               </a>
             </div>
@@ -191,7 +193,7 @@
                   <span class="text-xs text-pm-text-muted capitalize">{user.role}</span>
                 </div>
                 <a href="/api/auth/logout" class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  <IconLogout class="size-4" />
                   Logout
                 </a>
               </div>
@@ -221,7 +223,7 @@
             </div>
           {/if}
           <a href="/api/auth/logout" class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <IconLogout class="size-4" />
             Logout
           </a>
         </div>
@@ -246,16 +248,16 @@
   <!-- Mobile Hamburger Toggle (phone only) -->
   <button class="fixed top-3 end-3 z-hamburger sm:hidden flex items-center justify-center size-10 rounded-md bg-pm-bg-elevated border border-pm-border shadow-md"
     onclick={() => mobileOpen = !mobileOpen} aria-label="Toggle menu">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+    <IconMenu2 class="size-5" />
   </button>
 
   <!-- Mobile Menu Overlay (phone only) -->
   {#if mobileOpen}
     <div class="fixed inset-0 z-50 bg-black/50 sm:hidden" onclick={() => mobileOpen = false}></div>
-    <div class="fixed inset-y-0 end-0 z-50 w-64 bg-pm-bg-elevated shadow-xl sm:hidden">
+    <div class="fixed inset-y-0 end-0 z-drawer w-drawer bg-pm-bg-elevated shadow-xl sm:hidden">
       <div class="flex items-center justify-between h-16 px-4 border-b border-pm-border">
         <span class="text-lg font-bold text-pm-text">PM Admin</span>
-        <button onclick={() => mobileOpen = false} class="p-1 text-pm-text-muted hover:text-pm-text"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></button>
+        <button onclick={() => mobileOpen = false} class="p-1 text-pm-text-muted hover:text-pm-text"><IconX class="size-5" /></button>
       </div>
       <nav class="overflow-y-auto py-2">
         {#each adminSections as section}

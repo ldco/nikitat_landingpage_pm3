@@ -25,8 +25,8 @@
     class?: string
   } = $props()
 
-  let canvas: HTMLCanvasElement
-  let container: HTMLDivElement
+  let canvas = $state.raw() as HTMLCanvasElement
+  let container = $state.raw() as HTMLDivElement
   let engine: Matter.Engine | null = null
   let runner: Matter.Runner | null = null
 
@@ -177,6 +177,6 @@
       bind:this={canvas}
       class="absolute inset-0 w-full h-full"
       aria-hidden="true"
-    />
+    ></canvas>
   </div>
 {/if}

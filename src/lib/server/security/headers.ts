@@ -21,17 +21,32 @@ export function generateCspNonce(): string {
 }
 
 export function buildSecurityHeaders(nonce: string, isProduction: boolean): Headers {
-  const csp = [
-    `default-src 'self'`,
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
-    `style-src 'self' 'unsafe-inline'`,
-    `img-src 'self' data: blob: https:`,
-    `font-src 'self' data:`,
-    `connect-src 'self' https:`,
-    `frame-ancestors 'none'`,
-    `base-uri 'self'`,
-    `form-action 'self'`
-  ].join('; ')
+  // Only enable CSP in production (nonce injection via event.locals.nonce is not
+  // working in current SvelteKit version — without nonce on <script> tags,
+  // the CSP blocks all JS, making the page non-interactive).
+  const csp = isProduction
+    ? [
+        `default-src 'self'`,
+        `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+        `style-src 'self' 'unsafe-inline'`,
+        `img-src 'self' data: blob: https:`,
+        `font-src 'self' data:`,
+        `connect-src 'self' https:`,
+        `frame-ancestors 'none'`,
+        `base-uri 'self'`,
+        `form-action 'self'`
+      ].join('; ')
+    : [
+        `default-src 'self'`,
+        `script-src 'self' 'unsafe-inline' 'unsafe-eval'`,
+        `style-src 'self' 'unsafe-inline'`,
+        `img-src 'self' data: blob: https:`,
+        `font-src 'self' data:`,
+        `connect-src 'self' https:`,
+        `frame-ancestors 'none'`,
+        `base-uri 'self'`,
+        `form-action 'self'`
+      ].join('; ')
 
   const headers = new Headers({
     'Content-Security-Policy': csp,

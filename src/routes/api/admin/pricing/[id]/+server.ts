@@ -25,7 +25,7 @@ export function GET(event: RequestEvent) {
   const db = useDatabase()
   const id = Number(event.params.id)
   const item = db.select().from(schema.pricingTiers).where(eq(schema.pricingTiers.id, id)).get()
-  if (!item) throw error(404, 'Pricing tier not found')
+  if (!item) error(404)
   return json(jsonSuccess(item))
 }
 
@@ -33,12 +33,12 @@ export async function PUT(event: RequestEvent) {
   requireAdmin(event)
   const id = Number(event.params.id)
   const body = await event.request.json().catch(() => null)
-  if (!body) throw error(400, 'Invalid request body')
+  if (!body) error(400)
   const parsed = updateSchema.safeParse(body)
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
   const db = useDatabase()
   const existing = db.select().from(schema.pricingTiers).where(eq(schema.pricingTiers.id, id)).get()
-  if (!existing) throw error(404, 'Pricing tier not found')
+  if (!existing) error(404)
   const result = db.update(schema.pricingTiers).set(parsed.data).where(eq(schema.pricingTiers.id, id)).returning().get()
   return json(jsonSuccess(result))
 }
@@ -48,7 +48,7 @@ export async function DELETE(event: RequestEvent) {
   const id = Number(event.params.id)
   const db = useDatabase()
   const existing = db.select().from(schema.pricingTiers).where(eq(schema.pricingTiers.id, id)).get()
-  if (!existing) throw error(404, 'Pricing tier not found')
+  if (!existing) error(404)
   db.delete(schema.pricingTiers).where(eq(schema.pricingTiers.id, id)).run()
   return json(jsonSuccess({ deleted: true }))
 }

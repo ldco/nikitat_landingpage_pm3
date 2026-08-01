@@ -10,7 +10,7 @@ export function GET(event: RequestEvent) {
   const db = useDatabase()
   const id = Number(event.params.id)
   const item = db.select().from(schema.contactSubmissions).where(eq(schema.contactSubmissions.id, id)).get()
-  if (!item) throw error(404, 'Contact not found')
+  if (!item) error(404)
   return json(jsonSuccess(item))
 }
 
@@ -19,7 +19,7 @@ export async function DELETE(event: RequestEvent) {
   const id = Number(event.params.id)
   const db = useDatabase()
   const existing = db.select().from(schema.contactSubmissions).where(eq(schema.contactSubmissions.id, id)).get()
-  if (!existing) throw error(404, 'Contact not found')
+  if (!existing) error(404)
   db.delete(schema.contactSubmissions).where(eq(schema.contactSubmissions.id, id)).run()
   return json(jsonSuccess({ deleted: true }))
 }

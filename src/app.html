@@ -7,6 +7,10 @@
     %sveltekit.head%
   </head>
   <body data-sveltekit-prerender="true">
+    <!-- WCAG 2.4.1: Skip-to-content link -->
+    <a href="#main-content" class="skip-link sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-pm-brand focus:text-white focus:rounded-lg focus:text-sm focus:outline-none">
+      Skip to content
+    </a>
     <div style="display: contents">%sveltekit.body%</div>
   </body>
 </html>

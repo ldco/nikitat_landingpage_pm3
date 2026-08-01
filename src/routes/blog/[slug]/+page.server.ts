@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ params }) => {
     .get()
 
   if (!post || !post.published) {
-    error(404, 'Post not found')
+    error(404)
   }
 
   // Load translation for current locale

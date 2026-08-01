@@ -16,10 +16,10 @@ const loginSchema = z.object({
 
 export async function POST(event: RequestEvent) {
   const body = await event.request.json().catch(() => null)
-  if (!body) throw error(400, 'Invalid request body')
+  if (!body) error(400)
 
   const parsed = loginSchema.safeParse(body)
-  if (!parsed.success) throw error(400, 'Invalid email or password')
+  if (!parsed.success) error(400)
 
   const { email, password } = parsed.data
   const ip = getClientIp(event.request)
@@ -34,14 +34,14 @@ export async function POST(event: RequestEvent) {
 
   if (!user) {
     audit.loginFailed(ip, ua, email, 'user_not_found')
-    throw error(401, 'Invalid email or password')
+    error(401)
   }
 
   // Check lockout
   const lockStatus = checkAccountLocked(user.id)
   if (lockStatus.isLocked) {
     audit.loginFailed(ip, ua, email, 'account_locked', user.id)
-    throw error(429, `Account locked. Try again in ${lockStatus.minutesRemaining} minutes.`)
+    error(429)
   }
 
   // Verify password
@@ -49,9 +49,9 @@ export async function POST(event: RequestEvent) {
     const result = recordFailedAttempt(user.id)
     audit.loginFailed(ip, ua, email, 'invalid_password', user.id)
     if (result.isLocked) {
-      throw error(429, `Account locked for ${result.lockoutMinutes} minutes due to too many failed attempts.`)
+      error(429)
     }
-    throw error(401, 'Invalid email or password')
+    error(401)
   }
 
   // Success — reset lockout, create session

@@ -9,6 +9,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import IconX from '@tabler/icons-svelte/icons/x'
 
   type Toast = {
     id: number
@@ -49,7 +50,7 @@
       )}>
         <span class="flex-1 text-sm">{toast.message}</span>
         <button type="button" onclick={() => dismiss(toast.id)} class="opacity-60 hover:opacity-100 transition-opacity">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          <IconX class="size-4" />
         </button>
       </div>
     {/each}

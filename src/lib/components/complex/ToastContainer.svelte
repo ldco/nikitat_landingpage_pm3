@@ -9,6 +9,11 @@
    *
    * Rule #1: class prop + twMerge
    */
+  import IconX from '@tabler/icons-svelte/icons/x'
+  import IconCircleCheck from '@tabler/icons-svelte/icons/circle-check'
+  import IconCircleX from '@tabler/icons-svelte/icons/circle-x'
+  import IconAlertTriangle from '@tabler/icons-svelte/icons/alert-triangle'
+  import IconInfoCircle from '@tabler/icons-svelte/icons/info-circle'
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
 
@@ -51,13 +56,6 @@
     info: 'border-l-pm-info'
   }
 
-  const iconPaths: Record<ToastType, string> = {
-    success: 'M22 11.08V12a10 10 0 1 1-5.93-9.14 M22 4L12 14.01 9 11.01',
-    error: 'M18 6L6 18 M6 6l12 12',
-    info: 'M12 16v-4 M12 8h.01',
-    warning: 'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z M12 9v4 M12 17h.01'
-  }
-
   const iconColors: Record<ToastType, string> = {
     success: 'text-pm-success',
     error: 'text-pm-danger',
@@ -82,9 +80,15 @@
         )}
       >
         <!-- .toast-icon -->
-        <svg class={clsx('size-5 flex-shrink-0', iconColors[toast.type])} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d={iconPaths[toast.type]} />
-        </svg>
+        {#if toast.type === 'success'}
+          <IconCircleCheck class={clsx('size-5 flex-shrink-0', iconColors[toast.type])} />
+        {:else if toast.type === 'error'}
+          <IconCircleX class={clsx('size-5 flex-shrink-0', iconColors[toast.type])} />
+        {:else if toast.type === 'warning'}
+          <IconAlertTriangle class={clsx('size-5 flex-shrink-0', iconColors[toast.type])} />
+        {:else}
+          <IconInfoCircle class={clsx('size-5 flex-shrink-0', iconColors[toast.type])} />
+        {/if}
 
         <!-- .toast-content -->
         <div class="flex-1">
@@ -97,10 +101,7 @@
           onclick={() => dismiss(toast.id)}
           aria-label="Dismiss"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
+          <IconX class="size-4 flex-shrink-0" />
         </button>
       </div>
     {/each}

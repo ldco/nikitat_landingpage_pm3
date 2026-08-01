@@ -1,18 +1,7 @@
 <script lang="ts">
-  /**
-   * SectionRenderer — Renders section components by name
-   *
-   * Maps HOMEPAGE_SECTIONS config to actual Svelte components.
-   * Supports both onepager (anchor) and SPA (route) modes.
-   *
-   * Rule #1: class prop + twMerge
-   */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import { FEATURES, HOMEPAGE_SECTIONS, MODULES } from '$lib/config/site'
-
-  // Direct imports for all section components (code-split by Vite)
-  import SectionHero from '../sections/SectionHero.svelte'
+  import { HOMEPAGE_SECTIONS } from '$lib/config/site'
   import SectionAbout from '../sections/SectionAbout.svelte'
   import SectionFocus from '../sections/SectionFocus.svelte'
   import SectionF22 from '../sections/SectionF22.svelte'
@@ -26,62 +15,30 @@
   import SectionTestimonials from '../sections/SectionTestimonials.svelte'
   import SectionClients from '../sections/SectionClients.svelte'
 
+  type Cmp = typeof SectionAbout
+
+  const COMPONENT_MAP: Record<string, Cmp> = {
+    SectionAbout, SectionFocus, SectionF22, SectionPortfolio,
+    SectionContact, SectionBlog, SectionFeatures, SectionFaq,
+    SectionPricing, SectionTeam, SectionTestimonials, SectionClients
+  }
+
   let {
     sectionId,
     class: className = ''
-  }: {
-    sectionId?: string
-    class?: string
-  } = $props()
+  }: { sectionId?: string; class?: string } = $props()
 
-  const isOnepager = $derived(FEATURES.onepager)
-
-  function isModuleEnabled(sectionId: string): boolean {
-    const module = MODULES[sectionId]
-    return module ? module.enabled !== false : true
-  }
-
-  const sections = $derived(
-    sectionId
-      ? HOMEPAGE_SECTIONS.filter(s => s.id === sectionId && s.enabled && isModuleEnabled(s.id))
-      : isOnepager
-        ? HOMEPAGE_SECTIONS.filter(s => s.enabled && isModuleEnabled(s.id))
-        : HOMEPAGE_SECTIONS.filter(s => s.id === 'home' && s.enabled)
+  const section = $derived(
+    sectionId ? HOMEPAGE_SECTIONS.find(s => s.id === sectionId && s.enabled) : null
   )
+
+  const Cmp = $derived(section ? COMPONENT_MAP[section.component] : null)
 </script>
 
-<div class={twMerge(clsx(className))}>
-  {#each sections as section (section.id)}
-    <section id={section.id} class="scroll-mt-16">
-      {#if section.component === 'SectionHero'}
-        <SectionHero />
-      {:else if section.component === 'SectionAbout'}
-        <SectionAbout />
-      {:else if section.component === 'SectionFocus'}
-        <SectionFocus />
-      {:else if section.component === 'SectionF22'}
-        <SectionF22 />
-      {:else if section.component === 'SectionPortfolio'}
-        <SectionPortfolio />
-      {:else if section.component === 'SectionContact'}
-        <SectionContact />
-      {:else if section.component === 'SectionBlog'}
-        <SectionBlog />
-      {:else if section.component === 'SectionFeatures'}
-        <SectionFeatures />
-      {:else if section.component === 'SectionFaq'}
-        <SectionFaq />
-      {:else if section.component === 'SectionPricing'}
-        <SectionPricing />
-      {:else if section.component === 'SectionTeam'}
-        <SectionTeam />
-      {:else if section.component === 'SectionTestimonials'}
-        <SectionTestimonials />
-      {:else if section.component === 'SectionClients'}
-        <SectionClients />
-      {:else}
-        <p class="text-sm text-pm-muted text-center py-8">Unknown section: {section.component}</p>
-      {/if}
-    </section>
-  {/each}
-</div>
+{#if Cmp}
+  <div class={twMerge(clsx(className))}>
+    <Cmp />
+  </div>
+{:else if section}
+  <p class="text-sm text-pm-muted text-center py-8">Unknown section: {section.component}</p>
+{/if}

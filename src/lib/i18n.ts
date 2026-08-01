@@ -10,11 +10,12 @@
  *
  * Usage in server code:
  *   import { i18n } from '$lib/i18n'
- *   i18n.resolveRoute('/about', 'ru')
+ *   i18n.resolveRoute(pathname, localeCode)
  */
 
 import * as runtime from '$lib/paraglide/runtime.js'
 import { createI18n } from '@inlang/paraglide-sveltekit'
+import { LOCALES, isRtlLocale } from '$lib/config/site'
 
 // Re-export all Paraglide messages for convenience
 // import * as m from '$lib/i18n' — then use m.hero_title(), m.common_submit(), etc.
@@ -22,14 +23,12 @@ export * from '$lib/paraglide/messages.js'
 
 // Create i18n instance with locale detection strategy
 // Strategy (in order): URL path prefix → cookie → browser → defaultLocale
+const textDir: Record<string, 'ltr' | 'rtl'> = {}
+for (const l of LOCALES) textDir[l] = isRtlLocale(l) ? 'rtl' : 'ltr'
+
 export const i18n = createI18n(runtime, {
-  prefixDefaultLanguage: 'never', // Default locale (ru) has no prefix
-  textDirection: {
-    ru: 'ltr',
-    en: 'ltr',
-    fr: 'ltr',
-    he: 'rtl'
-  },
+  prefixDefaultLanguage: 'never',
+  textDirection: textDir,
   exclude: ['/api/', '/admin/'], // API and admin routes are not translated
   seo: {
     noAlternateLinks: false

@@ -1,10 +1,16 @@
 <script lang="ts">
   /**
-   * TheFooter — PM v2 footer (skeleton/footer.css 478 lines)
+   * TheFooter — PM v2 footer (matches app-nuxt TheFooter.vue structure)
    *
-   * Desktop: grid [brand | actions], legal bar
-   * Mobile: single column centered
-   * Frosted glass background with backdrop-filter
+   * Structure (app-nuxt exact):
+   * ┌───────────────────────────────────────────────────┐
+   * │ LOGO  [Social icons]    [CTA]  [FooterNav links] │  ← footer-grid
+   * ├───────────────────────────────────────────────────┤
+   * │ © year · legal links                              │  ← legal-bar
+   * ├───────────────────────────────────────────────────┤
+   * │            Made by [Fabrica22]                     │  ← footer-attributions
+   * │            Made with [PuppetMaster]                │
+   * └───────────────────────────────────────────────────┘
    *
    * Rule #1: class prop + twMerge
    */
@@ -14,7 +20,9 @@
   import { FEATURES, FRAMEWORK } from '$lib/config/site'
   import MadeBy from '$lib/components/atoms/MadeBy.svelte'
   import MadeWith from '$lib/components/atoms/MadeWith.svelte'
+  import Logo from '$lib/components/atoms/Logo.svelte'
   import SocialNav from '$lib/components/molecules/SocialNav.svelte'
+  import FooterNav from '$lib/components/molecules/FooterNav.svelte'
 
   let {
     class: className = ''
@@ -27,42 +35,37 @@
   const showNav = $derived(FEATURES.footerNav)
   const showLegalLinks = $derived(FEATURES.footerLegalLinks)
   const showMadeBy = $derived(FEATURES.footerMadeBy)
+  const showMadeWith = $derived(FEATURES.footerMadeWith)
   const showFooterCta = $derived(FEATURES.footerCta)
 </script>
 
 <footer class={twMerge(clsx(
   'border-t border-pm-border/50 bg-pm-bg/85 dark:bg-pm-bg/85',
-  'backdrop-blur-[16px] dark:backdrop-blur-[16px]',
+  'backdrop-blur-glass dark:backdrop-blur-glass',
   'py-8 md:py-8',
   className
 ))}>
   <div class={clsx('w-full', !isFullWidth && 'mx-auto max-w-container')} style="padding-inline: clamp(1rem, 3vw, 3rem);">
-    {#if showMadeBy || FRAMEWORK.url || showNav}
-    <!-- Footer Grid: brand | actions -->
-    <div class="grid grid-cols-1 sm:grid-cols-[auto_minmax(0,1fr)] gap-6 sm:gap-8 items-start">
-      <!-- Brand column (left) — centered on mobile, flex-start on desktop -->
+    <!-- ═══ Footer Grid: Logo+Social | CTA+FooterNav (app-nuxt: .footer-grid) ═══ -->
+    {#if showNav || showFooterCta}
+    <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
+      <!-- Left: Logo + Social (app-nuxt: .footer-brand) -->
       <div class="flex flex-col items-center sm:items-start gap-2 min-w-0">
-        {#if showMadeBy}
-          <MadeBy />
-        {/if}
-        {#if FRAMEWORK.url}
-          <MadeWith url={FRAMEWORK.url} />
-        {/if}
+        <Logo shape="horizontal" class="footer-logo" />
+        <SocialNav class="justify-center sm:justify-start" />
       </div>
 
-      <!-- Actions column (right) — centered on mobile, flex-end on desktop -->
-      {#if showNav}
+      <!-- Right: CTA + FooterNav (app-nuxt: .footer-actions) -->
       <div class="flex flex-col items-center sm:items-end gap-4 w-full min-w-0">
         {#if showFooterCta}
           <a href="/#contact" class="px-5 py-2.5 text-sm font-medium bg-pm-brand text-pm-white rounded-md hover:bg-pm-brand-light transition-colors">{m.nav_contact()}</a>
         {/if}
-        <SocialNav class="justify-center sm:justify-end" />
+        <FooterNav />
       </div>
-      {/if}
     </div>
     {/if}
 
-    <!-- Legal Bar — copyright + legal links -->
+    <!-- ═══ Legal Bar (app-nuxt: .legal-bar) ═══ -->
     <div class="flex flex-col sm:flex-row flex-wrap items-center justify-between gap-2 mt-8 pt-4 border-t border-pm-border text-xs text-pm-text-muted">
       <span>&copy; {year} {m.footer_rights()}</span>
       {#if showLegalLinks}
@@ -72,5 +75,17 @@
       </div>
       {/if}
     </div>
+
+    <!-- ═══ Attributions: MadeBy + MadeWith at bottom (app-nuxt: .footer-attributions) ═══ -->
+    {#if showMadeBy || showMadeWith}
+    <div class="flex flex-col items-center gap-2 mt-6 pt-4 border-t border-pm-border text-center">
+      {#if showMadeBy}
+        <MadeBy />
+      {/if}
+      {#if showMadeWith}
+        <MadeWith url={FRAMEWORK.url} />
+      {/if}
+    </div>
+    {/if}
   </div>
 </footer>

@@ -6,6 +6,8 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import IconCheck from '@tabler/icons-svelte/icons/check'
+  import IconX from '@tabler/icons-svelte/icons/x'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
 
   interface PricingFeature {
@@ -64,14 +66,9 @@
     {#each features as feature}
       <li class="flex items-start gap-2 text-sm">
         {#if feature.included}
-          <svg class="w-4 h-4 mt-0.5 text-pm-success flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
+          <IconCheck class="w-4 h-4 mt-0.5 text-pm-success flex-shrink-0" />
         {:else}
-          <svg class="w-4 h-4 mt-0.5 text-pm-text-muted/50 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
+          <IconX class="w-4 h-4 mt-0.5 text-pm-text-muted/50 flex-shrink-0" />
         {/if}
         <span class={feature.included ? 'text-pm-text' : 'text-pm-text-muted line-through'}>{feature.text}</span>
       </li>

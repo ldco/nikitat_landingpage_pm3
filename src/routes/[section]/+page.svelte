@@ -14,7 +14,7 @@
   // If section not found, 404
   $effect(() => {
     if (!section) {
-      error(404, 'Section not found')
+      error(404)
     }
   })
 </script>

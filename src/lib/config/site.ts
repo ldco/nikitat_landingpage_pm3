@@ -2,7 +2,7 @@
  * PM Site Configuration
  *
  * Single source of truth for site-wide config.
- * Replaces Nuxt puppet-master.config.ts.
+ * Locale list derived from project/puppet-master.config.ts.
  *
  * Architecture:
  *   - Build-time config (changes require server restart)
@@ -11,19 +11,41 @@
  *   - settings in DB override some values at runtime
  */
 
-// ── Locales ──────────────────────────────────────────────────────────────────
+// ── Locales (from project/puppet-master.config.ts → locales[].code) ─────────
 
-export const LOCALES = ['ru', 'en', 'fr', 'he'] as const
+const PM_LOCALE_DATA = [
+  { code: 'ru', iso: 'ru-RU', name: 'Русский' },
+  { code: 'en', iso: 'en-US', name: 'English' },
+  { code: 'fr', iso: 'fr-FR', name: 'Français' },
+  { code: 'he', iso: 'he-IL', name: 'עברית' }
+] as const
+
+export const LOCALES = PM_LOCALE_DATA.map(l => l.code)
 export type Locale = (typeof LOCALES)[number]
+export const LOCALE_STRINGS: readonly string[] = LOCALES
 
-export const LOCALE_CONFIG: Record<Locale, { iso: string; name: string; rtl: boolean }> = {
-  ru: { iso: 'ru-RU', name: 'Русский', rtl: false },
-  en: { iso: 'en-US', name: 'English', rtl: false },
-  fr: { iso: 'fr-FR', name: 'Français', rtl: false },
-  he: { iso: 'he-IL', name: 'עברית', rtl: true }
+export const LOCALE_CONFIG: Record<Locale, { iso: string; name: string }> = Object.fromEntries(
+  PM_LOCALE_DATA.map(l => [l.code, { iso: l.iso, name: l.name }])
+) as Record<Locale, { iso: string; name: string }>
+
+export const DEFAULT_LOCALE: Locale = PM_LOCALE_DATA[0].code
+
+/** RTL language codes — defined once, auto-detected */
+const RTL_CODES = new Set([
+  'ar', 'ara', 'arc', 'dv', 'div', 'fa', 'per', 'fas', 'ha', 'hau',
+  'he', 'heb', 'khw', 'ks', 'kas', 'ku', 'kur', 'ps', 'pus',
+  'sd', 'snd', 'syr', 'ug', 'uig', 'ur', 'urd', 'yi', 'yid',
+  'nqo', 'rhg', 'fuf', 'mid', 'men', 'sam'
+])
+
+/**
+ * Returns true for RTL (right-to-left) languages.
+ * Detected automatically from locale code — no per-language flag needed.
+ */
+export function isRtlLocale(locale: string): boolean {
+  const code = locale.split(/[-_]/)[0]!.toLowerCase()
+  return RTL_CODES.has(code)
 }
-
-export const DEFAULT_LOCALE: Locale = 'ru'
 
 // ── Navigation ───────────────────────────────────────────────────────────────
 
@@ -56,7 +78,7 @@ export const HOMEPAGE_SECTIONS: HomepageSection[] = [
   { id: 'about', component: 'SectionAbout', renderMode: 'section', enabled: true },
   { id: 'focus', component: 'SectionFocus', renderMode: 'section', enabled: true },
   { id: 'f22', component: 'SectionF22', renderMode: 'section', enabled: true },
-  { id: 'portfolio', component: 'SectionPortfolio', renderMode: 'page', enabled: true },
+  { id: 'portfolio', component: 'SectionPortfolio', renderMode: 'page', enabled: false },
   { id: 'contact', component: 'SectionContact', renderMode: 'section', enabled: true }
 ]
 
@@ -248,7 +270,7 @@ export const FEATURES: Features = {
   footerCta: true,
   footerLegalLinks: true,
   footerMadeBy: true,
-  footerMadeWith: false,
+  footerMadeWith: true,
   backToTop: true
 }
 
@@ -298,11 +320,7 @@ export const LOGO = {
     horizontal: 'header' as const,
     circle: 'short' as const
   },
-  langFallback: {
-    en: 'en' as const,
-    fr: 'en' as const,
-    he: 'en' as const
-  },
+  langFallback: Object.fromEntries(LOCALES.map(l => [l, DEFAULT_LOCALE])),
   available: [
     'horizontal_dark_en',
     'horizontal_dark_ru',
@@ -315,14 +333,9 @@ export const LOGO = {
   ]
 }
 
-// ── Brand Colors ─────────────────────────────────────────────────────────────
+// ── Brand Colors (config-driven from theme.ts) ──────────────────────────────
 
-export const COLORS = {
-  black: '#3b0902',
-  white: '#fbf2e7',
-  brand: '#901504',
-  accent: '#901504'
-}
+export { BRAND_COLORS as COLORS } from '$lib/config/theme'
 
 // ── Default Theme ────────────────────────────────────────────────────────────
 
@@ -338,7 +351,7 @@ export const PM_MODE: PmMode = 'build'
 
 export const FRAMEWORK = {
   /** URL for "Made with" link. Empty = not shown. */
-  url: '' as string,
+  url: 'https://fabrica22.pro' as string,
   /** Label override (uses i18n footer_puppetMaster by default). */
   label: '' as string
 }

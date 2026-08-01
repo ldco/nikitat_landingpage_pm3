@@ -34,7 +34,7 @@
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     {#each images as img}
-      <div class="aspect-[4/3] rounded-lg overflow-hidden bg-pm-bg-sunken">
+      <div class="aspect-4/3 rounded-lg overflow-hidden bg-pm-bg-sunken">
         <AppImage src={img.url} alt={img.caption ?? title} class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
         {#if img.caption}
           <p class="p-2 text-xs text-pm-text-muted">{img.caption}</p>

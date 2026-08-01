@@ -27,12 +27,12 @@
   } = $props()
 
   // Mimics PM v2 logic: .container without modifier = default
-  const width = widthProp ?? 'default'
+  const width = $derived(widthProp ?? 'default')
 
   const maxWidth: Record<Width, string> = {
     default: 'max-w-container',
-    narrow: 'max-w-[768px]',
-    wide: 'max-w-[1536px]',
+    narrow: 'max-w-container-narrow',
+    wide: 'max-w-container-wide',
     prose: 'max-w-prose',
     full: 'max-w-full',
     bleed: 'max-w-none'

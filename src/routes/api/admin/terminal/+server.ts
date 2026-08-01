@@ -28,12 +28,12 @@ const commandSchema = z.object({
 export async function POST(event: RequestEvent) {
   const actor = requireMaster(event)
   const body = await event.request.json().catch(() => null)
-  if (!body) throw error(400, 'Invalid request body')
+  if (!body) error(400)
   const parsed = commandSchema.safeParse(body)
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
   const cmd = parsed.data.command.trim()
   const allowed = ALLOWED_COMMANDS.some(ac => cmd.startsWith(ac))
-  if (!allowed) throw error(403, 'Command not in allowlist')
+  if (!allowed) error(403)
   try {
     const output = execSync(cmd, { timeout: 10000, encoding: 'utf-8' })
     const ip = getClientIp(event.request)

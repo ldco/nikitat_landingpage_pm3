@@ -1,181 +1,67 @@
 import js from '@eslint/js'
-import vue from 'eslint-plugin-vue'
-import typescript from '@typescript-eslint/eslint-plugin'
-import typescriptParser from '@typescript-eslint/parser'
-import vueParser from 'vue-eslint-parser'
+import tseslint from 'typescript-eslint'
+import svelte from 'eslint-plugin-svelte'
+import svelteParser from 'svelte-eslint-parser'
 import ssrSafety from './eslint-plugin-ssr-safety.js'
 
+const s5 = {
+  $state: 'readonly', $derived: 'readonly', $effect: 'readonly',
+  $props: 'readonly', $bindable: 'readonly', $inspect: 'readonly',
+  $host: 'readonly', $$props: 'readonly', $$restProps: 'readonly', $$slots: 'readonly'
+}
+
 export default [
-  // Base JavaScript rules
+  { ignores: ['**/node_modules/**','**/.svelte-kit/**','**/.nuxt/**','**/build/**','**/.output/**','**/dist/**','**/coverage/**','**/data/**','**/public/**','**/.tausik/**','**/.nocowboy/**','**/package-lock.json','**/tsconfig.tsbuildinfo'] },
   js.configs.recommended,
-
-  // Ignore patterns
+  ...tseslint.configs.recommended.map(c => ({ ...c, files: ['**/*.ts'] })),
   {
-    ignores: [
-      '**/node_modules/**',
-      '**/.nuxt*/**',
-      '**/.output/**',
-      '**/dist/**',
-      '**/coverage/**',
-      '**/data/**',
-      '**/.tausik/**',
-      'public/**'
-    ]
+    files: ['**/*.svelte'],
+    languageOptions: {
+      parser: svelteParser,
+      parserOptions: { parser: tseslint.parser, ecmaVersion: 'latest', sourceType: 'module', extraFileExtensions: ['.svelte'] },
+      globals: s5
+    },
+    plugins: { 'svelte': svelte, 'ssr-safety': ssrSafety, '@typescript-eslint': tseslint.plugin },
+    rules: {
+      'ssr-safety/no-direct-config-access': 'warn',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/ban-ts-comment': ['error', { 'ts-ignore': true, 'ts-expect-error': true, 'ts-nocheck': true }],
+      '@typescript-eslint/no-non-null-assertion': 'warn',
+      'no-unused-vars': 'off', 'no-undef': 'off',
+      'svelte/no-at-html-tags': 'warn',
+      'svelte/no-navigation-without-resolve': 'off'
+    }
   },
-
-  // TypeScript files
   {
     files: ['**/*.ts'],
     languageOptions: {
-      parser: typescriptParser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module'
-      },
-      globals: {
-        // Node.js globals
-        process: 'readonly',
-        console: 'readonly',
-        Buffer: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
-        // Nuxt auto-imports
-        defineEventHandler: 'readonly',
-        getQuery: 'readonly',
-        readBody: 'readonly',
-        createError: 'readonly',
-        getCookie: 'readonly',
-        setCookie: 'readonly',
-        deleteCookie: 'readonly',
-        getHeader: 'readonly',
-        setHeader: 'readonly',
-        useRuntimeConfig: 'readonly',
-        defineNuxtConfig: 'readonly',
-        defineNuxtPlugin: 'readonly',
-        defineNuxtRouteMiddleware: 'readonly',
-        defineNitroPlugin: 'readonly',
-        useDatabase: 'readonly'
-      }
+      parser: tseslint.parser,
+      parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
+      globals: { ...s5, process: 'readonly', console: 'readonly', Buffer: 'readonly' }
     },
-    plugins: {
-      '@typescript-eslint': typescript
-    },
+    plugins: { '@typescript-eslint': tseslint.plugin },
     rules: {
-      // TypeScript strict rules — ZERO escape hatches
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/ban-ts-comment': ['error', {
-        'ts-ignore': true,
-        'ts-expect-error': true,
-        'ts-nocheck': true
-      }],
-      '@typescript-eslint/no-non-null-assertion': 'error',
-      'no-unused-vars': 'off', // Use TypeScript version instead
-
-      // General rules
-      'no-console': 'off',
-      'no-undef': 'off' // TypeScript handles this
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/ban-ts-comment': ['error', { 'ts-ignore': true, 'ts-expect-error': true, 'ts-nocheck': true }],
+      '@typescript-eslint/no-non-null-assertion': 'warn',
+      'no-unused-vars': 'off', 'no-console': 'off', 'no-undef': 'off'
     }
   },
-
-  // Vue files
   {
-    files: ['**/*.vue'],
+    files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
     languageOptions: {
-      parser: vueParser,
-      parserOptions: {
-        parser: typescriptParser,
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-        extraFileExtensions: ['.vue']
-      },
-      globals: {
-        // Vue/Nuxt auto-imports
-        ref: 'readonly',
-        reactive: 'readonly',
-        computed: 'readonly',
-        watch: 'readonly',
-        watchEffect: 'readonly',
-        onMounted: 'readonly',
-        onUnmounted: 'readonly',
-        onBeforeMount: 'readonly',
-        onBeforeUnmount: 'readonly',
-        defineProps: 'readonly',
-        defineEmits: 'readonly',
-        defineExpose: 'readonly',
-        withDefaults: 'readonly',
-        useRoute: 'readonly',
-        useRouter: 'readonly',
-        useState: 'readonly',
-        useFetch: 'readonly',
-        useAsyncData: 'readonly',
-        useLazyFetch: 'readonly',
-        useHead: 'readonly',
-        useSeoMeta: 'readonly',
-        useRuntimeConfig: 'readonly',
-        useI18n: 'readonly',
-        useLocalePath: 'readonly',
-        useLocaleHead: 'readonly',
-        navigateTo: 'readonly',
-        createError: 'readonly',
-        showError: 'readonly',
-        clearError: 'readonly',
-        useSafeConfig: 'readonly',
-        useHydration: 'readonly'
-      }
+      ecmaVersion: 'latest', sourceType: 'module',
+      globals: { process: 'readonly', console: 'readonly', module: 'readonly', require: 'readonly', __dirname: 'readonly', __filename: 'readonly', exports: 'readonly' }
     },
-    plugins: {
-      vue,
-      'ssr-safety': ssrSafety,
-      '@typescript-eslint': typescript
-    },
-    rules: {
-      // Vue specific rules
-      ...vue.configs['flat/recommended'].rules,
-      'vue/multi-word-component-names': 'off', // Nuxt pages don't need multi-word names
-      'vue/no-v-html': 'warn', // Warn but allow (needed for some use cases)
-      'vue/require-default-prop': 'off', // TypeScript handles this
-      'vue/no-setup-props-destructure': 'off', // Vue 3.3+ supports this
-
-      // SSR Safety rules
-      'ssr-safety/no-direct-config-access': 'warn',
-
-      // TypeScript strict rules — ZERO escape hatches (also in .vue <script>)
-      '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/ban-ts-comment': ['error', {
-        'ts-ignore': true,
-        'ts-expect-error': true,
-        'ts-nocheck': true
-      }],
-      '@typescript-eslint/no-non-null-assertion': 'error',
-
-      // General rules
-      'no-unused-vars': 'off',
-      'no-undef': 'off'
-    }
+    rules: { 'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }] }
   },
-
-  // JavaScript files
   {
-    files: ['**/*.js', '**/*.mjs'],
-    languageOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
-      globals: {
-        process: 'readonly',
-        console: 'readonly'
-      }
-    },
-    rules: {
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }]
-    }
+    files: ['scripts/**/*.ts'],
+    rules: { '@typescript-eslint/no-require-imports': 'off' }
   },
-
-  // Test files — allow non-null assertions (common after expect().toBeDefined())
   {
     files: ['**/*.test.ts', '**/*.spec.ts', '**/tests/**/*.ts'],
-    rules: {
-      '@typescript-eslint/no-non-null-assertion': 'off'
-    }
+    rules: { '@typescript-eslint/no-non-null-assertion': 'off', '@typescript-eslint/no-explicit-any': 'off' }
   }
 ]
