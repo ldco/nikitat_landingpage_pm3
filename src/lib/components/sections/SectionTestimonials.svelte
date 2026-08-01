@@ -35,7 +35,7 @@
   'pt-[var(--pt-section)] pb-16',
   className
 ))}>
-  <div class={clsx('w-full mx-auto', isContained && 'max-w-narrow')} style="padding-inline: var(--px-container);">
+  <div class={clsx('w-full mx-auto', isContained && 'max-w-narrow', 'px-container')}>
     <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_testimonials()}</h2>
     {#if testimonials.length > 0}
       <div class="text-center p-8 rounded-xl bg-pm-bg-elevated border border-pm-border shadow-md">

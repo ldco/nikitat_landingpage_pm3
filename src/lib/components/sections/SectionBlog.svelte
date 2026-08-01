@@ -21,7 +21,7 @@
   'pt-[var(--pt-section)] pb-16',
   className
 ))}>
-  <div class={clsx('w-full mx-auto', isContained && 'max-w-container')} style="padding-inline: var(--px-container);">
+  <div class={clsx('w-full mx-auto', isContained && 'max-w-container', 'px-container')}>
     <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_blog()}</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[var(--gap-lg)]">
       {#each posts as post}

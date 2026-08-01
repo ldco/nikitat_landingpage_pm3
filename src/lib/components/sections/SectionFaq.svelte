@@ -39,7 +39,7 @@
   'pt-[var(--pt-section)] pb-16',
   className
 ))}>
-  <div class={clsx('w-full mx-auto', isContained && 'max-w-narrow')} style="padding-inline: var(--px-container);">
+  <div class={clsx('w-full mx-auto', isContained && 'max-w-narrow', 'px-container')}>
     <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_faq()}</h2>
     <div class="flex flex-col gap-sm-custom">
       {#each items as item}

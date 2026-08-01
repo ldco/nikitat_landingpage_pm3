@@ -23,7 +23,7 @@
   'pt-[var(--pt-section)] pb-16',
   className
 ))}>
-  <div class={clsx('w-full mx-auto', isContained && 'max-w-container')} style="padding-inline: var(--px-container);">
+  <div class={clsx('w-full mx-auto', isContained && 'max-w-container', 'px-container')}>
     <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_team()}</h2>
     <div class={clsx('grid grid-cols-1 gap-[var(--gap-lg)]',
       colsDesktopTeam >= 2 && 'sm:grid-cols-2',
