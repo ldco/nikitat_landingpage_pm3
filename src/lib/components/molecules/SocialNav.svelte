@@ -13,6 +13,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import SocialIcon from '$lib/components/atoms/SocialIcon.svelte'
+  import { useSettings } from '$lib/stores/settings.svelte'
 
   type Size = 'sm' | 'md' | 'lg'
   type Variant = 'default' | 'filled' | 'bordered' | 'circle'
@@ -58,25 +59,12 @@
     url: string
   }
 
-  let socialLinks = $state<SocialLink[]>([])
+  const settings = useSettings()
 
-  $effect(() => {
-    fetch('/api/settings')
-      .then(r => r.json())
-      .then(data => {
-        if (data?.data) {
-          const links: SocialLink[] = []
-          for (const [key, value] of Object.entries(data.data)) {
-            if (key.startsWith('social.') && value && String(value).trim()) {
-              const platform = key.slice(7) // Remove 'social.' prefix
-              links.push({ platform, url: String(value) })
-            }
-          }
-          socialLinks = links
-        }
-      })
-      .catch(() => {}) // Silently ignore — settings not seeded yet
-  })
+  // Reactive social links from shared settings store (rule 6: no direct API fetch)
+  const socialLinks = $derived(
+    settings.socialLinks.map(link => ({ platform: link.platform, url: link.url }))
+  )
 </script>
 
 {#if socialLinks.length > 0}

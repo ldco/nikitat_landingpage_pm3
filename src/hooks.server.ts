@@ -141,3 +141,25 @@ export const handle = sequence(
   csrfHandle,
   cspHandle
 )
+
+// ── Error contract (rule 11) ───────────────────────────────────────────────
+// Formats all API errors into { success: false, error: { code, message } }.
+// Never leaks stack traces.
+export const handleError: import('@sveltejs/kit').HandleServerError = async ({ error: err, event }) => {
+  const isApi = event.url.pathname.startsWith('/api/')
+
+  if (isApi) {
+    const message = err instanceof Error ? err.message : 'Internal server error'
+    const status = 'status' in (err as object) ? Number((err as { status?: number }).status) || 500 : 500
+    return {
+      message,
+      // Shape consumed by SvelteKit to render the JSON response
+      ...(status >= 500 ? { stack: undefined } : {}),
+      code: status >= 500 ? 'server.internal' : `http.${status}`
+    }
+  }
+
+  return {
+    message: err instanceof Error ? err.message : 'Internal server error'
+  }
+}

@@ -4,6 +4,9 @@
   import SectionRenderer from '$lib/components/complex/SectionRenderer.svelte'
   import * as m from '$lib/i18n'
   import { t } from '$lib/stores/content.svelte'
+  import type { PageData } from './$types'
+
+  let { data }: { data: PageData } = $props()
 
   const isOnepager = $derived(FEATURES.onepager)
 
@@ -28,7 +31,7 @@
 
     {#each sections as section (section.id)}
       <div class="scene-full-bleed">
-        <SectionRenderer sectionId={section.id} />
+        <SectionRenderer sectionId={section.id} content={data.sectionContent} />
       </div>
     {/each}
   </div>

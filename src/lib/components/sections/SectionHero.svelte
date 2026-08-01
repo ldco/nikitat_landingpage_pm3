@@ -1,18 +1,21 @@
 <script lang="ts">
   /**
-  * SectionHero — Full-viewport hero: title segments, subtitle, CTAs, logo (PM3 rule 6)
- *
- * Content from content store: hero.title, hero.subtitle, hero.primaryCta, hero.secondaryCta
- *
- * @props title?: string — hero title (default from content store)
- * @props subtitle?: string — hero subtitle
- * @props primaryCta?: string — primary button label
- * @props primaryHref?: string — primary link (default /#contact)
- * @props secondaryCta?: string — secondary button label
- * @props secondaryHref?: string — secondary link (default /portfolio)
- * @props showLogo?: boolean — show circular logo (default true)
- * @example <SectionHero />
-  */
+   * SectionHero — Full-viewport hero: title segments, subtitle, CTAs, logo
+   *
+   * Content from content store: hero.title, hero.subtitle, hero.primaryCta, hero.secondaryCta
+   *
+   * @props title?: string — hero title (default from content store)
+   * @props subtitle?: string — hero subtitle
+   * @props primaryCta?: string — primary button label
+   * @props primaryHref?: string — primary link (default /#contact)
+   * @props secondaryCta?: string — secondary button label
+   * @props secondaryHref?: string — secondary link (default /portfolio)
+   * @props showLogo?: boolean — show circular logo (default true)
+   * @props class?: string — merged Tailwind classes
+   * @example <SectionHero />
+   */
+  import { clsx } from 'clsx'
+  import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
   import { FEATURES } from '$lib/config/site'
   import { t } from '$lib/stores/content.svelte'
@@ -30,9 +33,11 @@
     primaryHref = '/#contact',
     secondaryCta = t('hero.secondaryCta', m.nav_portfolio()),
     secondaryHref = '/portfolio',
+    class: className = ''
   }: {
     title?: string; subtitle?: string; showLogo?: boolean
     primaryCta?: string; primaryHref?: string; secondaryCta?: string; secondaryHref?: string
+    class?: string
   } = $props()
 
   const locale = $derived(languageTag())
@@ -40,11 +45,7 @@
   const parallaxEnabled = $derived(FEATURES.heroParallax)
 </script>
 
-<section id="hero" class="relative grid grid-cols-1 md:grid-cols-2 items-center gap-[var(--space-8)]
-       min-h-dvh pt-[var(--pt-section)] pb-[var(--space-4)]
-       px-[max(var(--space-6),calc((100vw-var(--max-w-container))/2))]
-       bg-pm-bg scroll-mt-0
-       max-sm:min-h-svh max-sm:gap-[var(--space-2)] max-sm:px-[var(--space-2)]">
+<section id="hero" class={twMerge(clsx('relative grid grid-cols-1 md:grid-cols-2 items-center gap-[var(--space-8)]', 'min-h-dvh pt-[var(--pt-section)] pb-[var(--space-4)]', 'px-[max(var(--space-6),calc((100vw-var(--max-w-container))/2))]', 'bg-pm-bg scroll-mt-0', 'max-sm:min-h-svh max-sm:gap-[var(--space-2)] max-sm:px-[var(--space-2)]', className))}>
   {#if parallaxEnabled}
     <HeroParallaxScene />
   {/if}

@@ -1,4 +1,11 @@
 <script lang="ts">
+  /**
+   * LinkedinIcon — Linkedin social platform SVG icon (brand glyph)
+   *
+   * @props size?: number — icon dimension in px (default 20)
+   * @props class?: string — merged Tailwind classes
+   * @example <TelegramIcon size=24 />
+   */
   import BaseIcon from './BaseIcon.svelte'
   let { size = 20, class: className = '' }: { size?: number; class?: string } = $props()
 </script>
