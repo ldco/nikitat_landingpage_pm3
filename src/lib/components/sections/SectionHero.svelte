@@ -49,7 +49,7 @@
 
   <!-- Left: Text -->
   <div class="flex flex-col justify-center z-10 min-w-0">
-    <h1 class="text-fluid-hero font-black leading-tight tracking-normal text-pm-text mb-5 space-y-2">
+    <h1 class="hero-title text-pm-text mb-5 space-y-2">
       {#each segments as segment}
         <span class="block w-fit" class:text-pm-brand={segment.brand}>
           {segment.text}

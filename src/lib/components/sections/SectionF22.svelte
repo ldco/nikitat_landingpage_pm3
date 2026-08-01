@@ -24,7 +24,7 @@
   className
 ))}>
   <div class={clsx('w-full mx-auto', isContained && 'max-w-container')} style="padding-inline: var(--px-container);">
-    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{title}</h2>
+    <h2 class="section-title text-center">{title}</h2>
     <div class="flex flex-col items-center text-center max-w-2xl mx-auto">
       <p class="text-fluid-2xl text-pm-text-secondary leading-relaxed mb-8">
         {description || m.common_note()}

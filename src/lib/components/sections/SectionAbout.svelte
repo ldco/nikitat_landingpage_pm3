@@ -25,7 +25,7 @@
   className
 ))}>
   <div class={clsx('w-full mx-auto', isContained && 'max-w-container')} style="padding-inline: var(--px-container);">
-    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">
+    <h2 class="section-title text-center">
       {title}
     </h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-[var(--gap-xl)] items-center">

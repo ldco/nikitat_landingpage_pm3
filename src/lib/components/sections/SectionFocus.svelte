@@ -31,7 +31,7 @@
   className
 ))}>
   <div class={clsx('w-full mx-auto', isContained && 'max-w-container')} style="padding-inline: var(--px-container);">
-    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{title}</h2>
+    <h2 class="section-title text-center">{title}</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[var(--gap-lg)]">
       {#each cards as card}
         <div class="bg-pm-bg border border-pm-border rounded-xl p-6 transition-transform hover:-translate-y-0.5 hover:shadow-md">
