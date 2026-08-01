@@ -18,7 +18,6 @@
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
   import { FEATURES, FRAMEWORK } from '$lib/config/site'
-  import { languageTag } from '$lib/paraglide/runtime.js'
   import MadeBy from '$lib/components/atoms/MadeBy.svelte'
   import MadeWith from '$lib/components/atoms/MadeWith.svelte'
   import Logo from '$lib/components/atoms/Logo.svelte'
@@ -26,11 +25,17 @@
   import FooterNav from '$lib/components/molecules/FooterNav.svelte'
   import FooterCta from '$lib/components/molecules/FooterCta.svelte'
   import LegalInfo from '$lib/components/molecules/LegalInfo.svelte'
-  import { getLegalDocuments } from '$lib/utils/legal-documents'
+
+  interface LegalDoc {
+    slug: string
+    file: string
+  }
 
   let {
+    legalDocs = [] as LegalDoc[],
     class: className = ''
   }: {
+    legalDocs?: LegalDoc[]
     class?: string
   } = $props()
 
@@ -41,13 +46,6 @@
   const showMadeBy = $derived(FEATURES.footerMadeBy)
   const showMadeWith = $derived(FEATURES.footerMadeWith)
   const showFooterCta = $derived(FEATURES.footerCta)
-  const legalDocs = $derived.by(() => {
-    try {
-      return getLegalDocuments(languageTag())
-    } catch {
-      return []
-    }
-  })
 
   /** Resolve translated title for a legal document file (typed, no dynamic indexing) */
   function legalDocLabel(file: string): string {

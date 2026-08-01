@@ -12,8 +12,9 @@
   import CookieConsent from '$lib/components/complex/CookieConsent.svelte'
   import ToastContainer from '$lib/components/complex/ToastContainer.svelte'
   import FallingLetters from '../project/FallingLetters.svelte'
+  import type { LayoutData } from './$types'
 
-  let { children }: { children?: import('svelte').Snippet } = $props()
+  let { data, children }: { data: LayoutData; children?: import('svelte').Snippet } = $props()
   const isOnepager = $derived(FEATURES.onepager)
   
   // Initialize theme (apply dark class + system preference listener)
@@ -47,7 +48,7 @@
   {/key}
 </main>
 {#if !$page.url.pathname.startsWith('/admin')}
-    <TheFooter />
+    <TheFooter legalDocs={data.legalDocuments} />
 {#if FEATURES.backToTop}
 <BackToTop />
 {/if}
