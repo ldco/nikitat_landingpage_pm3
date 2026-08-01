@@ -116,8 +116,8 @@ export function getSettingDefinition(key: string): SettingDefinition | undefined
 export function getSettingsByGroup(): Record<string, SettingDefinition[]> {
   const grouped: Record<string, SettingDefinition[]> = {}
   for (const s of SETTINGS_SCHEMA) {
-    if (!grouped[s.group]) grouped[s.group] = []
-    grouped[s.group]!.push(s)
+    const list = grouped[s.group] ?? (grouped[s.group] = [])
+    list.push(s)
   }
   return grouped
 }

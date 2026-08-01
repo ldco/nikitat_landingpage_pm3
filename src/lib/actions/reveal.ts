@@ -18,14 +18,14 @@ interface RevealOptions {
 }
 
 export function reveal(node: HTMLElement, options?: RevealOptions): { destroy(): void; update(o?: RevealOptions): void } {
-  let opts: Required<RevealOptions> = {
+  const opts: Required<RevealOptions> = {
     animation: 'fade-up',
     delay: 0,
     threshold: 0.15,
     rootMargin: '0px',
     once: true
   }
-  if (options) Object.assign(opts, options)
+  Object.assign(opts, options)
 
   let observer: IntersectionObserver | null = null
 

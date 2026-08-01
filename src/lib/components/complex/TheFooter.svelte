@@ -26,7 +26,7 @@
   import FooterNav from '$lib/components/molecules/FooterNav.svelte'
   import FooterCta from '$lib/components/molecules/FooterCta.svelte'
   import LegalInfo from '$lib/components/molecules/LegalInfo.svelte'
-  import { getLegalDocuments, legalDocumentTitleKey } from '$lib/utils/legal-documents'
+  import { getLegalDocuments } from '$lib/utils/legal-documents'
 
   let {
     class: className = ''
@@ -48,6 +48,13 @@
       return []
     }
   })
+
+  /** Resolve translated title for a legal document file (typed, no dynamic indexing) */
+  function legalDocLabel(file: string): string {
+    if (file === 'privacy-policy') return m.footer_privacy()
+    if (file === 'personal-data-policy') return m.footer_personalData()
+    return m.footer_terms()
+  }
 </script>
 
 <footer class={twMerge(clsx(
@@ -82,7 +89,7 @@
       {#if showLegalLinks && legalDocs.length > 0}
       <div class="flex gap-3">
         {#each legalDocs as doc (doc.slug)}
-          <a href={`/legal/${doc.slug}`} class="text-pm-text-muted underline underline-offset-2 decoration-1 hover:text-pm-text transition-colors decoration-pm-border/50">{m[legalDocumentTitleKey(doc.file)]()}</a>
+          <a href={`/legal/${doc.slug}`} class="text-pm-text-muted underline underline-offset-2 decoration-1 hover:text-pm-text transition-colors decoration-pm-border/50">{legalDocLabel(doc.file)}</a>
         {/each}
       </div>
       {/if}

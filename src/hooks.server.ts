@@ -43,20 +43,28 @@ const sessionHandle: Handle = async ({ event, resolve }) => {
 
 // ── CSRF Handle ─────────────────────────────────────────────────────────────
 const csrfHandle: Handle = async ({ event, resolve }) => {
-  // Generate and set CSRF token for every response
-  const csrfToken = generateCsrfToken()
-  event.cookies.set(CSRF_COOKIE_NAME, csrfToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    path: '/'
-  })
+  // Set CSRF cookie only if not present — token must be stable per session,
+  // otherwise the header can never match a freshly-regenerated value.
+  let csrfToken = event.cookies.get(CSRF_COOKIE_NAME)
+  if (!csrfToken) {
+    csrfToken = generateCsrfToken()
+    event.cookies.set(CSRF_COOKIE_NAME, csrfToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/'
+    })
+  }
 
   // Validate on state-changing methods
   if (MUTATION_METHODS.has(event.request.method)) {
     // Skip CSRF for login (handled differently)
     const url = new URL(event.request.url)
     if (url.pathname === '/api/auth/login') {
+      return resolve(event)
+    }
+    // Public analytics beacon — no auth, no state change beyond logging
+    if (url.pathname === '/api/analytics/performance') {
       return resolve(event)
     }
 
