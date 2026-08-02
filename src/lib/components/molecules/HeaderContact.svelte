@@ -126,7 +126,7 @@
       {@const Icon = item.icon}
       <a
         href={item.url}
-        class="inline-flex items-center justify-center size-9 rounded-md text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken transition-colors"
+        class="inline-flex items-center justify-center size-8 rounded-full text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken transition-colors"
         aria-label={item.key}
         target={isExternal(item.url) ? '_blank' : undefined}
         rel={isExternal(item.url) ? 'noopener noreferrer' : undefined}
@@ -139,7 +139,7 @@
       {@const Icon = item.icon}
       <a
         href={item.url}
-        class="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-pm-brand text-pm-white text-sm font-medium hover:bg-pm-brand-light transition-colors"
+        class="inline-flex items-center gap-2 px-3 h-8 rounded-full bg-pm-brand text-pm-white text-sm font-medium hover:bg-pm-brand-light transition-colors"
         aria-label={ctaLabel}
         target={isExternal(item.url) ? '_blank' : undefined}
         rel={isExternal(item.url) ? 'noopener noreferrer' : undefined}

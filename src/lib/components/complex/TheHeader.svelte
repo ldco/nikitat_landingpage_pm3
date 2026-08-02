@@ -12,23 +12,14 @@
   import HamburgerIcon from '$lib/components/atoms/HamburgerIcon.svelte'
   import { scrollHeader } from '$lib/actions/scrollHeader'
 
-  /**
- * TheHeader — Fixed site header: logo, nav, actions, mobile drawer (PM3 skeleton)
- *
- * Config-driven via FEATURES (onepager, interactiveHeader, hideHeaderOnScroll,
- * verticalNav, headerFooterWidthMode). Uses scrollHeader action for scrolled states.
- *
- * @props class?: string — merged Tailwind classes
- * @example <TheHeader />
- */
-
-let { class: className = '' }: { class?: string } = $props()
+  let { class: className = '' }: { class?: string } = $props()
   const navState = getNavState()
   const activeSection = $derived(navState.activeSection)
   const isFullWidth = $derived(FEATURES.headerFooterWidthMode === "full")
   const isInteractive = $derived(FEATURES.onepager && FEATURES.interactiveHeader)
   const hideOnScroll = $derived(FEATURES.hideHeaderOnScroll)
   const isVerticalNav = $derived(FEATURES.verticalNav)
+  const isDesktop = $derived(typeof window !== 'undefined' ? window.matchMedia('(min-width: 1120px)').matches : false)
 
   let mobileOpen = $state(false)
   let showMenu = $state(false)
@@ -38,14 +29,11 @@ let { class: className = '' }: { class?: string } = $props()
 
   $effect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined
-    if (mobileOpen) {
-      timer = setTimeout(() => { showMenu = true }, 200)
-    } else {
-      showMenu = false
-    }
+    if (mobileOpen) { timer = setTimeout(() => { showMenu = true }, 200) }
+    else { showMenu = false }
     return () => { if (timer) clearTimeout(timer) }
   })
-  // Lock body scroll when mobile nav open
+
   $effect(() => {
     if (mobileOpen) {
       document.body.style.overflow = 'hidden'
@@ -54,8 +42,6 @@ let { class: className = '' }: { class?: string } = $props()
     }
     return () => { document.body.style.overflow = '' }
   })
-
-  let headerEl: HTMLElement | undefined = $state()
 </script>
 
 <svelte:window onkeydown={(e) => { if (e.key === 'Escape') closeMobileNav() }} />
@@ -71,30 +57,68 @@ let { class: className = '' }: { class?: string } = $props()
   <div class="flex flex-col items-center gap-2 py-3 border-t border-pm-border"><HeaderActions showContact={false} langDirection="side" /></div>
 </aside>
 {:else}
+<!-- PM2 structure: header → header-inner → grid(logo | nav | actions) -->
 <header
-  bind:this={headerEl}
-  use:scrollHeader={{ threshold: 50, hideOnScroll }}
-  class={twMerge(clsx("fixed top-0 start-0 end-0 z-fixed border-b border-pm-border min-h-header transition-all duration-300 ease-out", isInteractive ? "h-header data-scrolled:h-header-scrolled data-scrolled:bg-pm-bg/85 data-scrolled:backdrop-blur-glass data-scrolled:shadow-sm" : "h-header bg-pm-bg", hideOnScroll && "data-hidden:-translate-y-full data-hidden:pointer-events-none", className))}>
-  <div class={clsx("header-inner flex items-center h-full px-container", !isFullWidth && "mx-auto max-w-container")}>
-    <div class="header-hamburger flex header:hidden"><HamburgerIcon active={mobileOpen} type="squeeze" onclick={handleHamburger} ariaLabel={mobileOpen ? m.nav_closeMenu() : m.nav_openMenu()} /></div>
-    <div class="header-logo flex items-center absolute start-1/2 -translate-x-1/2 header:static header:transform-none"><Logo shape="horizontal" /></div>
-    <nav class="header-nav hidden header:flex"><NavLinks activeId={activeSection} /></nav>
-    <div class="header-actions-rail hidden header:flex header:items-center"><HeaderActions langDirection="down" /></div>
-    <div class="header-contact header-mobile-contact flex header:hidden items-center gap-2">
-      <HeaderContact mode="contacts" size={18} />
+  use:scrollHeader={{ threshold: 50, hideOnScroll, enabled: isInteractive }}
+  class={twMerge(clsx(
+    'fixed top-0 inset-x-0 z-fixed border-b border-pm-border',
+    'bg-pm-bg transition-all duration-[var(--transition-slow)] ease-out',
+    'min-h-[var(--h-header)]',
+    isInteractive ? 'h-[var(--h-header)] data-scrolled:h-[var(--h-header-scrolled)] data-scrolled:backdrop-blur-glass data-scrolled:shadow-frosted' : 'h-[var(--h-header)]',
+    hideOnScroll && 'data-hidden:-translate-y-full data-hidden:pointer-events-none',
+    className
+  ))}>
+  <!-- PM2 .header-inner: 3-column grid (logo | nav | actions) -->
+  <div class={clsx(
+    'header-inner grid items-center h-full',
+    'grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_auto]',
+    'gap-[var(--gap-header-nav)]',
+    'px-container',
+    !isFullWidth && 'max-w-[var(--max-w-container)] mx-auto'
+  )}>
+    <!-- Logo (left on desktop, center absolute on mobile) -->
+    <div class="header-logo flex items-center absolute left-1/2 -translate-x-1/2 md:relative md:left-auto md:translate-x-0 z-10">
+      <Logo shape="horizontal" />
+    </div>
+
+    <!-- Nav (centered, desktop only) -->
+    <nav class="header-nav hidden md:flex justify-center">
+      <NavLinks activeId={activeSection} />
+    </nav>
+
+    <!-- Actions + hamburger (right) -->
+    <div class="flex items-center justify-end gap-2">
+      <!-- Desktop actions -->
+      <div class="header-actions-rail hidden md:flex md:items-center gap-2">
+        <HeaderContact mode="contacts" size={18} />
+        <HeaderActions showContact={false} langDirection="down" />
+      </div>
+      <!-- Mobile hamburger + contact icons in header rail -->
+      <div class="flex md:hidden items-center gap-1">
+        <HeaderContact mode="contacts" size={18} />
+        <HamburgerIcon active={mobileOpen} type="squeeze" onclick={handleHamburger} ariaLabel={mobileOpen ? m.nav_closeMenu() : m.nav_openMenu()} />
+      </div>
     </div>
   </div>
 </header>
 {/if}
 
+<!-- Mobile Nav Drawer (PM2: backdrop blur + slide transition) -->
 {#if showMenu}
-<div class="fixed inset-0 z-drawer-backdrop bg-black/40" onclick={closeMobileNav} role="presentation"></div>
-<nav class="fixed inset-y-0 start-0 z-drawer flex flex-col w-drawer bg-pm-bg shadow-xl">
-  <div class="flex items-center justify-between p-4 border-b border-pm-border"><Logo shape="horizontal" /><button type="button" class="flex items-center justify-center size-11 text-pm-text-secondary hover:text-pm-text" onclick={closeMobileNav} aria-label={m.nav_closeMenu()}><IconX class="size-5" /></button></div>
-  <div class="flex-1 overflow-y-auto p-4"><NavLinks vertical activeId={activeSection} onClick={closeMobileNav} /></div>
-  <div class="mt-auto p-4 border-t border-pm-border flex flex-col items-stretch gap-3">
-    <HeaderContact mode="all" />
-    <HeaderActions showContact={false} langDirection="inline" />
-  </div>
-</nav>
+  <div class="mobile-nav-backdrop" onclick={closeMobileNav} role="presentation"></div>
+  <nav class="mobile-nav-panel">
+    <div class="flex items-center justify-between p-[var(--space-4)] border-b border-pm-border">
+      <Logo shape="horizontal" />
+      <button type="button" class="flex items-center justify-center size-11 text-pm-text-secondary hover:text-pm-text transition-colors" onclick={closeMobileNav} aria-label={m.nav_closeMenu()}>
+        <IconX class="size-5" />
+      </button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-[var(--space-4)]">
+      <NavLinks vertical activeId={activeSection} onClick={closeMobileNav} />
+    </div>
+    <div class="p-[var(--space-4)] border-t border-pm-border space-y-3">
+      <HeaderContact mode="all" size={20} />
+      <HeaderActions showContact={false} langDirection="inline" />
+    </div>
+  </nav>
 {/if}

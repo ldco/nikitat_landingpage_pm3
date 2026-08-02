@@ -665,10 +665,11 @@
 @layer components {
   /* Base hamburger */
   .hamburger {
-    --hamburger-width: 24px;
-    --hamburger-height: 20px;
-    --hamburger-thickness: 2px;
+    --hamburger-width: 28px;
+    --hamburger-height: 24px;
+    --hamburger-thickness: 3px;
     --hamburger-gap: 6px;
+    --hamburger-padding: 0.75rem;
     --hamburger-color: currentColor;
     --hamburger-duration: 0.3s;
 
@@ -686,10 +687,10 @@
 
   .hamburger__inner {
     position: relative;
-    width: 100%;
+    width: var(--hamburger-width);
     height: var(--hamburger-thickness);
     background: var(--hamburger-color);
-    border-radius: 2px;
+    border-radius: 3px;
     transition: transform var(--hamburger-duration) var(--ease-smooth);
   }
 
@@ -1244,6 +1245,13 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
+  /* Light-theme GPU fix (PM2 parity — prevents Chrome color banding on scroll) */
+  :root:not(.dark) header[data-scrolled] {
+    background: var(--color-pm-bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
    Page Transitions (ported from PM v2 animations/page-transitions.css)
    Config: FEATURES.pageTransitions in src/lib/config/site.ts
    Only active in SPA mode (onepager: false)
