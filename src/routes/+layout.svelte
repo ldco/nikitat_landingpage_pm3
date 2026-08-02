@@ -15,7 +15,7 @@
   import BackToTop from '$lib/components/atoms/BackToTop.svelte'
   import CookieConsent from '$lib/components/complex/CookieConsent.svelte'
   import ToastContainer from '$lib/components/complex/ToastContainer.svelte'
-  import FallingLetters from '../project/FallingLetters.svelte'
+  import ProjectAmbient from '../project/ProjectAmbient.svelte'
   import type { LayoutData } from './$types'
 
   let { data, children }: { data: LayoutData; children?: import('svelte').Snippet } = $props()
@@ -29,7 +29,7 @@
 </script>
 
 {#if !$page.url.pathname.startsWith('/admin')}
-  <FallingLetters />
+  <ProjectAmbient />
   <TheHeader />
 {/if}
 <main id="main-content" class={clsx('min-h-screen', !$page.url.pathname.startsWith('/admin') && (isVerticalNav ? 'ms-16' : 'pt-16'))} use:scrollSpy>

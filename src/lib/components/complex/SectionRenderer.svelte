@@ -15,7 +15,7 @@
   import { HOMEPAGE_SECTIONS } from '$lib/config/site'
   import SectionAbout from '../sections/SectionAbout.svelte'
   import SectionFocus from '../sections/SectionFocus.svelte'
-  import SectionF22 from '../sections/SectionF22.svelte'
+  import SectionF22 from '../../../project/SectionF22.svelte'
   import SectionPortfolio from '../sections/SectionPortfolio.svelte'
   import SectionContact from '../sections/SectionContact.svelte'
   import SectionBlog from '../sections/SectionBlog.svelte'
