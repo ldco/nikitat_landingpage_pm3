@@ -1186,6 +1186,11 @@
  * PM2 MISSING KEYFRAMES (from animations/keyframes.css)
  * ═══════════════════════════════════════════════════════════ */
 
+
+@utility header-grid-cols {
+  grid-template-columns: auto max-content auto;
+}
+
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-25%); }
@@ -1248,7 +1253,7 @@
  * MOBILE NAVIGATION (PM2 skeleton/mobile-nav.css parity)
  * ═══════════════════════════════════════════════════════════ */
 
-.mobile-nav-panel {
+@utility mobile-nav-panel {
   position: fixed;
   inset-block: 0;
   inset-inline-start: 0;
@@ -1259,11 +1264,8 @@
   display: flex;
   flex-direction: column;
 }
-[dir="rtl"] .mobile-nav-panel {
-  box-shadow: -4px 0 20px oklch(0% 0 0 / 10%);
-}
 
-.mobile-nav-backdrop {
+@utility mobile-nav-backdrop {
   position: fixed;
   inset: 0;
   z-index: var(--z-drawer-backdrop);
@@ -1673,17 +1675,4 @@
  * grid-template-columns via arbitrary value are unreliable
  * across builds. This explicit rule guarantees the layout.
  * ═══════════════════════════════════════════════════════════ */
-@media (min-width: 1120px) {
-  .header-grid-template {
-    grid-template-columns: auto max-content auto;
-  }
-  .header-logo-col {
-    justify-self: start;
-  }
-  .header-nav-col {
-    justify-self: center;
-  }
-  .header-actions-col {
-    justify-self: end;
-  }
-}
+

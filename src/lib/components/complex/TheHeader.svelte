@@ -64,7 +64,7 @@
   ))}>
   <div class={clsx(
     'flex items-center justify-between header:grid h-full',
-    'header:grid-cols-[auto_max-content_auto]',
+    'header:header-grid-cols',
     'gap-header-nav',
     'px-container',
     !isFullWidth && 'max-w-[var(--max-w-container)] mx-auto'
