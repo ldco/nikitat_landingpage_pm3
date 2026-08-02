@@ -12,7 +12,7 @@ import { useDatabase, schema, closeDatabase } from '$lib/server/db'
 import { hashPassword } from '$lib/server/auth/password'
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { getContentSeedData } from '../../../../i18n/content'
+import { getContentSeedData } from '../../../project/content'
 
 interface TranslationEntry {
   locale: string
