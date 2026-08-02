@@ -64,7 +64,7 @@
   ))}>
   <div class={clsx(
     'flex items-center justify-between header:grid h-full',
-    'header:grid-cols-[auto_max-content_auto]',
+    'header:grid-cols-[auto_max-content_auto] header-grid-template',
     'gap-[var(--gap-header-nav)]',
     'px-container',
     !isFullWidth && 'max-w-[var(--max-w-container)] mx-auto'
@@ -73,15 +73,15 @@
       <HamburgerIcon active={mobileOpen} type="squeeze" onclick={handleHamburger} ariaLabel={mobileOpen ? m.nav_closeMenu() : m.nav_openMenu()} />
     </div>
 
-    <div class="flex-shrink-0 absolute left-1/2 -translate-x-1/2 header:static header:left-auto header:translate-x-0 z-10">
+    <div class="flex-shrink-0 absolute left-1/2 -translate-x-1/2 header:static header:left-auto header:translate-x-0 z-10 header-logo-col">
       <Logo shape="horizontal" />
     </div>
 
-    <nav class="hidden header:flex justify-center">
+    <nav class="hidden header:flex justify-center header-nav-col">
       <NavLinks activeId={activeSection} />
     </nav>
 
-    <div class="flex items-center gap-1 header:gap-2 flex-shrink-0 ml-auto">
+    <div class="flex items-center gap-1 header:gap-2 flex-shrink-0 ml-auto header-actions-col">
       <HeaderContact mode="contacts" size={18} />
       <div class="hidden header:flex header:items-center"><HeaderActions showContact={false} langDirection="down" /></div>
     </div>

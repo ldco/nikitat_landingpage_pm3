@@ -1636,3 +1636,24 @@
     filter: none;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+ * HEADER GRID — explicit fallback (PM2 Nuxt parity)
+ * Tailwind header:grid applies display:grid but the
+ * grid-template-columns via arbitrary value are unreliable
+ * across builds. This explicit rule guarantees the layout.
+ * ═══════════════════════════════════════════════════════════ */
+@media (min-width: 1120px) {
+  .header-grid-template {
+    grid-template-columns: auto max-content auto;
+  }
+  .header-logo-col {
+    justify-self: start;
+  }
+  .header-nav-col {
+    justify-self: center;
+  }
+  .header-actions-col {
+    justify-self: end;
+  }
+}
