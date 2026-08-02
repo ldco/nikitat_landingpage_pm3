@@ -1244,6 +1244,36 @@
   50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
 }
 
+/* ═══════════════════════════════════════════════════════════
+ * MOBILE NAVIGATION (PM2 skeleton/mobile-nav.css parity)
+ * ═══════════════════════════════════════════════════════════ */
+
+.mobile-nav-panel {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 0;
+  z-index: var(--z-drawer);
+  width: var(--drawer-width);
+  background: var(--color-pm-bg);
+  box-shadow: 4px 0 20px oklch(0% 0 0 / 10%);
+  display: flex;
+  flex-direction: column;
+}
+[dir="rtl"] .mobile-nav-panel {
+  box-shadow: -4px 0 20px oklch(0% 0 0 / 10%);
+}
+
+.mobile-nav-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-drawer-backdrop);
+  background: oklch(0% 0 0 / 40%);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+
+
 /* ═══════════════════════════════════════════════════════════════════════
   /* Light-theme GPU fix (PM2 parity — prevents Chrome color banding on scroll) */
   :root:not(.dark) header[data-scrolled] {
