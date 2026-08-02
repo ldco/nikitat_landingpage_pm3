@@ -19,7 +19,6 @@
   const isInteractive = $derived(FEATURES.onepager && FEATURES.interactiveHeader)
   const hideOnScroll = $derived(FEATURES.hideHeaderOnScroll)
   const isVerticalNav = $derived(FEATURES.verticalNav)
-  const isDesktop = $derived(typeof window !== 'undefined' ? window.matchMedia('(min-width: 1120px)').matches : false)
 
   let mobileOpen = $state(false)
   let showMenu = $state(false)
@@ -35,11 +34,8 @@
   })
 
   $effect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
+    if (mobileOpen) { document.body.style.overflow = 'hidden' }
+    else { document.body.style.overflow = '' }
     return () => { document.body.style.overflow = '' }
   })
 </script>
@@ -57,53 +53,43 @@
   <div class="flex flex-col items-center gap-2 py-3 border-t border-pm-border"><HeaderActions showContact={false} langDirection="side" /></div>
 </aside>
 {:else}
-<!-- PM2 structure: header → header-inner → grid(logo | nav | actions) -->
 <header
   use:scrollHeader={{ threshold: 50, hideOnScroll, enabled: isInteractive }}
   class={twMerge(clsx(
-    'fixed top-0 inset-x-0 z-fixed border-b border-pm-border',
-    'bg-pm-bg transition-all duration-[var(--transition-slow)] ease-out',
-    'min-h-[var(--h-header)]',
+    'fixed top-0 inset-x-0 z-fixed border-b border-pm-border bg-pm-bg',
+    'transition-all duration-[var(--transition-slow)] ease-out',
     isInteractive ? 'h-[var(--h-header)] data-scrolled:h-[var(--h-header-scrolled)] data-scrolled:backdrop-blur-glass data-scrolled:shadow-frosted' : 'h-[var(--h-header)]',
     hideOnScroll && 'data-hidden:-translate-y-full data-hidden:pointer-events-none',
     className
   ))}>
-  <!-- PM2 .header-inner: 3-column grid (logo | nav | actions) -->
+  <!-- PM2 .header-inner: flexbox (mobile) → grid 3-col (desktop 1120px) -->
   <div class={clsx(
-    'header-inner grid items-center h-full',
-    'grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_auto]',
+    'flex items-center justify-between header:grid h-full',
+    'header:grid-cols-[auto_max-content_auto]',
     'gap-[var(--gap-header-nav)]',
     'px-container',
     !isFullWidth && 'max-w-[var(--max-w-container)] mx-auto'
   )}>
-    <!-- Logo (left on desktop, center absolute on mobile) -->
-    <div class="header-logo flex items-center absolute left-1/2 -translate-x-1/2 md:relative md:left-auto md:translate-x-0 z-10">
+    <!-- Logo (left-desk, center-absolute-mob — PM2 pattern) -->
+    <div class="flex-shrink-0 absolute left-1/2 -translate-x-1/2 header:static header:left-auto header:translate-x-0 z-10">
       <Logo shape="horizontal" />
     </div>
 
-    <!-- Nav (centered, desktop only) -->
-    <nav class="header-nav hidden md:flex justify-center">
+    <!-- Nav (center, desktop only, hidden on mobile) -->
+    <nav class="hidden header:flex justify-center">
       <NavLinks activeId={activeSection} />
     </nav>
 
-    <!-- Actions + hamburger (right) -->
-    <div class="flex items-center justify-end gap-2">
-      <!-- Desktop actions -->
-      <div class="header-actions-rail hidden md:flex md:items-center gap-2">
-        <HeaderContact mode="contacts" size={18} />
-        <HeaderActions showContact={false} langDirection="down" />
-      </div>
-      <!-- Mobile hamburger + contact icons in header rail -->
-      <div class="flex md:hidden items-center gap-1">
-        <HeaderContact mode="contacts" size={18} />
-        <HamburgerIcon active={mobileOpen} type="squeeze" onclick={handleHamburger} ariaLabel={mobileOpen ? m.nav_closeMenu() : m.nav_openMenu()} />
-      </div>
+    <!-- Right: hamburger (mobile) + contact + actions (desktop) -->
+    <div class="flex items-center gap-1 header:gap-2 flex-shrink-0 ml-auto">
+      <HeaderContact mode="contacts" size={18} />
+      <div class="hidden header:flex header:items-center"><HeaderActions showContact={false} langDirection="down" /></div>
+      <div class="flex header:hidden"><HamburgerIcon active={mobileOpen} type="squeeze" onclick={handleHamburger} ariaLabel={mobileOpen ? m.nav_closeMenu() : m.nav_openMenu()} /></div>
     </div>
   </div>
 </header>
 {/if}
 
-<!-- Mobile Nav Drawer (PM2: backdrop blur + slide transition) -->
 {#if showMenu}
   <div class="mobile-nav-backdrop" onclick={closeMobileNav} role="presentation"></div>
   <nav class="mobile-nav-panel">
