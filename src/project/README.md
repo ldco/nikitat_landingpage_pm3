@@ -10,7 +10,7 @@ all PM3 sites.
 |------|-----------------|
 | `theme.css` | Brand colors — **4 primitives**. Change to rebrand the entire site. |
 | `site-config.ts` | Locales, navigation, homepage sections, modules, features, admin config, logo |
-| `content.ts` | All site text: hero, about, focus cards, f22, contact, seo (4 locales) |
+| `content.json` | All site text (data file): hero, about, focus, f22, contact, seo (4 locales) |
 | `SectionF22.svelte` | Fabrica22 partnership section |
 | `FallingLetters.svelte` | Animated falling-letters ambient effect |
 | `HeroParallaxScene.svelte` | Parallax cloud layers in hero |
@@ -29,6 +29,6 @@ all PM3 sites.
 1. Copy this directory to the new project.
 2. Edit `theme.css` (4 colors).
 3. Edit `site-config.ts` (locales, nav, sections, modules).
-4. Edit `content.ts` (site text).
+4. Edit `content.json` (site text), run `npm run db:reset`.
 5. Replace `public/logos/`, `public/madebylogos/`, `public/uploads/`, `public/images/`.
 6. Done — framework handles everything else.

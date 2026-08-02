@@ -29,7 +29,7 @@ project files; project changes never require framework edits.
 
 - `theme.css` — 4 brand primitives
 - `site-config.ts` — locales, nav, sections, modules, features, admin, logo
-- `content.ts` — all site text (hero, about, focus, f22, contact, seo)
+- `content.json` — all site text (data file: hero, about, focus, f22, contact, seo)
 - `SectionF22.svelte` — brand partnership section
 - `FallingLetters.svelte`, `HeroParallaxScene.svelte` — brand effects
 - `ProjectAmbient.svelte` — root layout ambient wrapper
@@ -42,15 +42,15 @@ project files; project changes never require framework edits.
 |---------|-----------|---------|
 | Colors | Derives ALL colors via `color-mix()` from 4 primitives | Sets the 4 primitives in `theme.css` |
 | Config | Types + helpers in `site.ts` | Values in `site-config.ts` |
-| Content | Renders via content store (`t()`) | Provides text in `content.ts` |
+| Content | Renders via content store (`t()`) | Provides text in `content.json` (seed → DB) |
 | Components | SectionRenderer, layout shells | Registers overrides in `overrides.ts` |
-| Text | UI labels in `messages/*.json` | Site text in `content.ts` |
+| Text | UI labels in `messages/*.json` | Site text in `content.json` → DB |
 
 ## Rebranding checklist (new PM3 site)
 
 1. Edit `src/project/theme.css` — 4 color primitives
 2. Edit `src/project/site-config.ts` — locales, nav, sections, modules, features
-3. Edit `src/project/content.ts` — all site text
+3. Edit `src/project/content.json` — all site text, run `npm run db:reset`
 4. Edit `src/project/overrides.ts` — register custom components
 5. Replace `public/` brand assets
 6. Done — no framework edits required
