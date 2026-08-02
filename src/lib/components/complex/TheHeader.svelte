@@ -62,7 +62,6 @@
     hideOnScroll && 'data-hidden:-translate-y-full data-hidden:pointer-events-none',
     className
   ))}>
-  <!-- PM2 .header-inner: flexbox (mobile) → grid 3-col (desktop 1120px) -->
   <div class={clsx(
     'flex items-center justify-between header:grid h-full',
     'header:grid-cols-[auto_max-content_auto]',
@@ -70,21 +69,21 @@
     'px-container',
     !isFullWidth && 'max-w-[var(--max-w-container)] mx-auto'
   )}>
-    <!-- Logo (left-desk, center-absolute-mob — PM2 pattern) -->
+    <div class="flex header:hidden">
+      <HamburgerIcon active={mobileOpen} type="squeeze" onclick={handleHamburger} ariaLabel={mobileOpen ? m.nav_closeMenu() : m.nav_openMenu()} />
+    </div>
+
     <div class="flex-shrink-0 absolute left-1/2 -translate-x-1/2 header:static header:left-auto header:translate-x-0 z-10">
       <Logo shape="horizontal" />
     </div>
 
-    <!-- Nav (center, desktop only, hidden on mobile) -->
     <nav class="hidden header:flex justify-center">
       <NavLinks activeId={activeSection} />
     </nav>
 
-    <!-- Right: hamburger (mobile) + contact + actions (desktop) -->
     <div class="flex items-center gap-1 header:gap-2 flex-shrink-0 ml-auto">
       <HeaderContact mode="contacts" size={18} />
       <div class="hidden header:flex header:items-center"><HeaderActions showContact={false} langDirection="down" /></div>
-      <div class="flex header:hidden"><HamburgerIcon active={mobileOpen} type="squeeze" onclick={handleHamburger} ariaLabel={mobileOpen ? m.nav_closeMenu() : m.nav_openMenu()} /></div>
     </div>
   </div>
 </header>
