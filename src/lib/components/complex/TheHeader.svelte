@@ -73,15 +73,15 @@
       <HamburgerIcon active={mobileOpen} type="squeeze" onclick={handleHamburger} ariaLabel={mobileOpen ? m.nav_closeMenu() : m.nav_openMenu()} />
     </div>
 
-    <div class="flex-shrink-0 absolute left-1/2 -translate-x-1/2 header:static header:left-auto header:translate-x-0 z-10 header-logo-col">
+    <div class="flex-shrink-0 absolute left-1/2 -translate-x-1/2 header:static header:left-auto header:translate-x-0 z-10">
       <Logo shape="horizontal" />
     </div>
 
-    <nav class="hidden header:flex justify-center header-nav-col">
+    <nav class="hidden header:flex justify-center">
       <NavLinks activeId={activeSection} />
     </nav>
 
-    <div class="flex items-center gap-1 header:gap-2 flex-shrink-0 ml-auto header-actions-col">
+    <div class="flex items-center gap-1 header:gap-2 flex-shrink-0 ml-auto">
       <HeaderContact mode="contacts" size={18} />
       <div class="hidden header:flex header:items-center"><HeaderActions showContact={false} langDirection="down" /></div>
     </div>
