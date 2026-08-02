@@ -12,7 +12,40 @@ import { useDatabase, schema, closeDatabase } from '$lib/server/db'
 import { hashPassword } from '$lib/server/auth/password'
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { getContentSeedData } from '../../../project/content'
+// ── Content seed source: project/content.json (no content in code) ────────
+type ContentTree = Record<string, unknown>
+
+interface FlatEntry { locale: string; key: string; value: string }
+
+function loadContentSeed(): FlatEntry[] {
+  const path = join(process.cwd(), 'src', 'project', 'content.json')
+  if (!existsSync(path)) {
+    console.warn('⚠️  src/project/content.json not found — no content seeded')
+    return []
+  }
+  const tree = JSON.parse(readFileSync(path, 'utf-8')) as Record<string, ContentTree>
+  const result: FlatEntry[] = []
+  for (const [locale, messages] of Object.entries(tree)) {
+    const flat = flattenTree(messages)
+    for (const { key, value } of flat) {
+      result.push({ locale, key, value })
+    }
+  }
+  return result
+}
+
+function flattenTree(obj: ContentTree, prefix = ''): Array<{ key: string; value: string }> {
+  const result: Array<{ key: string; value: string }> = []
+  for (const [key, value] of Object.entries(obj)) {
+    const fullKey = prefix ? `${prefix}.${key}` : key
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      result.push(...flattenTree(value as ContentTree, fullKey))
+    } else {
+      result.push({ key: fullKey, value: String(value) })
+    }
+  }
+  return result
+}
 
 interface TranslationEntry {
   locale: string
@@ -365,7 +398,7 @@ function seed() {
   // ── Translations (system + content, idempotent) ─────────────────────────
   console.log('🌍 Loading translations...')
   const systemTranslations = loadSystemTranslations()
-  const contentTranslations = getContentSeedData()
+  const contentTranslations = loadContentSeed()
   const existingTranslations = db.select().from(schema.translations).all()
   const existingTranslationKeys = new Set(existingTranslations.map(t => `${t.locale}:${t.key}`))
 
