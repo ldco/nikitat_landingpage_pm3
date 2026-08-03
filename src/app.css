@@ -327,10 +327,8 @@
     --section-padding-bottom: var(--space-16);
 
     /* --- Header Sizing (from skeleton/header.css) --- */
-    --header-height: clamp(56px, 8vh, 72px);
     --header-column-gap: clamp(var(--space-6), 3vw, var(--space-10));
     --header-max-width: var(--content-default);
-    --header-scrolled-height: clamp(48px, 6vh, 56px);
     --header-scrolled-bg: var(--surface-frosted-bg);
     --header-scrolled-shadow: var(--surface-frosted-shadow);
     --header-scrolled-backdrop: var(--surface-frosted-backdrop);
