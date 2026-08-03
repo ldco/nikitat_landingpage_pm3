@@ -1191,6 +1191,39 @@
   grid-template-columns: auto max-content auto;
 }
 
+
+@utility btn-style {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: background-color 150ms var(--ease-smooth), color 150ms var(--ease-smooth), transform 150ms var(--ease-smooth), box-shadow 150ms var(--ease-smooth);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@utility focus-badge-dev {
+  background: var(--color-pm-brand);
+  color: var(--color-pm-white);
+}
+
+@utility focus-badge-design {
+  background: var(--color-pm-brand-subtle);
+  color: var(--color-pm-brand);
+}
+
+@utility focus-icon-box-dev {
+  background: var(--color-pm-brand);
+}
+
+@utility focus-icon-box-design {
+  background: var(--color-pm-brand-subtle);
+}
+
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-25%); }

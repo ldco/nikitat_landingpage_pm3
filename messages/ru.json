@@ -321,5 +321,12 @@
   "validation_maxLength": "Максимум {max} символов",
   "validation_minLength": "Минимум {min} символов",
   "validation_required": "Обязательное поле",
-  "cta_primaryButton": "Связаться"
+  "cta_primaryButton": "Связаться",
+  "common_back": "Назад",
+  "common_noResults": "Ничего не найдено",
+  "common_name": "Имя",
+  "common_email": "Email",
+  "common_message": "Сообщение",
+  "common_send": "Отправить",
+  "contact_consent": "Я согласен на обработку персональных данных"
 }

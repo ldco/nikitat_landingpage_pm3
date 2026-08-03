@@ -12,12 +12,12 @@
 
   const title = $derived(t('contact.title', m.sections_contact()))
   const intro = $derived(t('contact.intro', ''))
-  const nameLabel = $derived(t('contact.nameLabel', 'Имя'))
-  const emailLabel = $derived(t('contact.emailLabel', 'Email'))
-  const messageLabel = $derived(t('contact.messageLabel', 'Сообщение'))
-  const sendLabel = $derived(t('contact.sendButton', 'Отправить'))
-  const consentText = $derived(t('contact.consentPrefix', 'Я согласен на '))
-  const consentLink = $derived(t('contact.consentPersonalData', 'обработку персональных данных'))
+  const nameLabel = $derived(t('contact.nameLabel', m.common_name()))
+  const emailLabel = $derived(t('contact.emailLabel', m.common_email()))
+  const messageLabel = $derived(t('contact.messageLabel', m.common_message()))
+  const sendLabel = $derived(t('contact.sendButton', m.common_send()))
+  const consentText = $derived(t('contact.consentPrefix', m.contact_consent()))
+  const consentLink = $derived(t('contact.consentPersonalData', m.footer_personalData()))
 
   let name = $state(''); let email = $state(''); let message = $state('')
   let consent = $state(false); let sending = $state(false)
@@ -26,8 +26,8 @@
   async function handleSubmit(e: Event) {
     e.preventDefault()
     if (sending) return; errorMsg = ''; success = false
-    if (!name.trim() || !email.trim() || !message.trim()) { errorMsg = 'Заполните все обязательные поля'; return }
-    if (!consent) { errorMsg = t('contact.consentRequired', 'Требуется согласие'); return }
+    if (!name.trim() || !email.trim() || !message.trim()) { errorMsg = m.validation_required(); return }
+    if (!consent) { errorMsg = t('contact.consentRequired', m.validation_required()); return }
     sending = true
     try {
       const res = await fetch('/api/contact/submit', {
@@ -35,8 +35,8 @@
         body: JSON.stringify({ name: name.trim(), email: email.trim(), message: message.trim(), consent })
       })
       if (res.ok) { success = true; name = ''; email = ''; message = ''; consent = false }
-      else { const body = await res.json().catch(() => ({})); errorMsg = body.error?.message || t('contact.errorMessage', 'Ошибка') }
-    } catch { errorMsg = t('contact.errorMessage', 'Ошибка сети') } finally { sending = false }
+      else { const body = await res.json().catch(() => ({})); errorMsg = body.error?.message || t('contact.errorMessage', m.common_error()) }
+    } catch { errorMsg = t('contact.errorMessage', m.common_error()) } finally { sending = false }
   }
 </script>
 
@@ -71,11 +71,11 @@
         </label>
 
         <button type="submit" disabled={sending} class="btn-style bg-pm-brand text-pm-white hover:bg-pm-brand-light px-[var(--space-6)] py-[var(--space-3)] text-fluid-lg rounded-lg">
-          {sending ? t('contact.sending', 'Отправка...') : sendLabel}
+          {sending ? t('contact.sending', m.common_loading()) : sendLabel}
         </button>
 
         {#if success}
-          <div class="p-[var(--space-3)] rounded-md bg-pm-success/10 border border-pm-success/20 text-sm text-pm-success">{t('contact.successMessage', 'Отправлено!')}</div>
+          <div class="p-[var(--space-3)] rounded-md bg-pm-success/10 border border-pm-success/20 text-sm text-pm-success">{t('contact.successMessage', m.common_success())}</div>
         {/if}
         {#if errorMsg}
           <div class="p-[var(--space-3)] rounded-md bg-pm-danger/10 border border-pm-danger/20 text-sm text-pm-danger">{errorMsg}</div>

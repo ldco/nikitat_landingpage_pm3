@@ -396,5 +396,10 @@
   "validation_maxLength": "Maximum {max} caractères",
   "validation_minLength": "Minimum {min} caractères",
   "validation_required": "Ce champ est requis",
-  "cta_primaryButton": "Me contacter"
+  "cta_primaryButton": "Me contacter",
+  "common_name": "Nom",
+  "common_email": "Email",
+  "common_message": "Message",
+  "common_send": "Envoyer",
+  "contact_consent": "Je consens au traitement des données personnelles"
 }

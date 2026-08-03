@@ -12,7 +12,7 @@
     try {
       const res = await fetch(`/images/hero/layers/${key}.svg`, { method: 'HEAD' })
       return res.ok
-    } catch { return false }
+    } catch (e) { console.warn('[HeroParallaxScene] image load failed:', (e as Error)?.message); return false }
   }
 
   $effect(() => {
