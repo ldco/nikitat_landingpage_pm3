@@ -17,12 +17,10 @@
   const activeSection = $derived(navState.activeSection)
   const isFullWidth = $derived(FEATURES.headerFooterWidthMode === "full")
   const isInteractive = $derived(FEATURES.onepager && FEATURES.interactiveHeader)
-  const hideOnScroll = $derived(FEATURES.hideHeaderOnScroll)
   const isVerticalNav = $derived(FEATURES.verticalNav)
 
   let mobileOpen = $state(false)
   let showMenu = $state(false)
-
   function handleHamburger() { mobileOpen = !mobileOpen }
   function closeMobileNav() { mobileOpen = false }
 
@@ -34,8 +32,7 @@
   })
 
   $effect(() => {
-    if (mobileOpen) { document.body.style.overflow = 'hidden' }
-    else { document.body.style.overflow = '' }
+    document.body.style.overflow = mobileOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   })
 </script>
@@ -53,48 +50,54 @@
   <div class="flex flex-col items-center gap-2 py-3 border-t border-pm-border"><HeaderActions showContact={false} langDirection="side" /></div>
 </aside>
 {:else}
+<!-- PM2 structure: header → inner(flex) → hamburger | logo | nav | actions -->
 <header
-  use:scrollHeader={{ threshold: 50, hideOnScroll, enabled: isInteractive }}
+  use:scrollHeader={{ threshold: 50, enabled: isInteractive }}
   class={twMerge(clsx(
     'fixed top-0 inset-x-0 z-fixed border-b border-pm-border bg-pm-bg',
-    'transition-all duration-[var(--transition-slow)] ease-out',
-    isInteractive ? 'h-[var(--h-header)] data-scrolled:h-[var(--h-header-scrolled)] data-scrolled:backdrop-blur-glass data-scrolled:shadow-frosted' : 'h-[var(--h-header)]',
-    hideOnScroll && 'data-hidden:-translate-y-full data-hidden:pointer-events-none',
+    isInteractive && 'data-scrolled:backdrop-blur-glass data-scrolled:shadow-frosted',
     className
   ))}>
   <div class={clsx(
-    'flex items-center justify-between header:grid h-full',
-    'header:header-grid-cols',
-    'gap-header-nav',
-    'px-container',
+    'flex items-center gap-4 h-[var(--h-header)] px-container',
     !isFullWidth && 'max-w-[var(--max-w-container)] mx-auto'
   )}>
-    <div class="flex header:hidden">
+    <!-- Hamburger: mobile only -->
+    <div class="lg:hidden">
       <HamburgerIcon active={mobileOpen} type="squeeze" onclick={handleHamburger} ariaLabel={mobileOpen ? m.nav_closeMenu() : m.nav_openMenu()} />
     </div>
 
-    <div class="flex-shrink-0 absolute left-1/2 -translate-x-1/2 header:static header:left-auto header:translate-x-0 z-10">
+    <!-- Logo: in normal flex flow, centered by flexbox -->
+    <div class="flex-1 lg:flex-none">
       <Logo shape="horizontal" />
     </div>
 
-    <nav class="hidden header:flex justify-center">
+    <!-- Nav: desktop only -->
+    <nav class="hidden lg:flex flex-1 justify-center">
       <NavLinks activeId={activeSection} />
     </nav>
 
-    <div class="flex items-center gap-1 header:gap-2 flex-shrink-0 ml-auto">
+    <!-- Actions: desktop only -->
+    <div class="hidden lg:flex items-center gap-2">
       <HeaderContact mode="contacts" size={18} />
-      <div class="hidden header:flex header:items-center"><HeaderActions showContact={false} langDirection="down" /></div>
+      <HeaderActions showContact={false} langDirection="down" />
+    </div>
+
+    <!-- Mobile header contact icons -->
+    <div class="flex lg:hidden items-center gap-1">
+      <HeaderContact mode="contacts" size={18} />
     </div>
   </div>
 </header>
 {/if}
 
+<!-- Mobile Nav Drawer -->
 {#if showMenu}
-  <div class="mobile-nav-backdrop" onclick={closeMobileNav} role="presentation"></div>
-  <nav class="mobile-nav-panel">
+  <div class="fixed inset-0 z-[var(--z-drawer-backdrop)] bg-black/40 backdrop-blur-sm" onclick={closeMobileNav} role="presentation"></div>
+  <nav class="fixed inset-y-0 start-0 z-[var(--z-drawer)] flex flex-col w-[var(--drawer-width)] bg-pm-bg shadow-xl">
     <div class="flex items-center justify-between p-[var(--space-4)] border-b border-pm-border">
       <Logo shape="horizontal" />
-      <button type="button" class="flex items-center justify-center size-11 text-pm-text-secondary hover:text-pm-text transition-colors" onclick={closeMobileNav} aria-label={m.nav_closeMenu()}>
+      <button type="button" class="flex items-center justify-center size-11 text-pm-text-secondary hover:text-pm-text" onclick={closeMobileNav} aria-label={m.nav_closeMenu()}>
         <IconX class="size-5" />
       </button>
     </div>
