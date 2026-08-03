@@ -33,7 +33,7 @@
     'transition-colors duration-150'
 
   const activeClass =
-    'text-pm-brand bg-pm-brand-subtle'
+    'text-pm-brand bg-pm-brand-subtle border-b-2 border-pm-brand'
 
   function resolveLabel(key: string): string {
     const msgKey = key.replace(/\./g, '_') as keyof typeof m
