@@ -9,6 +9,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
+  import { reveal } from '$lib/actions/reveal'
   import { t } from '$lib/stores/content.svelte'
   import IconCpu from '@tabler/icons-svelte/icons/cpu'
   import IconBuilding from '@tabler/icons-svelte/icons/building'
@@ -31,7 +32,7 @@
   })
 </script>
 
-<section id="focus" class="flex flex-col items-center pt-[var(--pt-section)] pb-[var(--space-16)] bg-pm-bg-sunken">
+<section use:reveal id="focus" class="flex flex-col items-center pt-[var(--pt-section)] pb-[var(--space-16)] bg-pm-bg-sunken">
   <div class="px-container w-full max-w-container mx-auto">
     <h2 class="text-[var(--section-heading)] font-black leading-tight text-center mb-[var(--space-8)]">{title}</h2>
     {#if cards.length > 0}

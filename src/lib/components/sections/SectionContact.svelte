@@ -7,6 +7,7 @@
  * @example <SectionContact />
   */
   import * as m from '$lib/i18n'
+  import { reveal } from '$lib/actions/reveal'
   import { t } from '$lib/stores/content.svelte'
   import { getCsrfToken } from '$lib/utils/auth'
 
@@ -40,7 +41,7 @@
   }
 </script>
 
-<section id="contact" class="flex flex-col items-center pt-[var(--pt-section)] pb-[var(--space-16)] bg-pm-bg-elevated">
+<section use:reveal id="contact" class="flex flex-col items-center pt-[var(--pt-section)] pb-[var(--space-16)] bg-pm-bg-elevated">
   <div class="px-container max-w-container w-full mx-auto">
     <h2 class="text-[var(--section-heading)] font-black leading-tight text-center mb-[var(--space-4)]">{title}</h2>
     {#if intro}

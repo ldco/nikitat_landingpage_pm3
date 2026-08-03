@@ -8,6 +8,7 @@
   */
   import IconPhoto from '@tabler/icons-svelte/icons/photo'
   import * as m from '$lib/i18n'
+  import { reveal } from '$lib/actions/reveal'
   import { t } from '$lib/stores/content.svelte'
 
   const title = $derived(t('about.title', m.sections_about()))
@@ -16,7 +17,7 @@
   const hasContent = $derived(paragraph1.length > 0)
 </script>
 
-<section id="about" class="flex flex-col items-center pt-[var(--pt-section)] pb-[var(--space-16)] bg-pm-bg-elevated">
+<section use:reveal id="about" class="flex flex-col items-center pt-[var(--pt-section)] pb-[var(--space-16)] bg-pm-bg-elevated">
   <div class="px-container w-full max-w-container mx-auto">
     <h2 class="text-[var(--section-heading)] font-black leading-tight text-center mb-[var(--space-8)]">{title}</h2>
 
