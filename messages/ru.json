@@ -328,5 +328,6 @@
   "common_email": "Email",
   "common_message": "Сообщение",
   "common_send": "Отправить",
-  "contact_consent": "Я согласен на обработку персональных данных"
+  "contact_consent": "Я согласен на обработку персональных данных",
+  "contact_infoTitle": "Связаться"
 }

@@ -10,6 +10,7 @@
   import { reveal } from '$lib/actions/reveal'
   import { t } from '$lib/stores/content.svelte'
   import { getCsrfToken } from '$lib/utils/auth'
+  import { useSettings } from '$lib/stores/settings.svelte'
 
   const title = $derived(t('contact.title', m.sections_contact()))
   const intro = $derived(t('contact.intro', ''))

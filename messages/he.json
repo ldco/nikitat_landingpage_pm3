@@ -401,5 +401,6 @@
   "common_email": "דוא״ל",
   "common_message": "הודעה",
   "common_send": "שלח",
-  "contact_consent": "אני מסכים לעיבוד נתונים אישיים"
+  "contact_consent": "אני מסכים לעיבוד נתונים אישיים",
+  "contact_infoTitle": "צור קשר"
 }

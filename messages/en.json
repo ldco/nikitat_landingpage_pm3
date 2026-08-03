@@ -370,5 +370,6 @@
   "common_email": "Email",
   "common_message": "Message",
   "common_send": "Send",
-  "contact_consent": "I consent to the processing of personal data"
+  "contact_consent": "I consent to the processing of personal data",
+  "contact_infoTitle": "Get in touch"
 }
