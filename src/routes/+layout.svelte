@@ -23,7 +23,7 @@
   
   // Initialize theme + content translations (sync during setup, NOT in $effect)
   initTheme()
-  initContent(data.contentTranslations ?? {})
+  $effect(() => { initContent(data.contentTranslations ?? {}) })
   const transitionType = $derived(!isOnepager ? FEATURES.pageTransitions : '')
   const isVerticalNav = $derived(FEATURES.verticalNav)
 </script>
