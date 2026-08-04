@@ -23,7 +23,8 @@
   
   // Initialize theme + content translations (sync during setup, NOT in $effect)
   initTheme()
-  $effect.pre(() => { initContent(data.contentTranslations ?? {}) })
+  initContent(data.contentTranslations ?? {}); // initial render
+  $effect.pre(() => { initContent(data.contentTranslations ?? {}) }); // locale switches
   const transitionType = $derived(!isOnepager ? FEATURES.pageTransitions : '')
   const isVerticalNav = $derived(FEATURES.verticalNav)
 </script>
