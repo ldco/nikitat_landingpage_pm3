@@ -641,6 +641,7 @@
 
   /* Hebrew font override */
   :lang(he) {
+    --font-sans: 'Heebo Variable', 'Heebo', 'Inter Variable', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-brand-primary: 'Heebo Variable', 'Heebo', var(--font-sans);
   }
 }
