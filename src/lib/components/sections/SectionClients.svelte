@@ -5,9 +5,10 @@
  * @example <SectionClients />
   */
   import { clsx } from 'clsx'
-  import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
   import { FEATURES, MODULES } from '$lib/config/site'
+  import Section from '$lib/components/atoms/Section.svelte'
+  import SectionContent from '$lib/components/molecules/SectionContent.svelte'
 
   let {
     clients = [] as Array<{ id: number; name: string; logoUrl?: string; websiteUrl?: string }>,
@@ -22,12 +23,8 @@
   const clientsConfig = clientsModule?.config ?? { grayscale: true, hoverColor: true }
 </script>
 
-<section id="clients" class={twMerge(clsx(
-  'flex flex-col items-center bg-pm-bg-sunken',
-  'pt-[var(--pt-section)] pb-16',
-  className
-))}>
-  <div class={clsx('w-full mx-auto', isContained && 'max-w-container', 'px-container')}>
+<Section id="clients" background="sunken" class={className}>
+  <SectionContent width={isContained ? 'default' : 'full'}>
     <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_clients()}</h2>
     <div class={clsx('flex flex-wrap items-center justify-center gap-8 transition-all duration-500',
       clientsConfig.grayscale && 'opacity-50 grayscale hover:opacity-100 hover:grayscale-0',
@@ -52,5 +49,5 @@
         <p class="text-center text-pm-muted col-span-full py-16">{m.common_note()}</p>
       {/each}
     </div>
-  </div>
-</section>
+  </SectionContent>
+</Section>

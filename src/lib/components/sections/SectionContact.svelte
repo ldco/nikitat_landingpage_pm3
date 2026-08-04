@@ -1,16 +1,30 @@
 <script lang="ts">
   /**
-  * SectionContact — Contact form with CSRF + validation (PM3 rule 9 reference)
- *
- * Form contract: Zod → $state bindings → CSRF header → POST /api/contact/submit
- *
- * @example <SectionContact />
-  */
+   * SectionContact — Contact form with CSRF + Zod validation (PM3 rule 9 reference)
+   *
+   * PM v2 parity (SectionContact.vue):
+   * - Single-column form (form-group stack), inline per-field errors
+   * - Consent: prefix + personal-data link + separator + privacy link (not pre-checked)
+   * - ContactInfo sidebar below the form (.contact-sidebar, 40rem centered column)
+   * - Status messages with aria-live, slide-in animation
+   *
+   * Form contract: Zod → $state bindings → CSRF header → POST /api/contact/submit
+   *
+   * @example <SectionContact />
+   */
+  import { fly } from 'svelte/transition'
+  import { z } from 'zod'
   import * as m from '$lib/i18n'
-  import { reveal } from '$lib/actions/reveal'
   import { t } from '$lib/stores/content.svelte'
   import { getCsrfToken } from '$lib/utils/auth'
   import { useSettings } from '$lib/stores/settings.svelte'
+  import { CONTACT } from '$lib/config/site'
+  import Section from '$lib/components/atoms/Section.svelte'
+  import SectionContent from '$lib/components/molecules/SectionContent.svelte'
+  import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
+  import ContactInfo from '$lib/components/molecules/ContactInfo.svelte'
+
+  const settings = useSettings()
 
   const title = $derived(t('contact.title', m.sections_contact()))
   const intro = $derived(t('contact.intro', ''))
@@ -20,69 +34,148 @@
   const sendLabel = $derived(t('contact.sendButton', m.common_send()))
   const consentText = $derived(t('contact.consentPrefix', m.contact_consent()))
   const consentLink = $derived(t('contact.consentPersonalData', m.footer_personalData()))
+  const consentAnd = $derived(t('contact.consentAnd', m.common_or()))
+  const consentPrivacy = $derived(t('contact.consentPrivacy', m.footer_privacy()))
+  const namePlaceholder = $derived(t('contact.namePlaceholder', nameLabel))
+  const emailPlaceholder = $derived(t('contact.emailPlaceholder', emailLabel))
+  const messagePlaceholder = $derived(t('contact.messagePlaceholder', messageLabel))
+
+  // Contact info sidebar values (PM2: config-driven, empty items hidden)
+  const contactEmail = $derived(settings.contactEmail ?? CONTACT.email ?? '')
+  const contactPhone = $derived(settings.contactPhone ?? '')
+  const contactAddress = $derived(settings.get('contact.location') ?? '')
+  const contactWorkingHours = $derived(settings.get('contact.workingHours') ?? '')
 
   let name = $state(''); let email = $state(''); let message = $state('')
   let consent = $state(false); let sending = $state(false)
   let success = $state(false); let errorMsg = $state('')
+  let nameError = $state(''); let emailError = $state(''); let messageError = $state(''); let consentError = $state('')
+
+  const contactSchema = $derived(
+    z.object({
+      name: z.string().trim().min(1, { message: t('contact.nameRequired', m.validation_required()) }),
+      email: z.string().trim().email({ message: t('contact.invalidEmail', m.validation_email()) }),
+      message: z.string().trim().min(10, { message: t('contact.messageTooShort', m.validation_minLength({ min: 10 })) }),
+      consent: z.boolean().refine(v => v === true, { message: t('contact.consentRequired', m.validation_required()) })
+    })
+  )
+
+  function resetFieldErrors() {
+    nameError = ''; emailError = ''; messageError = ''; consentError = ''
+  }
 
   async function handleSubmit(e: Event) {
     e.preventDefault()
-    if (sending) return; errorMsg = ''; success = false
-    if (!name.trim() || !email.trim() || !message.trim()) { errorMsg = m.validation_required(); return }
-    if (!consent) { errorMsg = t('contact.consentRequired', m.validation_required()); return }
+    if (sending) return
+    success = false; errorMsg = ''; resetFieldErrors()
+
+    const result = contactSchema.safeParse({ name, email, message, consent })
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors
+      nameError = fieldErrors.name?.[0] ?? ''
+      emailError = fieldErrors.email?.[0] ?? ''
+      messageError = fieldErrors.message?.[0] ?? ''
+      consentError = fieldErrors.consent?.[0] ?? ''
+      return
+    }
+
     sending = true
     try {
       const res = await fetch('/api/contact/submit', {
-        method: 'POST', headers: { 'content-type': 'application/json', 'x-csrf-token': getCsrfToken() },
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-csrf-token': getCsrfToken() },
         body: JSON.stringify({ name: name.trim(), email: email.trim(), message: message.trim(), consent })
       })
-      if (res.ok) { success = true; name = ''; email = ''; message = ''; consent = false }
-      else { const body = await res.json().catch(() => ({})); errorMsg = body.error?.message || t('contact.errorMessage', m.common_error()) }
-    } catch { errorMsg = t('contact.errorMessage', m.common_error()) } finally { sending = false }
+      if (res.ok) {
+        success = true; name = ''; email = ''; message = ''; consent = false
+      } else {
+        const body = await res.json().catch(() => ({}))
+        errorMsg = body.error?.message || t('contact.errorMessage', m.common_error())
+      }
+    } catch {
+      errorMsg = t('contact.errorMessage', m.common_error())
+    } finally {
+      sending = false
+    }
   }
 </script>
 
-<section use:reveal id="contact" class="flex flex-col items-center pt-[var(--pt-section)] pb-[var(--space-16)] bg-pm-bg-elevated">
-  <div class="px-container max-w-container w-full mx-auto">
-    <h2 class="text-[var(--section-heading)] font-black leading-tight text-center mb-[var(--space-4)]">{title}</h2>
+<Section id="contact" background="elevated">
+  <SectionContent>
+    <SectionHeading title={title} align="center" />
     {#if intro}
-      <p class="text-center text-pm-text-secondary mb-[var(--space-6)] max-w-xl mx-auto">{intro}</p>
+      <p class="text-[var(--section-body-size)] text-pm-text-secondary text-center mb-[var(--space-6)] max-w-xl mx-auto">{intro}</p>
     {/if}
 
-    <div class="max-w-[var(--contact-form-max-w)] mx-auto">
+    <!-- PM2 .contact-grid: vertical stack, 640px centered column -->
+    <div class="max-w-[var(--contact-form-max-w)] mx-auto flex flex-col gap-[var(--gap-xl)]">
       <form onsubmit={handleSubmit} class="contact-card">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-[var(--space-4)]">
-          <div class="flex flex-col gap-[var(--space-2)]">
-            <label for="c-name" class="text-sm font-medium text-pm-text">{nameLabel}</label>
-            <input id="c-name" bind:value={name} class="w-full px-[var(--space-3)] py-[var(--space-2)] bg-pm-bg border border-pm-border rounded-lg text-fluid-base text-pm-text placeholder-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring focus:ring-pm-brand/30 transition" placeholder={nameLabel} required />
-          </div>
-          <div class="flex flex-col gap-[var(--space-2)]">
-            <label for="c-email" class="text-sm font-medium text-pm-text">{emailLabel}</label>
-            <input id="c-email" type="email" bind:value={email} class="w-full px-[var(--space-3)] py-[var(--space-2)] bg-pm-bg border border-pm-border rounded-lg text-fluid-base text-pm-text placeholder-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring focus:ring-pm-brand/30 transition" placeholder={emailLabel} required />
-          </div>
-        </div>
-
         <div class="flex flex-col gap-[var(--space-2)]">
-          <label for="c-msg" class="text-sm font-medium text-pm-text">{messageLabel}</label>
-          <textarea id="c-msg" bind:value={message} rows={4} class="w-full px-[var(--space-3)] py-[var(--space-2)] bg-pm-bg border border-pm-border rounded-lg text-fluid-base text-pm-text placeholder-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring focus:ring-pm-brand/30 transition min-h-form-textarea resize-y" placeholder={messageLabel} required></textarea>
+          <label for="c-name" class="text-sm font-medium text-pm-text">{nameLabel}</label>
+          <input id="c-name" bind:value={name} type="text" autocomplete="name" placeholder={namePlaceholder} class="w-full px-[var(--space-3)] py-[var(--space-2)] bg-pm-bg border border-pm-border rounded-lg text-fluid-base text-pm-text placeholder-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring focus:ring-pm-brand/30 transition" aria-invalid={!!nameError} />
+          {#if nameError}
+            <p class="text-xs text-pm-danger" transition:fly={{ y: -6, duration: 200 }}>{nameError}</p>
+          {/if}
         </div>
 
-        <label class="flex items-start gap-[var(--gap-xs)] leading-relaxed cursor-pointer">
-          <input type="checkbox" bind:checked={consent} class="mt-1" />
-          <span class="text-xs text-pm-text-secondary">{consentText}<a href="/legal/personal-data-policy" class="text-pm-brand hover:underline" target="_blank">{consentLink}</a></span>
-        </label>
+        <div class="flex flex-col gap-[var(--space-2)] mt-[var(--space-5)]">
+          <label for="c-email" class="text-sm font-medium text-pm-text">{emailLabel}</label>
+          <input id="c-email" bind:value={email} type="email" inputmode="email" autocomplete="email" placeholder={emailPlaceholder} class="w-full px-[var(--space-3)] py-[var(--space-2)] bg-pm-bg border border-pm-border rounded-lg text-fluid-base text-pm-text placeholder-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring focus:ring-pm-brand/30 transition" aria-invalid={!!emailError} />
+          {#if emailError}
+            <p class="text-xs text-pm-danger" transition:fly={{ y: -6, duration: 200 }}>{emailError}</p>
+          {/if}
+        </div>
 
-        <button type="submit" disabled={sending} class="btn-style bg-pm-brand text-pm-white hover:bg-pm-brand-light px-[var(--space-6)] py-[var(--space-3)] text-fluid-lg rounded-lg">
+        <div class="flex flex-col gap-[var(--space-2)] mt-[var(--space-5)]">
+          <label for="c-msg" class="text-sm font-medium text-pm-text">{messageLabel}</label>
+          <textarea id="c-msg" bind:value={message} rows={5} minlength={10} placeholder={messagePlaceholder} class="w-full px-[var(--space-3)] py-[var(--space-2)] bg-pm-bg border border-pm-border rounded-lg text-fluid-base text-pm-text placeholder-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring focus:ring-pm-brand/30 transition min-h-form-textarea resize-y" aria-invalid={!!messageError}></textarea>
+          {#if messageError}
+            <p class="text-xs text-pm-danger" transition:fly={{ y: -6, duration: 200 }}>{messageError}</p>
+          {/if}
+        </div>
+
+        <label class="flex items-start gap-[var(--gap-xs)] leading-relaxed cursor-pointer mt-[var(--space-5)]">
+          <input type="checkbox" bind:checked={consent} class="mt-1" aria-invalid={!!consentError} />
+          <span class="text-xs text-pm-text-secondary">
+            {consentText}
+            <a href="/legal/personal-data-policy" class="text-pm-brand hover:underline" target="_blank" rel="noopener noreferrer">{consentLink}</a>
+            {consentAnd}
+            <a href="/legal/privacy-policy" class="text-pm-brand hover:underline" target="_blank" rel="noopener noreferrer">{consentPrivacy}</a>
+          </span>
+        </label>
+        {#if consentError}
+          <p class="text-xs text-pm-danger mt-[var(--space-1)]" transition:fly={{ y: -6, duration: 200 }}>{consentError}</p>
+        {/if}
+
+        <button type="submit" disabled={sending} class="btn-style bg-pm-brand text-pm-white hover:bg-pm-brand-light px-[var(--space-6)] py-[var(--space-3)] text-fluid-lg rounded-lg w-full mt-[var(--space-5)]">
           {sending ? t('contact.sending', m.common_loading()) : sendLabel}
         </button>
 
-        {#if success}
-          <div class="p-[var(--space-3)] rounded-md bg-pm-success/10 border border-pm-success/20 text-sm text-pm-success">{t('contact.successMessage', m.common_success())}</div>
-        {/if}
-        {#if errorMsg}
-          <div class="p-[var(--space-3)] rounded-md bg-pm-danger/10 border border-pm-danger/20 text-sm text-pm-danger">{errorMsg}</div>
-        {/if}
+        <!-- Status messages with aria-live (PM2 parity) -->
+        <div class="mt-[var(--space-5)]" aria-live="polite" aria-atomic="true">
+          {#if success}
+            <div class="p-[var(--space-3)] rounded-md bg-pm-success/10 border border-pm-success/20 text-sm text-pm-success" transition:fly={{ y: -6, duration: 200 }} role="status">
+              {t('contact.successMessage', m.common_success())}
+            </div>
+          {/if}
+          {#if errorMsg}
+            <div class="p-[var(--space-3)] rounded-md bg-pm-danger/10 border border-pm-danger/20 text-sm text-pm-danger" transition:fly={{ y: -6, duration: 200 }} role="alert">
+              {errorMsg}
+            </div>
+          {/if}
+        </div>
       </form>
+
+      <!-- PM2 .contact-sidebar: below the form, 2.5rem top margin, centered -->
+      <aside class="mt-[var(--space-10)]">
+        <ContactInfo
+          email={contactEmail}
+          phone={contactPhone}
+          address={contactAddress}
+          workingHours={contactWorkingHours}
+          class="items-center text-center"
+        />
+      </aside>
     </div>
-  </div>
-</section>
+  </SectionContent>
+</Section>

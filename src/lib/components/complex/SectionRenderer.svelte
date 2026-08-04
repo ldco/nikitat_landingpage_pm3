@@ -1,9 +1,10 @@
 <script lang="ts">
   /**
-   * SectionRenderer — Maps sectionId to its Svelte component (PM3 rule 6)
+   * SectionRenderer — Resolves and renders a section via the registry (ADR-003)
    *
-   * Reads HOMEPAGE_SECTIONS config to resolve component + enabled state.
-   * Passes section-specific content from the page server load (rule 8).
+   * Reads HOMEPAGE_SECTIONS config to find the section, then dispatches to the
+   * component registered in SECTION_REGISTRY (framework + project sections).
+   * Project sections extend the framework catalog — no framework edits needed.
    *
    * @props sectionId?: string — section id from HOMEPAGE_SECTIONS
    * @props content?: Record<string, unknown> — content from +page.server.ts
@@ -12,19 +13,11 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import * as m from '$lib/i18n'
   import { HOMEPAGE_SECTIONS } from '$lib/config/site'
-  import SectionAbout from '../sections/SectionAbout.svelte'
-  import SectionFocus from '../sections/SectionFocus.svelte'
-  import SectionF22 from '../../../project/SectionF22.svelte'
-  import SectionPortfolio from '../sections/SectionPortfolio.svelte'
-  import SectionContact from '../sections/SectionContact.svelte'
-  import SectionBlog from '../sections/SectionBlog.svelte'
-  import SectionFeatures from '../sections/SectionFeatures.svelte'
-  import SectionFaq from '../sections/SectionFaq.svelte'
-  import SectionPricing from '../sections/SectionPricing.svelte'
-  import SectionTeam from '../sections/SectionTeam.svelte'
-  import SectionTestimonials from '../sections/SectionTestimonials.svelte'
-  import SectionClients from '../sections/SectionClients.svelte'
+  import { SECTION_REGISTRY } from '../sections/registry'
+
+  const REG = SECTION_REGISTRY
 
   let {
     sectionId,
@@ -52,31 +45,31 @@
 {#if section}
   <div class={twMerge(clsx(className))}>
     {#if section.component === 'SectionAbout'}
-      <SectionAbout />
+      <REG.SectionAbout />
     {:else if section.component === 'SectionFocus'}
-      <SectionFocus />
+      <REG.SectionFocus />
     {:else if section.component === 'SectionF22'}
-      <SectionF22 />
+      <REG.SectionF22 />
     {:else if section.component === 'SectionPortfolio'}
-      <SectionPortfolio items={(sectionData.portfolioItems ?? []) as PortfolioItem[]} />
+      <REG.SectionPortfolio items={(sectionData.portfolioItems ?? []) as PortfolioItem[]} />
     {:else if section.component === 'SectionContact'}
-      <SectionContact />
+      <REG.SectionContact />
     {:else if section.component === 'SectionBlog'}
-      <SectionBlog posts={(sectionData.blog ?? []) as BlogPost[]} />
+      <REG.SectionBlog posts={(sectionData.blog ?? []) as BlogPost[]} />
     {:else if section.component === 'SectionFeatures'}
-      <SectionFeatures features={(sectionData.features ?? []) as FeatureItem[]} />
+      <REG.SectionFeatures features={(sectionData.features ?? []) as FeatureItem[]} />
     {:else if section.component === 'SectionFaq'}
-      <SectionFaq items={(sectionData.faq ?? []) as FaqItem[]} />
+      <REG.SectionFaq items={(sectionData.faq ?? []) as FaqItem[]} />
     {:else if section.component === 'SectionPricing'}
-      <SectionPricing tiers={(sectionData.pricing ?? []) as PricingTier[]} />
+      <REG.SectionPricing tiers={(sectionData.pricing ?? []) as PricingTier[]} />
     {:else if section.component === 'SectionTeam'}
-      <SectionTeam />
+      <REG.SectionTeam />
     {:else if section.component === 'SectionTestimonials'}
-      <SectionTestimonials />
+      <REG.SectionTestimonials />
     {:else if section.component === 'SectionClients'}
-      <SectionClients />
+      <REG.SectionClients />
     {:else}
-      <p class="text-sm text-pm-muted text-center py-8">Unknown section: {section.component}</p>
+      <p class="text-sm text-pm-muted text-center py-8">{m.common_sectionComponentNotFound({ section: section.component })}</p>
     {/if}
   </div>
 {/if}

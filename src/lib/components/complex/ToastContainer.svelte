@@ -14,6 +14,7 @@
   import IconCircleX from '@tabler/icons-svelte/icons/circle-x'
   import IconAlertTriangle from '@tabler/icons-svelte/icons/alert-triangle'
   import IconInfoCircle from '@tabler/icons-svelte/icons/info-circle'
+  import * as m from '$lib/i18n'
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
 
@@ -99,7 +100,7 @@
         <button
           class="flex items-center justify-center size-8 rounded-full text-pm-text-muted hover:bg-pm-bg-sunken hover:text-pm-text transition-colors flex-shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pm-focus-ring"
           onclick={() => dismiss(toast.id)}
-          aria-label="Dismiss"
+          aria-label={m.common_dismiss()}
         >
           <IconX class="size-4 flex-shrink-0" />
         </button>

@@ -5,10 +5,11 @@
  * @example <SectionFaq />
   */
   import { clsx } from 'clsx'
-  import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
   import { FEATURES, MODULES } from '$lib/config/site'
   import IconChevronDown from '@tabler/icons-svelte/icons/chevron-down'
+  import Section from '$lib/components/atoms/Section.svelte'
+  import SectionContent from '$lib/components/molecules/SectionContent.svelte'
 
   let {
     items = [] as Array<{ id: number; question: string; answer: string }>,
@@ -39,12 +40,8 @@
   const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
 </script>
 
-<section id="faq" class={twMerge(clsx(
-  'flex flex-col items-center bg-pm-bg-elevated',
-  'pt-[var(--pt-section)] pb-16',
-  className
-))}>
-  <div class={clsx('w-full mx-auto', isContained && 'max-w-narrow', 'px-container')}>
+<Section id="faq" background="elevated" class={className}>
+  <SectionContent width={isContained ? 'narrow' : 'full'}>
     <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_faq()}</h2>
     <div class="flex flex-col gap-sm-custom">
       {#each items as item}
@@ -63,5 +60,5 @@
         <p class="text-center text-pm-muted py-16">{m.common_note()}</p>
       {/each}
     </div>
-  </div>
-</section>
+  </SectionContent>
+</Section>

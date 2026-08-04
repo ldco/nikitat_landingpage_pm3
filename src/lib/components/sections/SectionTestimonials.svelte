@@ -5,11 +5,12 @@
  * @example <SectionTestimonials />
   */
   import { clsx } from 'clsx'
-  import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
   import { FEATURES, MODULES } from '$lib/config/site'
   import IconChevronLeft from '@tabler/icons-svelte/icons/chevron-left'
   import IconChevronRight from '@tabler/icons-svelte/icons/chevron-right'
+  import Section from '$lib/components/atoms/Section.svelte'
+  import SectionContent from '$lib/components/molecules/SectionContent.svelte'
 
   let {
     testimonials = [] as Array<{ id: number; name: string; company?: string; text: string; photoUrl?: string; rating?: number }>,
@@ -35,12 +36,8 @@
   })
 </script>
 
-<section id="testimonials" class={twMerge(clsx(
-  'flex flex-col items-center',
-  'pt-[var(--pt-section)] pb-16',
-  className
-))}>
-  <div class={clsx('w-full mx-auto', isContained && 'max-w-narrow', 'px-container')}>
+<Section id="testimonials" background="default" class={className}>
+  <SectionContent width={isContained ? 'narrow' : 'full'}>
     <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_testimonials()}</h2>
     {#if testimonials.length > 0}
       <div class="text-center p-8 rounded-xl bg-pm-bg-elevated border border-pm-border shadow-md">
@@ -70,5 +67,5 @@
     {:else}
       <p class="text-center text-pm-muted py-16">{m.common_note()}</p>
     {/if}
-  </div>
-</section>
+  </SectionContent>
+</Section>

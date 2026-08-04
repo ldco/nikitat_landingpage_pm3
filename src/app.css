@@ -25,7 +25,7 @@
   /* --- Brand Mixes (color-mix pre-calculated for Tailwind v4 compat) --- */
   --color-pm-brand-light: color-mix(in srgb, var(--p-brand), white 15%);
   --color-pm-brand-dark: color-mix(in srgb, var(--p-brand), black 10%);
-  --color-pm-brand-subtle: color-mix(in srgb, var(--p-brand), transparent 88%);
+  --color-pm-brand-subtle: light-dark(color-mix(in srgb, var(--p-brand), transparent 90%), color-mix(in srgb, var(--p-brand), transparent 85%));
 
   /* --- Gray Scale (kept from Phase 2 — used in admin) --- */
   --color-pm-gray-50: #f9fafb;
@@ -41,8 +41,8 @@
 
   /* --- Background Tokens (from colors/auto.css) --- */
   --color-pm-bg: light-dark(var(--p-white), var(--p-black));
-  --color-pm-bg-elevated: color-mix(in srgb, var(--p-white), var(--p-black) 3%);
-  --color-pm-bg-sunken: color-mix(in srgb, var(--p-white), var(--p-black) 6%);
+  --color-pm-bg-elevated: light-dark(color-mix(in srgb, var(--p-white), var(--p-black) 3%), color-mix(in srgb, var(--p-black), var(--p-white) 5%));
+  --color-pm-bg-sunken: light-dark(color-mix(in srgb, var(--p-white), var(--p-black) 6%), color-mix(in srgb, var(--p-black), var(--p-white) 2%));
   --color-pm-surface: var(--color-pm-bg-elevated);
 
   /* --- Legacy Background Aliases (kept for component compat — Phase 4+ refactors) --- */
@@ -51,13 +51,13 @@
   --color-pm-bg-dark-muted: color-mix(in srgb, var(--p-black), var(--p-white) 10%);
 
   /* --- Border Tokens (from colors/auto.css, oklch mix pre-calculated) --- */
-  --color-pm-border: color-mix(in srgb, var(--p-black), transparent 88%);
-  --color-pm-border-strong: color-mix(in srgb, var(--p-black), transparent 75%);
+  --color-pm-border: light-dark(color-mix(in srgb, var(--p-black), transparent 88%), color-mix(in srgb, var(--p-white), transparent 85%));
+  --color-pm-border-strong: light-dark(color-mix(in srgb, var(--p-black), transparent 75%), color-mix(in srgb, var(--p-white), transparent 70%));
 
   /* --- Text Tokens (from colors/auto.css) --- */
   --color-pm-text: light-dark(var(--p-black), var(--p-white));
-  --color-pm-text-secondary: color-mix(in srgb, var(--p-black), transparent 40%);
-  --color-pm-text-muted: color-mix(in srgb, var(--p-black), transparent 55%);
+  --color-pm-text-secondary: light-dark(color-mix(in srgb, var(--p-black), transparent 40%), color-mix(in srgb, var(--p-white), transparent 35%));
+  --color-pm-text-muted: light-dark(color-mix(in srgb, var(--p-black), transparent 55%), color-mix(in srgb, var(--p-white), transparent 55%));
 
   /* --- Muted Aliases --- */
   --color-pm-muted: var(--color-pm-text-muted);
@@ -347,7 +347,7 @@
     --footer-link-gap: var(--gap-xs);
 
     /* --- Frosted Glass / Surface (from colors/auto.css) --- */
-    --surface-frosted-bg: color-mix(in oklch, var(--color-pm-bg), transparent 15%);
+    --surface-frosted-bg: color-mix(in srgb, var(--color-pm-bg-elevated) 86%, transparent);
     --surface-frosted-shadow: 0 1px 3px oklch(0% 0 0 / 8%);
     --surface-frosted-backdrop: blur(16px) saturate(1.06);
 
@@ -360,22 +360,13 @@
 
   /* Dark mode overrides for frosted surface */
   .dark {
-    --color-pm-bg: #3b0902;
-    --color-pm-bg-elevated: #45150d;
-    --color-pm-bg-sunken: #3f0e07;
-    --color-pm-border: #582c24;
-    --color-pm-border-strong: #754f47;
-    --color-pm-text: #fbf2e7;
-    --color-pm-text-secondary: #c4a498;
-    --color-pm-text-muted: #9a7a6e;
-    --color-pm-brand-subtle: #480b02;
     --color-pm-success-bg: oklch(25% 0.05 145);
     --color-pm-warning-bg: oklch(25% 0.05 85);
     --color-pm-danger-bg: oklch(25% 0.05 25);
     --color-pm-info-bg: oklch(25% 0.05 250);
 
     /* Dark frosted surface */
-    --surface-frosted-bg: color-mix(in oklch, var(--color-pm-bg-elevated), transparent 20%);
+    --surface-frosted-bg: color-mix(in srgb, var(--color-pm-bg-elevated) 86%, transparent);
     --surface-frosted-shadow: 0 1px 3px oklch(0% 0 0 / 20%);
   }
 
@@ -661,6 +652,17 @@
 
 /* ── Hamburger CSS Animations ──────────────────────────────────────────────────────── */
 @layer components {
+
+  /* PM2 skeleton/header.css parity — fixed header bar */
+  .header-pm {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-fixed);
+    background: var(--color-pm-bg);
+    border-block-end: 1px solid var(--color-pm-border);
+  }
   /* Base hamburger */
   .hamburger {
     --hamburger-width: 28px;

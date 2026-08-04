@@ -6,26 +6,16 @@
  * - legal documents list for the footer (fs access stays server-side)
  */
 import type { LayoutServerLoad } from './$types'
-import { useDatabase, schema } from '$lib/server/db'
-import { eq } from 'drizzle-orm'
 import { getLegalDocuments } from '$lib/utils/legal-documents'
+import { getSanitizedContentTranslations } from '$lib/server/db/content-cache'
 import { logger } from '$lib/server/utils/logger'
 
 export const load: LayoutServerLoad = async ({ locals }) => {
   const locale = locals.paraglide?.lang ?? 'ru'
 
-  // Load content translations from DB (hero, about, focus, f22, contact, seo, cta)
-  const db = useDatabase()
-  const rows = db
-    .select({ key: schema.translations.key, value: schema.translations.value })
-    .from(schema.translations)
-    .where(eq(schema.translations.locale, locale))
-    .all()
-
-  const contentTranslations: Record<string, string> = {}
-  for (const row of rows) {
-    contentTranslations[row.key] = row.value
-  }
+  // Sanitized content translations from cache (loads + sanitizes on first use
+  // per locale; invalidated by the admin translations write route).
+  const contentTranslations = getSanitizedContentTranslations(locale)
 
   let legalDocuments: Array<{ slug: string; file: string }> = []
   try {

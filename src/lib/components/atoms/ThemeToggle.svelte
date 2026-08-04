@@ -12,6 +12,7 @@
    */
   import { browser } from '$app/environment'
   import { getTheme } from '$lib/stores/theme.svelte'
+  import * as m from '$lib/i18n'
   import IconSun from '@tabler/icons-svelte/icons/sun'
   import IconMoon from '@tabler/icons-svelte/icons/moon'
   import { clsx } from 'clsx'
@@ -103,7 +104,7 @@
     type="button"
     class={twMerge(clsx(base, className))}
     onclick={toggleTheme}
-    aria-label="Toggle theme"
+    aria-label={m.common_theme()}
   >
     <span class="theme-toggle-icon-wrapper relative size-5">
       <IconSun
@@ -120,7 +121,7 @@
   </button>
 {:else}
   <!-- SSR fallback — matches PM v2 ClientOnly fallback -->
-  <button type="button" class={twMerge(clsx(base, className))} aria-label="Theme">
+  <button type="button" class={twMerge(clsx(base, className))} aria-label={m.common_theme()}>
     <IconSun class="size-5" />
   </button>
 {/if}

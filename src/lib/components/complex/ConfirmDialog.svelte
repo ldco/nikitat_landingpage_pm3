@@ -8,13 +8,14 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import * as m from '$lib/i18n'
 
   let {
     open = $bindable(false),
-    title = 'Confirm',
-    message = 'Are you sure?',
-    confirmText = 'Confirm',
-    cancelText = 'Cancel',
+    title = m.common_confirm(),
+    message = m.common_areYouSure(),
+    confirmText = m.common_confirm(),
+    cancelText = m.common_cancel(),
     variant = 'primary' as 'primary' | 'danger',
     onConfirm,
     class: className = ''

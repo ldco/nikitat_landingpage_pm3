@@ -45,11 +45,14 @@ const sessionHandle: Handle = async ({ event, resolve }) => {
 const csrfHandle: Handle = async ({ event, resolve }) => {
   // Set CSRF cookie only if not present — token must be stable per session,
   // otherwise the header can never match a freshly-regenerated value.
+  // NOTE: NOT httpOnly — this is a double-submit-cookie token that the client
+  // MUST echo in the X-CSRF-Token header; httpOnly would make it unreadable
+  // and every mutation would 403. The token is not a session secret.
   let csrfToken = event.cookies.get(CSRF_COOKIE_NAME)
   if (!csrfToken) {
     csrfToken = generateCsrfToken()
     event.cookies.set(CSRF_COOKIE_NAME, csrfToken, {
-      httpOnly: true,
+      httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       path: '/'

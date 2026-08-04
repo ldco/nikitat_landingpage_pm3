@@ -39,7 +39,7 @@ export function gsapIntro(node: HTMLElement) {
 
       tl.addLabel('impact')
 
-      const main = document.querySelector('.main')
+      const main = document.getElementById('main-content')
       if (main) {
         tl.to(main, {
           keyframes: {

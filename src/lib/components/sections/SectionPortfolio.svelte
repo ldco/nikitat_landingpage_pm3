@@ -4,12 +4,12 @@
  *
  * @example <SectionPortfolio />
   */
-  import { clsx } from 'clsx'
-  import { twMerge } from 'tailwind-merge'
   import IconPhoto from '@tabler/icons-svelte/icons/photo'
   import * as m from '$lib/i18n'
   import { FEATURES, MODULES } from '$lib/config/site'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import Section from '$lib/components/atoms/Section.svelte'
+  import SectionContent from '$lib/components/molecules/SectionContent.svelte'
 
   let {
     items = [] as Array<{ id: number; slug: string; name: string; type: string; coverImageUrl?: string }>,
@@ -22,12 +22,8 @@
   const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
 </script>
 
-<section id="portfolio" class={twMerge(clsx(
-  'flex flex-col items-center bg-pm-bg-elevated',
-  'pt-[var(--pt-section)] pb-16',
-  className
-))}>
-  <div class={clsx('w-full mx-auto', isContained && 'max-w-container', 'px-container')}>
+<Section id="portfolio" background="elevated" class={className}>
+  <SectionContent width={isContained ? 'default' : 'full'}>
     <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_portfolio()}</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[var(--gap-lg)]">
       {#each items as item (item.id)}
@@ -51,5 +47,5 @@
     <div class="flex justify-center mt-10">
       <CtaButton href="/portfolio" variant="outline" size="lg">{m.common_more()}</CtaButton>
     </div>
-  </div>
-</section>
+  </SectionContent>
+</Section>

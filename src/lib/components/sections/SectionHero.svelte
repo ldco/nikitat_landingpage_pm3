@@ -24,6 +24,7 @@
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import Logo from '$lib/components/atoms/Logo.svelte'
   import HeroParallaxScene from '../../../project/HeroParallaxScene.svelte'
+  import { gsapIntro } from '../../../project/gsapIntro'
 
   let {
     title = t('hero.title', m.sections_hero()),
@@ -43,9 +44,17 @@
   const locale = $derived(languageTag())
   const segments = $derived(breakHeroTitle(title, locale))
   const parallaxEnabled = $derived(FEATURES.heroParallax)
+
+  let logoEl = $state<HTMLElement | null>(null)
+  $effect(() => {
+    if (!logoEl) return
+    const intro = gsapIntro(logoEl)
+    if (!intro) return
+    return () => intro.destroy()
+  })
 </script>
 
-<section id="hero" class={twMerge(clsx('relative grid grid-cols-1 md:grid-cols-2 items-center gap-[var(--space-8)]', 'min-h-dvh pt-[var(--pt-section)] pb-[var(--space-4)]', 'px-container', 'bg-pm-bg scroll-mt-0', 'max-sm:min-h-svh max-sm:gap-[var(--space-2)] max-sm:px-[var(--space-2)]', className))}>
+<section id="hero" class={twMerge(clsx('relative grid grid-cols-1 md:grid-cols-2 items-center gap-[var(--space-8)]', 'min-h-dvh pt-[var(--pt-hero)] pb-[var(--space-4)]', 'px-container', 'bg-pm-bg scroll-mt-0', 'max-sm:min-h-svh max-sm:gap-[var(--space-2)] max-sm:px-[var(--space-2)] max-sm:pt-[var(--pt-hero-mobile)]', className))}>
   {#if parallaxEnabled}
     <HeroParallaxScene />
   {/if}
@@ -54,7 +63,8 @@
   <div class="flex flex-col justify-center">
     <h1 class="text-fluid-hero font-black text-pm-text mb-[var(--space-5)] space-y-[var(--space-2)]
               leading-[var(--hero-leading)] tracking-normal
-              max-sm:text-[var(--hero-title-mobile)] max-sm:leading-[var(--hero-leading-mobile)]">
+              max-sm:text-[var(--hero-title-mobile)] max-sm:leading-[var(--hero-leading-mobile)] max-sm:space-y-[var(--hero-title-line-gap-mobile)]
+              {locale.startsWith('ru') ? 'max-sm:text-[var(--hero-title-mobile-ru)]' : ''}">
       {#each segments as segment}
         <span class="block w-fit" class:text-pm-brand={segment.brand}>
           {segment.text}
@@ -73,7 +83,7 @@
   <!-- Right: Logo -->
   {#if showLogo}
     <div class="flex items-center justify-center overflow-visible z-30">
-      <div class="w-full max-w-[var(--hero-logo-max-w)] max-sm:max-w-[var(--hero-logo-max-w-mobile)]">
+      <div bind:this={logoEl} class="w-full max-w-[var(--hero-logo-max-w)] max-sm:max-w-[var(--hero-logo-max-w-mobile)]">
         <Logo shape="circle" />
       </div>
     </div>

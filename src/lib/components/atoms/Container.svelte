@@ -3,18 +3,16 @@
    * Container — Content width wrapper
    *
    * Source: app-nuxt/app/assets/css/layout/containers.css (134 lines)
-   * Widths: default (1280px), narrow (768px), wide (1536px), prose (65ch), full, bleed
-   * Fluid padding: clamp(1rem, 3vw, 3rem)
+   * Widths: default (1280px), narrow (768px), wide (1536px), prose (65ch),
+   *         content (1000px), full, bleed
+   * Fluid padding: clamp(1rem, 3vw, 3rem) — applied to all widths except bleed
    *
    * Rule #1: class prop + twMerge
-   *
-   * Note: This component replaces the @layer components .container-* classes.
-   * After refactoring all 16 usages, the CSS classes can be removed.
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
 
-  type Width = 'default' | 'narrow' | 'wide' | 'prose' | 'full' | 'bleed'
+  type Width = 'default' | 'narrow' | 'wide' | 'prose' | 'content' | 'full' | 'bleed'
 
   let {
     width: widthProp,
@@ -34,16 +32,19 @@
     narrow: 'max-w-container-narrow',
     wide: 'max-w-container-wide',
     prose: 'max-w-prose',
+    content: 'max-w-content',
     full: 'max-w-full',
     bleed: 'max-w-none'
   }
 
+  // PM v2: only .container-bleed removes padding; all other widths keep px-container
   const padding: Record<Width, string> = {
-    default: '',
-    narrow: '',
-    wide: '',
-    prose: '',
-    full: '',
+    default: 'px-container',
+    narrow: 'px-container',
+    wide: 'px-container',
+    prose: 'px-container',
+    content: 'px-container',
+    full: 'px-container',
     bleed: 'px-0'
   }
 

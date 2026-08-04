@@ -5,9 +5,10 @@
  * @example <SectionTeam />
   */
   import { clsx } from 'clsx'
-  import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
   import { FEATURES, MODULES } from '$lib/config/site'
+  import Section from '$lib/components/atoms/Section.svelte'
+  import SectionContent from '$lib/components/molecules/SectionContent.svelte'
 
   let {
     members = [] as Array<{ id: number; name: string; role: string; bio?: string; photoUrl?: string }>,
@@ -23,12 +24,8 @@
   const colsDesktopTeam = $derived(teamConfig.columnsDesktop ?? 4)
 </script>
 
-<section id="team" class={twMerge(clsx(
-  'flex flex-col items-center bg-pm-bg-sunken',
-  'pt-[var(--pt-section)] pb-16',
-  className
-))}>
-  <div class={clsx('w-full mx-auto', isContained && 'max-w-container', 'px-container')}>
+<Section id="team" background="sunken" class={className}>
+  <SectionContent width={isContained ? 'default' : 'full'}>
     <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_team()}</h2>
     <div class={clsx('grid grid-cols-1 gap-[var(--gap-lg)]',
       colsDesktopTeam >= 2 && 'sm:grid-cols-2',
@@ -52,5 +49,5 @@
         <p class="text-center text-pm-muted col-span-full py-16">{m.common_note()}</p>
       {/each}
     </div>
-  </div>
-</section>
+  </SectionContent>
+</Section>

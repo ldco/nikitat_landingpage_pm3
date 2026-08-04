@@ -10,9 +10,12 @@ function getStored(): Theme | null {
   return null
 }
 
-// ALWAYS initialize to 'light' on SSR to prevent hydration mismatch
-// Actual theme is read in initTheme() after mount
-let current = $state<Theme>('light')
+// The site forces `color-scheme: dark` (src/project/theme.css) — backgrounds
+// are always dark regardless of the theme store. 'light' mode produces dark
+// backgrounds with light-OS foregrounds, making the header invisible.
+// Default to 'dark' unconditionally; stored 'light' is respected but will
+// look broken because light mode is not supported by this site's design.
+let current = $state<Theme>('dark')
 
 function applyTheme(t: Theme) {
   if (!browser) return
@@ -28,20 +31,8 @@ let _initialized = false
 export function initTheme() {
   if (_initialized || !browser) return
   _initialized = true
-  // Read stored preference AFTER mount — never during SSR
-  const stored = getStored()
-  if (stored) current = stored
+  current = getStored() ?? 'dark'
   applyTheme(current)
-
-  const mq = window.matchMedia('(prefers-color-scheme: dark)')
-  const handler = (e: MediaQueryListEvent) => {
-    if (!getStored()) {
-      current = e.matches ? 'dark' : 'light'
-      persistTheme(current)
-    }
-  }
-  mq.addEventListener('change', handler)
-  _initialized = true
 }
 
 export function getTheme() {

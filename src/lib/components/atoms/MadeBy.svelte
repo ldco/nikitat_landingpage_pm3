@@ -9,6 +9,8 @@
   import * as runtime from '$lib/paraglide/runtime.js'
   import { getTheme } from '$lib/stores/theme.svelte'
   import { LOCALES } from '$lib/config/site'
+  import { FOOTER_MADE_BY } from '$lib/config/site'
+  import { madeByLogoSrc, type MadeByLogoConfig } from '$lib/utils/made-by-logo'
 
   let {
     text = m.footer_madeBy(),
@@ -27,16 +29,14 @@
   //         light mode uses 'dark' logo (dark on light bg)
   const invertedTheme = $derived(themeStore.current === 'dark' ? 'light' : 'dark')
   const lang = $derived(runtime.languageTag() ?? LOCALES[0])
-  function makeFallbackMap(list: readonly string[]): Record<string, string> {
-    const map: Record<string, string> = {}
-    const first = list[0]
-    if (first) for (const l of list) map[l] = first
-    return map
-  }
-  const langFallback: Record<string, string> = makeFallbackMap(LOCALES)
-  const resolvedLang = $derived(langFallback[lang] ?? LOCALES[0])
 
-  const logoSrc = $derived(`${basePath}/horizontal_${invertedTheme}_${resolvedLang}.svg`)
+  const logoConfig: MadeByLogoConfig = {
+    basePath,
+    available: FOOTER_MADE_BY.available,
+    langFallback: FOOTER_MADE_BY.langFallback,
+    defaultLang: LOCALES[0] ?? ''
+  }
+  const logoSrc = $derived(madeByLogoSrc(logoConfig, lang, invertedTheme))
 
   const base = 'inline-flex items-center gap-2 text-sm text-pm-text-muted'
 </script>

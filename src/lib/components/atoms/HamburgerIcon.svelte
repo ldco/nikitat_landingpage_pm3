@@ -10,13 +10,14 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import * as m from '$lib/i18n'
 
   type AnimationType = 'spin' | 'elastic' | 'slider' | 'spring' | 'squeeze' | 'arrow' | 'arrow-right' | 'collapse' | 'minus' | 'turn' | 'cross'
 
   let {
     active = false,
     type = 'spin',
-    ariaLabel = 'Toggle menu',
+    ariaLabel = m.nav_openMenu(),
     class: className = '',
     onclick
   }: {

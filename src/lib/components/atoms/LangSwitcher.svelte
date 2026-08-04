@@ -14,6 +14,7 @@
   import { availableLanguageTags, languageTag } from '$lib/paraglide/runtime.js'
   import type { AvailableLanguageTag } from '$lib/paraglide/runtime.js'
   import { i18n } from '$lib/i18n'
+  import * as m from '$lib/i18n'
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
 
@@ -101,7 +102,7 @@
       type="button"
       class="lang-switcher-btn flex items-center justify-center size-9 rounded-sm text-pm-text-secondary hover:bg-pm-bg-sunken hover:text-pm-text transition-colors duration-150"
       aria-expanded={panelOpen}
-      title="Language"
+      title={m.common_language()}
       onclick={togglePanel}
     >
       <span class="lang-switcher-code inline-flex items-center justify-center text-sm font-bold uppercase tracking-wider leading-none">

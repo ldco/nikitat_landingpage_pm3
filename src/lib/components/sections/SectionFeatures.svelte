@@ -5,9 +5,10 @@
  * @example <SectionFeatures />
   */
   import { clsx } from 'clsx'
-  import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
   import { FEATURES, MODULES } from '$lib/config/site'
+  import Section from '$lib/components/atoms/Section.svelte'
+  import SectionContent from '$lib/components/molecules/SectionContent.svelte'
 
   let {
     features = [] as Array<{ title: string; description: string; icon?: string }>,
@@ -23,12 +24,8 @@
   const colsDesktop = $derived(featuresConfig.columnsDesktop ?? 3)
 </script>
 
-<section id="features" class={twMerge(clsx(
-  'flex flex-col items-center',
-  'pt-[var(--pt-section)] pb-16',
-  className
-))}>
-  <div class={clsx('w-full mx-auto', isContained && 'max-w-container', 'px-container')}>
+<Section id="features" background="default" class={className}>
+  <SectionContent width={isContained ? 'default' : 'full'}>
     <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_features()}</h2>
     <div class={clsx('grid grid-cols-1 gap-[var(--gap-lg)]',
       colsDesktop >= 2 && 'sm:grid-cols-2',
@@ -47,5 +44,5 @@
         <p class="text-center text-pm-muted col-span-full py-16">{m.common_note()}</p>
       {/each}
     </div>
-  </div>
-</section>
+  </SectionContent>
+</Section>

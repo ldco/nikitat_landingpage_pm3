@@ -6,6 +6,8 @@ import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
 import { requireAdmin } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
+import { invalidateContentCache } from '$lib/server/db/content-cache'
+import { invalidateTranslationCache } from '$lib/server/db/translations-cache'
 
 const updateSchema = z.record(z.string(), z.string())
 
@@ -20,6 +22,9 @@ export async function PUT(event: RequestEvent) {
   const db = useDatabase()
   let count = 0
   for (const [key, value] of Object.entries(parsed.data)) {
+    // Store the raw value. Sanitization happens once, at the read boundary
+    // (content-cache → sanitizeContentMap), so the admin editor round-trip
+    // shows what was typed and the DB never holds double-escaped HTML.
     const existing = db.select().from(schema.translations)
       .where(and(eq(schema.translations.locale, locale), eq(schema.translations.key, key)))
       .get()
@@ -29,5 +34,10 @@ export async function PUT(event: RequestEvent) {
       count++
     }
   }
+  // The payload is an unrestricted key map — it may include both content.*
+  // and admin.* keys. Invalidate BOTH caches: public content translations
+  // (content-cache) and admin UI strings (translations-cache).
+  invalidateContentCache(locale)
+  invalidateTranslationCache(locale)
   return json(jsonSuccess({ updated: count }))
 }

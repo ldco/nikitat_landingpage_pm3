@@ -54,7 +54,7 @@
 <header
   use:scrollHeader={{ threshold: 50, enabled: isInteractive }}
   class={twMerge(clsx(
-    'fixed top-0 inset-x-0 z-fixed border-b border-pm-border bg-pm-bg',
+    'header-pm',
     isInteractive && 'data-scrolled:backdrop-blur-glass data-scrolled:shadow-frosted',
     className
   ))}>

@@ -6,6 +6,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import * as m from '$lib/i18n'
   import IconCheck from '@tabler/icons-svelte/icons/check'
   import IconX from '@tabler/icons-svelte/icons/x'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
@@ -22,7 +23,7 @@
     currency = 'USD',
     period = 'month',
     features = [] as PricingFeature[],
-    cta = { text: 'Get Started', url: '#' },
+    cta = { text: m.pricing_getStarted(), url: '#' },
     featured = false,
     class: className = ''
   }: {
@@ -44,7 +45,7 @@
 
 <div class={twMerge(clsx(base, featured ? featuredClass : normal, className))}>
   {#if featured}
-    <span class="inline-block px-3 py-1 mb-3 text-xs font-semibold uppercase tracking-wider text-pm-white bg-pm-brand rounded-full w-fit">Popular</span>
+    <span class="inline-block px-3 py-1 mb-3 text-xs font-semibold uppercase tracking-wider text-pm-white bg-pm-brand rounded-full w-fit">{m.pricing_mostPopular()}</span>
   {/if}
 
   <h3 class="text-xl font-bold text-pm-text">{name}</h3>
@@ -55,7 +56,7 @@
 
   <div class="mt-4 mb-6">
     <span class="text-3xl font-bold text-pm-text">
-      {price === null ? 'Custom' : `${currency === 'USD' ? '$' : ''}${price}`}
+      {price === null ? m.pricing_custom() : `${currency === 'USD' ? '$' : ''}${price}`}
     </span>
     {#if price !== null}
       <span class="text-sm text-pm-text-muted">/{period}</span>

@@ -1,45 +1,57 @@
 <script lang="ts">
   /**
-   * Section — Page section wrapper
+   * Section — Framework section shell (PM3 standard section root)
    *
-   * Source: app-nuxt/app/assets/css/layout/sections.css (485 lines)
-   * Variants: default, hero, fullscreen
-   * Backgrounds: default, alt, sunken, brand
+   * Every non-hero section MUST render its root through this component
+   * (ADR-001). It owns:
+   *   - Section layout (flex-col, section top padding, bottom padding)
+   *   - Section background (none/default/elevated/sunken/brand)
+   *   - Scroll-reveal animation (applied to the <section> root)
+   *   - Anchor id + scroll-mt-0
    *
-   * Rule #1: class prop + twMerge
+   * SectionHero is the sole documented exception (requires grid layout).
+   *
+   * @props variant — 'section' | 'fullscreen' (fullscreen adds min-h-dvh)
+   * @props background — 'none' | 'default' | 'elevated' | 'sunken' | 'brand'
+   * @props id — section anchor id
+   * @props reveal — enable scroll-reveal on the section root (default true)
+   * @props class — merged Tailwind classes
+   * @example <Section id="about" background="elevated"><SectionContent>...</SectionContent></Section>
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import { reveal } from '$lib/actions/reveal'
 
-  type Variant = 'default' | 'hero' | 'fullscreen'
-  type Background = 'default' | 'alt' | 'sunken' | 'brand'
+  type Variant = 'section' | 'fullscreen'
+  type Background = 'none' | 'default' | 'elevated' | 'sunken' | 'brand'
 
   let {
-    variant = 'default',
+    variant = 'section',
     background = 'default',
     id,
+    reveal: withReveal = true,
     class: className = '',
     children
   }: {
     variant?: Variant
     background?: Background
     id?: string
+    reveal?: boolean
     class?: string
     children?: import('svelte').Snippet
   } = $props()
 
   const layout: Record<Variant, string> = {
-    // .section: display flex, flex-col, padding with header offset
-    default: 'flex flex-col items-center pt-[var(--pt-section)] pb-16 scroll-mt-0',
-    // .section-hero: less top padding (header is transparent overlay)
-    hero: 'flex flex-col items-center pt-[var(--pt-section)] pb-16 scroll-mt-0',
+    // .section: flex column, padding with header offset
+    section: 'flex flex-col items-center pt-[var(--pt-section)] pb-[var(--space-16)] scroll-mt-0',
     // .section-fullscreen: min-height viewport
-    fullscreen: 'flex flex-col items-center pt-[var(--pt-section)] pb-16 min-h-dvh scroll-mt-0'
+    fullscreen: 'flex flex-col items-center pt-[var(--pt-section)] pb-[var(--space-16)] min-h-dvh scroll-mt-0'
   }
 
   const bg: Record<Background, string> = {
+    none: '',
     default: '',
-    alt: 'bg-pm-bg-elevated',
+    elevated: 'bg-pm-bg-elevated',
     sunken: 'bg-pm-bg-sunken',
     brand: 'bg-pm-brand text-pm-white'
   }
@@ -47,6 +59,12 @@
   const merged = $derived(twMerge(clsx(layout[variant], bg[background], className)))
 </script>
 
-<section {id} class={merged}>
-  {@render children?.()}
-</section>
+{#if withReveal}
+  <section {id} use:reveal class={merged}>
+    {@render children?.()}
+  </section>
+{:else}
+  <section {id} class={merged}>
+    {@render children?.()}
+  </section>
+{/if}
