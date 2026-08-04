@@ -6,6 +6,7 @@
  */
 import { sequence } from '@sveltejs/kit/hooks'
 import type { Handle } from '@sveltejs/kit'
+import { LOCALE_STRINGS } from '$lib/config/site'
 import { i18n } from '$lib/i18n'
 import { getValidSession } from '$lib/server/auth/session'
 import { useDatabase, schema } from '$lib/server/db'
@@ -172,9 +173,29 @@ const errorFormatHandle: Handle = async ({ event, resolve }) => {
   return response
 }
 
+
+// ── Locale Normalize Handle ─────────────────────────────────────────────
+// Redirects double-locale paths like /fr/en → /fr before Paraglide
+// tries to parse them.
+const localeNormalizeHandle: Handle = async ({ event, resolve }) => {
+  const segments = event.url.pathname.split("/").filter(Boolean)
+
+  if (segments.length >= 2
+    && LOCALE_STRINGS.includes(segments[0]!)
+    && LOCALE_STRINGS.includes(segments[1]!)
+  ) {
+    const rest = segments.length > 2 ? "/" + segments.slice(2).join("/") : ""
+    const target = "/" + segments[0] + rest
+    return new Response(null, { status: 308, headers: { location: target } })
+  }
+
+  return resolve(event)
+}
+
 // ── Export sequence ─────────────────────────────────────────────────────────
 // Order: i18n (lang/dir/html) → logger → session → rate-limit → CSRF → CSP
 export const handle = sequence(
+  localeNormalizeHandle,
   i18n.handle(),
   logHandle,
   sessionHandle,
