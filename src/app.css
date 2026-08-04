@@ -349,6 +349,8 @@
     /* --- Frosted Glass / Surface (from colors/auto.css) --- */
     --surface-frosted-bg: color-mix(in srgb, var(--color-pm-bg-elevated) 86%, transparent);
     --surface-frosted-shadow: 0 1px 3px oklch(0% 0 0 / 8%);
+    --shadow-slider-line: 0 0 4px oklch(0% 0 0 / 30%);
+    --shadow-slider-grip: 0 2px 8px oklch(0% 0 0 / 12%);
     --surface-frosted-backdrop: blur(16px) saturate(1.06);
 
     /* --- Scrollytelling CSS Var (from animations/scrollytelling.css) --- */
@@ -368,6 +370,8 @@
     /* Dark frosted surface */
     --surface-frosted-bg: color-mix(in srgb, var(--color-pm-bg-elevated) 86%, transparent);
     --surface-frosted-shadow: 0 1px 3px oklch(0% 0 0 / 20%);
+    --shadow-slider-line: 0 0 4px oklch(0% 0 0 / 30%);
+    --shadow-slider-grip: 0 2px 8px oklch(0% 0 0 / 12%);
   }
 
   /* ══════════════════════════════════════════════════════════

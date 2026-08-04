@@ -56,8 +56,9 @@
 </script>
 
 <footer class={twMerge(clsx(
-  'border-t border-pm-border/50 bg-pm-bg/85 dark:bg-pm-bg/85',
-  'backdrop-blur-glass dark:backdrop-blur-glass',
+  'border-t border-pm-border',
+  'bg-pm-bg',
+  'backdrop-blur-glass',
   'py-8 md:py-8',
   className
 ))}>

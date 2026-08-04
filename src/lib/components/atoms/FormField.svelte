@@ -36,18 +36,18 @@
   } = $props()
 
   const base = 'flex flex-col gap-1'
-  const labelClass = 'text-sm font-medium text-pm-black dark:text-pm-white'
+  const labelClass = 'text-sm font-medium text-pm-text'
   const inputBase = 'w-full rounded-md border px-3 py-2 text-sm transition-colors'
-  const inputNormal = 'border-gray-300 bg-pm-white text-pm-black focus:border-pm-brand focus:ring-1 focus:ring-pm-brand dark:border-gray-600 dark:bg-gray-800 dark:text-pm-white'
-  const inputError = 'border-red-500 focus:border-red-500 focus:ring-red-500'
-  const errorClass = 'text-xs text-red-500'
+  const inputNormal = 'border-pm-border bg-pm-bg text-pm-text focus:border-pm-brand focus:ring-1 focus:ring-pm-brand'
+  const inputError = 'border-pm-danger focus:border-pm-danger focus:ring-pm-danger'
+  const errorClass = 'text-xs text-pm-danger'
 </script>
 
 <div class={twMerge(clsx(base, className))}>
   {#if label}
     <label for={name} class={labelClass}>
       {label}
-      {#if required}<span class="text-red-500">*</span>{/if}
+      {#if required}<span class="text-pm-danger">*</span>{/if}
     </label>
   {/if}
 

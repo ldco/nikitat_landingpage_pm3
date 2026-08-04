@@ -93,7 +93,7 @@
 
 <!-- Mobile Nav Drawer -->
 {#if showMenu}
-  <div class="fixed inset-0 z-[var(--z-drawer-backdrop)] bg-black/40 backdrop-blur-sm" onclick={closeMobileNav} role="presentation"></div>
+  <div class="fixed inset-0 z-[var(--z-drawer-backdrop)] bg-pm-black/50 backdrop-blur-sm" onclick={closeMobileNav} role="presentation"></div>
   <nav class="fixed inset-y-0 start-0 z-[var(--z-drawer)] flex flex-col w-[var(--drawer-width)] bg-pm-bg shadow-xl">
     <div class="flex items-center justify-between p-[var(--space-4)] border-b border-pm-border">
       <Logo shape="horizontal" />
