@@ -32,8 +32,12 @@
   const currentLocale = $derived(languageTag())
 
   function selectLocale(code: string) {
+    // i18n.route() strips the existing locale prefix (e.g. /en → /)
+    // i18n.resolveRoute() adds the new locale prefix (e.g. / → /fr)
+    const canonical = i18n.route($page.url.pathname)
+    const resolved = i18n.resolveRoute(canonical, code)
+    goto(resolved)
     panelOpen = false
-    goto(code === "ru" ? "/" : "/" + code)
   }
 
   function togglePanel() {
