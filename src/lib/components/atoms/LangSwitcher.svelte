@@ -8,8 +8,7 @@
    *   - SSR-safe (ClientOnly pattern: renders nothing until mounted)
    *   - Transition for panel open/close (CSS classes from lang-switcher.css)
    */
-  import { browser } from '$app/environment'
-  import { goto } from '$app/navigation'
+    import { goto } from '$app/navigation'
   import { page } from '$app/stores'
   import { availableLanguageTags, languageTag } from '$lib/paraglide/runtime.js'
   import type { AvailableLanguageTag } from '$lib/paraglide/runtime.js'
@@ -28,7 +27,7 @@
   let { mode = 'down', class: className = '' }: Props = $props()
 
   let panelOpen = $state(false)
-  let mounted = $state(false)
+  // always render
 
   const currentLocale = $derived(languageTag())
 
@@ -49,24 +48,9 @@
       panelOpen = false
     }
   }
-
-  $effect(() => {
-    if (!browser) return
-    if (mode !== 'inline') {
-      document.addEventListener('click', handleClickOutside)
-    }
-    mounted = true
-    return () => {
-      if (mode !== 'inline') {
-        document.removeEventListener('click', handleClickOutside)
-      }
-    }
-  })
 </script>
 
-{#if !mounted}
-  <!-- SSR fallback — nothing rendered (matches PM v2 ClientOnly) -->
-{:else if mode === 'inline'}
+{#if mode === 'inline'}
   <!-- ═══ INLINE MODE (PM v2: direction="inline") ═══ -->
   <div class={twMerge(clsx('lang-switcher-inline flex items-center gap-1', className))}>
     {#each availableLanguageTags as code, i}

@@ -7,7 +7,8 @@
   import { getNavState } from '$lib/stores/navigation.svelte'
   import Logo from '$lib/components/atoms/Logo.svelte'
   import NavLinks from '$lib/components/molecules/NavLinks.svelte'
-    import HeaderContact from '$lib/components/molecules/HeaderContact.svelte'
+  import HeaderActions from '$lib/components/molecules/HeaderActions.svelte'
+  import HeaderContact from '$lib/components/molecules/HeaderContact.svelte'
   import HamburgerIcon from '$lib/components/atoms/HamburgerIcon.svelte'
   import { scrollHeader } from '$lib/actions/scrollHeader'
 
@@ -78,24 +79,13 @@
 
     <!-- Actions: desktop only -->
     <div class="hidden lg:flex items-center gap-2">
-      <a href="/" class="text-sm font-bold uppercase text-pm-text-secondary hover:text-pm-brand transition-colors">RU</a><span class="text-pm-border-strong">/</span><a href="/en" class="text-sm font-bold uppercase text-pm-text-secondary hover:text-pm-brand transition-colors">EN</a><span class="text-pm-border-strong">/</span><a href="/fr" class="text-sm font-bold uppercase text-pm-text-secondary hover:text-pm-brand transition-colors">FR</a><span class="text-pm-border-strong">/</span><a href="/he" class="text-sm font-bold uppercase text-pm-text-secondary hover:text-pm-brand transition-colors">HE</a>
       <HeaderContact mode="contacts" size={18} />
+      <HeaderActions showContact={false} langDirection="down" />
     </div>
 
-    <!-- Mobile header contact icons + lang links (visible on all screens) -->
-    <div class="flex items-center gap-2">
-      <div class="flex lg:hidden items-center gap-1">
-        <HeaderContact mode="contacts" size={18} />
-      </div>
-      <div class="flex items-center gap-1 text-xs">
-        <a href="/" class="font-bold uppercase text-pm-text-secondary hover:text-pm-brand transition-colors">RU</a>
-        <span class="text-pm-border-strong">/</span>
-        <a href="/en" class="font-bold uppercase text-pm-text-secondary hover:text-pm-brand transition-colors">EN</a>
-        <span class="text-pm-border-strong">/</span>
-        <a href="/fr" class="font-bold uppercase text-pm-text-secondary hover:text-pm-brand transition-colors">FR</a>
-        <span class="text-pm-border-strong">/</span>
-        <a href="/he" class="font-bold uppercase text-pm-text-secondary hover:text-pm-brand transition-colors">HE</a>
-      </div>
+    <!-- Mobile header contact icons -->
+    <div class="flex lg:hidden items-center gap-1">
+      <HeaderContact mode="contacts" size={18} />
     </div>
   </div>
 </header>
@@ -117,12 +107,6 @@
     <div class="p-[var(--space-4)] border-t border-pm-border space-y-3">
       <HeaderContact mode="all" size={20} />
       <HeaderActions showContact={false} langDirection="inline" />
-      <div class="flex items-center gap-1 justify-center mt-2">
-        {#each ['ru','en','fr','he'] as code, i}
-          {#if i > 0}<span class="text-pm-border-strong">/</span>{/if}
-          <a href={code === 'ru' ? '/' : '/' + code} class="text-sm font-bold uppercase text-pm-text-secondary hover:text-pm-brand transition-colors">{code}</a>
-        {/each}
-      </div>
     </div>
   </nav>
 {/if}
