@@ -27,7 +27,7 @@ export function buildSecurityHeaders(nonce: string, isProduction: boolean): Head
   const csp = isProduction
     ? [
         `default-src 'self'`,
-        `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+        `script-src 'self' 'unsafe-inline'`,
         `style-src 'self' 'unsafe-inline'`,
         `img-src 'self' data: blob: https:`,
         `font-src 'self' data:`,
