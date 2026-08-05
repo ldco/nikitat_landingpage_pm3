@@ -82,9 +82,20 @@
       <HeaderContact mode="contacts" size={18} />
     </div>
 
-    <!-- Mobile header contact icons -->
-    <div class="flex lg:hidden items-center gap-1">
-      <HeaderContact mode="contacts" size={18} />
+    <!-- Mobile header contact icons + lang links (visible on all screens) -->
+    <div class="flex items-center gap-2">
+      <div class="flex lg:hidden items-center gap-1">
+        <HeaderContact mode="contacts" size={18} />
+      </div>
+      <div class="flex items-center gap-1 text-xs">
+        <a href="/" class="font-bold uppercase text-pm-text-secondary hover:text-pm-brand transition-colors">RU</a>
+        <span class="text-pm-border-strong">/</span>
+        <a href="/en" class="font-bold uppercase text-pm-text-secondary hover:text-pm-brand transition-colors">EN</a>
+        <span class="text-pm-border-strong">/</span>
+        <a href="/fr" class="font-bold uppercase text-pm-text-secondary hover:text-pm-brand transition-colors">FR</a>
+        <span class="text-pm-border-strong">/</span>
+        <a href="/he" class="font-bold uppercase text-pm-text-secondary hover:text-pm-brand transition-colors">HE</a>
+      </div>
     </div>
   </div>
 </header>
