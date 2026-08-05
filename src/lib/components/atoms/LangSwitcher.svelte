@@ -8,8 +8,7 @@
    *   - SSR-safe (ClientOnly pattern: renders nothing until mounted)
    *   - Transition for panel open/close (CSS classes from lang-switcher.css)
    */
-    import { goto } from '$app/navigation'
-  import { page } from '$app/stores'
+      import { page } from '$app/stores'
   import { availableLanguageTags, languageTag } from '$lib/paraglide/runtime.js'
   import type { AvailableLanguageTag } from '$lib/paraglide/runtime.js'
   import { i18n } from '$lib/i18n'
@@ -32,12 +31,9 @@
   const currentLocale = $derived(languageTag())
 
   function selectLocale(code: string) {
-    // i18n.route() strips the existing locale prefix (e.g. /en → /)
-    // i18n.resolveRoute() adds the new locale prefix (e.g. / → /fr)
     const canonical = i18n.route($page.url.pathname)
     const resolved = i18n.resolveRoute(canonical, code)
-    goto(resolved)
-    panelOpen = false
+    window.location.href = resolved
   }
 
   function togglePanel() {
