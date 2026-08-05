@@ -32,10 +32,8 @@
   const currentLocale = $derived(languageTag())
 
   function selectLocale(code: string) {
-    const tag = availableLanguageTags.find(l => l === code) ?? languageTag()
-    const resolved = i18n.resolveRoute($page.url.pathname, tag)
-    goto(resolved)
     panelOpen = false
+    goto(code === "ru" ? "/" : "/" + code)
   }
 
   function togglePanel() {
