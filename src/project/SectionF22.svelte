@@ -14,7 +14,7 @@
   import { FOOTER_MADE_BY, LOCALES } from '$lib/config/site'
   import { sanitizeHtml } from '$lib/utils/sanitize'
   import { madeByLogoSrc, type MadeByLogoConfig } from '$lib/utils/made-by-logo'
-  import { languageTag } from '$lib/paraglide/runtime.js'
+  import { page } from '$app/stores'
   import Section from '$lib/components/atoms/Section.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
   import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
@@ -32,7 +32,7 @@
   const madeByAlt = FOOTER_MADE_BY.logoAlt
 
   // PM v2 getLogo: theme inversion — light mode shows 'dark' logo file, dark mode shows 'light'
-  const activeLang = $derived(languageTag())
+  const activeLang = $derived($page.url.pathname.split('/')[1] || LOCALES[0])
   const lightLogo = $derived(madeByLogoSrc(logoConfig, activeLang, 'light'))
   const darkLogo = $derived(madeByLogoSrc(logoConfig, activeLang, 'dark'))
 </script>

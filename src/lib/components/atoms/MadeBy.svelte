@@ -6,7 +6,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import * as m from '$lib/i18n'
-  import * as runtime from '$lib/paraglide/runtime.js'
+  import { page } from '$app/stores'
   import { getTheme } from '$lib/stores/theme.svelte'
   import { LOCALES } from '$lib/config/site'
   import { FOOTER_MADE_BY } from '$lib/config/site'
@@ -28,7 +28,7 @@
   // PM v2: invert theme — dark mode uses 'light' logo (white on dark bg)
   //         light mode uses 'dark' logo (dark on light bg)
   const invertedTheme = $derived(themeStore.current === 'dark' ? 'light' : 'dark')
-  const lang = $derived(runtime.languageTag() ?? LOCALES[0])
+  const lang = $derived($page.url.pathname.split('/')[1] || LOCALES[0])
 
   const logoConfig: MadeByLogoConfig = {
     basePath,
