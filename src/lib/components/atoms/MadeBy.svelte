@@ -28,7 +28,8 @@
   // PM v2: invert theme — dark mode uses 'light' logo (white on dark bg)
   //         light mode uses 'dark' logo (dark on light bg)
   const invertedTheme = $derived(themeStore.current === 'dark' ? 'light' : 'dark')
-  const lang = $derived($page.url.pathname.split('/')[1] || LOCALES[0])
+  const _dl = LOCALES[0] ?? 'ru'
+  const lang = $derived($page.url.pathname === '/' ? _dl : $page.url.pathname.slice(1, 3))
 
   const logoConfig: MadeByLogoConfig = {
     basePath,

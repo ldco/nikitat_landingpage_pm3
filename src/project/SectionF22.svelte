@@ -32,7 +32,8 @@
   const madeByAlt = FOOTER_MADE_BY.logoAlt
 
   // PM v2 getLogo: theme inversion — light mode shows 'dark' logo file, dark mode shows 'light'
-  const activeLang = $derived($page.url.pathname.split('/')[1] || LOCALES[0])
+  const _dl = LOCALES[0] ?? 'ru'
+  const activeLang = $derived($page.url.pathname === '/' ? _dl : $page.url.pathname.slice(1, 3))
   const lightLogo = $derived(madeByLogoSrc(logoConfig, activeLang, 'light'))
   const darkLogo = $derived(madeByLogoSrc(logoConfig, activeLang, 'dark'))
 </script>

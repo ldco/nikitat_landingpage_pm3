@@ -32,7 +32,7 @@
 
   function selectLocale(code: string) {
     const canonical = i18n.route($page.url.pathname)
-    const resolved = i18n.resolveRoute(canonical, code)
+    const resolved = i18n.resolveRoute(canonical, code as AvailableLanguageTag)
     window.location.href = resolved
   }
 
