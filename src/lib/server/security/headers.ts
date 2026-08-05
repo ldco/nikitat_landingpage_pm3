@@ -27,7 +27,7 @@ export function buildSecurityHeaders(nonce: string, isProduction: boolean): Head
   const csp = isProduction
     ? [
         `default-src 'self'`,
-        `script-src 'self' 'unsafe-inline'`,
+        `script-src 'self' 'unsafe-inline' 'unsafe-eval'`,
         `style-src 'self' 'unsafe-inline'`,
         `img-src 'self' data: blob: https:`,
         `font-src 'self' data:`,
@@ -38,7 +38,7 @@ export function buildSecurityHeaders(nonce: string, isProduction: boolean): Head
       ].join('; ')
     : [
         `default-src 'self'`,
-        `script-src 'self' 'unsafe-inline' 'unsafe-eval'`,
+        `script-src 'self' 'unsafe-inline' 'unsafe-eval' 'unsafe-eval'`,
         `style-src 'self' 'unsafe-inline'`,
         `img-src 'self' data: blob: https:`,
         `font-src 'self' data:`,
