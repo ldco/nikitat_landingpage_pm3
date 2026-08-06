@@ -10,7 +10,7 @@
  */
 import { useDatabase, schema, closeDatabase } from '$lib/server/db'
 import { hashPassword } from '$lib/server/auth/password'
-import { readFileSync, existsSync } from 'node:fs'
+import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 // ── Content seed source: project/content.json (no content in code) ────────
 type ContentTree = Record<string, unknown>
@@ -30,6 +30,32 @@ function loadContentSeed(): FlatEntry[] {
     for (const { key, value } of flat) {
       result.push({ locale, key, value })
     }
+  }
+  return result
+}
+
+
+/** Load Paraglide-compiled messages into DB — bridges the gap until
+ *  all translations are DB-resident. Reads messages/{locale}.json and
+ *  returns flat { locale, key, value } entries. */
+function loadParaglideMessages(): TranslationEntry[] {
+  const result: TranslationEntry[] = []
+  const msgDir = join(process.cwd(), 'messages')
+  if (!existsSync(msgDir)) {
+    console.warn('⚠️  messages/ directory not found — no Paraglide translations seeded')
+    return result
+  }
+  for (const file of readdirSync(msgDir)) {
+    if (!file.endsWith('.json')) continue
+    const locale = file.replace('.json', '')
+    try {
+      const data = JSON.parse(readFileSync(join(msgDir, file), 'utf-8')) as Record<string, unknown>
+      for (const [key, value] of Object.entries(data)) {
+        if (typeof value === 'string') {
+          result.push({ locale, key: key.replace(/_/g, '.'), value })
+        }
+      }
+    } catch { /* skip malformed files */ }
   }
   return result
 }
@@ -54,8 +80,8 @@ interface TranslationEntry {
 }
 
 function loadSystemTranslations(): TranslationEntry[] {
-  // DB-resident translations (admin.*, settings.*, blog.*, etc.)
-  // UI translations (common.*, nav.*, auth.*, etc.) are handled by Paraglide
+  // DB-resident translations — loaded from i18n/db-translations.json
+  // Paraglide messages are seeded separately via loadParaglideMessages()
   const dbPath = join(process.cwd(), 'i18n', 'db-translations.json')
   try {
     if (existsSync(dbPath)) {
@@ -399,6 +425,7 @@ function seed() {
   console.log('🌍 Loading translations...')
   const systemTranslations = loadSystemTranslations()
   const contentTranslations = loadContentSeed()
+  const paraglideTranslations = loadParaglideMessages()
   const existingTranslations = db.select().from(schema.translations).all()
   const existingTranslationKeys = new Set(existingTranslations.map(t => `${t.locale}:${t.key}`))
 
@@ -422,7 +449,8 @@ function seed() {
     }
   }
 
-  for (const t of contentTranslations) {
+  const allTranslations = [...contentTranslations, ...paraglideTranslations]
+  for (const t of allTranslations) {
     const mapKey = `${t.locale}:${t.key}`
     if (existingTranslationKeys.has(mapKey)) {
       contentSkipped++

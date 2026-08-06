@@ -7,22 +7,14 @@
  *   t('hero.title', 'Default')   — DB content + string fallback
  *   t('common.goToImage', { i: 5 }) — parameter substitution {i}→5
  */
-import * as m from '$lib/paraglide/messages.js'
-
 let _translations = $state<Record<string, string>>({})
 
 export function initContent(translations: Record<string, string>) {
   _translations = translations
 }
 
-function paraglideFallback(key: string): string | undefined {
-  const fn = (m as Record<string, unknown>)[key.replace(/\./g, '_')]
-  if (typeof fn === 'function') return (fn as () => string)()
-  return undefined
-}
-
 export function t(key: string, fallbackOrParams?: string | Record<string, unknown>): string {
-  let text = _translations[key] ?? paraglideFallback(key) ?? key
+  let text = _translations[key] ?? key
 
   if (fallbackOrParams && typeof fallbackOrParams === 'object') {
     for (const [k, v] of Object.entries(fallbackOrParams)) {
