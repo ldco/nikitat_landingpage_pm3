@@ -16,7 +16,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
   import { FEATURES, FRAMEWORK } from '$lib/config/site'
   import MadeBy from '$lib/components/atoms/MadeBy.svelte'
   import MadeWith from '$lib/components/atoms/MadeWith.svelte'
@@ -49,9 +49,9 @@
 
   /** Resolve translated title for a legal document file (typed, no dynamic indexing) */
   function legalDocLabel(file: string): string {
-    if (file === 'privacy-policy') return m.footer_privacy()
-    if (file === 'personal-data-policy') return m.footer_personalData()
-    return m.footer_terms()
+    if (file === 'privacy-policy') return t('footer.privacy')
+    if (file === 'personal-data-policy') return t('footer.personalData')
+    return t('footer.terms')
   }
 </script>
 

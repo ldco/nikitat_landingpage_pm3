@@ -13,7 +13,6 @@
    * @props content — section content from the page server load
    * @example <Onepager sections={enabledSections} content={data.sectionContent} />
    */
-  import * as m from '$lib/i18n'
   import { t } from '$lib/stores/content.svelte'
   import SectionHero from '$lib/components/sections/SectionHero.svelte'
   import SectionRenderer from '$lib/components/complex/SectionRenderer.svelte'
@@ -31,10 +30,10 @@
 <div class="has-scrolly-bg">
   <div class="scene-full-bleed">
     <SectionHero
-      title={t('hero.title', m.sections_hero())}
+      title={t('hero.title', t('sections.hero'))}
       subtitle={t('hero.subtitle', '')}
-      primaryCta={t('hero.primaryCta', m.nav_contact())}
-      secondaryCta={t('hero.secondaryCta', m.nav_portfolio())}
+      primaryCta={t('hero.primaryCta', t('nav.contact'))}
+      secondaryCta={t('hero.secondaryCta', t('nav.portfolio'))}
     />
   </div>
 

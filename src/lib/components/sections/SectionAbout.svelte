@@ -11,14 +11,13 @@
    *
    * @example <SectionAbout />
    */
-  import * as m from '$lib/i18n'
   import { t } from '$lib/stores/content.svelte'
   import Section from '$lib/components/atoms/Section.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
   import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
   import BeforeAfterSlider from '$lib/components/molecules/BeforeAfterSlider.svelte'
 
-  const title = $derived(t('about.title', m.sections_about()))
+  const title = $derived(t('about.title', t('sections.about')))
   const paragraph1 = $derived(t('about.paragraph1', ''))
   const paragraph2 = $derived(t('about.paragraph2', ''))
   const hasContent = $derived(paragraph1.length > 0)
@@ -57,7 +56,7 @@
             <p class="text-[var(--section-body-size)] font-normal text-pm-text-secondary leading-relaxed">{paragraph2}</p>
           {/if}
         {:else}
-          <p class="text-fluid-2xl text-pm-text-secondary leading-relaxed text-center">{m.common_note()}</p>
+          <p class="text-fluid-2xl text-pm-text-secondary leading-relaxed text-center">{t('common.note')}</p>
         {/if}
       </div>
     </div>

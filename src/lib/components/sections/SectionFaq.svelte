@@ -5,7 +5,7 @@
  * @example <SectionFaq />
   */
   import { clsx } from 'clsx'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
   import { FEATURES, MODULES } from '$lib/config/site'
   import IconChevronDown from '@tabler/icons-svelte/icons/chevron-down'
   import Section from '$lib/components/atoms/Section.svelte'
@@ -42,7 +42,7 @@
 
 <Section id="faq" background="elevated" class={className}>
   <SectionContent width={isContained ? 'narrow' : 'full'}>
-    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_faq()}</h2>
+    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{t('sections.faq')}</h2>
     <div class="flex flex-col gap-sm-custom">
       {#each items as item}
         <div class="rounded-xl border border-pm-border bg-pm-bg overflow-hidden">
@@ -57,7 +57,7 @@
           {/if}
         </div>
       {:else}
-        <p class="text-center text-pm-muted py-16">{m.common_note()}</p>
+        <p class="text-center text-pm-muted py-16">{t('common.note')}</p>
       {/each}
     </div>
   </SectionContent>

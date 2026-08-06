@@ -9,7 +9,7 @@
   import IconX from '@tabler/icons-svelte/icons/x'
   import IconChevronLeft from '@tabler/icons-svelte/icons/chevron-left'
   import IconChevronRight from '@tabler/icons-svelte/icons/chevron-right'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
 
@@ -58,15 +58,15 @@
 
 {#if open && current}
   <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/90" onclick={close} role="dialog" aria-label={m.common_lightbox()} tabindex="-1">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/90" onclick={close} role="dialog" aria-label={t('common.lightbox')} tabindex="-1">
     <!-- Close button -->
-    <button class="absolute top-4 right-4 z-10 p-2 text-white/80 hover:text-white transition-colors" onclick={close} aria-label={m.common_close()}>
+    <button class="absolute top-4 right-4 z-10 p-2 text-white/80 hover:text-white transition-colors" onclick={close} aria-label={t('common.close')}>
       <IconX class="size-6" />
     </button>
 
     <!-- Previous -->
     {#if images.length > 1}
-      <button class="absolute left-4 z-10 p-2 text-white/80 hover:text-white transition-colors" onclick={prev} aria-label={m.common_previous()}>
+      <button class="absolute left-4 z-10 p-2 text-white/80 hover:text-white transition-colors" onclick={prev} aria-label={t('common.previous')}>
         <IconChevronLeft class="size-8" />
       </button>
     {/if}
@@ -82,7 +82,7 @@
       {#if images.length > 1}
         <div class="mt-3 flex items-center gap-2">
           {#each images as img, i}
-            <button class={clsx('w-2 h-2 rounded-full transition-colors', i === index ? 'bg-white' : 'bg-white/40')} onclick={() => index = i} aria-label={m.common_goToImage({ index: i + 1 })}></button>
+            <button class={clsx('w-2 h-2 rounded-full transition-colors', i === index ? 'bg-white' : 'bg-white/40')} onclick={() => index = i} aria-label={t('common.goToImage', { index: i + 1 })}></button>
           {/each}
         </div>
       {/if}
@@ -90,7 +90,7 @@
 
     <!-- Next -->
     {#if images.length > 1}
-      <button class="absolute right-4 z-10 p-2 text-white/80 hover:text-white transition-colors" onclick={next} aria-label={m.common_next()}>
+      <button class="absolute right-4 z-10 p-2 text-white/80 hover:text-white transition-colors" onclick={next} aria-label={t('common.next')}>
         <IconChevronRight class="size-8" />
       </button>
     {/if}

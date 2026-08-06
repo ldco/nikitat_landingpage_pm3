@@ -5,7 +5,7 @@
  * @example <SectionTeam />
   */
   import { clsx } from 'clsx'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
   import { FEATURES, MODULES } from '$lib/config/site'
   import Section from '$lib/components/atoms/Section.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
@@ -26,7 +26,7 @@
 
 <Section id="team" background="sunken" class={className}>
   <SectionContent width={isContained ? 'default' : 'full'}>
-    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_team()}</h2>
+    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{t('sections.team')}</h2>
     <div class={clsx('grid grid-cols-1 gap-[var(--gap-lg)]',
       colsDesktopTeam >= 2 && 'sm:grid-cols-2',
       colsDesktopTeam >= 3 && 'lg:grid-cols-3',
@@ -46,7 +46,7 @@
           {/if}
         </div>
       {:else}
-        <p class="text-center text-pm-muted col-span-full py-16">{m.common_note()}</p>
+        <p class="text-center text-pm-muted col-span-full py-16">{t('common.note')}</p>
       {/each}
     </div>
   </SectionContent>

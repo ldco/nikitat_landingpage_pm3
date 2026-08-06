@@ -9,7 +9,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
   import { useSettings } from '$lib/stores/settings.svelte'
 
   let {
@@ -42,18 +42,18 @@
     const address = settings.get('legal.address')
     const email = settings.get('legal.email')
 
-    if (inn) items.push({ label: m.legal_fields_inn(), value: inn })
-    if (kpp) items.push({ label: m.legal_fields_kpp(), value: kpp })
-    if (ogrn) items.push({ label: m.legal_fields_ogrn(), value: ogrn })
-    if (address) items.push({ label: m.legal_fields_address(), value: address })
-    if (email) items.push({ label: m.legal_fields_email(), value: email, href: `mailto:${email}` })
+    if (inn) items.push({ label: t('legal.fields.inn'), value: inn })
+    if (kpp) items.push({ label: t('legal.fields.kpp'), value: kpp })
+    if (ogrn) items.push({ label: t('legal.fields.ogrn'), value: ogrn })
+    if (address) items.push({ label: t('legal.fields.address'), value: address })
+    if (email) items.push({ label: t('legal.fields.email'), value: email, href: `mailto:${email}` })
 
     return items
   })
 </script>
 
 <div class={twMerge(clsx('legal-row flex flex-wrap items-center gap-x-2 gap-y-1', className))}>
-  <span>&copy; {currentYear} {companyName}. {m.footer_rights()}</span>
+  <span>&copy; {currentYear} {companyName}. {t('footer.rights')}</span>
   {#each legalDetails as item (item.label)}
     <span class="legal-sep text-pm-text-muted">·</span>
     <span>

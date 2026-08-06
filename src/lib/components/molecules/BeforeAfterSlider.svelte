@@ -19,7 +19,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
   import IconArrowLeft from '@tabler/icons-svelte/icons/arrow-left'
   import IconArrowRight from '@tabler/icons-svelte/icons/arrow-right'
 
@@ -101,7 +101,7 @@
   ))}
   role="slider"
   tabindex="0"
-  aria-label={m.common_beforeAfter()}
+  aria-label={t('common.beforeAfter')}
   aria-valuemin={0}
   aria-valuemax={100}
   aria-valuenow={Math.round(position)}

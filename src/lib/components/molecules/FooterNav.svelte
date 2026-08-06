@@ -11,7 +11,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { NAV_ITEMS } from '$lib/config/site'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
 
   let {
     class: className = ''
@@ -19,14 +19,7 @@
     class?: string
   } = $props()
 
-  function resolveLabel(key: string): string {
-    const msgKey = key.replace(/\./g, '_') as keyof typeof m
-    const fn = m[msgKey]
-    if (typeof fn === 'function') {
-      return (fn as () => string)()
-    }
-    return key
-  }
+  function resolveLabel(key: string): string { return t(key) }
 </script>
 
 <nav class={twMerge(clsx('flex flex-wrap gap-x-4 gap-y-1', className))}>

@@ -14,7 +14,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
   import { HEADER_CONTACT } from '$lib/config/site'
   import { useSettings } from '$lib/stores/settings.svelte'
   import BrandTelegram from '@tabler/icons-svelte/icons/brand-telegram'
@@ -113,7 +113,7 @@
   const visibleContacts = $derived(items.filter(i => !i.isCta && mode !== 'cta'))
   const visibleCtas = $derived(items.filter(i => i.isCta && mode !== 'contacts'))
 
-  const ctaLabel = m.cta_primaryButton()
+  const ctaLabel = t('cta.primaryButton')
 
   function isExternal(url: string): boolean {
     return url.startsWith('http://') || url.startsWith('https://')

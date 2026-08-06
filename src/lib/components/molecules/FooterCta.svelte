@@ -10,7 +10,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
   import { useSettings } from '$lib/stores/settings.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
 
@@ -23,7 +23,7 @@
   const settings = useSettings()
 
   const ctaUrl = $derived(settings.get('footer.ctaUrl'))
-  const ctaText = m.cta_primaryButton()
+  const ctaText = t('cta.primaryButton')
   const hasValidCta = $derived(!!ctaUrl)
 </script>
 

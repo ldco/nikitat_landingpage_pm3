@@ -5,7 +5,7 @@
  * @example <SectionPortfolio />
   */
   import IconPhoto from '@tabler/icons-svelte/icons/photo'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
   import { FEATURES, MODULES } from '$lib/config/site'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import Section from '$lib/components/atoms/Section.svelte'
@@ -24,7 +24,7 @@
 
 <Section id="portfolio" background="elevated" class={className}>
   <SectionContent width={isContained ? 'default' : 'full'}>
-    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_portfolio()}</h2>
+    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{t('sections.portfolio')}</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[var(--gap-lg)]">
       {#each items as item (item.id)}
         <a href="/portfolio/{item.slug}" class="relative block rounded-xl overflow-hidden aspect-4/3 transition-transform hover:-translate-y-0.5 hover:shadow-lg">
@@ -41,11 +41,11 @@
           </div>
         </a>
       {:else}
-        <p class="text-center text-pm-muted col-span-full py-12">{m.common_note()}</p>
+        <p class="text-center text-pm-muted col-span-full py-12">{t('common.note')}</p>
       {/each}
     </div>
     <div class="flex justify-center mt-10">
-      <CtaButton href="/portfolio" variant="outline" size="lg">{m.common_more()}</CtaButton>
+      <CtaButton href="/portfolio" variant="outline" size="lg">{t('common.more')}</CtaButton>
     </div>
   </SectionContent>
 </Section>

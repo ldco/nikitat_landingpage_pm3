@@ -6,7 +6,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
   import { languageTag } from '$lib/paraglide/runtime.js'
   import { getTheme } from '$lib/stores/theme.svelte'
 
@@ -25,7 +25,7 @@
 
 {#if url}
   <div class={twMerge(clsx(base, className))}>
-    <span>{m.footer_madeWith()}</span>
+    <span>{t('footer.madeWith')}</span>
     <a href={url} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-pm-brand hover:text-pm-brand-light transition-colors">
       <img
         src={`${basePath}/horizontal_dark_${langSuffix}.svg`}

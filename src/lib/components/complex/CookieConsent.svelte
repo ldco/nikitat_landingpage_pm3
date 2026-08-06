@@ -15,7 +15,7 @@
   import { twMerge } from 'tailwind-merge'
   import { browser } from '$app/environment'
   import IconCookie from '@tabler/icons-svelte/icons/cookie'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
   import { FEATURES } from '$lib/config/site'
 
   let {
@@ -93,8 +93,8 @@
       <!-- Text -->
       <div class="min-w-0">
         <p class="m-0 text-sm text-pm-text-secondary leading-snug">
-          {m.cookies_description()}
-          <a href="/legal/privacy-policy" class="text-pm-brand hover:text-pm-brand-light underline">{m.cookies_learnMore()}</a>.
+          {t('cookies.description')}
+          <a href="/legal/privacy-policy" class="text-pm-brand hover:text-pm-brand-light underline">{t('cookies.learnMore')}</a>.
         </p>
       </div>
 
@@ -103,11 +103,11 @@
         <button
           class="text-sm text-pm-text-muted hover:text-pm-text transition-colors whitespace-nowrap"
           onclick={reject}
-        >{m.cookies_decline()}</button>
+        >{t('cookies.decline')}</button>
         <button
           class="px-4 py-2 text-sm font-medium text-pm-white bg-pm-brand rounded-md hover:bg-pm-brand-light transition-colors whitespace-nowrap"
           onclick={accept}
-        >{m.cookies_accept()}</button>
+        >{t('cookies.accept')}</button>
       </div>
     </div>
   </div>

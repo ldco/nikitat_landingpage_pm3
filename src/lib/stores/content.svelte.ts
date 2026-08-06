@@ -1,34 +1,38 @@
 /**
- * Content Translations Store
+ * Translations Store — UNIFIED source for ALL translations (system + content)
  *
- * PM v2 parity: mirrors vue-i18n `t()` for DB-resident content translations.
- * Populated once from server layout load (SSR-safe, no client fetch needed).
- *
+ * Lookup chain: DB → Paraglide fallback → key itself
  * Usage:
- *   import { t } from '$lib/stores/content.svelte'
- *   const title = t('hero.title', 'Default')
+ *   t('hero.title')              — DB content
+ *   t('hero.title', 'Default')   — DB content + string fallback
+ *   t('common.goToImage', { i: 5 }) — parameter substitution {i}→5
  */
+import * as m from '$lib/paraglide/messages.js'
+
 let _translations = $state<Record<string, string>>({})
 
-/** Called by +layout.svelte on every server-loaded page. */
 export function initContent(translations: Record<string, string>) {
   _translations = translations
 }
 
-/**
- * Look up a content translation key.
- * Falls back to `fallback` if not found, or the key itself if no fallback.
- */
-export function t(key: string, fallback?: string): string {
-  return _translations[key] ?? fallback ?? key
+function paraglideFallback(key: string): string | undefined {
+  const fn = (m as Record<string, unknown>)[key.replace(/\./g, '_')]
+  if (typeof fn === 'function') return (fn as () => string)()
+  return undefined
 }
 
-/** Check if a key exists (PM v2 `te()` equivalent). */
-export function hasKey(key: string): boolean {
-  return key in _translations
+export function t(key: string, fallbackOrParams?: string | Record<string, unknown>): string {
+  let text = _translations[key] ?? paraglideFallback(key) ?? key
+
+  if (fallbackOrParams && typeof fallbackOrParams === 'object') {
+    for (const [k, v] of Object.entries(fallbackOrParams)) {
+      text = text.replace(new RegExp('\\{' + k + '\\}', 'g'), String(v))
+    }
+  } else if (typeof fallbackOrParams === 'string' && !text) {
+    text = fallbackOrParams
+  }
+  return text
 }
 
-/** Get all translations (for iteration). */
-export function allTranslations(): Record<string, string> {
-  return _translations
-}
+export function hasKey(key: string): boolean { return key in _translations }
+export function allTranslations(): Record<string, string> { return _translations }

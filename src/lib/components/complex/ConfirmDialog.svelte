@@ -8,14 +8,14 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
 
   let {
     open = $bindable(false),
-    title = m.common_confirm(),
-    message = m.common_areYouSure(),
-    confirmText = m.common_confirm(),
-    cancelText = m.common_cancel(),
+    title = t('common.confirm'),
+    message = t('common.areYouSure'),
+    confirmText = t('common.confirm'),
+    cancelText = t('common.cancel'),
     variant = 'primary' as 'primary' | 'danger',
     onConfirm,
     class: className = ''

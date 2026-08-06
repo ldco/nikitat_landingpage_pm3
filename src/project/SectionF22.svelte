@@ -9,7 +9,6 @@
    * Content from content store: f22.title, f22.description
    * Logos from FOOTER_MADE_BY project config.
    */
-  import * as m from '$lib/i18n'
   import { t } from '$lib/stores/content.svelte'
   import { FOOTER_MADE_BY, LOCALES } from '$lib/config/site'
   import { sanitizeHtml } from '$lib/utils/sanitize'
@@ -19,7 +18,7 @@
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
   import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
 
-  const title = $derived(t('f22.title', m.nav_f22()))
+  const title = $derived(t('f22.title', t('nav.f22')))
   const description = $derived(sanitizeHtml(t('f22.description', '')))
 
   const logoConfig: MadeByLogoConfig = {
@@ -47,7 +46,7 @@
         <!-- SAFE-RENDER: description from content store, sanitized before render -->
         <div class="text-fluid-2xl text-pm-text-secondary leading-relaxed mb-[var(--space-8)]">{@html description}</div>
       {:else}
-        <p class="text-fluid-2xl text-pm-text-secondary leading-relaxed mb-[var(--space-8)]">{m.common_note()}</p>
+        <p class="text-fluid-2xl text-pm-text-secondary leading-relaxed mb-[var(--space-8)]">{t('common.note')}</p>
       {/if}
 
       <!-- Made-by logo link (PM2 .made-by): locale-aware, theme-aware, links to fabrica22.pro -->

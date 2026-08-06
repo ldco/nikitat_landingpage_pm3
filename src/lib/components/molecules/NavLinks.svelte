@@ -9,7 +9,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { NAV_ITEMS } from '$lib/config/site'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
 
   let {
     class: className = '',
@@ -35,14 +35,7 @@
   const activeClass =
     'text-pm-brand bg-pm-brand-subtle border-b-2 border-pm-brand'
 
-  function resolveLabel(key: string): string {
-    const msgKey = key.replace(/\./g, '_') as keyof typeof m
-    const fn = m[msgKey]
-    if (typeof fn === 'function') {
-      return (fn as (params?: Record<string, string>) => string)({})
-    }
-    return key
-  }
+  function resolveLabel(key: string): string { return t(key) }
 </script>
 
 <nav class={twMerge(clsx(base, vertical && verticalClass, className))}>

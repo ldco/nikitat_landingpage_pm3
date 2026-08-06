@@ -14,7 +14,6 @@
    */
   import { fly } from 'svelte/transition'
   import { z } from 'zod'
-  import * as m from '$lib/i18n'
   import { t } from '$lib/stores/content.svelte'
   import { getCsrfToken } from '$lib/utils/auth'
   import { useSettings } from '$lib/stores/settings.svelte'
@@ -26,16 +25,16 @@
 
   const settings = useSettings()
 
-  const title = $derived(t('contact.title', m.sections_contact()))
+  const title = $derived(t('contact.title', t('sections.contact')))
   const intro = $derived(t('contact.intro', ''))
-  const nameLabel = $derived(t('contact.nameLabel', m.common_name()))
-  const emailLabel = $derived(t('contact.emailLabel', m.common_email()))
-  const messageLabel = $derived(t('contact.messageLabel', m.common_message()))
-  const sendLabel = $derived(t('contact.sendButton', m.common_send()))
-  const consentText = $derived(t('contact.consentPrefix', m.contact_consent()))
-  const consentLink = $derived(t('contact.consentPersonalData', m.footer_personalData()))
-  const consentAnd = $derived(t('contact.consentAnd', m.common_or()))
-  const consentPrivacy = $derived(t('contact.consentPrivacy', m.footer_privacy()))
+  const nameLabel = $derived(t('contact.nameLabel', t('common.name')))
+  const emailLabel = $derived(t('contact.emailLabel', t('common.email')))
+  const messageLabel = $derived(t('contact.messageLabel', t('common.message')))
+  const sendLabel = $derived(t('contact.sendButton', t('common.send')))
+  const consentText = $derived(t('contact.consentPrefix', t('contact.consent')))
+  const consentLink = $derived(t('contact.consentPersonalData', t('footer.personalData')))
+  const consentAnd = $derived(t('contact.consentAnd', t('common.or')))
+  const consentPrivacy = $derived(t('contact.consentPrivacy', t('footer.privacy')))
   const namePlaceholder = $derived(t('contact.namePlaceholder', nameLabel))
   const emailPlaceholder = $derived(t('contact.emailPlaceholder', emailLabel))
   const messagePlaceholder = $derived(t('contact.messagePlaceholder', messageLabel))
@@ -53,10 +52,10 @@
 
   const contactSchema = $derived(
     z.object({
-      name: z.string().trim().min(1, { message: t('contact.nameRequired', m.validation_required()) }),
-      email: z.string().trim().email({ message: t('contact.invalidEmail', m.validation_email()) }),
-      message: z.string().trim().min(10, { message: t('contact.messageTooShort', m.validation_minLength({ min: 10 })) }),
-      consent: z.boolean().refine(v => v === true, { message: t('contact.consentRequired', m.validation_required()) })
+      name: z.string().trim().min(1, { message: t('contact.nameRequired', t('validation.required')) }),
+      email: z.string().trim().email({ message: t('contact.invalidEmail', t('validation.email')) }),
+      message: z.string().trim().min(10, { message: t('contact.messageTooShort', t('validation.minLength', { min: 10 })) }),
+      consent: z.boolean().refine(v => v === true, { message: t('contact.consentRequired', t('validation.required')) })
     })
   )
 
@@ -90,10 +89,10 @@
         success = true; name = ''; email = ''; message = ''; consent = false
       } else {
         const body = await res.json().catch(() => ({}))
-        errorMsg = body.error?.message || t('contact.errorMessage', m.common_error())
+        errorMsg = body.error?.message || t('contact.errorMessage', t('common.error'))
       }
     } catch {
-      errorMsg = t('contact.errorMessage', m.common_error())
+      errorMsg = t('contact.errorMessage', t('common.error'))
     } finally {
       sending = false
     }
@@ -148,14 +147,14 @@
         {/if}
 
         <button type="submit" disabled={sending} class="btn-style bg-pm-brand text-pm-white hover:bg-pm-brand-light px-[var(--space-6)] py-[var(--space-3)] text-fluid-lg rounded-lg w-full mt-[var(--space-5)]">
-          {sending ? t('contact.sending', m.common_loading()) : sendLabel}
+          {sending ? t('contact.sending', t('common.loading')) : sendLabel}
         </button>
 
         <!-- Status messages with aria-live (PM2 parity) -->
         <div class="mt-[var(--space-5)]" aria-live="polite" aria-atomic="true">
           {#if success}
             <div class="p-[var(--space-3)] rounded-md bg-pm-success/10 border border-pm-success/20 text-sm text-pm-success" transition:fly={{ y: -6, duration: 200 }} role="status">
-              {t('contact.successMessage', m.common_success())}
+              {t('contact.successMessage', t('common.success'))}
             </div>
           {/if}
           {#if errorMsg}

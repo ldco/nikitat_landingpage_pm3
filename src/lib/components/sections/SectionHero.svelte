@@ -16,9 +16,8 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import * as m from '$lib/i18n'
-  import { FEATURES } from '$lib/config/site'
   import { t } from '$lib/stores/content.svelte'
+  import { FEATURES } from '$lib/config/site'
   import { breakHeroTitle } from '$lib/utils/titleBreaker'
   import { languageTag } from '$lib/paraglide/runtime.js'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
@@ -27,12 +26,12 @@
   import { gsapIntro } from '../../../project/gsapIntro'
 
   let {
-    title = t('hero.title', m.sections_hero()),
+    title = t('hero.title', t('sections.hero')),
     subtitle = t('hero.subtitle', ''),
     showLogo = true,
-    primaryCta = t('hero.primaryCta', m.nav_contact()),
+    primaryCta = t('hero.primaryCta', t('nav.contact')),
     primaryHref = '/#contact',
-    secondaryCta = t('hero.secondaryCta', m.nav_portfolio()),
+    secondaryCta = t('hero.secondaryCta', t('nav.portfolio')),
     secondaryHref = '/portfolio',
     class: className = ''
   }: {

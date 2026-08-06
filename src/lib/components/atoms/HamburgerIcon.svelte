@@ -10,14 +10,14 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
 
   type AnimationType = 'spin' | 'elastic' | 'slider' | 'spring' | 'squeeze' | 'arrow' | 'arrow-right' | 'collapse' | 'minus' | 'turn' | 'cross'
 
   let {
     active = false,
     type = 'spin',
-    ariaLabel = m.nav_openMenu(),
+    ariaLabel = t('nav.openMenu'),
     class: className = '',
     onclick
   }: {

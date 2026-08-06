@@ -5,7 +5,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
   import { page } from '$app/stores'
   import { getTheme } from '$lib/stores/theme.svelte'
   import { LOCALES } from '$lib/config/site'
@@ -13,7 +13,7 @@
   import { madeByLogoSrc, type MadeByLogoConfig } from '$lib/utils/made-by-logo'
 
   let {
-    text = m.footer_madeBy(),
+    text = t('footer.madeBy'),
     url = 'https://fabrica22.pro',
     basePath = '/madebylogos',
     class: className = ''

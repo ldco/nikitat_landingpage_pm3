@@ -4,7 +4,7 @@
  *
  * @example <SectionPricing />
   */
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
   import { FEATURES } from '$lib/config/site'
   import PricingCard from '$lib/components/molecules/PricingCard.svelte'
   import Section from '$lib/components/atoms/Section.svelte'
@@ -31,12 +31,12 @@
 
 <Section id="pricing" background="elevated" class={className}>
   <SectionContent width={isContained ? 'default' : 'full'}>
-    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_pricing()}</h2>
+    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{t('sections.pricing')}</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-[var(--gap-lg)] items-start">
       {#each tiers as tier}
         <PricingCard {...tier} />
       {:else}
-        <p class="text-center text-pm-muted col-span-full py-16">{m.common_note()}</p>
+        <p class="text-center text-pm-muted col-span-full py-16">{t('common.note')}</p>
       {/each}
     </div>
   </SectionContent>

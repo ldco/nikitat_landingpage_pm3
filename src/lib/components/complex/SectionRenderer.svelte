@@ -13,7 +13,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
   import { HOMEPAGE_SECTIONS } from '$lib/config/site'
   import { SECTION_REGISTRY } from '../sections/registry'
 
@@ -69,7 +69,7 @@
     {:else if section.component === 'SectionClients'}
       <REG.SectionClients />
     {:else}
-      <p class="text-sm text-pm-muted text-center py-8">{m.common_sectionComponentNotFound({ section: section.component })}</p>
+      <p class="text-sm text-pm-muted text-center py-8">{t('common.sectionComponentNotFound', { section: section.component })}</p>
     {/if}
   </div>
 {/if}

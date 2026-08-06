@@ -8,7 +8,6 @@
   */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import * as m from '$lib/i18n'
   import { t } from '$lib/stores/content.svelte'
   import Section from '$lib/components/atoms/Section.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
@@ -20,9 +19,9 @@
   import IconComponents from '@tabler/icons-svelte/icons/components'
   import IconTemplate from '@tabler/icons-svelte/icons/template'
 
-  const title = $derived(t('focus.title', m.sections_services()))
-  const devLabel = $derived(t('focus.dev', m.sections_services()))
-  const designLabel = $derived(t('focus.design', m.sections_services()))
+  const title = $derived(t('focus.title', t('sections.services')))
+  const devLabel = $derived(t('focus.dev', t('sections.services')))
+  const designLabel = $derived(t('focus.design', t('sections.services')))
   type Card = { title: string; desc: string; category: 'dev' | 'design'; icon: typeof IconCpu }
   const cards = $derived.by(() => {
     const icons = [IconCpu, IconBuilding, IconCode, IconPalette, IconComponents, IconTemplate]
@@ -55,7 +54,7 @@
         {/each}
       </div>
     {:else}
-      <p class="text-center text-pm-muted py-12">{m.common_note()}</p>
+      <p class="text-center text-pm-muted py-12">{t('common.note')}</p>
     {/if}
   </SectionContent>
 </Section>

@@ -5,7 +5,7 @@
  * @example <SectionTestimonials />
   */
   import { clsx } from 'clsx'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
   import { FEATURES, MODULES } from '$lib/config/site'
   import IconChevronLeft from '@tabler/icons-svelte/icons/chevron-left'
   import IconChevronRight from '@tabler/icons-svelte/icons/chevron-right'
@@ -38,7 +38,7 @@
 
 <Section id="testimonials" background="default" class={className}>
   <SectionContent width={isContained ? 'narrow' : 'full'}>
-    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{m.sections_testimonials()}</h2>
+    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{t('sections.testimonials')}</h2>
     {#if testimonials.length > 0}
       <div class="text-center p-8 rounded-xl bg-pm-bg-elevated border border-pm-border shadow-md">
         <blockquote class="text-lg text-pm-text-secondary italic leading-relaxed">"{testimonials[current]?.text}"</blockquote>
@@ -65,7 +65,7 @@
         {/if}
       </div>
     {:else}
-      <p class="text-center text-pm-muted py-16">{m.common_note()}</p>
+      <p class="text-center text-pm-muted py-16">{t('common.note')}</p>
     {/if}
   </SectionContent>
 </Section>

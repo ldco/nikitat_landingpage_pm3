@@ -1,7 +1,7 @@
 <script lang="ts">
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import * as m from '$lib/i18n'
+  import { t } from '$lib/stores/content.svelte'
   import { FEATURES } from '$lib/config/site'
   import IconX from '@tabler/icons-svelte/icons/x'
   import { getNavState } from '$lib/stores/navigation.svelte'
@@ -43,7 +43,7 @@
 <aside class={twMerge(clsx("fixed top-0 start-0 z-fixed h-full w-16 border-e border-pm-border bg-pm-bg-elevated flex flex-col", className))}>
   <div class="flex items-center justify-center h-16 border-b border-pm-border"><Logo shape="circle" /></div>
   <nav class="flex-1 flex flex-col items-center gap-1 py-3">
-    <a href="/" class="flex items-center justify-center size-10 rounded-md transition-colors text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken" aria-label={m.nav_home()}>
+    <a href="/" class="flex items-center justify-center size-10 rounded-md transition-colors text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken" aria-label={t('nav.home')}>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     </a>
   </nav>
@@ -64,7 +64,7 @@
   )}>
     <!-- Hamburger: mobile only -->
     <div class="lg:hidden">
-      <HamburgerIcon active={mobileOpen} type="squeeze" onclick={handleHamburger} ariaLabel={mobileOpen ? m.nav_closeMenu() : m.nav_openMenu()} />
+      <HamburgerIcon active={mobileOpen} type="squeeze" onclick={handleHamburger} ariaLabel={mobileOpen ? t('nav.closeMenu') : t('nav.openMenu')} />
     </div>
 
     <!-- Logo: in normal flex flow, centered by flexbox -->
@@ -97,7 +97,7 @@
   <nav class="fixed inset-y-0 start-0 z-[var(--z-drawer)] flex flex-col w-[var(--drawer-width)] bg-pm-bg shadow-xl">
     <div class="flex items-center justify-between p-[var(--space-4)] border-b border-pm-border">
       <Logo shape="horizontal" />
-      <button type="button" class="flex items-center justify-center size-11 text-pm-text-secondary hover:text-pm-text" onclick={closeMobileNav} aria-label={m.nav_closeMenu()}>
+      <button type="button" class="flex items-center justify-center size-11 text-pm-text-secondary hover:text-pm-text" onclick={closeMobileNav} aria-label={t('nav.closeMenu')}>
         <IconX class="size-5" />
       </button>
     </div>
