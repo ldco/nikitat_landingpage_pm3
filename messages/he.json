@@ -406,5 +406,9 @@
   "common_message": "הודעה",
   "common_send": "שלח",
   "contact_consent": "אני מסכים לעיבוד נתונים אישיים",
-  "contact_infoTitle": "צור קשר"
+  "contact_infoTitle": "צור קשר",
+  "blog_minRead": "{minutes} דקות קריאה",
+  "legal_title": "משפטי",
+  "auth_loggedOut": "התנתקת",
+  "contact_success": "ההודעה נשלחה"
 }

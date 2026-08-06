@@ -3,8 +3,9 @@ import { useDatabase, schema } from '$lib/server/db'
 import { eq } from 'drizzle-orm'
 import { error, redirect } from '@sveltejs/kit'
 import type { RequestEvent } from '@sveltejs/kit'
+import type { PageServerLoad } from './$types'
 
-export async function load(event: RequestEvent) {
+export const load: PageServerLoad = async (event) => {
   requireAdmin(event)
   const db = useDatabase()
   const item = db.select().from(schema.features).where(eq(schema.features.id, Number(event.params.id))).get()

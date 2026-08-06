@@ -2,8 +2,9 @@ import { requireAdmin } from '$lib/server/utils/admin-rbac'
 import { useDatabase, schema } from '$lib/server/db'
 import { redirect } from '@sveltejs/kit'
 import type { RequestEvent } from '@sveltejs/kit'
+import type { PageServerLoad } from './$types'
 
-export function load(event: RequestEvent) { requireAdmin(event) }
+export const load: PageServerLoad = (event) => { requireAdmin(event) }
 export const actions = {
   default: async (event: RequestEvent) => {
     requireAdmin(event)

@@ -5,8 +5,9 @@
   import type { PageData } from './$types'
   import { page } from '$app/stores'
   import * as m from '$lib/i18n'
-  import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
+  import { ADMIN_ROUTES, ADMIN_API } from '$lib/utils/admin-paths'
   import { getAdminT } from '$lib/utils/admin-translations'
+  import { getCsrfToken } from '$lib/utils/auth'
   import IconPencil from '@tabler/icons-svelte/icons/pencil'
   import IconTrash from '@tabler/icons-svelte/icons/trash'
   import IconPlus from '@tabler/icons-svelte/icons/plus'
@@ -14,12 +15,31 @@
   let { data }: { data: PageData } = $props()
   const items = $derived(data.items)
   const t = $derived(getAdminT($page.data))
+  let deletePending = $state<number | null>(null)
+  let deleteError = $state<string | null>(null)
 
   async function handleDelete(id: number, name: string) {
-    const msg = t['admin.confirmDelete'] ?? m.common_confirm()
+    const msg = t['admin.confirmDelete'] ?? m.common_areYouSure()
     if (!confirm(msg + ' "' + name + '"?')) return
-    const res = await fetch('/admin/portfolios', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id }) })
-    if (res.ok) goto(ADMIN_ROUTES.portfolios)
+    deletePending = id
+    deleteError = null
+    try {
+      const res = await fetch(ADMIN_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCsrfToken() },
+        body: JSON.stringify({ module: 'portfolios', id })
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        deleteError = body.error?.message ?? m.common_error()
+        return
+      }
+      goto(ADMIN_ROUTES.portfolios)
+    } catch (e: unknown) {
+      deleteError = m.common_error()
+    } finally {
+      deletePending = null
+    }
   }
 </script>
 
@@ -33,6 +53,13 @@
       <span class="text-sm text-pm-text-muted">{items.length} total</span>
     </div>
   </div>
+
+  {#if deleteError}
+    <div class="mb-4 p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
+      {deleteError}
+      <button onclick={() => deleteError = null} class="ml-2 underline hover:no-underline">{m.common_dismiss()}</button>
+    </div>
+  {/if}
 
   <div class="bg-pm-bg-elevated border border-pm-border rounded-xl overflow-hidden">
     <table class="w-full text-sm">
@@ -59,7 +86,7 @@
                 <a href={ADMIN_ROUTES.portfolioEdit(item.id)} class="p-1.5 rounded hover:bg-pm-bg-sunken text-pm-text-muted hover:text-pm-brand transition-colors" title={m.common_edit()}>
                   <IconPencil class="size-4" />
                 </a>
-                <button onclick={() => handleDelete(item.id, item.name)} class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-950 text-pm-text-muted hover:text-red-600 transition-colors" title={m.common_delete()}>
+                <button onclick={() => handleDelete(item.id, item.name)} disabled={deletePending === item.id} class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-950 text-pm-text-muted hover:text-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed" title={m.common_delete()}>
                   <IconTrash class="size-4" />
                 </button>
               </div>

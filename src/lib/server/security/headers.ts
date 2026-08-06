@@ -2,7 +2,7 @@
  * Security Headers
  *
  * CSP + other security headers for every response.
- * CSP uses nonce for inline scripts.
+ * CSP uses nonce for inline scripts when SvelteKit nonce injection is configured.
  */
 import { randomBytes } from 'node:crypto'
 
@@ -20,33 +20,18 @@ export function generateCspNonce(): string {
   return randomBytes(16).toString('base64')
 }
 
-export function buildSecurityHeaders(nonce: string, isProduction: boolean): Headers {
-  // Only enable CSP in production (nonce injection via event.locals.nonce is not
-  // working in current SvelteKit version — without nonce on <script> tags,
-  // the CSP blocks all JS, making the page non-interactive).
-  const csp = isProduction
-    ? [
-        `default-src 'self'`,
-        `script-src 'self' 'unsafe-inline' 'unsafe-eval'`,
-        `style-src 'self' 'unsafe-inline'`,
-        `img-src 'self' data: blob: https:`,
-        `font-src 'self' data:`,
-        `connect-src 'self' https:`,
-        `frame-ancestors 'none'`,
-        `base-uri 'self'`,
-        `form-action 'self'`
-      ].join('; ')
-    : [
-        `default-src 'self'`,
-        `script-src 'self' 'unsafe-inline' 'unsafe-eval' 'unsafe-eval'`,
-        `style-src 'self' 'unsafe-inline'`,
-        `img-src 'self' data: blob: https:`,
-        `font-src 'self' data:`,
-        `connect-src 'self' https:`,
-        `frame-ancestors 'none'`,
-        `base-uri 'self'`,
-        `form-action 'self'`
-      ].join('; ')
+export function buildSecurityHeaders(_nonce: string, isProduction: boolean): Headers {
+  const csp = [
+    `default-src 'self'`,
+    `script-src 'self' 'unsafe-inline'`,
+    `style-src 'self' 'unsafe-inline'`,
+    `img-src 'self' data: blob: https:`,
+    `font-src 'self' data:`,
+    `connect-src 'self' https:`,
+    `frame-ancestors 'none'`,
+    `base-uri 'self'`,
+    `form-action 'self'`
+  ].join('; ')
 
   const headers = new Headers({
     'Content-Security-Policy': csp,

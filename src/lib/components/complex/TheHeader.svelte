@@ -1,4 +1,14 @@
 <script lang="ts">
+  /**
+   * TheHeader — Main site header with nav, logo, actions, and mobile drawer.
+   *
+   * Config-driven via FEATURES: vertical nav, interactive scroll header,
+   * full-width mode, and onepager all controlled by site config.
+   *
+   * @props class?: string — merged Tailwind classes
+   * @example
+   *   <TheHeader class="z-50" />
+   */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { t } from '$lib/stores/content.svelte'

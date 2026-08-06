@@ -3,6 +3,7 @@ import { useDatabase, schema } from '$lib/server/db'
 import { redirect } from '@sveltejs/kit'
 import { z } from 'zod'
 import type { RequestEvent } from '@sveltejs/kit'
+import type { PageServerLoad } from './$types'
 
 const insertSchema = z.object({
   name: z.string().min(1),
@@ -11,7 +12,7 @@ const insertSchema = z.object({
   description: z.string().nullable().optional()
 })
 
-export function load(event: RequestEvent) {
+export const load: PageServerLoad = (event) => {
   requireAdmin(event)
 }
 

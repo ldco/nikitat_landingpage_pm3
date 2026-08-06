@@ -1,7 +1,7 @@
-import type { RequestEvent } from '@sveltejs/kit'
+import type { PageServerLoad } from './$types'
 import { useDatabase, schema } from '$lib/server/db'
 
-export function load(_event: RequestEvent) {
+export const load: PageServerLoad = () => {
   const db = useDatabase()
 
   const userCount = db.select({ count: schema.users.id }).from(schema.users).all().length

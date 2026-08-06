@@ -180,12 +180,11 @@ const errorFormatHandle: Handle = async ({ event, resolve }) => {
 const localeNormalizeHandle: Handle = async ({ event, resolve }) => {
   const segments = event.url.pathname.split("/").filter(Boolean)
 
-  if (segments.length >= 2
-    && LOCALE_STRINGS.includes(segments[0]!)
-    && LOCALE_STRINGS.includes(segments[1]!)
-  ) {
+  const s0 = segments[0]
+  const s1 = segments[1]
+  if (s0 && s1 && LOCALE_STRINGS.includes(s0) && LOCALE_STRINGS.includes(s1)) {
     const rest = segments.length > 2 ? "/" + segments.slice(2).join("/") : ""
-    const target = "/" + segments[0] + rest
+    const target = "/" + s0 + rest
     return new Response(null, { status: 308, headers: { location: target } })
   }
 
@@ -212,8 +211,8 @@ export const handleError: import('@sveltejs/kit').HandleServerError = async ({ e
   const isApi = event.url.pathname.startsWith('/api/')
 
   if (isApi) {
-    const message = err instanceof Error ? err.message : 'Internal server error'
     const status = 'status' in (err as object) ? Number((err as { status?: number }).status) || 500 : 500
+    const message = status >= 500 ? 'Internal server error' : err instanceof Error ? err.message : 'Internal server error'
     return {
       message,
       // Shape consumed by SvelteKit to render the JSON response

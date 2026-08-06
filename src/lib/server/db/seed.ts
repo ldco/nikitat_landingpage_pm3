@@ -10,6 +10,7 @@
  */
 import { useDatabase, schema, closeDatabase } from '$lib/server/db'
 import { hashPassword } from '$lib/server/auth/password'
+import { logger } from '$lib/server/utils/logger'
 import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 // ── Content seed source: project/content.json (no content in code) ────────
@@ -55,7 +56,7 @@ function loadParaglideMessages(): TranslationEntry[] {
           result.push({ locale, key: key.replace(/_/g, '.'), value })
         }
       }
-    } catch { /* skip malformed files */ }
+    } catch (e: unknown) { const msg = e instanceof Error ? e.message : String(e); logger.debug({ error: msg }, "Skipping malformed content file") }
   }
   return result
 }
@@ -87,18 +88,16 @@ function loadSystemTranslations(): TranslationEntry[] {
     if (existsSync(dbPath)) {
       return JSON.parse(readFileSync(dbPath, 'utf-8')) as TranslationEntry[]
     }
-  } catch {
-    // fall through
-  }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e); logger.debug({ error: msg }, "Skipping translations JSON read") }
   // Fallback to full seed if db-translations hasn't been generated yet
   const seedPath = join(process.cwd(), 'i18n', 'system-seed.json')
   try {
     if (existsSync(seedPath)) {
       return JSON.parse(readFileSync(seedPath, 'utf-8')) as TranslationEntry[]
     }
-  } catch {
-    // fall through
-  }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e); logger.debug({ error: msg }, "Skipping translations JSON read") }
   return []
 }
 
@@ -361,7 +360,7 @@ function seed() {
         name: u.name,
         role: u.role
       }).run()
-      console.log(`   ✓ ${u.email} / ${u.password} (${u.role})`)
+      console.log(`   ✓ ${u.email} (${u.role})`)
     }
     console.log('')
   } else {
@@ -444,9 +443,8 @@ function seed() {
       db.insert(schema.translations).values({ locale: t.locale, key: t.key, value: t.value }).run()
       systemCount++
       existingTranslationKeys.add(mapKey)
-    } catch {
-      systemSkipped++
-    }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e); logger.debug({ error: msg }, "Skipping system translation insert"); systemSkipped++ }
   }
 
   const allTranslations = [...contentTranslations, ...paraglideTranslations]
@@ -460,9 +458,8 @@ function seed() {
       db.insert(schema.translations).values({ locale: t.locale, key: t.key, value: t.value }).run()
       contentCount++
       existingTranslationKeys.add(mapKey)
-    } catch {
-      contentSkipped++
-    }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e); logger.debug({ error: msg }, "Skipping content translation insert"); contentSkipped++ }
   }
 
   console.log(`   ✓ ${systemCount} system translations added, ${systemSkipped} preserved`)

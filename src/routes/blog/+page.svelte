@@ -31,7 +31,7 @@
         {/if}
         <div class="flex flex-col flex-1 p-5">
           {#if post.readingTimeMinutes}
-            <span class="text-xs text-pm-text-muted mb-2">{post.readingTimeMinutes} min read</span>
+            <span class="text-xs text-pm-text-muted mb-2">{m.blog_minRead({ minutes: String(post.readingTimeMinutes) })}</span>
           {/if}
           <h2 class="text-lg font-bold text-pm-text">
             <a href={`/blog/${post.slug}`} class="hover:text-pm-brand transition-colors">{post.title}</a>

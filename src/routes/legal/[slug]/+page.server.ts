@@ -1,8 +1,8 @@
-import type { RequestEvent } from '@sveltejs/kit'
+import type { PageServerLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { readFileSync } from 'fs'
 
-export function load({ params, locals }: RequestEvent) {
+export const load: PageServerLoad = ({ params, locals }) => {
   const locale = locals.paraglide?.lang ?? 'ru'
   const slug = params.slug ?? ''
 

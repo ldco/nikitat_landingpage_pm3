@@ -375,5 +375,9 @@
   "common_message": "Message",
   "common_send": "Send",
   "contact_consent": "I consent to the processing of personal data",
-  "contact_infoTitle": "Get in touch"
+  "contact_infoTitle": "Get in touch",
+  "blog_minRead": "{minutes} min read",
+  "legal_title": "Legal",
+  "auth_loggedOut": "Logged out",
+  "contact_success": "Message sent successfully"
 }

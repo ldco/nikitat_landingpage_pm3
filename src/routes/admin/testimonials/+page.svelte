@@ -2,15 +2,19 @@
   /**
    * Admin Testimonials — Manage testimonials
    */
+  import { page } from '$app/stores'
+  import * as m from '$lib/i18n'
+  import { getAdminT } from '$lib/utils/admin-translations'
   import type { PageData } from './$types'
   let { data }: { data: PageData } = $props()
   const items = $derived(data.items)
+  const t = $derived(getAdminT($page.data))
 </script>
 
 <div class="max-w-content mx-auto">
   <div class="flex items-center justify-between gap-4 py-4 mb-6 border-b border-pm-border">
-    <h1 class="text-2xl font-bold text-pm-text">Testimonials</h1>
-    <span class="text-sm text-pm-text-muted">{items.length} total</span>
+    <h1 class="text-2xl font-bold text-pm-text">{t['admin.testimonials'] || 'Testimonials'}</h1>
+    <span class="text-sm text-pm-text-muted">{items.length} {t['admin.total'] || 'total'}</span>
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -25,7 +29,7 @@
         </div>
       </div>
     {:else}
-      <p class="text-center text-pm-text-muted py-16 col-span-full">No testimonials found.</p>
+      <p class="text-center text-pm-text-muted py-16 col-span-full">{t['admin.noItems'] || m.common_noResults()}</p>
     {/each}
   </div>
 </div>

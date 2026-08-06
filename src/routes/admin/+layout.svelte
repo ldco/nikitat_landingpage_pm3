@@ -32,26 +32,33 @@
 
   const useVerticalNav = $derived(FEATURES.appVerticalNav)
 
-  
+  const SECTION_FALLBACKS: Record<string, string> = {
+    dashboard: 'Dashboard', users: 'Users', roles: 'Roles',
+    translations: 'Translations', settings: 'Settings', portfolios: 'Portfolios',
+    blog: 'Blog', team: 'Team', testimonials: 'Testimonials', faq: 'FAQ',
+    clients: 'Clients', pricing: 'Pricing', features: 'Features',
+    contacts: 'Contacts', audit: 'Audit', health: 'Health'
+  }
 
-  const adminSections: Array<{ id: string; label: string }> = [
-    { id: 'dashboard', label: 'Dashboard' },
-    { id: 'users', label: 'Users' },
-    { id: 'roles', label: 'Roles' },
-    { id: 'translations', label: 'Translations' },
-    { id: 'settings', label: 'Settings' },
-    { id: 'portfolios', label: 'Portfolios' },
-    { id: 'blog', label: 'Blog' },
-    { id: 'team', label: 'Team' },
-    { id: 'testimonials', label: 'Testimonials' },
-    { id: 'faq', label: 'FAQ' },
-    { id: 'clients', label: 'Clients' },
-    { id: 'pricing', label: 'Pricing' },
-    { id: 'features', label: 'Features' },
-    { id: 'contacts', label: 'Contacts' },
-    { id: 'audit', label: 'Audit' },
-    { id: 'health', label: 'Health' }
-  ]
+  const SECTION_KEYS: Record<string, string> = {
+    dashboard: 'admin.dashboard', users: 'admin.users', roles: 'admin.roles',
+    translations: 'admin.translations', settings: 'admin.settings',
+    portfolios: 'admin.portfolios', blog: 'admin.blog', team: 'admin.team',
+    testimonials: 'admin.testimonials', faq: 'admin.faq', clients: 'admin.clients',
+    pricing: 'admin.pricing', features: 'admin.features', contacts: 'admin.contacts',
+    audit: 'admin.auditLog', health: 'admin.health'
+  }
+
+  const SECTION_IDS = ['dashboard', 'users', 'roles', 'translations', 'settings',
+    'portfolios', 'blog', 'team', 'testimonials', 'faq', 'clients', 'pricing',
+    'features', 'contacts', 'audit', 'health']
+
+  const adminSections = $derived(
+    SECTION_IDS.map(id => ({
+      id,
+      label: t[SECTION_KEYS[id]!] || SECTION_FALLBACKS[id]!
+    }))
+  )
 
   const iconComponentMap: Record<string, typeof IconHome> = {
     dashboard: IconHome, users: IconUsers, roles: IconShieldCheck,
@@ -70,7 +77,7 @@
     for (const s of adminSections) {
       if (isActive(s.id)) return s.label
     }
-    return 'Dashboard'
+    return t['admin.dashboard'] || 'Dashboard'
   })
 
   const userInitials = $derived(
@@ -86,7 +93,6 @@
   function toggleMobileUserMenu() { mobileUserMenuOpen = !mobileUserMenuOpen }
 
   $effect(() => {
-    // Poll for unread contacts every 30s (PM v2: admin.vue lines 129-134)
     async function fetchCount() {
       try {
         const res = await fetch('/api/admin/contacts/unread')
@@ -108,9 +114,9 @@
 {:else}
 
 <div class="min-h-screen bg-pm-bg" onclick={(e) => {
-  const t = e.target as HTMLElement
-  if (!t.closest('.user-menu-wrapper')) { userMenuOpen = false }
-  if (!t.closest('.mobile-user-wrapper')) { mobileUserMenuOpen = false }
+  const t2 = e.target as HTMLElement
+  if (!t2.closest('.user-menu-wrapper')) { userMenuOpen = false }
+  if (!t2.closest('.mobile-user-wrapper')) { mobileUserMenuOpen = false }
 }}>
   {#if useVerticalNav}
     <!-- VERTICAL MODE: Desktop Sidebar (PM v2: admin.vue lines 286-364) -->
@@ -152,7 +158,7 @@
               </div>
               <a href="/api/auth/logout" class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken">
                 <IconLogout class="size-4" />
-                Logout
+                {m.auth_logout()}
               </a>
             </div>
           {/if}
@@ -163,7 +169,7 @@
     <!-- HORIZONTAL MODE: Desktop Header (PM v2: admin.vue lines 198-281) -->
     <header class="sticky top-0 z-sticky bg-pm-bg-elevated border-b border-pm-border">
       <div class="flex items-center justify-between gap-4 px-4 py-2">
-        <a href="/admin" class="text-lg font-bold text-pm-text shrink-0">PM Admin</a>
+        <a href="/admin" class="text-lg font-bold text-pm-text shrink-0">{t['admin.title'] || 'PM Admin'}</a>
         <nav class="flex items-center gap-1 flex-1 justify-center">
           {#each adminSections as section}
             <a href={section.id === 'dashboard' ? '/admin' : `/admin/${section.id}`}
@@ -194,7 +200,7 @@
                 </div>
                 <a href="/api/auth/logout" class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken">
                   <IconLogout class="size-4" />
-                  Logout
+                  {m.auth_logout()}
                 </a>
               </div>
             {/if}
@@ -224,7 +230,7 @@
           {/if}
           <a href="/api/auth/logout" class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken">
             <IconLogout class="size-4" />
-            Logout
+            {m.auth_logout()}
           </a>
         </div>
       {/if}
@@ -247,7 +253,7 @@
 
   <!-- Mobile Hamburger Toggle (phone only) -->
   <button class="fixed top-3 end-3 z-hamburger sm:hidden flex items-center justify-center size-10 rounded-md bg-pm-bg-elevated border border-pm-border shadow-md"
-    onclick={() => mobileOpen = !mobileOpen} aria-label="Toggle menu">
+    onclick={() => mobileOpen = !mobileOpen} aria-label={m.nav_openMenu()}>
     <IconMenu2 class="size-5" />
   </button>
 
@@ -256,7 +262,7 @@
     <div class="fixed inset-0 z-50 bg-black/50 sm:hidden" onclick={() => mobileOpen = false}></div>
     <div class="fixed inset-y-0 end-0 z-drawer w-drawer bg-pm-bg-elevated shadow-xl sm:hidden">
       <div class="flex items-center justify-between h-16 px-4 border-b border-pm-border">
-        <span class="text-lg font-bold text-pm-text">PM Admin</span>
+        <span class="text-lg font-bold text-pm-text">{t['admin.title'] || 'PM Admin'}</span>
         <button onclick={() => mobileOpen = false} class="p-1 text-pm-text-muted hover:text-pm-text"><IconX class="size-5" /></button>
       </div>
       <nav class="overflow-y-auto py-2">

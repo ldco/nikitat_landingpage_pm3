@@ -1,8 +1,8 @@
 import { requireAdmin } from '$lib/server/utils/admin-rbac'
 import { useDatabase, schema } from '$lib/server/db'
-import type { RequestEvent } from '@sveltejs/kit'
+import type { PageServerLoad } from './$types'
 
-export function load(event: RequestEvent) {
+export const load: PageServerLoad = (event) => {
   requireAdmin(event)
   const db = useDatabase()
   const items = db.select({ id: schema.faqItems.id, slug: schema.faqItems.slug, published: schema.faqItems.published, order: schema.faqItems.order })

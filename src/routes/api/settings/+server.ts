@@ -6,6 +6,23 @@ import { z } from 'zod'
 /** GET endpoint has no query params — response validated for shape */
 const querySchema = z.object({})
 
+/**
+ * Keys that must never be exposed to unauthenticated clients.
+ * These include bot tokens, chat IDs, analytics tracking IDs,
+ * verification codes, and any integration credential.
+ */
+const SENSITIVE_KEY_PATTERNS: RegExp[] = [
+  /token/i,
+  /secret/i,
+  /password/i,
+  /chatId/i,
+  /pixel/i
+]
+
+function isSensitiveKey(key: string): boolean {
+  return SENSITIVE_KEY_PATTERNS.some(pattern => pattern.test(key))
+}
+
 export function GET(event: RequestEvent) {
   const parsedQuery = querySchema.safeParse(Object.fromEntries(event.url.searchParams))
   if (!parsedQuery.success) {
@@ -24,10 +41,12 @@ export function GET(event: RequestEvent) {
     type: schema.settings.type
   }).from(schema.settings).all()
 
-  // Return as key-value map
+  // Return as key-value map, excluding sensitive keys
   const map: Record<string, string | null> = {}
   for (const s of allSettings) {
-    map[s.key] = s.value
+    if (!isSensitiveKey(s.key)) {
+      map[s.key] = s.value
+    }
   }
 
   return new Response(JSON.stringify(jsonSuccess(map)), {

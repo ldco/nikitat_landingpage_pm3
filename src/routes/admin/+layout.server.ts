@@ -1,4 +1,5 @@
 import type { RequestEvent } from '@sveltejs/kit'
+import type { LayoutServerLoad } from './$types'
 import { redirect } from '@sveltejs/kit'
 import { getAdminTranslations } from '$lib/server/db/translations-cache'
 import { LOCALES, DEFAULT_LOCALE } from '$lib/config/site'
@@ -38,7 +39,7 @@ function detectLocale(event: RequestEvent): string {
   return DEFAULT_LOCALE
 }
 
-export function load(event: RequestEvent) {
+export const load: LayoutServerLoad = (event) => {
   if (event.url.pathname === '/admin/login') return {}
 
   if (!event.locals.user) {

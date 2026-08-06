@@ -7,6 +7,8 @@
 import { TOTP, Secret } from 'otpauth'
 import QRCode from 'qrcode'
 import { randomBytes, createCipheriv, createDecipheriv, scryptSync } from 'node:crypto'
+import { useEnv } from '$lib/server/utils/env'
+import { logger } from '$lib/server/utils/logger'
 
 const ENCRYPTION_ALGORITHM = 'aes-256-gcm'
 const IV_LENGTH = 16
@@ -14,7 +16,14 @@ const IV_LENGTH = 16
 function getEncryptionKey(): Buffer {
   const envKey = process.env.TOTP_ENCRYPTION_KEY
   if (envKey) return scryptSync(envKey, 'totp-salt', 32)
-  return scryptSync('development-totp-key', 'totp-salt', 32)
+  const env = useEnv()
+  if (env.NODE_ENV === 'production') {
+    throw new Error('TOTP_ENCRYPTION_KEY must be set in production')
+  }
+  // Development only: generate a per-session key so encrypted secrets don't persist across restarts
+  const sessionKey = randomBytes(32).toString('hex')
+  logger.warn('TOTP_ENCRYPTION_KEY not set — using ephemeral key (TOTP secrets will be invalid on restart)')
+  return scryptSync(sessionKey, 'totp-salt', 32)
 }
 
 export function generateTotpSecret(): string {

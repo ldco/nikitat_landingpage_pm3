@@ -2,12 +2,13 @@ import type { RequestEvent } from '@sveltejs/kit'
 import { error, json } from '@sveltejs/kit'
 import { z } from 'zod'
 import { requireMaster } from '$lib/server/utils/admin-rbac'
-import { jsonSuccess } from '$lib/server/utils/api'
+import { jsonSuccess, apiError } from '$lib/server/utils/api'
 import { getClientIp } from '$lib/server/security/rateLimit'
+import { audit } from '$lib/server/audit'
 import { logger } from '$lib/server/utils/logger'
 import { execSync } from 'node:child_process'
 
-const ALLOWED_COMMANDS = [
+const ALLOWED_COMMANDS = new Set([
   'df -h',
   'free -m',
   'uptime',
@@ -19,7 +20,7 @@ const ALLOWED_COMMANDS = [
   'netstat -tlnp',
   'ss -tlnp',
   'cat /etc/os-release'
-]
+])
 
 const commandSchema = z.object({
   command: z.string().min(1).max(200)
@@ -28,20 +29,24 @@ const commandSchema = z.object({
 export async function POST(event: RequestEvent) {
   const actor = requireMaster(event)
   const body = await event.request.json().catch(() => null)
-  if (!body) error(400)
+  if (!body) throw error(400)
   const parsed = commandSchema.safeParse(body)
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
   const cmd = parsed.data.command.trim()
-  const allowed = ALLOWED_COMMANDS.some(ac => cmd.startsWith(ac))
-  if (!allowed) error(403)
+  if (!ALLOWED_COMMANDS.has(cmd)) throw error(403)
+
+  const ip = getClientIp(event.request)
+  const ua = event.request.headers.get('user-agent')
+
   try {
     const output = execSync(cmd, { timeout: 10000, encoding: 'utf-8' })
-    const ip = getClientIp(event.request)
-    const ua = event.request.headers.get('user-agent')
+    audit.terminalCommand(ip, ua, actor.id, cmd, true)
     logger.info({ cmd, actor: actor.id, ip, ua }, 'Terminal command executed')
     return json(jsonSuccess({ output, command: cmd }))
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e)
-    return json(jsonSuccess({ output: `Error: ${message}`, command: cmd }))
+    const errMsg = e instanceof Error ? e.message : String(e)
+    audit.terminalCommand(ip, ua, actor.id, cmd, false)
+    logger.error({ cmd, actor: actor.id, error: errMsg }, 'Terminal command failed')
+    apiError(500, 'terminal.execution_failed', 'Command execution failed')
   }
 }

@@ -1,18 +1,32 @@
+import { z } from 'zod'
 import { requireAdmin } from '$lib/server/utils/admin-rbac'
 import { useDatabase, schema } from '$lib/server/db'
-import { redirect } from '@sveltejs/kit'
+import { redirect, fail } from '@sveltejs/kit'
 import type { RequestEvent } from '@sveltejs/kit'
+import type { PageServerLoad } from './$types'
 
-export function load(event: RequestEvent) { requireAdmin(event) }
+const createSchema = z.object({
+  slug: z.string().trim().min(1).max(100).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with hyphens')
+})
+
+export const load: PageServerLoad = (event) => { requireAdmin(event) }
 
 export const actions = {
   default: async (event: RequestEvent) => {
     requireAdmin(event)
     const form = await event.request.formData()
-    const slug = (form.get('slug') as string)?.toLowerCase().replace(/\s+/g, '-')
-    if (!slug) return { success: false, error: 'validation.required' }
+    const parsed = createSchema.safeParse({ slug: form.get('slug') })
+    if (!parsed.success) {
+      return fail(400, { fieldErrors: parsed.error.flatten().fieldErrors })
+    }
     const db = useDatabase()
-    db.insert(schema.blogPosts).values({ slug, published: true, publishedAt: new Date(), createdAt: new Date(), updatedAt: new Date() }).run()
+    db.insert(schema.blogPosts).values({
+      slug: parsed.data.slug,
+      published: true,
+      publishedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }).run()
     redirect(303, '/admin/blog')
   }
 }

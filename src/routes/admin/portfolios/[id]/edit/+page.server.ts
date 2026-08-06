@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm'
 import { error, redirect } from '@sveltejs/kit'
 import { z } from 'zod'
 import type { RequestEvent } from '@sveltejs/kit'
+import type { PageServerLoad } from './$types'
 
 const updateSchema = z.object({
   name: z.string().min(1),
@@ -12,7 +13,7 @@ const updateSchema = z.object({
   description: z.string().nullable().optional()
 })
 
-export async function load(event: RequestEvent) {
+export const load: PageServerLoad = async (event) => {
   requireAdmin(event)
   const db = useDatabase()
   const portfolio = db.select().from(schema.portfolios).where(eq(schema.portfolios.id, Number(event.params.id))).get()

@@ -17,6 +17,7 @@ import { requireAdmin } from '$lib/server/utils/admin-rbac'
 import { STORAGE_CONFIG } from '$lib/config/site'
 import { getStorageAdapter } from '$lib/server/storage'
 import { validateImageBuffer } from '$lib/server/utils/file-validation'
+import { logger } from '$lib/server/utils/logger'
 
 export async function POST(event: RequestEvent) {
   requireAdmin(event)
@@ -87,7 +88,9 @@ export async function POST(event: RequestEvent) {
         originalMime: validation.mime
       }
     })
-  } catch (e) {
-    error(500, e instanceof Error ? e.message : 'Image processing failed')
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e)
+    logger.error({ error: message }, 'Image processing failed')
+    error(500, 'Image processing failed')
   }
 }

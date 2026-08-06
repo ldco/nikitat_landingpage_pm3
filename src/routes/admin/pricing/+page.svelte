@@ -23,7 +23,7 @@
         <p class="text-2xl font-bold text-pm-brand mb-2">{item.price ?? t['admin.customPrice']}</p>
         <div class="flex gap-2 text-xs text-pm-text-muted">
           <span>{item.slug}</span>
-          {#if item.featured}<span class="px-1.5 py-0.5 rounded bg-pm-brand-subtle text-pm-brand">Featured</span>{/if}
+          {#if item.featured}<span class="px-1.5 py-0.5 rounded bg-pm-brand-subtle text-pm-brand">{t['admin.featured'] || 'Featured'}</span>{/if}
         </div>
       </div>
     {:else}

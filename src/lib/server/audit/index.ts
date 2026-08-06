@@ -97,7 +97,16 @@ export const audit = {
     logAudit({ action: 'role_delete', userId: actorId, ipAddress: ip, userAgent: ua, details: { roleId, roleName } })
   },
 
+
   terminalCommand(ip: string, ua: string | null, actorId: number, command: string, success: boolean) {
     logAudit({ action: 'terminal_command', userId: actorId, ipAddress: ip, userAgent: ua, details: { command }, success })
+  },
+
+  opsAction(ip: string, ua: string | null, actorId: number, action: string, success: boolean) {
+    logAudit({ action: 'ops_action', userId: actorId, ipAddress: ip, userAgent: ua, details: { opsAction: action }, success })
+  },
+
+  supportBundleExport(ip: string, ua: string | null, actorId: number, success: boolean) {
+    logAudit({ action: 'support_bundle_export', userId: actorId, ipAddress: ip, userAgent: ua, success })
   }
 }

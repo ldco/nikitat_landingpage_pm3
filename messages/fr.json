@@ -406,5 +406,9 @@
   "common_message": "Message",
   "common_send": "Envoyer",
   "contact_consent": "Je consens au traitement des données personnelles",
-  "contact_infoTitle": "Me contacter"
+  "contact_infoTitle": "Me contacter",
+  "blog_minRead": "{minutes} min de lecture",
+  "legal_title": "Mentions légales",
+  "auth_loggedOut": "Déconnecté",
+  "contact_success": "Message envoyé"
 }

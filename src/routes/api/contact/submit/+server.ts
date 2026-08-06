@@ -50,19 +50,17 @@ export async function POST(event: RequestEvent) {
 
   logger.info({ email, subject }, 'Contact form submission received')
 
-  // Notify admin via Telegram (fire-and-forget, gated by feature flag)
   if (FEATURES.contactTelegramNotify) {
     notifyNewContact({ submissionId: inserted.id, createdAt: inserted.createdAt }).catch((e: unknown) => {
       logger.error({ error: e instanceof Error ? e.message : e }, 'Telegram notification failed')
     })
   }
 
-  // Send confirmation email to the submitter (gated by feature flag)
   if (FEATURES.contactEmailConfirmation) {
     sendContactConfirmation(email, name).catch((e: unknown) => {
       logger.error({ error: e instanceof Error ? e.message : e }, 'Confirmation email failed')
     })
   }
 
-  return json({ success: true, data: { message: 'Message sent successfully' } })
+  return json({ success: true, data: { message: 'contact.messageSent' } })
 }
