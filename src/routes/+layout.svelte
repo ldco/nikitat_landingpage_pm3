@@ -18,6 +18,20 @@
   import ProjectAmbient from '../project/ProjectAmbient.svelte'
   import type { LayoutData } from './$types'
 
+import { setLanguageTag, isAvailableLanguageTag } from '$lib/paraglide/runtime.js'
+import { browser } from '$app/environment'
+
+// Ensure Paraglide locale matches the SSR lang attribute BEFORE hydration
+// (Paraglide-SvelteKit strategy may not fire early enough, causing
+// system translations to render in the default locale on the client)
+if (browser) {
+  const lang = document.documentElement.lang
+  if (lang && isAvailableLanguageTag(lang)) {
+    setLanguageTag(lang)
+  }
+}
+
+
   let { data, children }: { data: LayoutData; children?: import('svelte').Snippet } = $props()
   const isOnepager = $derived(FEATURES.onepager)
   
