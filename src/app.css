@@ -414,7 +414,6 @@
   /* Headings: shorter line-height + balance */
   h1, h2, h3, h4, h5, h6 {
     text-wrap: balance;
-    line-height: var(--leading-tight);
   }
 
   h1, h2, h3, h4 {
