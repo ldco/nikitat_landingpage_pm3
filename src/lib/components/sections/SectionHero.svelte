@@ -43,6 +43,7 @@
   const locale = $derived(languageTag())
   const segments = $derived(breakHeroTitle(title, locale))
   const parallaxEnabled = $derived(FEATURES.heroParallax)
+  const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
 
   let logoEl = $state<HTMLElement | null>(null)
   $effect(() => {
@@ -53,7 +54,7 @@
   })
 </script>
 
-<section id="hero" class={twMerge(clsx('relative grid grid-cols-1 md:grid-cols-2 items-center gap-[var(--space-8)]', 'min-h-dvh pt-[var(--pt-hero)] pb-[var(--space-4)]', 'px-container', 'bg-pm-bg scroll-mt-0', 'max-sm:min-h-svh max-sm:gap-[var(--space-2)] max-sm:px-[var(--space-2)] max-sm:pt-[var(--pt-hero-mobile)]', className))}>
+<section id="hero" class={twMerge(clsx('relative grid grid-cols-1 md:grid-cols-2 items-center gap-[var(--space-8)]', 'min-h-dvh pt-[var(--pt-hero)] pb-[var(--space-4)]', 'px-container', 'bg-pm-bg scroll-mt-0', isContained && 'max-w-container mx-auto', 'max-sm:min-h-svh max-sm:gap-[var(--space-2)] max-sm:px-[var(--space-2)] max-sm:pt-[var(--pt-hero-mobile)]', className))}>
   {#if parallaxEnabled}
     <HeroParallaxScene />
   {/if}

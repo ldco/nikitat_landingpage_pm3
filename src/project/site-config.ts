@@ -149,7 +149,7 @@ export const FEATURES: Features = {
   mobileInteractiveHeader: false,
   hideHeaderOnScroll: false,
   verticalNav: false,
-  headerFooterWidthMode: 'full',
+  headerFooterWidthMode: 'contained',
   bodyWidthMode: 'contained',
   pageTransitions: 'zoom',
   appVerticalNav: false,
