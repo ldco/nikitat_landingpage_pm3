@@ -1,10 +1,10 @@
 <script lang="ts">
   /**
-   * NavLinks — Navigation links from siteConfig.nav
+   * NavLinks — Navigation links matching original PM2 nav-link styling.
    *
-   * Design spec: 16px semi-bold cream text, 32px gaps between items.
-   * Active item: rust accent text (#B4402B) with 2-3px underline bar
-   * and no background highlight.
+   * Original: <a class="nav-link nav-link--anchor"> — font-normal (400),
+   * text-base (1.25rem), padding px-2 for click area, gap from
+   * --header-column-gap (24-36px). Active item: brand color + --active class.
    *
    * @props class?: string — merged Tailwind classes
    * @props vertical?: boolean — column layout (mobile drawer)
@@ -31,19 +31,23 @@
   const base = 'flex items-center'
   const verticalClass = 'flex-col items-stretch'
 
-  // Desktop: 16px, semi-bold 600, cream, 32px gap
+  // Original PM2: font-normal (400), text-base (1.25rem), px-2 padding
   const linkBase =
-    'text-base font-semibold px-2 py-1 ' +
+    'font-normal text-base tracking-normal px-2 py-1 ' +
     'text-pm-text-secondary hover:text-pm-text ' +
     'transition-colors duration-150'
 
-  const activeClass =
-    'text-pm-brand border-b-[3px] border-pm-brand'
+  const activeClass = 'text-pm-brand'
 
   function resolveLabel(key: string): string { return t(key) }
 </script>
 
-<nav class={twMerge(clsx(base, vertical && verticalClass, vertical ? 'gap-1' : 'gap-[var(--header-column-gap)]', className))}>
+<nav class={twMerge(clsx(
+  base,
+  vertical && verticalClass,
+  vertical ? 'gap-1' : 'gap-[var(--header-column-gap)]',
+  className
+))}>
   {#each NAV_ITEMS as item}
     <a
       href={item.href}
