@@ -1,21 +1,11 @@
 <script lang="ts">
   /**
-   * SectionHero — Full-viewport hero: title segments, subtitle, CTAs, brand tile.
+   * SectionHero — Full-viewport hero: title, subtitle, CTAs, brand logo.
    *
-   * Content from content store: hero.title, hero.subtitle, hero.primaryCta, hero.secondaryCta
+   * Layout follows the original PM2 hero CSS: grid 1fr 1fr, contained to
+   * container-max (1280px), padding-inline via max(24px, (100vw-1280)/2).
+   * Typography: Geologica, heading=font-black, body=font-light.
    *
-   * Design spec: left column (headline + paragraph + buttons), right column
-   * (large rust-red brand tile with barcode glyph). Centered in viewport.
-   * Headline: 700-800 weight, cream #F5ECDF + rust #A63B28, 60-64px, lh 1.05-1.1.
-   * Paragraph: regular weight, taupe #C7B4A6, 18px, lh 2.0, max-w 580px.
-   * Buttons: 52px height, 16px/26px padding, 8px radius, 16px gap.
-   *
-   * @props title?: string — hero title (default from content store)
-   * @props subtitle?: string — hero subtitle
-   * @props primaryCta?: string — primary button label
-   * @props primaryHref?: string — primary link (default /#contact)
-   * @props secondaryCta?: string — secondary button label
-   * @props secondaryHref?: string — secondary link (default /portfolio)
    * @props class?: string — merged Tailwind classes
    * @example <SectionHero />
    */
@@ -26,8 +16,8 @@
   import { breakHeroTitle } from '$lib/utils/titleBreaker'
   import { languageTag } from '$lib/paraglide/runtime.js'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import Logo from '$lib/components/atoms/Logo.svelte'
   import HeroParallaxScene from '../../../project/HeroParallaxScene.svelte'
-  import BrandTile from '../../../project/BrandTile.svelte'
   import { gsapIntro } from '../../../project/gsapIntro'
 
   let {
@@ -47,34 +37,34 @@
   const locale = $derived(languageTag())
   const segments = $derived(breakHeroTitle(title, locale))
   const parallaxEnabled = $derived(FEATURES.heroParallax)
-  const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
 
-  let tileEl = $state<HTMLElement | null>(null)
+  let logoEl = $state<HTMLElement | null>(null)
   $effect(() => {
-    if (!tileEl) return
-    const intro = gsapIntro(tileEl)
+    if (!logoEl) return
+    const intro = gsapIntro(logoEl)
     if (!intro) return
     return () => intro.destroy()
   })
 </script>
 
+<!-- Original PM2 hero: grid 1fr 1fr, contained to 1280px, header-offset padding -->
 <section id="hero" class={twMerge(clsx(
-  'relative grid grid-cols-1 md:grid-cols-2 items-center gap-[var(--space-8)]',
-  'min-h-dvh pt-[var(--pt-hero)] pb-[var(--space-8)]',
-  'px-container',
+  'relative grid grid-cols-1 md:grid-cols-2 items-center',
+  'min-h-dvh gap-[var(--space-8)]',
+  'pt-[calc(var(--h-header)+var(--space-8))] pb-[var(--space-16)]',
+  'px-[max(var(--space-6),calc((100vw-var(--max-w-container))/2))]',
   'bg-pm-bg scroll-mt-0',
-  isContained && 'max-w-container mx-auto',
-  'max-sm:min-h-svh max-sm:gap-[var(--space-2)] max-sm:px-[var(--space-2)] max-sm:pt-[var(--pt-hero-mobile)]',
+  'max-sm:min-h-svh max-sm:gap-[var(--space-2)] max-sm:px-[var(--space-2)]',
   className
 ))}>
   {#if parallaxEnabled}
     <HeroParallaxScene />
   {/if}
 
-  <!-- Left: Text -->
-  <div class="flex flex-col justify-center">
-    <h1 class="font-bold text-[clamp(2.5rem,5vw,4rem)] text-pm-text leading-[1.08] tracking-normal mb-10
-              max-sm:text-[var(--hero-title-mobile)] max-sm:leading-[var(--hero-leading-mobile)]
+  <!-- Left: Text content -->
+  <div class="flex flex-col">
+    <h1 class="text-[var(--heading-1)] font-black text-pm-text leading-[var(--leading-tight)] mb-[var(--space-12)]
+              max-sm:leading-[var(--hero-leading-mobile)]
               {locale.startsWith('ru') ? 'max-sm:text-[var(--hero-title-mobile-ru)]' : ''}">
       {#each segments as segment}
         <span class="block w-fit" class:text-pm-brand={segment.brand}>
@@ -83,18 +73,18 @@
       {/each}
     </h1>
     {#if subtitle}
-      <p class="text-fluid-xl font-normal text-[#C7B4A6] leading-[2] max-w-[580px] mb-10">{subtitle}</p>
+      <p class="text-[var(--text-base)] font-light text-pm-text-secondary leading-[var(--leading-relaxed)] max-w-[600px] mb-[var(--space-10)]">{subtitle}</p>
     {/if}
-    <div class="flex flex-wrap gap-4 max-sm:w-full">
-      <CtaButton href={primaryHref} variant="primary" size="lg" class="h-[52px] px-[26px] text-[15px] font-semibold rounded-lg max-sm:w-full">{primaryCta}</CtaButton>
-      <CtaButton href={secondaryHref} variant="outline" size="lg" class="h-[52px] px-[26px] text-[15px] font-semibold rounded-lg max-sm:w-full">{secondaryCta}</CtaButton>
+    <div class="flex flex-wrap gap-[var(--gap-lg)] max-sm:w-full">
+      <CtaButton href={primaryHref} variant="primary" size="lg" class="max-sm:w-full">{primaryCta}</CtaButton>
+      <CtaButton href={secondaryHref} variant="outline" size="lg" class="max-sm:w-full">{secondaryCta}</CtaButton>
     </div>
   </div>
 
-  <!-- Right: Brand Tile -->
+  <!-- Right: Brand logo -->
   <div class="flex items-center justify-center overflow-visible z-30">
-    <div bind:this={tileEl}>
-      <BrandTile />
+    <div bind:this={logoEl} class="w-full max-w-[var(--hero-logo-max-w)] max-sm:max-w-[var(--hero-logo-max-w-mobile)]">
+      <Logo shape="circle" />
     </div>
   </div>
 </section>

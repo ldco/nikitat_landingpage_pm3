@@ -43,7 +43,7 @@
   function resolveLabel(key: string): string { return t(key) }
 </script>
 
-<nav class={twMerge(clsx(base, vertical && verticalClass, vertical ? 'gap-1' : 'gap-8', className))}>
+<nav class={twMerge(clsx(base, vertical && verticalClass, vertical ? 'gap-1' : 'gap-[var(--header-column-gap)]', className))}>
   {#each NAV_ITEMS as item}
     <a
       href={item.href}

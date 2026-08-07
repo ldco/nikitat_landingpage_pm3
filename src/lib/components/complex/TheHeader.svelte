@@ -90,7 +90,7 @@
     <!-- Actions: desktop only -->
     <div class="hidden lg:flex items-center gap-2">
       <HeaderContact mode="contacts" size={18} />
-      <HeaderActions langDirection="down" />
+      <HeaderActions showContact={true} langDirection="down" />
     </div>
 
     <!-- Mobile header contact icons -->
