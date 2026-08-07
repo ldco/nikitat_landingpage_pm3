@@ -15,7 +15,7 @@
   import { fly } from 'svelte/transition'
   import { z } from 'zod'
   import { t } from '$lib/stores/content.svelte'
-  import { getCsrfToken } from '$lib/utils/auth'
+  import { submitContact } from '$lib/api/client'
   import { useSettings } from '$lib/stores/settings.svelte'
   import { CONTACT } from '$lib/config/site'
   import Section from '$lib/components/atoms/Section.svelte'
@@ -80,16 +80,13 @@
 
     sending = true
     try {
-      const res = await fetch('/api/contact/submit', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-csrf-token': getCsrfToken() },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), message: message.trim(), consent })
+      const result = await submitContact({
+        name: name.trim(), email: email.trim(), message: message.trim(), consent
       })
-      if (res.ok) {
+      if (result.success) {
         success = true; name = ''; email = ''; message = ''; consent = false
       } else {
-        const body = await res.json().catch(() => ({}))
-        errorMsg = body.error?.message || t('contact.errorMessage', t('common.error'))
+        errorMsg = result.error?.message || t('contact.errorMessage', t('common.error'))
       }
     } catch {
       errorMsg = t('contact.errorMessage', t('common.error'))

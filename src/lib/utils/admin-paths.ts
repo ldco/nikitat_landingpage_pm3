@@ -33,5 +33,3 @@ export const ADMIN_ROUTES = {
   sections: '/admin/sections',
   legal: '/admin/legal',
 }
-
-export const ADMIN_API = '/admin/api'

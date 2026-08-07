@@ -5,9 +5,9 @@
   import type { PageData } from './$types'
   import { page } from '$app/stores'
   import * as m from '$lib/i18n'
-  import { ADMIN_ROUTES, ADMIN_API } from '$lib/utils/admin-paths'
+  import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
   import { getAdminT } from '$lib/utils/admin-translations'
-  import { getCsrfToken } from '$lib/utils/auth'
+  import { adminDelete } from '$lib/api/client'
   import IconPencil from '@tabler/icons-svelte/icons/pencil'
   import IconTrash from '@tabler/icons-svelte/icons/trash'
   import IconPlus from '@tabler/icons-svelte/icons/plus'
@@ -24,14 +24,9 @@
     deletePending = id
     deleteError = null
     try {
-      const res = await fetch(ADMIN_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCsrfToken() },
-        body: JSON.stringify({ module: 'portfolios', id })
-      })
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        deleteError = body.error?.message ?? m.common_error()
+      const result = await adminDelete('portfolios', id)
+      if (!result.success) {
+        deleteError = result.error?.message ?? m.common_error()
         return
       }
       goto(ADMIN_ROUTES.portfolios)

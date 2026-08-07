@@ -7,6 +7,7 @@
  * Reactive via $state — components read helpers directly.
  */
 import { browser } from '$app/environment'
+import { fetchSettings } from '$lib/api/client'
 
 export interface SiteSettings {
   contact: Record<string, string | null>
@@ -53,11 +54,9 @@ export function getSettings() {
     _loading = true
     _error = null
     try {
-      const res = await fetch('/api/settings')
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const body = (await res.json()) as unknown
-      const envelope = body as { success?: boolean; data?: Record<string, string | null> }
-      const flat: Record<string, string | null> = envelope.data ?? (body as Record<string, string | null>)
+      const result = await fetchSettings()
+      if (!result.success) throw new Error(`API error: ${result.error.message}`)
+      const flat: Record<string, string | null> = result.data
       _settings = groupByPrefix(flat)
       _loaded = true
     } catch (e) {

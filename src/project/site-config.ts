@@ -140,7 +140,7 @@ export const MODULES: Record<string, ModuleConfig> = {
 export const FEATURES: Features = {
   cookies: true,
   multiLangs: true,
-  doubleTheme: true,
+  doubleTheme: false, // dark-only design (theme.css forces color-scheme: dark); framework keeps the feature for projects that use it
   colorRenderFallback: true,
   onepager: true,
   heroParallax: false,
