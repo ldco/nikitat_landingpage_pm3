@@ -78,7 +78,8 @@
   let mounted = $state(false)
   onMount(() => { mounted = true })
 
-  const imgClass = $derived(twMerge(clsx('h-[var(--logo-desktop-height)] w-auto object-contain', className)))
+  const sizeClass = $derived(shape === 'circle' ? 'w-full h-auto' : 'h-[var(--logo-desktop-height)] w-auto')
+const imgClass = $derived(twMerge(clsx(sizeClass, 'object-contain', className)))
 </script>
 
 {#if src}

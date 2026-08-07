@@ -19,7 +19,6 @@
   import { breakHeroTitle } from '$lib/utils/titleBreaker'
   import { languageTag } from '$lib/paraglide/runtime.js'
   import Logo from '$lib/components/atoms/Logo.svelte'
-import { LOGO } from '$lib/config/site'
   import HeroParallaxScene from '../../../project/HeroParallaxScene.svelte'
   import { gsapIntro } from '../../../project/gsapIntro'
 
@@ -90,8 +89,10 @@ import { LOGO } from '$lib/config/site'
     </div>
   </div>
 
-  <!-- Hero logo: outside container, 420x420px matching original -->
+  <!-- Hero logo: circle shape renders at full container width -->
   <div bind:this={logoEl} class="flex items-center justify-center overflow-visible z-30">
-    <img src="{LOGO.basePath}/circle_dark_ru.svg" alt="" class="w-full max-w-[420px] h-auto max-sm:max-w-[280px]" />
+    <div class="w-full max-w-[var(--hero-logo-max-w)] max-sm:max-w-[var(--hero-logo-max-w-mobile)]">
+      <Logo shape="circle" />
+    </div>
   </div>
 </section>
