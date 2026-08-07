@@ -4,35 +4,62 @@
   import { FEATURES } from '$lib/config/site'
   import ThemeToggle from '$lib/components/atoms/ThemeToggle.svelte'
   import LangSwitcher from '$lib/components/atoms/LangSwitcher.svelte'
-  import HeaderContact from '$lib/components/molecules/HeaderContact.svelte'
+  import IconMail from '@tabler/icons-svelte/icons/mail'
+  import IconSend from '@tabler/icons-svelte/icons/send'
+  import { useSettings } from '$lib/stores/settings.svelte'
 
   /**
- * HeaderActions — Header action rail: theme toggle + language switcher + quick contact
- *
- * @props showContact?: boolean — show HeaderContact (default true)
- * @props langDirection?: 'down' | 'side' | 'inline' — LangSwitcher layout
- * @props class?: string — merged Tailwind classes
- * @example <HeaderActions langDirection="down" />
- */
-
-let {
-    showContact = true,
-    langDirection = "down",
-    class: className = ""
-  }: { showContact?: boolean; langDirection?: "down" | "side" | "inline"; class?: string } = $props()
+   * HeaderActions — Right cluster: Telegram circle, Mail circle,
+   * ThemeToggle (sun), LangSwitcher (RU).
+   *
+   * Telegram and Mail are static rust-filled circles — not the
+   * dynamic HeaderContact component.
+   *
+   * @props langDirection?: 'down' | 'side' | 'inline' — LangSwitcher layout
+   * @props class?: string — merged Tailwind classes
+   * @example <HeaderActions langDirection="down" />
+   */
+  let {
+    langDirection = 'down',
+    class: className = ''
+  }: {
+    langDirection?: 'down' | 'side' | 'inline'
+    class?: string
+  } = $props()
 
   const showTheme = $derived(FEATURES.doubleTheme)
   const showLang = $derived(FEATURES.multiLangs)
+
+  const settings = useSettings()
+  const telegramUrl = $derived.by(() => {
+    const u = settings.get('social.telegram')
+    return u ? `https://t.me/${u.replace('@', '')}` : null
+  })
+  const mailUrl = $derived.by(() => {
+    const email = settings.contactEmail
+    return email ? `mailto:${email}` : null
+  })
 </script>
 
-<div class={twMerge(clsx("header-actions-rail flex items-center gap-2", className))}>
-  {#if showContact}
-    <HeaderContact mode="contacts" />
+<div class={twMerge(clsx('flex items-center gap-3', className))}>
+  {#if telegramUrl}
+    <a href={telegramUrl} target="_blank" rel="noopener noreferrer"
+      class="inline-flex items-center justify-center size-8 rounded-full bg-[#A03420] text-[#F5ECDF] hover:bg-[#8A2C1A] transition-colors"
+      aria-label="Telegram">
+      <IconSend size={16} />
+    </a>
+  {/if}
+  {#if mailUrl}
+    <a href={mailUrl}
+      class="inline-flex items-center justify-center size-8 rounded-full bg-[#A03420] text-[#F5ECDF] hover:bg-[#8A2C1A] transition-colors"
+      aria-label="Email">
+      <IconMail size={16} />
+    </a>
   {/if}
   {#if showTheme}
     <ThemeToggle />
   {/if}
   {#if showLang}
-    <div class="header-actions-lang"><LangSwitcher mode={langDirection} /></div>
+    <LangSwitcher mode={langDirection} />
   {/if}
 </div>

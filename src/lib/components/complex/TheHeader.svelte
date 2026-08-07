@@ -57,7 +57,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     </a>
   </nav>
-  <div class="flex flex-col items-center gap-2 py-3 border-t border-pm-border"><HeaderActions showContact={false} langDirection="side" /></div>
+  <div class="flex flex-col items-center gap-2 py-3 border-t border-pm-border"><HeaderActions langDirection="side" /></div>
 </aside>
 {:else}
 <!-- PM2 structure: header → inner(flex) → hamburger | logo | nav | actions -->
@@ -90,7 +90,7 @@
     <!-- Actions: desktop only -->
     <div class="hidden lg:flex items-center gap-2">
       <HeaderContact mode="contacts" size={18} />
-      <HeaderActions showContact={false} langDirection="down" />
+      <HeaderActions langDirection="down" />
     </div>
 
     <!-- Mobile header contact icons -->
@@ -116,7 +116,7 @@
     </div>
     <div class="p-[var(--space-4)] border-t border-pm-border space-y-3">
       <HeaderContact mode="all" size={20} />
-      <HeaderActions showContact={false} langDirection="inline" />
+      <HeaderActions langDirection="inline" />
     </div>
   </nav>
 {/if}

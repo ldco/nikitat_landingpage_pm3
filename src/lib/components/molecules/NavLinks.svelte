@@ -1,10 +1,15 @@
 <script lang="ts">
   /**
-   * NavLinks — Navigation links from siteConfig.nav (PM v2 design)
+   * NavLinks — Navigation links from siteConfig.nav
    *
-   * Source: app-nuxt/app/assets/css/skeleton/nav.css
+   * Design spec: 16px semi-bold cream text, 32px gaps between items.
+   * Active item: rust accent text (#B4402B) with 2-3px underline bar
+   * and no background highlight.
    *
-   * Rule #1: class prop + twMerge
+   * @props class?: string — merged Tailwind classes
+   * @props vertical?: boolean — column layout (mobile drawer)
+   * @props activeId?: string — currently scrolled section id
+   * @props onClick?: () => void — mobile drawer close handler
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
@@ -23,22 +28,22 @@
     onClick?: () => void
   } = $props()
 
-  const base = 'flex items-center gap-1'
+  const base = 'flex items-center'
   const verticalClass = 'flex-col items-stretch'
 
-  // .nav-link from PM v2: text-secondary, hover → brand-subtle bg
+  // Desktop: 16px, semi-bold 600, cream, 32px gap
   const linkBase =
-    'text-sm font-medium px-3 py-2 rounded-sm ' +
-    'text-pm-text-secondary hover:text-pm-text hover:bg-pm-brand-subtle ' +
+    'text-base font-semibold px-2 py-1 ' +
+    'text-pm-text-secondary hover:text-pm-text ' +
     'transition-colors duration-150'
 
   const activeClass =
-    'text-pm-brand bg-pm-brand-subtle border-b-2 border-pm-brand'
+    'text-pm-brand border-b-[3px] border-pm-brand'
 
   function resolveLabel(key: string): string { return t(key) }
 </script>
 
-<nav class={twMerge(clsx(base, vertical && verticalClass, className))}>
+<nav class={twMerge(clsx(base, vertical && verticalClass, vertical ? 'gap-1' : 'gap-8', className))}>
   {#each NAV_ITEMS as item}
     <a
       href={item.href}

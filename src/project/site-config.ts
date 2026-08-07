@@ -36,8 +36,8 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/#about', label: 'nav.about', section: 'about' },
   { href: '/#focus', label: 'nav.focus', section: 'focus' },
   { href: '/#f22', label: 'nav.f22', section: 'f22' },
-  { href: '/portfolio', label: 'nav.portfolio', section: 'portfolio' },
-  { href: '/#contact', label: 'nav.contact', section: 'contact' }
+  { href: '/#contact', label: 'nav.contact', section: 'contact' },
+  { href: '/portfolio', label: 'nav.portfolio', section: 'portfolio' }
 ]
 
 // ── Homepage Sections ──────────────────────────────────────────────────────
