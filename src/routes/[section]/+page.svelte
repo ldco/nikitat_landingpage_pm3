@@ -11,7 +11,8 @@
 
   let { data }: { data: { section: (typeof HOMEPAGE_SECTIONS)[number] } } = $props()
 
-  const section = data.section
+  const section = $derived(data.section)
+  // data is server-loaded — init is intentional
 </script>
 
 <SectionRenderer sectionId={section.id} />

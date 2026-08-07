@@ -1,15 +1,13 @@
 <script lang="ts">
   /**
- * LoadingBase — Skeleton placeholder base (PM3 rule 8)
- *
- * @props class?: string — merged Tailwind classes
- * @props width?: string — CSS width (default '100%')
- * @props height?: string — CSS height (default '1em')
- * @props rounded?: string — border-radius class (default 'rounded')
- * @example <LoadingBase height="1.5em" class="w-24" />
- */
-
-interface Props {
+   * LoadingBase — Skeleton placeholder
+   *
+   * @props class — merged Tailwind classes
+   * @props width — CSS width value (default 100%)
+   * @props height — CSS height value (default 1em)
+   * @props rounded — border-radius class (default rounded)
+   */
+  interface Props {
     class?: string
     width?: string
     height?: string
@@ -23,4 +21,4 @@ interface Props {
   style="width: {width}; height: {height}"
   aria-hidden="true"
   role="presentation"
-/>
+></div>

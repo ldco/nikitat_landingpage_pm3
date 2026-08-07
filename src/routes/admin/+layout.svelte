@@ -113,11 +113,12 @@
   </main>
 {:else}
 
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div class="min-h-screen bg-pm-bg" onclick={(e) => {
   const t2 = e.target as HTMLElement
   if (!t2.closest('.user-menu-wrapper')) { userMenuOpen = false }
   if (!t2.closest('.mobile-user-wrapper')) { mobileUserMenuOpen = false }
-}}>
+}} onkeydown={(e) => { if (e.key === 'Escape') { userMenuOpen = false; mobileUserMenuOpen = false } }} role="presentation">
   {#if useVerticalNav}
     <!-- VERTICAL MODE: Desktop Sidebar (PM v2: admin.vue lines 286-364) -->
     <aside class="fixed top-0 start-0 z-sticky hidden lg:flex flex-col w-16 h-full bg-pm-bg-elevated border-e border-pm-border">
@@ -126,12 +127,13 @@
       </div>
       <nav class="flex-1 flex flex-col items-center gap-1 py-3 px-1">
         {#each adminSections as section}
+          {@const SideIcon = iconComponentMap[section.id] || IconSettings}
           <a href={section.id === 'dashboard' ? '/admin' : `/admin/${section.id}`}
             class="relative flex items-center justify-center size-10 rounded-md transition-colors group"
             class:bg-pm-brand-subtle:text-pm-brand={isActive(section.id)}
             class:text-pm-text-secondary:hover:text-pm-text:hover:bg-pm-bg-sunken={!isActive(section.id)}
           >
-            <svelte:component this={iconComponentMap[section.id] || IconSettings} class="size-5" />
+            <SideIcon class="size-5" />
             {#if section.id === 'contacts' && unreadCount > 0}
               <span class="absolute -top-0.5 -end-0.5 flex items-center justify-center min-w-3.5 h-3.5 px-1 rounded-full bg-pm-danger text-2xs font-bold text-white leading-none">{unreadCount > 9 ? '9+' : unreadCount}</span>
             {/if}
@@ -172,12 +174,13 @@
         <a href="/admin" class="text-lg font-bold text-pm-text shrink-0">{t['admin.title'] || 'PM Admin'}</a>
         <nav class="flex items-center gap-1 flex-1 justify-center">
           {#each adminSections as section}
+            {@const SideIcon = iconComponentMap[section.id] || IconSettings}
             <a href={section.id === 'dashboard' ? '/admin' : `/admin/${section.id}`}
               class="relative flex items-center justify-center size-10 rounded-md transition-colors group"
               class:bg-pm-brand-subtle:text-pm-brand={isActive(section.id)}
               class:text-pm-text-secondary:hover:text-pm-text:hover:bg-pm-bg-sunken={!isActive(section.id)}
             >
-              <svelte:component this={iconComponentMap[section.id] || IconSettings} class="size-5" />
+              <SideIcon class="size-5" />
               <span class="absolute top-full mt-2 px-2 py-1 rounded-md bg-pm-bg-elevated border border-pm-border text-xs text-pm-text shadow-md whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-tooltip">
                 {section.label}
               </span>
@@ -259,7 +262,7 @@
 
   <!-- Mobile Menu Overlay (phone only) -->
   {#if mobileOpen}
-    <div class="fixed inset-0 z-50 bg-black/50 sm:hidden" onclick={() => mobileOpen = false}></div>
+    <div class="fixed inset-0 z-50 bg-black/50 sm:hidden" onclick={() => mobileOpen = false} onkeydown={() => {}} role="presentation"></div>
     <div class="fixed inset-y-0 end-0 z-drawer w-drawer bg-pm-bg-elevated shadow-xl sm:hidden">
       <div class="flex items-center justify-between h-16 px-4 border-b border-pm-border">
         <span class="text-lg font-bold text-pm-text">{t['admin.title'] || 'PM Admin'}</span>

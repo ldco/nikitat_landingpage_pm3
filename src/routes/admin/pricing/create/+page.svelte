@@ -15,18 +15,18 @@
   </div>
   <form method="POST" class="max-w-lg space-y-4">
     <div>
-      <label class="block text-sm font-medium text-pm-text mb-1">{t['admin.name']}</label>
-      <input type="text" name="name" bind:value={name} required class="w-full px-3 py-2 border border-pm-border rounded-lg bg-pm-bg text-pm-text" />
+      <label for="field-name" class="block text-sm font-medium text-pm-text mb-1">{t['admin.name']}</label>
+      <input type="text" name="name" id="field-name" bind:value={name} required class="w-full px-3 py-2 border border-pm-border rounded-lg bg-pm-bg text-pm-text" />
       {#if errors.name?.[0]}<p class="text-xs text-pm-danger mt-1">{errors.name[0]}</p>{/if}
     </div>
     <div>
-      <label class="block text-sm font-medium text-pm-text mb-1">{t['admin.slug']}</label>
-      <input type="text" name="slug" bind:value={slug} required class="w-full px-3 py-2 border border-pm-border rounded-lg bg-pm-bg text-pm-text" />
+      <label for="field-slug" class="block text-sm font-medium text-pm-text mb-1">{t['admin.slug']}</label>
+      <input type="text" name="slug" id="field-slug" bind:value={slug} required class="w-full px-3 py-2 border border-pm-border rounded-lg bg-pm-bg text-pm-text" />
       {#if errors.slug?.[0]}<p class="text-xs text-pm-danger mt-1">{errors.slug[0]}</p>{/if}
     </div>
     <div>
-      <label class="block text-sm font-medium text-pm-text mb-1">{t['admin.price']}</label>
-      <input type="number" name="price" bind:value={price} class="w-full px-3 py-2 border border-pm-border rounded-lg bg-pm-bg text-pm-text" />
+      <label for="field-price" class="block text-sm font-medium text-pm-text mb-1">{t['admin.price']}</label>
+      <input type="number" name="price" id="field-price" bind:value={price} class="w-full px-3 py-2 border border-pm-border rounded-lg bg-pm-bg text-pm-text" />
       {#if errors.price?.[0]}<p class="text-xs text-pm-danger mt-1">{errors.price[0]}</p>{/if}
     </div>
     <button type="submit" class="px-4 py-2 bg-pm-brand text-white rounded-lg hover:bg-pm-brand-dark transition-colors">{m.common_save()}</button>
