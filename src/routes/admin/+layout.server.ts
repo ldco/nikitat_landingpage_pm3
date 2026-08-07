@@ -2,6 +2,8 @@ import type { RequestEvent } from '@sveltejs/kit'
 import type { LayoutServerLoad } from './$types'
 import { redirect } from '@sveltejs/kit'
 import { getAdminTranslations } from '$lib/server/db/translations-cache'
+import { useDatabase } from '$lib/server/db'
+import { sql } from 'drizzle-orm'
 import { LOCALES, DEFAULT_LOCALE } from '$lib/config/site'
 
 const LAYOUT_KEYS = [
@@ -40,7 +42,7 @@ function detectLocale(event: RequestEvent): string {
 }
 
 export const load: LayoutServerLoad = (event) => {
-  if (event.url.pathname === '/admin/login') return {}
+  if (event.url.pathname === '/admin/login') return { unreadCount: 0 }
 
   if (!event.locals.user) {
     redirect(302, '/admin/login')
@@ -53,5 +55,10 @@ export const load: LayoutServerLoad = (event) => {
     if (all[key]) t[key] = all[key]
   }
 
-  return { user: event.locals.user, t }
+  // Count unread contacts — replaces client-side polling in layout
+  const db = useDatabase()
+  const row = db.get<{ count: number }>(sql`SELECT COUNT(*) as count FROM contact_submissions WHERE is_read = 0`)
+  const unreadCount = row?.count ?? 0
+
+  return { user: event.locals.user, t, unreadCount }
 }

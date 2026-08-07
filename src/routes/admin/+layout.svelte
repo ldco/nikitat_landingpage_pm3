@@ -56,7 +56,7 @@
   const adminSections = $derived(
     SECTION_IDS.map(id => ({
       id,
-      label: t[SECTION_KEYS[id]!] || SECTION_FALLBACKS[id]!
+      label: t[SECTION_KEYS[id] ?? ''] || (SECTION_FALLBACKS[id] ?? '')
     }))
   )
 
@@ -87,7 +87,7 @@
   let mobileOpen = $state(false)
   let userMenuOpen = $state(false)
   let mobileUserMenuOpen = $state(false)
-  let unreadCount = $state(0)
+  let unreadCount = $derived(Number($page.data.unreadCount) || 0)
 
   function toggleUserMenu() { userMenuOpen = !userMenuOpen }
   function toggleMobileUserMenu() { mobileUserMenuOpen = !mobileUserMenuOpen }

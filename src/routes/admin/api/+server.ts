@@ -2,22 +2,28 @@ import { error, json } from '@sveltejs/kit'
 import { useDatabase, schema } from '$lib/server/db'
 import { requireAdmin } from '$lib/server/utils/admin-rbac'
 import { eq } from 'drizzle-orm'
+import { z } from 'zod'
 import type { RequestEvent } from '@sveltejs/kit'
+
+const ALLOWED_MODULES = ['portfolios', 'blog', 'features', 'faq', 'pricing', 'contacts', 'users'] as const
+
+const deleteSchema = z.object({
+  module: z.enum(ALLOWED_MODULES),
+  id: z.number().int().positive()
+})
 
 /**
  * Admin API — handles DELETE for all modules.
- * POST /admin/api?module=portfolios&id=123
- * 
- * This keeps API routes separate from page routes so +page.svelte works.
+ * POST /admin/api with { module, id } body.
  */
 export async function POST(event: RequestEvent) {
   requireAdmin(event)
-  const body = await event.request.json()
-  const module = body.module as string
-  const id = Number(body.id)
-  
-  if (!module || !id || isNaN(id)) error(400)
-  
+  const body = await event.request.json().catch(() => null)
+  if (!body) throw error(400)
+  const parsed = deleteSchema.safeParse(body)
+  if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
+
+  const { module, id } = parsed.data
   const db = useDatabase()
 
   switch (module) {
@@ -48,8 +54,6 @@ export async function POST(event: RequestEvent) {
       db.delete(schema.sessions).where(eq(schema.sessions.userId, id)).run()
       db.delete(schema.users).where(eq(schema.users.id, id)).run()
       break
-    default:
-      error(400)
   }
 
   return json({ success: true })
