@@ -70,3 +70,14 @@ npm run db:reset   — reset + seed database
 13. **No Empty Catches:** Every `catch` MUST log the error, re-throw with context, or return a typed error. `catch { /* ignore */ }` is FORBIDDEN.
 
 Contribution to update MCP rules: `docs/contributing/pm-v3-style-rules.md`
+
+### E. AI Development
+
+1. **Adding a new entity** (events, case studies, etc.): follow `docs/contributing/adding-a-new-entity.md` — the canonical 7-step guide with a reference entity (blog) and a checklist.
+2. **Service layer:** routes import `$lib/server/services/*`, never Drizzle directly. Each service owns the queries for one entity.
+3. **Typed section contracts:** section content flows through `SectionContent` in `src/lib/components/sections/types.ts`. Never cast `Record<string, unknown>` at component boundaries.
+4. **Locale filters:** every translation join MUST filter by the current locale — omitting it causes wrong-language content in multi-locale DBs (was a real bug).
+5. **Form patterns:** admin forms use SvelteKit form actions (`<form method="POST">` + Zod + `fail()`); public forms fetch to `/api/<entity>/submit` with a CSRF header.
+6. **Entity templates:** the blog entity (service + section + admin CRUD) is the canonical example — copy it for new entities.
+
+Contribution to update MCP rules: `docs/contributing/pm-v3-style-rules.md`
