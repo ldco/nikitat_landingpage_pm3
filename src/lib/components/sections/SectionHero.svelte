@@ -19,6 +19,7 @@
   import { breakHeroTitle } from '$lib/utils/titleBreaker'
   import { languageTag } from '$lib/paraglide/runtime.js'
   import Logo from '$lib/components/atoms/Logo.svelte'
+import { LOGO } from '$lib/config/site'
   import HeroParallaxScene from '../../../project/HeroParallaxScene.svelte'
   import { gsapIntro } from '../../../project/gsapIntro'
 
@@ -65,7 +66,7 @@
 
   <!-- Text content inside container -->
   <div class="max-w-container mx-auto px-container">
-    <h1 class="text-[var(--text-fluid-hero)] font-black text-pm-text leading-[var(--leading-tight)] mb-[var(--space-12)]
+    <h1 class="text-[var(--text-fluid-hero)] font-black text-pm-text [line-height:inherit] mb-[var(--space-12)]
               max-sm:text-[var(--hero-title-mobile)]
               {locale.startsWith('ru') ? 'max-sm:text-[var(--hero-title-mobile-ru)]' : ''}">
       {#each segments as segment}
@@ -89,10 +90,8 @@
     </div>
   </div>
 
-  <!-- Hero logo: outside container, full-width in its grid column -->
+  <!-- Hero logo: outside container, 420x420px matching original -->
   <div bind:this={logoEl} class="flex items-center justify-center overflow-visible z-30">
-    <div class="w-full max-w-[420px] max-sm:max-w-[280px]">
-      <Logo shape="circle" />
-    </div>
+    <img src="{LOGO.basePath}/circle_dark_ru.svg" alt="" class="w-full max-w-[420px] h-auto max-sm:max-w-[280px]" />
   </div>
 </section>

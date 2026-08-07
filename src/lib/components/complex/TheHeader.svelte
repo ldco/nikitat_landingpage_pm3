@@ -88,7 +88,7 @@
       <!-- Actions: desktop only — contact icons + theme + lang -->
       <div class="hidden lg:flex items-center gap-[var(--header-column-gap)]">
         <HeaderContact mode="contacts" size={18} />
-        <HeaderActions showContact={true} langDirection="down" />
+        <HeaderActions langDirection="down" />
       </div>
 
       <!-- Mobile header contact icons -->
