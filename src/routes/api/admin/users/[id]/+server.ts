@@ -3,19 +3,11 @@ import { error, json } from '@sveltejs/kit'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
+import { getUserById } from '$lib/server/services'
 import { requireAdmin, requireMaster } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
 import { getClientIp } from '$lib/server/security/rateLimit'
 import { audit } from '$lib/server/audit'
-
-const USERS_SELECT = {
-  id: schema.users.id,
-  email: schema.users.email,
-  name: schema.users.name,
-  role: schema.users.role,
-  createdAt: schema.users.createdAt,
-  updatedAt: schema.users.updatedAt
-}
 
 const updateUserSchema = z.object({
   email: z.string().email().optional(),
@@ -25,9 +17,8 @@ const updateUserSchema = z.object({
 
 export function GET(event: RequestEvent) {
   requireAdmin(event)
-  const db = useDatabase()
   const id = Number(event.params.id)
-  const user = db.select(USERS_SELECT).from(schema.users).where(eq(schema.users.id, id)).get()
+  const user = getUserById(id)
   if (!user) error(404)
   return json(jsonSuccess(user))
 }
@@ -41,7 +32,7 @@ export async function PUT(event: RequestEvent) {
   const parsed = updateUserSchema.safeParse(body)
   if (!parsed.success) error(400, parsed.error.issues.map(e => e.message).join(', '))
   const db = useDatabase()
-  const existing = db.select(USERS_SELECT).from(schema.users).where(eq(schema.users.id, id)).get()
+  const existing = getUserById(id)
   if (!existing) error(404)
   if (existing.role === 'master' && actor.role !== 'master') error(403)
   const result = db.update(schema.users).set(parsed.data).where(eq(schema.users.id, id)).returning().get()
@@ -57,7 +48,7 @@ export async function DELETE(event: RequestEvent) {
   const id = Number(event.params.id)
   if (id === actor.id) error(400)
   const db = useDatabase()
-  const existing = db.select(USERS_SELECT).from(schema.users).where(eq(schema.users.id, id)).get()
+  const existing = getUserById(id)
   if (!existing) error(404)
   db.delete(schema.users).where(eq(schema.users.id, id)).run()
   const ip = getClientIp(event.request)

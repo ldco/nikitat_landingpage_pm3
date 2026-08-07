@@ -1,7 +1,6 @@
 import type { RequestEvent } from '@sveltejs/kit'
 import { jsonSuccess } from '$lib/server/utils/api'
-import { useDatabase, schema } from '$lib/server/db'
-import { eq } from 'drizzle-orm'
+import { getPublishedFaqItems } from '$lib/server/services/faq'
 import { z } from 'zod'
 
 const querySchema = z.object({})
@@ -17,14 +16,7 @@ export function GET(event: RequestEvent) {
       headers: { 'content-type': 'application/json' }
     })
   }
-  const db = useDatabase()
-  const items = db.select()
-    .from(schema.faqItems)
-    .where(eq(schema.faqItems.published, true))
-    .orderBy(schema.faqItems.order)
-    .all()
-
-  return new Response(JSON.stringify(jsonSuccess(items)), {
+  return new Response(JSON.stringify(jsonSuccess(getPublishedFaqItems())), {
     headers: { 'content-type': 'application/json' }
   })
 }

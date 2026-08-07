@@ -1,7 +1,7 @@
 import type { RequestEvent } from '@sveltejs/kit'
 import { error, json } from '@sveltejs/kit'
 import { z } from 'zod'
-import { useDatabase, schema } from '$lib/server/db'
+import { createSubmission } from '$lib/server/services/contact'
 import { contactRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
 import { logger } from '$lib/server/utils/logger'
 import { FEATURES } from '$lib/config/site'
@@ -38,15 +38,7 @@ export async function POST(event: RequestEvent) {
     error(400)
   }
 
-  const db = useDatabase()
-  const inserted = db.insert(schema.contactSubmissions).values({
-    name,
-    email,
-    phone: phone || null,
-    subject: subject || null,
-    message,
-    consent: true
-  }).returning({ id: schema.contactSubmissions.id, createdAt: schema.contactSubmissions.createdAt }).get()
+  const inserted = createSubmission({ name, email, message, consent, phone, subject })
 
   logger.info({ email, subject }, 'Contact form submission received')
 

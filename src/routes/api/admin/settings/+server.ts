@@ -1,8 +1,7 @@
 import type { RequestEvent } from '@sveltejs/kit'
 import { error, json } from '@sveltejs/kit'
-import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { useDatabase, schema } from '$lib/server/db'
+import { getAllSettings, setSetting } from '$lib/server/services'
 import { requireAdmin } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
 import { getClientIp } from '$lib/server/security/rateLimit'
@@ -12,8 +11,7 @@ const updateSettingsSchema = z.record(z.string(), z.string().nullable())
 
 export function GET(event: RequestEvent) {
   requireAdmin(event)
-  const db = useDatabase()
-  const all = db.select().from(schema.settings).all()
+  const all = getAllSettings()
   return json(jsonSuccess(all))
 }
 
@@ -23,14 +21,17 @@ export async function PUT(event: RequestEvent) {
   if (!body) throw error(400)
   const parsed = updateSettingsSchema.safeParse(body)
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
-  const db = useDatabase()
   const updatedKeys: string[] = []
   const createdKeys: string[] = []
+  const byKey = new Map(getAllSettings().map(s => [s.key, s]))
   for (const [key, value] of Object.entries(parsed.data)) {
-    const existing = db.select().from(schema.settings).where(eq(schema.settings.key, key)).get()
+    const existing = byKey.get(key)
     if (existing) {
-      db.update(schema.settings).set({ value: value ?? '', updatedAt: new Date() }).where(eq(schema.settings.key, key)).run()
+      setSetting(key, value ?? '', existing.type, existing.group ?? 'general')
       updatedKeys.push(key)
+    } else {
+      setSetting(key, value ?? '')
+      createdKeys.push(key)
     }
   }
   const ip = getClientIp(event.request)

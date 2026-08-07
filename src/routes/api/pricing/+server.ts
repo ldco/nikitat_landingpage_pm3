@@ -1,7 +1,6 @@
 import type { RequestEvent } from '@sveltejs/kit'
 import { jsonSuccess } from '$lib/server/utils/api'
-import { useDatabase, schema } from '$lib/server/db'
-import { eq } from 'drizzle-orm'
+import { getPublishedTiers } from '$lib/server/services/pricing'
 import { z } from 'zod'
 
 const querySchema = z.object({})
@@ -17,14 +16,7 @@ export function GET(event: RequestEvent) {
       headers: { 'content-type': 'application/json' }
     })
   }
-  const db = useDatabase()
-  const tiers = db.select()
-    .from(schema.pricingTiers)
-    .where(eq(schema.pricingTiers.published, true))
-    .orderBy(schema.pricingTiers.order)
-    .all()
-
-  return new Response(JSON.stringify(jsonSuccess(tiers)), {
+  return new Response(JSON.stringify(jsonSuccess(getPublishedTiers())), {
     headers: { 'content-type': 'application/json' }
   })
 }

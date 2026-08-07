@@ -1,0 +1,74 @@
+/**
+ * Contact Service — Typed queries for contact submissions
+ *
+ * Owns the shared contact queries used by the public submit route,
+ * the admin contacts pages, and the admin layout unread badge.
+ */
+import { useDatabase, schema } from '$lib/server/db'
+import { eq, desc } from 'drizzle-orm'
+
+export interface ContactSubmissionInput {
+  name: string
+  email: string
+  message: string
+  consent: boolean
+  phone?: string
+  subject?: string
+}
+
+/** Insert a new contact submission (public form). */
+export function createSubmission(input: ContactSubmissionInput) {
+  const db = useDatabase()
+  const result = db.insert(schema.contactSubmissions).values({
+    name: input.name,
+    email: input.email,
+    message: input.message,
+    consent: input.consent,
+    phone: input.phone ?? null,
+    subject: input.subject ?? null,
+    createdAt: new Date()
+  }).returning({ id: schema.contactSubmissions.id, createdAt: schema.contactSubmissions.createdAt }).get()
+  return result
+}
+
+/** Admin list: paginated submissions. */
+export function getSubmissions(page: number, pageSize: number, offset: number) {
+  const db = useDatabase()
+  const all = db.select()
+    .from(schema.contactSubmissions)
+    .orderBy(desc(schema.contactSubmissions.createdAt))
+    .limit(pageSize)
+    .offset(offset)
+    .all()
+  const total = db.select({ id: schema.contactSubmissions.id }).from(schema.contactSubmissions).all().length
+  return { items: all, total }
+}
+
+/** Unread count for the admin layout badge. */
+export function getUnreadCount(): number {
+  const db = useDatabase()
+  const row = db.select({ id: schema.contactSubmissions.id })
+    .from(schema.contactSubmissions)
+    .where(eq(schema.contactSubmissions.read, false))
+    .all()
+  return row.length
+}
+
+/** Mark a submission as read. */
+export function markAsRead(id: number): boolean {
+  const db = useDatabase()
+  const result = db.update(schema.contactSubmissions)
+    .set({ read: true })
+    .where(eq(schema.contactSubmissions.id, id))
+    .run()
+  return result.changes > 0
+}
+
+/** Delete a submission. */
+export function deleteSubmission(id: number): boolean {
+  const db = useDatabase()
+  const result = db.delete(schema.contactSubmissions)
+    .where(eq(schema.contactSubmissions.id, id))
+    .run()
+  return result.changes > 0
+}

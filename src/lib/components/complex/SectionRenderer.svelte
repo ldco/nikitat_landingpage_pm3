@@ -6,8 +6,11 @@
    * component registered in SECTION_REGISTRY (framework + project sections).
    * Project sections extend the framework catalog — no framework edits needed.
    *
+   * Content is typed via SectionContent — the boundary contract from
+   * +page.server.ts. Sections receive typed props; no `unknown` casts.
+   *
    * @props sectionId?: string — section id from HOMEPAGE_SECTIONS
-   * @props content?: Record<string, unknown> — content from +page.server.ts
+   * @props content?: SectionContent — typed content from +page.server.ts
    * @props class?: string — merged Tailwind classes
    * @example <SectionRenderer sectionId="about" content={data.sectionContent} />
    */
@@ -16,6 +19,7 @@
   import { t } from '$lib/stores/content.svelte'
   import { HOMEPAGE_SECTIONS } from '$lib/config/site'
   import { SECTION_REGISTRY } from '../sections/registry'
+  import type { SectionContent } from '../sections/types'
 
   const REG = SECTION_REGISTRY
 
@@ -25,21 +29,17 @@
     class: className = ''
   }: {
     sectionId?: string
-    content?: Record<string, unknown>
+    content?: SectionContent
     class?: string
   } = $props()
-
-  interface BlogPost { slug: string; title: string; excerpt?: string; coverImageUrl?: string; publishedAt?: string }
-  interface PortfolioItem { id: number; slug: string; name: string; type: string; coverImageUrl?: string }
-  interface PricingTier { id: string; name: string; description?: string; price: number | null; currency?: string; period?: string }
-  interface FaqItem { id: number; question: string; answer: string }
-  interface FeatureItem { title: string; description: string; icon?: string }
 
   const section = $derived(
     sectionId ? HOMEPAGE_SECTIONS.find(s => s.id === sectionId && s.enabled) : null
   )
 
-  const sectionData = $derived(content ?? {})
+  const sectionData = $derived<SectionContent>(content ?? {
+    blog: [], portfolioItems: [], pricing: [], faq: [], features: [], locale: ''
+  })
 </script>
 
 {#if section}
@@ -51,17 +51,17 @@
     {:else if section.component === 'SectionF22'}
       <REG.SectionF22 />
     {:else if section.component === 'SectionPortfolio'}
-      <REG.SectionPortfolio items={(sectionData.portfolioItems ?? []) as PortfolioItem[]} />
+      <REG.SectionPortfolio items={sectionData.portfolioItems} />
     {:else if section.component === 'SectionContact'}
       <REG.SectionContact />
     {:else if section.component === 'SectionBlog'}
-      <REG.SectionBlog posts={(sectionData.blog ?? []) as BlogPost[]} />
+      <REG.SectionBlog posts={sectionData.blog} />
     {:else if section.component === 'SectionFeatures'}
-      <REG.SectionFeatures features={(sectionData.features ?? []) as FeatureItem[]} />
+      <REG.SectionFeatures features={sectionData.features} />
     {:else if section.component === 'SectionFaq'}
-      <REG.SectionFaq items={(sectionData.faq ?? []) as FaqItem[]} />
+      <REG.SectionFaq items={sectionData.faq} />
     {:else if section.component === 'SectionPricing'}
-      <REG.SectionPricing tiers={(sectionData.pricing ?? []) as PricingTier[]} />
+      <REG.SectionPricing tiers={sectionData.pricing} />
     {:else if section.component === 'SectionTeam'}
       <REG.SectionTeam />
     {:else if section.component === 'SectionTestimonials'}

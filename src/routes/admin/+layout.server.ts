@@ -2,8 +2,7 @@ import type { RequestEvent } from '@sveltejs/kit'
 import type { LayoutServerLoad } from './$types'
 import { redirect } from '@sveltejs/kit'
 import { getAdminTranslations } from '$lib/server/db/translations-cache'
-import { useDatabase } from '$lib/server/db'
-import { sql } from 'drizzle-orm'
+import { getUnreadCount } from '$lib/server/services/contact'
 import { LOCALES, DEFAULT_LOCALE } from '$lib/config/site'
 
 const LAYOUT_KEYS = [
@@ -27,6 +26,21 @@ const LAYOUT_KEYS = [
 ]
 
 const EXTRA_KEYS = ['validation.required', 'common.error']
+
+// Unread count cache — 10s TTL so the admin layout doesn't run a COUNT
+// query on every page navigation.
+let _unreadCache: { count: number; at: number } | null = null
+const UNREAD_TTL_MS = 10_000
+
+function getCachedUnreadCount(): number {
+  const now = Date.now()
+  if (_unreadCache && now - _unreadCache.at < UNREAD_TTL_MS) {
+    return _unreadCache.count
+  }
+  const count = getUnreadCount()
+  _unreadCache = { count, at: now }
+  return count
+}
 
 function detectLocale(event: RequestEvent): string {
   const cookie = event.cookies.get('paraglide-locale')
@@ -55,10 +69,5 @@ export const load: LayoutServerLoad = (event) => {
     if (all[key]) t[key] = all[key]
   }
 
-  // Count unread contacts — replaces client-side polling in layout
-  const db = useDatabase()
-  const row = db.get<{ count: number }>(sql`SELECT COUNT(*) as count FROM contact_submissions WHERE is_read = 0`)
-  const unreadCount = row?.count ?? 0
-
-  return { user: event.locals.user, t, unreadCount }
+  return { user: event.locals.user, t, unreadCount: getCachedUnreadCount() }
 }

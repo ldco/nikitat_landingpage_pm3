@@ -17,13 +17,14 @@
   import SectionHero from '$lib/components/sections/SectionHero.svelte'
   import SectionRenderer from '$lib/components/complex/SectionRenderer.svelte'
   import type { HomepageSection } from '$lib/config/site'
+  import type { SectionContent } from '../sections/types'
 
   let {
     sections,
     content
   }: {
     sections: HomepageSection[]
-    content?: Record<string, unknown>
+    content?: SectionContent
   } = $props()
 </script>
 

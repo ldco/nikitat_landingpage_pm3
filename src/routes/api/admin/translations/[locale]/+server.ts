@@ -1,9 +1,8 @@
 import { LOCALE_STRINGS } from '$lib/config/site'
 import type { RequestEvent } from '@sveltejs/kit'
 import { error, json } from '@sveltejs/kit'
-import { eq, and } from 'drizzle-orm'
 import { z } from 'zod'
-import { useDatabase, schema } from '$lib/server/db'
+import { getRawContentTranslations, setTranslation } from '$lib/server/services'
 import { requireAdmin } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
 import { invalidateContentCache } from '$lib/server/db/content-cache'
@@ -19,18 +18,14 @@ export async function PUT(event: RequestEvent) {
   if (!body) throw error(400)
   const parsed = updateSchema.safeParse(body)
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
-  const db = useDatabase()
+  // Store the raw value. Sanitization happens once, at the read boundary
+  // (content-cache → sanitizeContentMap), so the admin editor round-trip
+  // shows what was typed and the DB never holds double-escaped HTML.
+  const existingKeys = getRawContentTranslations(locale)
   let count = 0
   for (const [key, value] of Object.entries(parsed.data)) {
-    // Store the raw value. Sanitization happens once, at the read boundary
-    // (content-cache → sanitizeContentMap), so the admin editor round-trip
-    // shows what was typed and the DB never holds double-escaped HTML.
-    const existing = db.select().from(schema.translations)
-      .where(and(eq(schema.translations.locale, locale), eq(schema.translations.key, key)))
-      .get()
-    if (existing) {
-      db.update(schema.translations).set({ value, updatedAt: new Date() })
-        .where(eq(schema.translations.id, existing.id)).run()
+    if (key in existingKeys) {
+      setTranslation(locale, key, value)
       count++
     }
   }
