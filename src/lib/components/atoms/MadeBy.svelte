@@ -31,12 +31,12 @@
   const _dl = LOCALES[0] ?? 'ru'
   const lang = $derived($page.url.pathname === '/' ? _dl : $page.url.pathname.slice(1, 3))
 
-  const logoConfig: MadeByLogoConfig = {
+  const logoConfig = $derived<MadeByLogoConfig>({
     basePath,
     available: FOOTER_MADE_BY.available,
     langFallback: FOOTER_MADE_BY.langFallback,
     defaultLang: LOCALES[0] ?? ''
-  }
+  })
   const logoSrc = $derived(madeByLogoSrc(logoConfig, lang, invertedTheme))
 
   const base = 'inline-flex items-center gap-2 text-sm text-pm-text-muted'

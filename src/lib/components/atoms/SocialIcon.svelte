@@ -26,7 +26,7 @@
   let { platform, url, size = 20, class: className = '' }: Props = $props()
 
   const base = 'inline-flex items-center justify-center transition-opacity hover:opacity-80'
-  const key = platform.toLowerCase()
+  const key = $derived(platform.toLowerCase())
 
   const ICONS: Record<string, typeof BrandTelegram> = {
     telegram: BrandTelegram,

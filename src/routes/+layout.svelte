@@ -35,9 +35,13 @@ if (browser) {
   let { data, children }: { data: LayoutData; children?: import('svelte').Snippet } = $props()
   const isOnepager = $derived(FEATURES.onepager)
   
-  // Initialize theme + content translations (sync during setup, NOT in $effect)
+  // Initialize theme (sync during setup, no reactive data)
   initTheme()
-  initContent(data.contentTranslations ?? {}); // initial render
+  // Content translations: $effect.pre so it reactively updates on client-side
+  // navigation (locale changes) without causing a flash
+  $effect.pre(() => {
+    initContent(data.contentTranslations ?? {})
+  })
   const transitionType = $derived(!isOnepager ? FEATURES.pageTransitions : '')
   const isVerticalNav = $derived(FEATURES.verticalNav)
 </script>
