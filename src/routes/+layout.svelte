@@ -39,9 +39,11 @@ if (browser) {
   initTheme()
   // Content translations: call synchronously during setup (SSR needs this)
   // and in $effect for client-side navigation updates (locale changes)
+  // SSR needs sync init; $effect for client nav. data captured at init is intentional.
   initContent(data.contentTranslations ?? {})
   $effect(() => {
-    initContent(data.contentTranslations ?? {})
+    // SSR needs sync init; $effect for client nav. data captured at init is intentional.
+  initContent(data.contentTranslations ?? {})
   })
   const transitionType = $derived(!isOnepager ? FEATURES.pageTransitions : '')
   const isVerticalNav = $derived(FEATURES.verticalNav)
