@@ -65,7 +65,7 @@
 
   <!-- Text content inside container -->
   <div class="max-w-container mx-auto px-container">
-    <h1 class="text-[var(--heading-1)] font-black text-pm-text leading-[var(--leading-tight)] mb-[var(--space-12)]
+    <h1 class="text-[var(--text-fluid-hero)] font-black text-pm-text leading-[var(--leading-tight)] mb-[var(--space-12)]
               max-sm:text-[var(--hero-title-mobile)]
               {locale.startsWith('ru') ? 'max-sm:text-[var(--hero-title-mobile-ru)]' : ''}">
       {#each segments as segment}
