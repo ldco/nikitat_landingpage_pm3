@@ -9,7 +9,7 @@ export type SettingType = 'string' | 'number' | 'boolean' | 'json'
 
 export const DEFAULT_SETTINGS: Array<{ key: string; value: string; type: SettingType; group: string }> = [
   // ── Contact ──────────────────────────────────────────────────────────────
-  { key: 'contact.email', value: 'hello@example.com', type: 'string', group: 'contact' },
+  { key: 'contact.email', value: 'ldcodesign@yandex.ru', type: 'string', group: 'contact' },
   { key: 'contact.phone', value: '', type: 'string', group: 'contact' },
   { key: 'contact.location', value: '', type: 'string', group: 'location' },
   { key: 'contact.workingHours', value: '', type: 'string', group: 'location' },

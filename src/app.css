@@ -4,7 +4,7 @@
 /* ── Self-hosted fonts (npm @fontsource packages) ──────────────────────────── */
 @import "@fontsource-variable/inter";
 @import "@fontsource-variable/heebo";
-@import "@fontsource/geologica";
+@import "@fontsource-variable/geologica";
 @import "@fontsource/jetbrains-mono";
 
 /* ── Class-based dark mode (controlled by theme.svelte.ts) ─────────────────── */
