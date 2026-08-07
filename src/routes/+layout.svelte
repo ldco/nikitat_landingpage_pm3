@@ -35,11 +35,12 @@ if (browser) {
   let { data, children }: { data: LayoutData; children?: import('svelte').Snippet } = $props()
   const isOnepager = $derived(FEATURES.onepager)
   
-  // Initialize theme (sync during setup, no reactive data)
+  // Initialize theme
   initTheme()
-  // Content translations: $effect.pre so it reactively updates on client-side
-  // navigation (locale changes) without causing a flash
-  $effect.pre(() => {
+  // Content translations: call synchronously during setup (SSR needs this)
+  // and in $effect for client-side navigation updates (locale changes)
+  initContent(data.contentTranslations ?? {})
+  $effect(() => {
     initContent(data.contentTranslations ?? {})
   })
   const transitionType = $derived(!isOnepager ? FEATURES.pageTransitions : '')
