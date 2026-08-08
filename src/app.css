@@ -416,9 +416,12 @@
     text-wrap: balance;
   }
 
-  h1, h2, h3, h4 {
-    font-family: var(--font-display);
-    font-weight: var(--font-weight-black);
+  /* @layer base ensures this beats Tailwind preflight's font-weight:inherit */
+  @layer base {
+    h1, h2, h3, h4 {
+      font-family: var(--font-display);
+      font-weight: var(--font-weight-black);
+    }
   }
 
   h1 { font-size: var(--heading-1); }

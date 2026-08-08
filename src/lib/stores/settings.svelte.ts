@@ -66,6 +66,14 @@ export function getSettings() {
     }
   }
 
+  /** Initialize with preloaded server-side data (SSR). */
+  function init(data: Record<string, string | null>) {
+    if (!_loaded) {
+      _settings = groupByPrefix(data)
+      _loaded = true
+    }
+  }
+
   /** Force re-fetch (e.g. after admin update) */
   async function refresh() {
     _loaded = false
@@ -90,6 +98,7 @@ export function getSettings() {
     get error() { return _error },
     load,
     refresh,
+    init,
     get,
 
     // Convenience helpers (PM v2 parity)
@@ -109,10 +118,12 @@ export function getSettings() {
 /** Module-level singleton for client-side use (load once). */
 let _instance: ReturnType<typeof getSettings> | null = null
 
-export function useSettings() {
+export function useSettings(initialData?: Record<string, string | null>) {
   if (!_instance) {
     _instance = getSettings()
-    if (browser) {
+    if (initialData) {
+      _instance.init(initialData)
+    } else if (browser) {
       _instance.load()
     }
   }

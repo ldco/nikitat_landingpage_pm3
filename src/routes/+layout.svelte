@@ -8,6 +8,7 @@
   import { fade, slide, scale, fly } from 'svelte/transition'
   import { FEATURES } from '$lib/config/site'
   import { initTheme } from '$lib/stores/theme.svelte'
+import { useSettings } from '$lib/stores/settings.svelte'
   import { initContent } from '$lib/stores/content.svelte'
   import { scrollSpy } from '$lib/actions/scrollSpy'
   import TheHeader from '$lib/components/complex/TheHeader.svelte'
@@ -41,6 +42,7 @@ if (browser) {
   // and in $effect for client-side navigation updates (locale changes)
   // SSR needs sync init; $effect for client nav. data captured at init is intentional.
   initContent(data.contentTranslations ?? {})
+  useSettings(data.publicSettings as Record<string, string | null> ?? {})
   $effect(() => {
     // SSR needs sync init; $effect for client nav. data captured at init is intentional.
   initContent(data.contentTranslations ?? {})
