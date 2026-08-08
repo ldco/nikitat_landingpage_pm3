@@ -50,7 +50,7 @@
   {/if}
 
   <div class="max-w-container mx-auto px-container">
-    <h1 class="text-fluid-hero font-black text-pm-text leading-[var(--hero-leading)] mb-[var(--space-5)] max-sm:text-hero-sm {locale.startsWith('ru') ? 'max-sm:text-hero-sm-ru' : ''}">
+    <h1 class="text-fluid-hero font-black text-pm-text leading-[var(--hero-leading)] mb-[var(--space-5)] space-y-[var(--hero-title-line-gap)] max-sm:text-hero-sm {locale.startsWith('ru') ? 'max-sm:text-hero-sm-ru' : ''}">
       {#each segments as segment}
         <span class="block w-fit" class:text-pm-brand={segment.brand}>
           {segment.text}
@@ -58,15 +58,15 @@
       {/each}
     </h1>
     {#if subtitle}
-      <p class="text-base font-light text-pm-text-secondary leading-relaxed max-w-[600px] mb-[var(--space-10)]">
+      <p class="text-[var(--text-base)] font-normal text-pm-text-secondary leading-[1.6] max-w-[34rem] mb-[var(--space-8)]">
         <span>{subtitle}</span>
       </p>
     {/if}
-    <div class="flex flex-wrap gap-[var(--gap-lg)] max-sm:w-full">
-      <a href={primaryHref} class="inline-flex items-center justify-center rounded-lg font-semibold text-[15px] h-[52px] px-[26px] gap-2 bg-pm-brand text-pm-white hover:bg-pm-brand-light active:bg-pm-brand-dark transition-colors duration-150 max-sm:w-full">
+    <div class="flex flex-wrap gap-[var(--gap-md)] max-sm:w-full">
+      <a href={primaryHref} class="inline-flex items-center justify-center rounded-md font-normal text-[var(--text-lg)] px-[var(--space-6)] py-[var(--space-3)] gap-[var(--gap-xs)] bg-pm-brand text-pm-white hover:bg-pm-brand-light active:bg-pm-brand-dark transition-colors duration-150 max-sm:w-full">
         <span>{primaryCta}</span>
       </a>
-      <a href={secondaryHref} class="inline-flex items-center justify-center rounded-lg font-semibold text-[15px] h-[52px] px-[26px] gap-2 border-2 border-pm-brand text-pm-text bg-transparent hover:bg-pm-brand hover:text-pm-white active:bg-pm-brand-dark active:text-pm-white transition-colors duration-150 max-sm:w-full">
+      <a href={secondaryHref} class="inline-flex items-center justify-center rounded-md font-normal text-[var(--text-lg)] px-[var(--space-6)] py-[var(--space-3)] gap-[var(--gap-xs)] border border-pm-brand text-pm-text bg-transparent hover:bg-pm-brand hover:text-pm-white active:bg-pm-brand-dark active:text-pm-white transition-colors duration-150 max-sm:w-full">
         <span>{secondaryCta}</span>
       </a>
     </div>
