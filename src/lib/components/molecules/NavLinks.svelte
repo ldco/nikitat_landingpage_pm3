@@ -56,6 +56,7 @@
         activeId && item.href.endsWith(activeId) && activeClass
       ))}
       onclick={onClick}
+      aria-current={activeId && item.href.endsWith(activeId) ? 'true' : undefined}
     >
       {resolveLabel(item.label)}
     </a>

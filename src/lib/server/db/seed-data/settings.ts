@@ -26,7 +26,7 @@ export const DEFAULT_SETTINGS: Array<{ key: string; value: string; type: Setting
   { key: 'contact.headerQuickItems', value: 'contact.email,social.telegram', type: 'string', group: 'contact' },
 
   // ── Social — Messaging ───────────────────────────────────────────────────
-  { key: 'social.telegram', value: '', type: 'string', group: 'contact' },
+  { key: 'social.telegram', value: 'ldandco', type: 'string', group: 'contact' },
   { key: 'social.whatsapp', value: '', type: 'string', group: 'contact' },
   { key: 'social.viber', value: '', type: 'string', group: 'contact' },
   { key: 'social.discord', value: '', type: 'string', group: 'contact' },
