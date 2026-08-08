@@ -139,7 +139,7 @@
       {@const Icon = item.icon}
       <a
         href={item.url}
-        class="inline-flex items-center justify-center size-8 rounded-full bg-pm-brand text-pm-white hover:bg-pm-brand-light active:bg-pm-brand-dark transition-colors duration-150"
+        class="inline-flex items-center justify-center size-[2.125rem] rounded-full bg-pm-brand text-pm-white hover:bg-pm-brand-light active:bg-pm-brand-dark transition-colors duration-150"
         aria-label={item.key}
         target={isExternal(item.url) ? '_blank' : undefined}
         rel={isExternal(item.url) ? 'noopener noreferrer' : undefined}

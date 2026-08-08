@@ -85,8 +85,8 @@
       </nav>
 
       <!-- Actions: desktop only — contact icons + theme + lang -->
-      <div class="hidden lg:flex items-center gap-[var(--header-column-gap)]">
-        <HeaderContact mode="contacts" size={24} />
+      <div class="hidden lg:flex items-center gap-[var(--gap-xs)]">
+        <HeaderContact mode="contacts" size={16} />
         <HeaderActions langDirection="down" />
       </div>
 
