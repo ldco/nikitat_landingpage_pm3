@@ -49,7 +49,7 @@
     <HeroParallaxScene />
   {/if}
 
-  <div>
+  <div class="flex flex-col justify-center items-start w-full max-w-[var(--content-default)] mx-auto">
     <h1 class="text-fluid-hero font-black text-pm-text leading-[var(--hero-leading)] mb-[var(--space-5)] space-y-[var(--hero-title-line-gap)] max-sm:text-hero-sm {locale.startsWith('ru') ? 'max-sm:text-hero-sm-ru' : ''}">
       {#each segments as segment}
         <span class="block w-fit" class:text-pm-brand={segment.brand}>
