@@ -58,7 +58,7 @@
       {/each}
     </h1>
     {#if subtitle}
-      <p class="text-[var(--text-base)] font-normal text-pm-text-secondary leading-[1.6] max-w-[34rem] mb-[var(--space-8)]">
+      <p class="text-hero-subtitle font-normal text-pm-text-secondary leading-[1.6] max-w-[700px] mb-[var(--space-8)]">
         <span>{subtitle}</span>
       </p>
     {/if}

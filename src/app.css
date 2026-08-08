@@ -1726,3 +1726,7 @@
  * across builds. This explicit rule guarantees the layout.
  * ═══════════════════════════════════════════════════════════ */
 
+
+@utility text-hero-subtitle {
+  font-size: clamp(1.125rem, 2.5vw, 1.5rem);
+}
