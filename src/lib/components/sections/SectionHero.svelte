@@ -41,7 +41,7 @@
   'min-h-dvh gap-[var(--space-8)]',
   'pt-[calc(var(--h-header)+var(--space-8))] pb-[var(--space-16)]',
   'px-[max(var(--space-6),calc((100vw-var(--container-default))/2))]',
-  'bg-pm-bg scroll-mt-0',
+  'scroll-mt-0',
   'max-sm:min-h-svh max-sm:gap-[var(--space-2)] max-sm:px-[var(--space-2)]',
   className
 ))}>
