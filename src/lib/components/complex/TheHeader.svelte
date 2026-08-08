@@ -90,10 +90,6 @@
         <HeaderActions langDirection="down" />
       </div>
 
-      <!-- Mobile header contact icons -->
-      <div class="flex lg:hidden items-center gap-1">
-        <HeaderContact mode="contacts" size={24} />
-      </div>
     </div>
   </header>
 {/if}
