@@ -66,7 +66,7 @@
       className
     ))}>
     <div class={clsx(
-      'flex items-center h-[var(--h-header)] px-[var(--container-padding)]',
+      'flex items-center justify-between h-[var(--h-header)] px-[var(--container-padding)]',
       !isFullWidth && 'max-w-[var(--max-w-container)] mx-auto'
     )}>
       <!-- Hamburger: mobile only -->
@@ -80,7 +80,7 @@
       </a>
 
       <!-- Nav: desktop only -->
-      <nav class="hidden lg:flex flex-1 justify-center">
+      <nav class="hidden lg:flex">
         <NavLinks activeId={activeSection} />
       </nav>
 

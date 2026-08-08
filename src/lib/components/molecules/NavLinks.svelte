@@ -33,7 +33,7 @@
 
   // Original PM2: font-normal (400), text-base (1.25rem), px-2 padding
   const linkBase =
-    'font-normal text-base tracking-normal px-2 py-1 whitespace-nowrap border-b border-transparent ' +
+    'font-normal text-base tracking-normal px-3 py-2 whitespace-nowrap rounded-sm border-b border-transparent hover:bg-pm-brand-subtle ' +
     'text-pm-text-secondary hover:text-pm-text ' +
     'transition-colors duration-150'
 
@@ -45,7 +45,7 @@
 <nav class={twMerge(clsx(
   base,
   vertical && verticalClass,
-  vertical ? 'gap-1' : 'gap-[var(--header-column-gap)]',
+  vertical ? 'gap-1' : 'gap-[var(--gap-xs)]',
   className
 ))}>
   {#each NAV_ITEMS as item}
