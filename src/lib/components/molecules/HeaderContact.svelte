@@ -67,7 +67,20 @@
     'brand-youtube': BrandYoutube,
     'brand-linkedin': BrandLinkedin,
     'brand-github': BrandGithub,
-    'arrow-right': IconArrowRight
+    'arrow-right': IconArrowRight,
+
+    telegram: BrandTelegram,
+    whatsapp: BrandWhatsapp,
+    viber: IconMessageCircle,
+    discord: BrandDiscord,
+    instagram: BrandInstagram,
+    facebook: BrandFacebook,
+    x: BrandX,
+    tiktok: BrandTiktok,
+    vk: BrandVk,
+    youtube: BrandYoutube,
+    linkedin: BrandLinkedin,
+    github: BrandGithub,
   }
 
   const CTA_KEY = 'footer.ctaUrl'
