@@ -80,7 +80,7 @@
       </a>
 
       <!-- Nav: desktop only -->
-      <nav class="hidden lg:flex">
+      <nav class="hidden lg:flex flex-1 justify-center">
         <NavLinks activeId={activeSection} />
       </nav>
 
