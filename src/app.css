@@ -424,7 +424,7 @@
     }
   }
 
-  h1 { font-size: var(--heading-1); }
+  /* h1 font-size handled by utility classes (text-[var(--heading-1)] or text-[var(--text-fluid-hero)]) */
   h2 { font-size: var(--heading-2); }
   h3 { font-size: var(--heading-3); }
   h4 { font-size: var(--heading-4); }

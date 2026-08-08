@@ -1,17 +1,4 @@
 <script lang="ts">
-  /**
-   * SectionHero — Original PM2 hero: grid 1fr 1fr, container, hero-logo.
-   *
-   * Structure matches original:
-   * <section class="section-hero">
-   *   <div class="max-w-container mx-auto px-container"> (text content)
-   *     <h1 class="hero-title"><span class="hero-title__line">...</span></h1>
-   *     <p class="hero-subtitle"><span>...</span></p>
-   *     <div class="hero-actions">...</div>
-   *   </div>
-   *   <div class="hero-logo"><img width="420" height="420"></div>
-   * </section>
-   */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { t } from '$lib/stores/content.svelte'
@@ -49,7 +36,6 @@
   })
 </script>
 
-<!-- Original PM2 hero: grid 1fr 1fr, contained by padding-inline calc, header-offset -->
 <section id="hero" class={twMerge(clsx(
   'relative grid grid-cols-1 md:grid-cols-2 items-center',
   'min-h-dvh gap-[var(--space-8)]',
@@ -63,9 +49,8 @@
     <HeroParallaxScene />
   {/if}
 
-  <!-- Text content inside container -->
   <div class="max-w-container mx-auto px-container">
-    <h1 class="text-[var(--text-fluid-hero)] font-black text-pm-text mb-[var(--space-12)]
+    <h1 class="text-fluid-hero font-black text-pm-text mb-[var(--space-12)]
               max-sm:text-[var(--hero-title-mobile)]
               {locale.startsWith('ru') ? 'max-sm:text-[var(--hero-title-mobile-ru)]' : ''}">
       {#each segments as segment}
@@ -89,7 +74,6 @@
     </div>
   </div>
 
-  <!-- Hero logo: circle shape renders at full container width -->
   <div bind:this={logoEl} class="flex items-center justify-center overflow-visible z-30">
     <div class="w-full max-w-[var(--hero-logo-max-w)] max-sm:max-w-[var(--hero-logo-max-w-mobile)]">
       <Logo shape="circle" />
