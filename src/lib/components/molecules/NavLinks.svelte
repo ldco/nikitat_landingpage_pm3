@@ -33,11 +33,11 @@
 
   // Original PM2: font-normal (400), text-base (1.25rem), px-2 padding
   const linkBase =
-    'font-normal text-base tracking-normal px-2 py-1 ' +
+    'font-normal text-base tracking-normal px-2 py-1 whitespace-nowrap border-b border-transparent ' +
     'text-pm-text-secondary hover:text-pm-text ' +
     'transition-colors duration-150'
 
-  const activeClass = 'text-pm-brand'
+  const activeClass = 'text-pm-brand border-pm-brand'
 
   function resolveLabel(key: string): string { return t(key) }
 </script>
