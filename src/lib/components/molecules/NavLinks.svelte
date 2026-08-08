@@ -33,7 +33,7 @@
 
   // Original PM2: font-normal (400), text-base (1.25rem), px-2 padding
   const linkBase =
-    'font-normal text-[var(--text-base)] tracking-normal px-2 py-1 ' +
+    'font-normal text-base tracking-normal px-2 py-1 ' +
     'text-pm-text-secondary hover:text-pm-text ' +
     'transition-colors duration-150'
 

@@ -50,9 +50,7 @@
   {/if}
 
   <div class="max-w-container mx-auto px-container">
-    <h1 class="text-fluid-hero font-black text-pm-text leading-[var(--hero-leading)] mb-[var(--space-5)]
-              max-sm:text-[var(--hero-title-mobile)]
-              {locale.startsWith('ru') ? 'max-sm:text-[var(--hero-title-mobile-ru)]' : ''}">
+    <h1 class="text-fluid-hero font-black text-pm-text leading-[var(--hero-leading)] mb-[var(--space-5)] max-sm:text-hero-sm {locale.startsWith('ru') ? 'max-sm:text-hero-sm-ru' : ''}">
       {#each segments as segment}
         <span class="block w-fit" class:text-pm-brand={segment.brand}>
           {segment.text}
@@ -60,7 +58,7 @@
       {/each}
     </h1>
     {#if subtitle}
-      <p class="text-[var(--text-base)] font-light text-pm-text-secondary leading-[var(--leading-relaxed)] max-w-[600px] mb-[var(--space-10)]">
+      <p class="text-base font-light text-pm-text-secondary leading-relaxed max-w-[600px] mb-[var(--space-10)]">
         <span>{subtitle}</span>
       </p>
     {/if}

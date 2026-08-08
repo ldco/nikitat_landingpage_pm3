@@ -49,11 +49,11 @@
           <!-- Brand accent bar (PM2 .about-content__lead::before) -->
           <div class="w-12 h-[var(--about-accent-height)] bg-pm-brand rounded-full mb-[var(--space-4)]"></div>
           <!-- PM2 .section-body typography: font-size clamp(1.4-1.875), weight 400, color t-secondary -->
-          <p class="mb-[var(--space-5)] text-[var(--section-body-size)] font-normal text-pm-text-secondary leading-relaxed">
+          <p class="mb-[var(--space-5)] text-section-body font-normal text-pm-text-secondary leading-relaxed">
             {paragraph1}
           </p>
           {#if paragraph2}
-            <p class="text-[var(--section-body-size)] font-normal text-pm-text-secondary leading-relaxed">{paragraph2}</p>
+            <p class="text-section-body font-normal text-pm-text-secondary leading-relaxed">{paragraph2}</p>
           {/if}
         {:else}
           <p class="text-fluid-2xl text-pm-text-secondary leading-relaxed text-center">{t('common.note')}</p>

@@ -214,9 +214,9 @@
   --contact-form-max-w: 40rem;
   --hero-leading: 0.9;
   --hero-leading-mobile: 0.8;
-  --hero-title-mobile: clamp(1.75rem, 9.6vw, 2.55rem);
+  --text-hero-title-mobile: clamp(1.75rem, 9.6vw, 2.55rem);
   --section-heading: clamp(1.75rem, 4vw, 2.5rem);
-  --section-body-size: clamp(1.4rem, 3.2vw, 1.875rem);
+  --text-section-body: clamp(1.4rem, 3.2vw, 1.875rem);
   --hero-logo-max-w: min(420px, 42vw);
   --hero-logo-max-w-mobile: min(280px, 65vw);
   --focus-ring-width: 3px;
@@ -1109,6 +1109,18 @@
   line-height: var(--leading-tight);
   margin-block-end: var(--space-8);
 }
+
+
+@utility text-hero-sm {
+  font-size: var(--text-hero-title-mobile);
+}
+@utility text-hero-sm-ru {
+  font-size: var(--text-hero-title-mobile-ru);
+}
+@utility text-section-body {
+  font-size: var(--text-section-body);
+}
+
 
 @utility min-h-dvh {
   min-height: 100vh;

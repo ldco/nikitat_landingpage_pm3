@@ -100,7 +100,7 @@
   <SectionContent>
     <SectionHeading title={title} align="center" />
     {#if intro}
-      <p class="text-[var(--section-body-size)] text-pm-text-secondary text-center mb-[var(--space-6)] max-w-xl mx-auto">{intro}</p>
+      <p class="text-section-body text-pm-text-secondary text-center mb-[var(--space-6)] max-w-xl mx-auto">{intro}</p>
     {/if}
 
     <!-- PM2 .contact-grid: vertical stack, 640px centered column -->
