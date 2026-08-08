@@ -50,7 +50,7 @@
   {/if}
 
   <div class="max-w-container mx-auto px-container">
-    <h1 class="text-fluid-hero font-black text-pm-text mb-[var(--space-12)]
+    <h1 class="text-fluid-hero font-black text-pm-text leading-[var(--hero-leading)] mb-[var(--space-5)]
               max-sm:text-[var(--hero-title-mobile)]
               {locale.startsWith('ru') ? 'max-sm:text-[var(--hero-title-mobile-ru)]' : ''}">
       {#each segments as segment}
