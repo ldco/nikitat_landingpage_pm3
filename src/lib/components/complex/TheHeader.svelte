@@ -67,7 +67,6 @@
     ))}>
     <div class={clsx(
       'flex items-center h-[var(--h-header)] px-[var(--container-padding)]',
-      'gap-[var(--header-column-gap)]',
       !isFullWidth && 'max-w-[var(--max-w-container)] mx-auto'
     )}>
       <!-- Hamburger: mobile only -->
