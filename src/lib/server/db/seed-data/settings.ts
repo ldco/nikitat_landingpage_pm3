@@ -59,7 +59,7 @@ export const DEFAULT_SETTINGS: Array<{ key: string; value: string; type: Setting
   { key: 'legal.kpp', value: '', type: 'string', group: 'legal' },
   { key: 'legal.ogrn', value: '', type: 'string', group: 'legal' },
   { key: 'legal.address', value: '', type: 'string', group: 'legal' },
-  { key: 'legal.email', value: 'hello@example.com', type: 'string', group: 'legal' },
+  { key: 'legal.email', value: 'ldcodesign@yandex.ru', type: 'string', group: 'legal' },
 
   // ── Footer ───────────────────────────────────────────────────────────────
   { key: 'footer.ctaUrl', value: '#contact', type: 'string', group: 'footer' },

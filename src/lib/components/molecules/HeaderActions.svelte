@@ -17,7 +17,7 @@
   import HeaderContact from '$lib/components/molecules/HeaderContact.svelte'
 
   let {
-    showContact = true,
+    showContact = false,
     langDirection = 'down',
     class: className = ''
   }: {
