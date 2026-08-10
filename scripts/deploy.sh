@@ -284,6 +284,7 @@ normalize_settings_encryption_key
 # requiring it here catches misconfiguration BEFORE the container crash-loops.
 validate_pm_totp_encryption_key || fail "TOTP_ENCRYPTION_KEY must be a real 64+ character hexadecimal secret before deploy (required when FEATURES.twoFactorAuth is enabled)."
 normalize_totp_encryption_key
+validate_admin_rotation_contract || fail "Admin password rotation is mandatory for production: PM_ADMIN_PASSWORD_ROTATION_ENABLED cannot be false and PM_ADMIN_MASTER_PASSWORD + PM_ADMIN_ADMIN_PASSWORD must be set (generate with: node scripts/rotate-admin-passwords.mjs --generate --write-env)."
 validate_deploy_database_url || fail "PM_DEPLOY_DATABASE_URL must be inside /app/data for deploy schema sync."
 validate_schema_mode || fail "Schema rollout mode is invalid. Use PM_DEPLOY_SCHEMA_MODE=compatible or PM_DEPLOY_SCHEMA_MODE=maintenance with PM_DEPLOY_MAINTENANCE_ACK=1."
 
@@ -308,6 +309,7 @@ DEPLOY_BUILD_BRANCH="${BUILD_BRANCH:-$(resolved_build_branch "$ROOT_DIR")}"
 DEPLOY_BUILD_COMMIT_MESSAGE="${BUILD_COMMIT_MESSAGE:-$(resolved_build_commit_message "$ROOT_DIR")}"
 validate_docker_deploy_contract || fail "Docker registry/image settings are invalid."
 node "$ROOT_DIR/scripts/generate-launch-assets.mjs"
+node "$ROOT_DIR/scripts/generate-favicons.mjs"
 node "$ROOT_DIR/scripts/check-launch-assets.mjs" || true
 if [[ "$DEPLOY_AUTH_MODE" == "ssh_key" ]]; then
   require_command "ssh" "sudo apt-get update && sudo apt-get install -y openssh-client"

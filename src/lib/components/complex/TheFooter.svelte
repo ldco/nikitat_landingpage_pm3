@@ -57,7 +57,10 @@
 
 <footer class={twMerge(clsx(
   'border-t border-pm-border',
-  'bg-pm-bg',
+  // Deliberate alternate shade: the public page uses ONE shared surface by
+  // default (sections render transparent over the body bg); the footer is the
+  // single intentional elevated surface that separates it from the page.
+  'bg-pm-bg-elevated',
   'backdrop-blur-glass',
   'py-8 md:py-8',
   className

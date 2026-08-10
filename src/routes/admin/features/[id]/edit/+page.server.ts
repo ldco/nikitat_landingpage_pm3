@@ -22,7 +22,7 @@ export const load: PageServerLoad = async (event) => {
 export const actions = {
   default: async (event: RequestEvent) => {
     requireAdminPage(event, 'features')
-    const form = await event.request.formData()
+    const form = event.locals.csrfForm ?? await event.request.formData()
     const parsed = updateSchema.safeParse({ slug: form.get('slug'), order: form.get('order') })
     if (!parsed.success) {
       return fail(400, { fieldErrors: parsed.error.flatten().fieldErrors })

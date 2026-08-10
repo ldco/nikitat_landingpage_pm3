@@ -2,7 +2,7 @@
   /**
    * Admin Login — Auth form with 2FA challenge support
    */
-  import * as m from '$lib/i18n'
+import { t } from '$lib/stores/content.svelte'
   import { FRAMEWORK } from '$lib/config/site'
   import { goto } from '$app/navigation'
   import Logo from '$lib/components/atoms/Logo.svelte'
@@ -29,12 +29,14 @@
       if (data.success && data.data?.requires2fa) {
         requires2fa = true
       } else if (data.success) {
-        goto('/admin')
+        // First-login hardening: bootstrap credentials are forced to change
+        // on the dedicated page before any admin surface is reachable.
+        goto(data.data?.mustChangePassword ? '/admin/change-password' : '/admin')
       } else {
-        error = m.common_error()
+        error = t('common.error')
       }
     } catch {
-      error = m.common_error()
+      error = t('common.error')
     } finally {
       loading = false
     }
@@ -56,26 +58,26 @@
       {:else}
         <form onsubmit={handleSubmit} class="space-y-4">
           <div>
-            <label for="email" class="block text-sm font-medium text-pm-text mb-1">{m.auth_email()}</label>
+            <label for="email" class="block text-sm font-medium text-pm-text mb-1">{t('auth.email')}</label>
             <input
               id="email"
               type="email"
               bind:value={email}
               required
               class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-pm-text text-sm focus:outline-none focus:ring-2 focus:ring-pm-focus-ring"
-              placeholder={m.auth_email()}
+              placeholder={t('auth.email')}
             />
           </div>
 
           <div>
-            <label for="password" class="block text-sm font-medium text-pm-text mb-1">{m.auth_password()}</label>
+            <label for="password" class="block text-sm font-medium text-pm-text mb-1">{t('auth.password')}</label>
             <input
               id="password"
               type="password"
               bind:value={password}
               required
               class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-pm-text text-sm focus:outline-none focus:ring-2 focus:ring-pm-focus-ring"
-              placeholder={m.auth_password()}
+              placeholder={t('auth.password')}
             />
           </div>
 
@@ -88,11 +90,11 @@
             disabled={loading}
             class="w-full py-2.5 px-4 rounded-md bg-pm-brand text-pm-white font-medium text-sm hover:bg-pm-brand-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? m.common_loading() + '...' : m.auth_login()}
+            {loading ? t('common.loading') + '...' : t('auth.login')}
           </button>
 
           <p class="text-xs text-center text-pm-text-muted mt-4">
-            {m.footer_madeBy()} — <a href={FRAMEWORK.url} target="_blank" rel="noopener noreferrer" class="hover:text-pm-brand transition-colors">{m.footer_madeBy()}</a>
+            {t('footer.madeBy')} — <a href={FRAMEWORK.url} target="_blank" rel="noopener noreferrer" class="hover:text-pm-brand transition-colors">{t('footer.madeBy')}</a>
           </p>
         </form>
       {/if}

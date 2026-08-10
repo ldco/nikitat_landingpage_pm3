@@ -6,6 +6,12 @@
    * Source: app-nuxt/app/composables/useCookieConsent.ts (163 lines)
    * Fixed bottom banner, cookie icon, accept/decline buttons
    *
+   * SSR-safety (audit): the banner NEVER renders during server rendering.
+   * Visibility depends on a KNOWN consent decision loaded from browser state
+   * (localStorage) after hydration — it must not default to the visible state
+   * just because localStorage is unavailable on the server (which made
+   * returning visitors briefly see the banner before hydration hid it).
+   *
    * On decline: clears ALL preference cookies (theme, locale, color-mode)
    * to ensure user's privacy preference is respected (app-nuxt behavior).
    *
@@ -13,6 +19,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import { onMount } from 'svelte'
   import { browser } from '$app/environment'
   import IconCookie from '@tabler/icons-svelte/icons/cookie'
   import { t } from '$lib/stores/content.svelte'
@@ -33,17 +40,27 @@
   ] as const
 
   const STORAGE_KEY = 'pm-cookie-consent'
-  type ConsentState = 'hidden' | 'info'
   const cookiesEnabled = $derived(FEATURES.cookies)
 
-  function getInitialState(): ConsentState {
-    if (typeof localStorage === 'undefined') return 'info'
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored === 'accepted' || stored === 'rejected') return 'hidden'
-    return 'info'
-  }
+  // Explicit client-ready gate: no consent decision exists until the component
+  // is mounted on the client and localStorage was actually read. SSR renders
+  // nothing — the banner can never flash before hydration.
+  let clientReady = $state(false)
+  // 'hidden' — a decision exists (accepted/rejected); 'info' — no decision yet.
+  let consentDecision: 'accepted' | 'rejected' | null = $state(null)
 
-  let state = $state<ConsentState>(getInitialState())
+  onMount(() => {
+    clientReady = true
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY)
+      consentDecision = stored === 'accepted' || stored === 'rejected' ? stored : null
+    } catch (e) {
+      // localStorage unavailable (blocked/private mode): treat as no decision
+      // and fall through to showing the informational banner.
+      console.debug('[cookie] localStorage blocked:', e instanceof Error ? e.message : e)
+      consentDecision = null
+    }
+  })
 
   function deleteCookie(name: string) {
     if (!browser) return
@@ -63,14 +80,14 @@
 
   function accept() {
     localStorage.setItem(STORAGE_KEY, 'accepted')
-    state = 'hidden'
+    consentDecision = 'accepted'
   }
 
   function reject() {
     // app-nuxt: clear preference cookies on decline
     clearPreferenceCookies()
     localStorage.setItem(STORAGE_KEY, 'rejected')
-    state = 'hidden'
+    consentDecision = 'rejected'
   }
 
   // PM v2: fixed bottom, z-[var(--z-fixed)], panel with gradient bg + border + shadow-xl
@@ -82,7 +99,7 @@
     'bg-pm-bg-elevated border border-pm-border-strong rounded-xl shadow-xl'
 </script>
 
-{#if cookiesEnabled && state === 'info'}
+{#if cookiesEnabled && clientReady && consentDecision === null}
   <div class={twMerge(clsx(base, className))}>
     <div class={panel}>
       <!-- Cookie icon -->

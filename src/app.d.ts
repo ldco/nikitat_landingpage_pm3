@@ -8,6 +8,8 @@ declare global {
         role: string
         name: string | null
         roleId?: number | null
+        /** First-login hardening: true until the bootstrap credential is replaced. */
+        mustChangePassword?: boolean
       }
       paraglide?: {
         lang: string
@@ -16,6 +18,11 @@ declare global {
       i18n?: {
         lang: string
       }
+      /**
+       * Form body parsed once by the CSRF hook for `_csrf` field validation
+       * (double-submit). Actions reuse it instead of re-parsing the request.
+       */
+      csrfForm?: FormData
     }
   }
 }

@@ -6,7 +6,11 @@ import Database from 'better-sqlite3'
 
 const statementBreakpoint = '--> statement-breakpoint'
 const defaultDbPath = '/app/data/sqlite.db'
-const defaultMigrationsDir = path.join(process.cwd(), '.output/server/database/migrations')
+// The migrations directory shipped in the image. Resolved relative to the
+// process working directory (/app in the container; the repo root locally)
+// so the schema-sync container and the boot-time runner use the SAME path
+// as the drizzle/ COPY in the Dockerfile.
+const defaultMigrationsDir = path.join(process.cwd(), 'drizzle')
 
 const dbPath = process.env.DATABASE_URL || defaultDbPath
 const migrationsDir = process.env.PM_MIGRATIONS_DIR || defaultMigrationsDir
@@ -85,6 +89,12 @@ function getLastMigrationIdx(db) {
 
 function readMigrationSql(entry) {
   const migrationPath = path.join(migrationsDir, `${entry.tag}.sql`)
+  if (!fs.existsSync(migrationPath)) {
+    fail(
+      `Migration file missing: ${migrationPath} (journal entry "${entry.tag}" has no matching .sql in the build context). ` +
+      'Commit the migration SQL with the journal change — a journal that references a missing file breaks boot.'
+    )
+  }
   const sql = fs.readFileSync(migrationPath, 'utf8')
   const hash = crypto.createHash('sha256').update(sql).digest('hex')
   const statements = sql

@@ -3,10 +3,11 @@ import { z } from 'zod'
 import { getAdminTranslations } from '$lib/server/db/translations-cache'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { localeSchema } from '$lib/server/utils/validation'
+import { DEFAULT_LOCALE } from '$lib/config/site'
 import type { RequestEvent } from '@sveltejs/kit'
 
 const querySchema = z.object({
-  locale: localeSchema.default('ru')
+  locale: localeSchema.default(DEFAULT_LOCALE)
 })
 
 export function GET(event: RequestEvent) {

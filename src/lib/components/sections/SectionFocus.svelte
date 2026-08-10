@@ -35,7 +35,7 @@
   })
 </script>
 
-<Section id="focus" background="sunken">
+<Section id="focus">
   <SectionContent>
     <SectionHeading title={title} align="center" />
     {#if cards.length > 0}

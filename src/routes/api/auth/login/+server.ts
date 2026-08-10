@@ -73,7 +73,12 @@ export async function POST(event: RequestEvent) {
     })
     return json({
       success: true,
-      data: { requires2fa: true }
+      data: {
+        requires2fa: true,
+        // First-login hardening: the session is deferred until 2FA verifies,
+        // but the client must know the account still needs a password change.
+        mustChangePassword: user.mustChangePassword
+      }
     })
   }
 
@@ -92,7 +97,8 @@ export async function POST(event: RequestEvent) {
     success: true,
     data: {
       user: { id: user.id, email: user.email, name: user.name, role: getEffectiveRole(user.id) ?? user.role },
-      session: { id: session.id, expiresAt: session.expiresAt }
+      session: { id: session.id, expiresAt: session.expiresAt },
+      mustChangePassword: user.mustChangePassword
     }
   })
 }

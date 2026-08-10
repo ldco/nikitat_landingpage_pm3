@@ -670,6 +670,42 @@ function checkFrameworkProjectBoundary(file) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Check 12: DB is the runtime translation owner — no direct Paraglide reads
+// ═══════════════════════════════════════════════════════════════════════════
+// The database is the canonical runtime source for ALL translations (PM v2
+// parity). Components MUST read text through the unified `t()` helper
+// ($lib/stores/content.svelte — DB-first, Paraglide fallback). Direct imports
+// of the compiled Paraglide catalog (`import * as m from '$lib/i18n'`) bypass
+// the DB and silently ignore admin edits — the ONLY sanctioned importer is the
+// `t()` wrapper itself.
+
+const PARAGLIDE_DIRECT_IMPORT_ALLOWED = [
+  // the DB-aware wrapper that owns the m.* fallback branch of t()
+  'src/lib/stores/content.svelte.ts',
+  // the i18n facade + paraglide runtime plumbing (hooks use `i18n`, not m.*)
+  'src/lib/i18n.ts'
+]
+
+const PARAGLIDE_IMPORT_RE = /import\s*\*\s*as\s+m\s+from\s*['"]\$lib\/i18n['"]/g
+
+function checkParaglideDirectImports(file) {
+  const rel = relative(ROOT, file)
+  if (PARAGLIDE_DIRECT_IMPORT_ALLOWED.includes(rel)) return []
+
+  const content = readFile(file)
+  const issues = []
+  let m
+  while ((m = PARAGLIDE_IMPORT_RE.exec(content)) !== null) {
+    issues.push({
+      file: rel,
+      line: lineAt(content, m.index),
+      message: `Direct Paraglide catalog import (check #12): components must read text through t() from '$lib/stores/content.svelte' (DB is the runtime owner — admin edits apply live). Importing '* as m from $lib/i18n' bypasses the DB.`
+    })
+  }
+  return issues
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Main
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -700,6 +736,7 @@ for (const file of files) {
     allIssues.push(...checkTypeSuppressions(file))
     allIssues.push(...checkEmptyCatches(file))
     allIssues.push(...checkFrameworkProjectBoundary(file))
+    allIssues.push(...checkParaglideDirectImports(file))
   }
   if (file.endsWith('+server.ts')) {
     allIssues.push(...checkApiZod(file))

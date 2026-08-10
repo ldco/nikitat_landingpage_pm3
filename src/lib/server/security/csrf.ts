@@ -8,6 +8,8 @@ import { randomBytes, timingSafeEqual } from 'node:crypto'
 
 export const CSRF_COOKIE_NAME = 'pm-csrf'
 export const CSRF_HEADER_NAME = 'x-csrf-token'
+/** Form field that page actions carry the CSRF token in (plain form posts cannot set headers). */
+export const CSRF_FIELD_NAME = '_csrf'
 const TOKEN_LENGTH = 32
 
 export function generateCsrfToken(): string {

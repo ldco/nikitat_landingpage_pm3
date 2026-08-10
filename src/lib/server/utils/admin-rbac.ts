@@ -91,6 +91,20 @@ function isAdminPageAllowed(user: AdminUser, pageId: AdminPageId): boolean {
 }
 
 /**
+ * First-login hardening gate: accounts bootstrapped/rotated with an operator
+ * credential (must_change_password = 1) are locked out of every admin surface
+ * until the password is replaced via /api/user/change-password. The dedicated
+ * /admin/change-password page is the ONLY admin surface that stays reachable
+ * (it does not call these gates). Blocking here covers BOTH page loads and
+ * /api/admin/* routes, so the flag can never be bypassed through the API.
+ */
+function assertPasswordChanged(user: AdminUser): void {
+  if (user.mustChangePassword) {
+    throw error(403, { code: 'auth.passwordChangeRequired', message: 'Password change required' } as unknown as { message: string })
+  }
+}
+
+/**
  * Page-aware authorization gate.
  *
  * @param event — the request event (event.locals.user must be set by sessionHandle)
@@ -100,6 +114,8 @@ function isAdminPageAllowed(user: AdminUser, pageId: AdminPageId): boolean {
 export function requireAdminPage(event: RequestEvent, pageId: AdminPageId): AdminUser {
   const user = event.locals.user
   if (!user) throw error(401)
+
+  assertPasswordChanged(user)
 
   const { enabled } = resolveAdminPageAccess(pageId)
   // A page disabled in ADMIN_CONFIG/MODULES is not part of the admin surface:
@@ -133,6 +149,7 @@ export function getAuthorizedAdminPages(user: AdminUser): AdminPageId[] {
 export function requireAdmin(event: RequestEvent): AdminUser {
   const user = event.locals.user
   if (!user) throw error(401)
+  assertPasswordChanged(user)
   if (user.role === 'master') return user
   if (user.role === 'admin') return user
   throw error(403)
@@ -141,6 +158,7 @@ export function requireAdmin(event: RequestEvent): AdminUser {
 export function requireMaster(event: RequestEvent): AdminUser {
   const user = event.locals.user
   if (!user) throw error(401)
+  assertPasswordChanged(user)
   if (user.role !== 'master') throw error(403)
   return user
 }

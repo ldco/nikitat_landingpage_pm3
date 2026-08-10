@@ -31,6 +31,7 @@
 - **`ARCHITECTURE.md`** — полный анализ фреймворка PM v2: 58 секций, CSS→Component map, API, БД, деплой
 - **`architecture/security-headers.md`** — решение: framework-owned заголовки (не helmet); CSP остаётся за SvelteKit
 - **`architecture/websocket-decision.md`** — решение: 30s polling вместо WebSocket hub (порт отложен)
+- **`architecture/i18n-database-owned-translations.md`** — i18n: БД — runtime-владелец переводов (PM v2 parity): контракт `t()`, односторонний пайплайн (system-seed → БД + generated artifacts), config-driven локали, добавление языка без правок кода, enforcement (check #10/#12)
 
 ## Быстрый старт
 

@@ -33,8 +33,11 @@ jobs:
       - name: Dependency audit (audit N-3 — zod v4 / CVE watch)
         run: npm audit --audit-level=high
 
+      - name: Production build (before tests — API tests spawn build/index.js)
+        run: npm run build
+
       - name: Unit tests
         run: npm test
 
-      - name: Production build
-        run: npm run build
+      - name: API test gate (request-level, per-file timeout)
+        run: bash scripts/run-api-tests.sh

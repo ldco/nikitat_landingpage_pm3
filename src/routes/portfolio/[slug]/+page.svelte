@@ -4,7 +4,8 @@
    * Rule #1: class prop + twMerge
    */
   import AppImage from '$lib/components/atoms/AppImage.svelte'
-  import * as m from '$lib/i18n'
+  import Seo from '$lib/components/atoms/Seo.svelte'
+import { t } from '$lib/stores/content.svelte'
   import IconArrowLeft from '@tabler/icons-svelte/icons/arrow-left'
   import { FEATURES } from '$lib/config/site'
   import WebsiteViewer from '$lib/plugins/portfolio/WebsiteViewer.svelte'
@@ -22,14 +23,13 @@
   const tags = $derived(items.filter(i => i.itemType === 'link').map(i => i.title ?? '').filter(Boolean))
 </script>
 
-<svelte:head>
-  <title>{portfolio.name} — {m.nav_portfolio()}</title>
-</svelte:head>
+<!-- Shared metadata contract: item name + description (site name composed by Seo). -->
+<Seo title={portfolio.name} description={portfolio.description ?? undefined} />
 
 <article class="w-full mx-auto max-w-[var(--max-w-container)] px-6 md:px-8 py-24">
   <a href="/portfolio" class="inline-flex items-center gap-2 text-sm text-pm-text-muted hover:text-pm-brand transition-colors mb-8">
     <IconArrowLeft class="size-4" />
-    {m.nav_portfolio()}
+    {t('nav.portfolio')}
   </a>
 
   {#if portfolio.type === 'website'}

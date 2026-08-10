@@ -8,7 +8,7 @@
   */
   import { clsx } from 'clsx'
   import { t } from '$lib/stores/content.svelte'
-  import * as m from '$lib/i18n'
+
   import { FEATURES, MODULES } from '$lib/config/site'
   import type { TestimonialCard } from './types'
   import IconChevronLeft from '@tabler/icons-svelte/icons/chevron-left'
@@ -54,15 +54,15 @@
         </div>
         {#if testimonials.length > 1}
           <div class="flex items-center justify-center gap-4 mt-6">
-            <button aria-label={m.testimonials_previous()} class="p-2 rounded-full border border-pm-border text-pm-text-secondary hover:bg-pm-bg-sunken transition-colors cursor-pointer" onclick={prev}>
+            <button aria-label={t('testimonials.previous')} class="p-2 rounded-full border border-pm-border text-pm-text-secondary hover:bg-pm-bg-sunken transition-colors cursor-pointer" onclick={prev}>
               <IconChevronLeft class="size-4" />
             </button>
             <div class="flex gap-2">
               {#each testimonials as _, i}
-                <button aria-label={m.testimonials_goTo({ i: i + 1 })} class="w-2 h-2 rounded-full transition-colors cursor-pointer" class:bg-pm-brand={i === current} class:bg-pm-text-muted={i !== current} onclick={() => current = i}></button>
+                <button aria-label={t('testimonials.goTo', { i: i + 1 })} class="w-2 h-2 rounded-full transition-colors cursor-pointer" class:bg-pm-brand={i === current} class:bg-pm-text-muted={i !== current} onclick={() => current = i}></button>
               {/each}
             </div>
-            <button aria-label={m.testimonials_next()} class="p-2 rounded-full border border-pm-border text-pm-text-secondary hover:bg-pm-bg-sunken transition-colors cursor-pointer" onclick={next}>
+            <button aria-label={t('testimonials.next')} class="p-2 rounded-full border border-pm-border text-pm-text-secondary hover:bg-pm-bg-sunken transition-colors cursor-pointer" onclick={next}>
               <IconChevronRight class="size-4" />
             </button>
           </div>

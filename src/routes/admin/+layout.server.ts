@@ -4,7 +4,8 @@ import { redirect } from '@sveltejs/kit'
 import { getAdminTranslations } from '$lib/server/db/translations-cache'
 import { getUnreadCount } from '$lib/server/services/contact'
 import { getAuthorizedAdminPages } from '$lib/server/utils/admin-rbac'
-import { LOCALES, DEFAULT_LOCALE } from '$lib/config/site'
+import { CSRF_COOKIE_NAME } from '$lib/server/security/csrf'
+import { detectLocale } from '$lib/server/utils/locales'
 
 const LAYOUT_KEYS = [
   'admin.dashboard', 'admin.portfolios', 'admin.blog', 'admin.faq',
@@ -44,27 +45,34 @@ function getCachedUnreadCount(): number {
   return count
 }
 
-function detectLocale(event: RequestEvent): string {
+function detectAdminLocale(event: RequestEvent): string {
   const cookie = event.cookies.get('paraglide-locale')
-  if (cookie && (LOCALES as readonly string[]).includes(cookie)) return cookie
   const header = event.request.headers.get('accept-language')
-  if (header) {
-    for (const lang of header.split(',')) {
-      const code = (lang.split(';')[0]?.trim().split('-')[0]) ?? ''
-      if ((LOCALES as readonly string[]).includes(code)) return code
-    }
-  }
-  return DEFAULT_LOCALE
+  return detectLocale(cookie, header)
 }
 
 export const load: LayoutServerLoad = (event) => {
   if (event.url.pathname === '/admin/login') return { unreadCount: 0 }
+  if (event.url.pathname === '/admin/change-password') return { unreadCount: 0 }
 
   if (!event.locals.user) {
     redirect(302, '/admin/login')
   }
 
-  const locale = detectLocale(event)
+  // First-login hardening: a bootstrapped/rotated account must replace its
+  // credential before any admin surface (requireAdminPage on API + page loads
+  // also enforces this server-side). Redirect to the forced change page.
+  if (event.locals.user.mustChangePassword) {
+    redirect(302, '/admin/change-password')
+  }
+
+  // The CSRF hook (hooks.server.ts) sets the double-submit cookie on every
+  // request, so the token is always present here. Rendering it into the
+  // page-action forms server-side means plain form submissions (no JS, or
+  // before hydration) still carry a valid `_csrf` value.
+  const csrfToken = event.cookies.get(CSRF_COOKIE_NAME) ?? ''
+
+  const locale = detectAdminLocale(event)
   const all = getAdminTranslations(locale)
   const t: Record<string, string> = {}
   for (const key of [...LAYOUT_KEYS, ...EXTRA_KEYS]) {
@@ -75,6 +83,7 @@ export const load: LayoutServerLoad = (event) => {
     user: event.locals.user,
     menuPages: getAuthorizedAdminPages(event.locals.user),
     t,
-    unreadCount: getCachedUnreadCount()
+    unreadCount: getCachedUnreadCount(),
+    csrfToken
   }
 }

@@ -12,7 +12,7 @@
    *
    * @example <TwoFactorSetup {onEnabled} {onCancelled} />
    */
-  import * as m from '$lib/i18n'
+import { t } from '$lib/stores/content.svelte'
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { start2faSetup, enable2fa, type TwoFactorSetupData } from '$lib/api/client'
@@ -58,10 +58,10 @@
         setupData = res.data
         step = 'verify'
       } else {
-        error = m.auth_twoFactor_setupStartError()
+        error = t('auth.twoFactor.setupStartError')
       }
     } catch {
-      error = m.auth_twoFactor_setupStartError()
+      error = t('auth.twoFactor.setupStartError')
     } finally {
       isLoading = false
     }
@@ -69,7 +69,7 @@
 
   async function verifyAndEnable() {
     if (verificationCode.length !== 6) {
-      error = m.auth_twoFactor_verificationCodeLengthError()
+      error = t('auth.twoFactor.verificationCodeLengthError')
       return
     }
     isLoading = true
@@ -79,11 +79,11 @@
       if (res.success) {
         step = 'backup'
       } else {
-        error = m.auth_twoFactor_invalidVerificationCode()
+        error = t('auth.twoFactor.invalidVerificationCode')
         verificationCode = ''
       }
     } catch {
-      error = m.auth_twoFactor_invalidVerificationCode()
+      error = t('auth.twoFactor.invalidVerificationCode')
       verificationCode = ''
     } finally {
       isLoading = false
@@ -137,23 +137,23 @@
         <IconShieldLock class="size-5" />
       </span>
       <div>
-        <h3 class="text-lg font-semibold text-pm-text leading-tight">{m.auth_twoFactor_setupTitle()}</h3>
-        <p class="mt-1 text-sm text-pm-text-muted">{m.auth_twoFactor_setupDescription()}</p>
+        <h3 class="text-lg font-semibold text-pm-text leading-tight">{t('auth.twoFactor.setupTitle')}</h3>
+        <p class="mt-1 text-sm text-pm-text-muted">{t('auth.twoFactor.setupDescription')}</p>
       </div>
     </div>
 
     {#if isLoading && !setupData}
       <div class="flex items-center gap-2 text-sm text-pm-text-muted">
         <IconRefresh class="size-4 animate-spin" />
-        <span>{m.common_loading()}</span>
+        <span>{t('common.loading')}</span>
       </div>
     {:else if setupData}
       <div class="flex flex-col items-center gap-3">
         <div class="bg-pm-bg-elevated border border-pm-border rounded-xl p-4">
-          <img src={setupData.qrCode} alt={m.auth_twoFactor_qrCodeAlt()} class="size-48" />
+          <img src={setupData.qrCode} alt={t('auth.twoFactor.qrCodeAlt')} class="size-48" />
         </div>
         <details class="w-full text-xs text-pm-text-muted">
-          <summary class="cursor-pointer hover:text-pm-text transition-colors">{m.auth_twoFactor_cantScan()}</summary>
+          <summary class="cursor-pointer hover:text-pm-text transition-colors">{t('auth.twoFactor.cantScan')}</summary>
           <code class="block mt-2 p-2 rounded-md bg-pm-bg-sunken text-2xs break-all font-mono">{setupData.uri}</code>
         </details>
       </div>
@@ -163,13 +163,13 @@
         onclick={() => { autoStarted = false; startSetup() }}
         class="w-fit px-4 py-2 rounded-md bg-pm-brand text-pm-white text-sm font-medium hover:bg-pm-brand-light transition-colors"
       >
-        {m.common_retry()}
+        {t('common.retry')}
       </button>
     {/if}
 
     {#if step === 'verify'}
       <div class="flex flex-col gap-2">
-        <label for="verification-code" class="text-sm font-medium text-pm-text">{m.auth_twoFactor_enterCode()}</label>
+        <label for="verification-code" class="text-sm font-medium text-pm-text">{t('auth.twoFactor.enterCode')}</label>
         <div class="flex items-center gap-2">
           <input
             id="verification-code"
@@ -180,7 +180,7 @@
             maxlength="6"
             autocomplete="one-time-code"
             class="w-40 px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-pm-text text-sm focus:outline-none focus:ring-2 focus:ring-pm-focus-ring"
-            placeholder={m.auth_twoFactor_codePlaceholder()}
+            placeholder={t('auth.twoFactor.codePlaceholder')}
           />
           <button
             type="button"
@@ -188,7 +188,7 @@
             disabled={isLoading || verificationCode.length !== 6}
             class="px-4 py-2 rounded-md bg-pm-brand text-pm-white text-sm font-medium hover:bg-pm-brand-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {isLoading ? m.common_verifying() : m.auth_twoFactor_verifyEnable()}
+            {isLoading ? t('common.verifying') : t('auth.twoFactor.verifyEnable')}
           </button>
         </div>
       </div>
@@ -204,7 +204,7 @@
     {#if step === 'verify'}
       <div class="flex gap-2">
         <button type="button" onclick={onCancelled} class="px-3 py-1.5 text-sm text-pm-text-muted hover:text-pm-text transition-colors">
-          {m.common_cancel()}
+          {t('common.cancel')}
         </button>
       </div>
     {/if}
@@ -214,14 +214,14 @@
         <IconCheck class="size-5" />
       </span>
       <div>
-        <h3 class="text-lg font-semibold text-pm-text leading-tight">{m.auth_twoFactor_enabled()}</h3>
-        <p class="mt-1 text-sm text-pm-text-muted">{m.auth_twoFactor_backupDescription()}</p>
+        <h3 class="text-lg font-semibold text-pm-text leading-tight">{t('auth.twoFactor.enabled')}</h3>
+        <p class="mt-1 text-sm text-pm-text-muted">{t('auth.twoFactor.backupDescription')}</p>
       </div>
     </div>
 
     <div class="flex items-start gap-2 p-3 rounded-md bg-pm-warning-bg text-pm-warning text-sm">
       <IconAlertTriangle class="size-4 shrink-0 mt-0.5" />
-      <span>{m.auth_twoFactor_backupWarning()}</span>
+      <span>{t('auth.twoFactor.backupWarning')}</span>
     </div>
 
     <div class="grid grid-cols-2 gap-2">
@@ -252,14 +252,14 @@
         {:else}
           <IconCopy class="size-4" />
         {/if}
-        {copiedIndex === -1 ? m.auth_twoFactor_copied() : m.auth_twoFactor_copyAll()}
+        {copiedIndex === -1 ? t('auth.twoFactor.copied') : t('auth.twoFactor.copyAll')}
       </button>
       <button
         type="button"
         onclick={complete}
         class="px-4 py-2 rounded-md bg-pm-brand text-pm-white text-sm font-medium hover:bg-pm-brand-light transition-colors"
       >
-        {m.auth_twoFactor_done()}
+        {t('auth.twoFactor.done')}
       </button>
     </div>
   {/if}

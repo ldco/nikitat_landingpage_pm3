@@ -15,7 +15,7 @@ export const load: PageServerLoad = (event) => { requireAdminPage(event, 'pricin
 export const actions = {
   default: async (event: RequestEvent) => {
     requireAdminPage(event, 'pricing')
-    const form = await event.request.formData()
+    const form = event.locals.csrfForm ?? await event.request.formData()
     const parsed = createSchema.safeParse({ name: form.get('name'), slug: form.get('slug'), price: form.get('price') || undefined })
     if (!parsed.success) {
       return fail(400, { fieldErrors: parsed.error.flatten().fieldErrors })

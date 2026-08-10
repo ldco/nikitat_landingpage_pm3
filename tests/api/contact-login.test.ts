@@ -1,89 +1,139 @@
-import { describe, it, expect } from 'vitest'
-import { z } from 'zod'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import Database from 'better-sqlite3'
+import { startTestServer, ApiClient, SEED_USER, type TestServerHandle } from './helpers/server'
 
 /**
- * API contract tests (audit E-8 / N-11).
+ * Request-level API tests (audit E-8 / N-11) — the API test gate.
  *
- * Verifies the request-validation contracts used by the public contact
- * submission and login endpoints. The schemas mirror the route definitions
- * (src/routes/api/contact/submit/+server.ts, src/routes/api/auth/login/+server.ts);
- * keeping them in sync is asserted by the PM3 validator's check #9.
+ * Exercises the REAL route handlers (src/routes/api/contact/submit,
+ * src/routes/api/auth/login) and the admin page actions
+ * (src/routes/admin/features/create) over HTTP against a temporary SQLite
+ * database: CSRF enforcement (header for APIs, `_csrf` field for page
+ * actions), validation, cookie behavior, and one full admin CRUD action.
  */
 
-// Mirror of the contact submission schema (src/routes/api/contact/submit/+server.ts)
-const contactSchema = z.object({
-  name: z.string().min(1).max(100),
-  email: z.string().email().max(255),
-  phone: z.string().max(50).optional(),
-  subject: z.string().max(200).optional(),
-  message: z.string().min(1).max(5000),
-  consent: z.boolean()
-})
+let server: TestServerHandle
+let client: ApiClient
 
-// Mirror of the login schema (src/routes/api/auth/login/+server.ts)
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1)
-})
+beforeAll(async () => {
+  server = await startTestServer()
+  client = new ApiClient(server.baseUrl, server.origin)
+  // Establish the double-submit CSRF cookie (browsers always load a page
+  // before posting a form / calling the API).
+  await client.get('/')
+}, 180_000)
 
-describe('Contact submission contract', () => {
-  it('accepts a valid submission with consent', () => {
-    const r = contactSchema.safeParse({
+afterAll(async () => {
+  await server.stop()
+}, 30_000)
+
+describe('Contact submission endpoint', () => {
+  it('accepts a valid submission with the CSRF header', async () => {
+    const res = await client.postJson('/api/contact/submit', {
       name: 'Ivan',
       email: 'ivan@example.com',
-      message: 'Hello!',
+      message: 'Hello from the request-level test suite',
       consent: true
     })
-    expect(r.success).toBe(true)
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { success?: boolean }
+    expect(body.success).toBe(true)
   })
 
-  it('accepts consent=false at the schema level (route enforces consent)', () => {
-    const r = contactSchema.safeParse({
+  it('rejects submissions that omit the CSRF header', async () => {
+    const res = await client.postJson(
+      '/api/contact/submit',
+      { name: 'Ivan', email: 'ivan@example.com', message: 'hello', consent: true },
+      { csrf: false }
+    )
+    expect(res.status).toBe(403)
+    const body = (await res.json()) as { error?: { code?: string } }
+    expect(body.error?.code).toBe('csrf.invalid')
+  })
+
+  it('rejects submissions without GDPR-style consent', async () => {
+    const res = await client.postJson('/api/contact/submit', {
       name: 'Ivan',
       email: 'ivan@example.com',
-      message: 'Hello!',
+      message: 'hello',
       consent: false
     })
-    expect(r.success).toBe(true)
-  })
-
-  it('rejects invalid email', () => {
-    const r = contactSchema.safeParse({
-      name: 'Ivan',
-      email: 'not-an-email',
-      message: 'Hello!',
-      consent: true
-    })
-    expect(r.success).toBe(false)
-  })
-
-  it('rejects empty name and message', () => {
-    const r = contactSchema.safeParse({
-      name: '',
-      email: 'ivan@example.com',
-      message: '',
-      consent: true
-    })
-    expect(r.success).toBe(false)
+    expect(res.status).toBe(400)
+    const body = (await res.json()) as { success?: boolean }
+    expect(body.success).toBe(false)
   })
 })
 
-describe('Login contract', () => {
-  it('accepts valid credentials shape', () => {
-    // zod v4's .email() requires a TLD of 2+ chars, so use example.com
-    expect(loginSchema.safeParse({ email: 'user@example.com', password: 'x' }).success).toBe(true)
+describe('Login endpoint', () => {
+  it('rejects wrong credentials', async () => {
+    const res = await client.postJson('/api/auth/login', {
+      email: SEED_USER.email,
+      password: 'wrong-password'
+    })
+    expect(res.status).toBe(401)
+    const body = (await res.json()) as { success?: boolean }
+    expect(body.success).toBe(false)
   })
 
-  it('rejects invalid email', () => {
-    expect(loginSchema.safeParse({ email: 'nope', password: 'x' }).success).toBe(false)
+  it('authenticates the seeded master user', async () => {
+    const res = await client.postJson('/api/auth/login', {
+      email: SEED_USER.email,
+      password: SEED_USER.password
+    })
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { data?: { user?: { role?: string } } }
+    expect(body.data?.user?.role).toBe(SEED_USER.role)
+    expect(client.getCookie('pm-session')).toBeDefined()
+  })
+})
+
+describe('Admin CRUD page action (features)', () => {
+  it('redirects unauthenticated admin pages to the login route', async () => {
+    const anon = new ApiClient(server.baseUrl, server.origin)
+    const res = await anon.get('/admin/features')
+    expect(res.status).toBe(302)
+    expect(res.headers.get('location')).toBe('/admin/login')
   })
 
-  it('rejects single-char TLD email (zod v4 email regex)', () => {
-    // Documented zod v4 behavior: a@b.c fails the email format check.
-    expect(loginSchema.safeParse({ email: 'a@b.c', password: 'x' }).success).toBe(false)
+  it('rejects the create form without a CSRF token', async () => {
+    const res = await client.postForm('/admin/features/create', { slug: 'csrf-blocked' }, { csrf: false })
+    expect(res.status).toBe(403)
+    const body = (await res.json()) as { error?: { code?: string } }
+    expect(body.error?.code).toBe('csrf.invalid')
   })
 
-  it('rejects empty password', () => {
-    expect(loginSchema.safeParse({ email: 'user@example.com', password: '' }).success).toBe(false)
+  it('creates a feature through the real page action (with `_csrf` field)', async () => {
+    const slug = `test-feature-${Date.now()}`
+    const res = await client.postForm('/admin/features/create', { slug })
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { type?: string; status?: number; location?: string }
+    // SvelteKit returns the action redirect result to fetch clients.
+    expect(body.type).toBe('redirect')
+    expect(body.status).toBe(303)
+    expect(body.location).toBe('/admin/features')
+
+    // The action actually persisted the row in the temp database.
+    const db = new Database(server.dbPath, { readonly: true })
+    try {
+      const row = db.prepare('SELECT slug FROM features WHERE slug = ?').get(slug) as { slug: string } | undefined
+      expect(row?.slug).toBe(slug)
+    } finally {
+      db.close()
+    }
+  })
+
+  it('serves the admin list to an authenticated session', async () => {
+    const res = await client.get('/admin/features')
+    expect(res.status).toBe(200)
+  })
+
+  it('server-renders the CSRF token into the page-action form (no-JS submissions work)', async () => {
+    const res = await client.get('/admin/features/create')
+    expect(res.status).toBe(200)
+    // The hidden `_csrf` field must be present in the SSR HTML with the same
+    // value as the double-submit cookie — not injected by client JS.
+    const token = client.getCookie('pm-csrf')
+    expect(token).toBeDefined()
+    expect(res.bodyText).toContain(`name="_csrf" value="${token}"`)
   })
 })

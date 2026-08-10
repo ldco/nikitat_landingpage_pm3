@@ -15,7 +15,7 @@ import { getValidSession } from '$lib/server/auth/session'
 import { useDatabase, schema } from '$lib/server/db'
 import { eq } from 'drizzle-orm'
 import { buildSecurityHeaders } from '$lib/server/security/headers'
-import { validateCsrfToken, CSRF_COOKIE_NAME, CSRF_HEADER_NAME, generateCsrfToken } from '$lib/server/security/csrf'
+import { validateCsrfToken, CSRF_COOKIE_NAME, CSRF_HEADER_NAME, CSRF_FIELD_NAME, generateCsrfToken } from '$lib/server/security/csrf'
 import { loginRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
 import { logger } from '$lib/server/utils/logger'
 import { FEATURES } from '$lib/config/site'
@@ -51,7 +51,8 @@ const sessionHandle: Handle = async ({ event, resolve }) => {
           role: schema.users.role,
           roleId: schema.users.roleId,
           name: schema.users.name,
-          roleSlug: schema.roles.slug
+          roleSlug: schema.roles.slug,
+          mustChangePassword: schema.users.mustChangePassword
         })
         .from(schema.users)
         .leftJoin(schema.roles, eq(schema.users.roleId, schema.roles.id))
@@ -63,7 +64,7 @@ const sessionHandle: Handle = async ({ event, resolve }) => {
         // Effective role identity: the stored role's slug when the user is
         // linked to a roles row (custom roles), else the legacy enum. This is
         // the same slug getStoredRolePermissions() resolves against.
-        event.locals.user = { ...user, role: roleSlug ?? user.role }
+        event.locals.user = { ...user, role: roleSlug ?? user.role, mustChangePassword: user.mustChangePassword ?? false }
       }
     }
   }
@@ -72,12 +73,19 @@ const sessionHandle: Handle = async ({ event, resolve }) => {
 }
 
 // ── CSRF Handle ─────────────────────────────────────────────────────────────
+// The double-submit token is validated on every state-changing request through
+// ONE contract with two transports:
+//   - API calls (JSON bodies) echo the token in the X-CSRF-Token header.
+//   - Page-action forms (SvelteKit `<form method="POST">`) cannot set custom
+//     headers, so they carry the token in a server-validated `_csrf` field.
+// Both transports must match the cookie token (timing-safe), otherwise 403.
 const csrfHandle: Handle = async ({ event, resolve }) => {
   // Set CSRF cookie only if not present — token must be stable per session,
   // otherwise the header can never match a freshly-regenerated value.
   // NOTE: NOT httpOnly — this is a double-submit-cookie token that the client
-  // MUST echo in the X-CSRF-Token header; httpOnly would make it unreadable
-  // and every mutation would 403. The token is not a session secret.
+  // MUST echo in the X-CSRF-Token header (or the `_csrf` form field); httpOnly
+  // would make it unreadable and every mutation would 403. The token is not a
+  // session secret.
   let csrfToken = event.cookies.get(CSRF_COOKIE_NAME)
   if (!csrfToken) {
     csrfToken = generateCsrfToken()
@@ -102,9 +110,19 @@ const csrfHandle: Handle = async ({ event, resolve }) => {
     }
 
     const cookieToken = event.cookies.get(CSRF_COOKIE_NAME) ?? undefined
-    const headerToken = event.request.headers.get(CSRF_HEADER_NAME) ?? undefined
 
-    if (!validateCsrfToken(cookieToken, headerToken)) {
+    // API clients send the header; page actions send the `_csrf` form field.
+    // The body is read from a clone so the action can still consume it, and
+    // the parsed FormData is stashed on `event.locals.csrfForm` so form
+    // actions reuse it instead of re-parsing the request body.
+    let requestToken = event.request.headers.get(CSRF_HEADER_NAME) ?? undefined
+    if (!requestToken) {
+      const form = await readCsrfFieldToken(event.request)
+      requestToken = getCsrfField(form)
+      if (form) event.locals.csrfForm = form
+    }
+
+    if (!validateCsrfToken(cookieToken, requestToken)) {
       return new Response(JSON.stringify({ success: false, error: { code: 'csrf.invalid', message: 'Invalid CSRF token' } }), {
         status: 403,
         headers: { 'content-type': 'application/json' }
@@ -113,6 +131,29 @@ const csrfHandle: Handle = async ({ event, resolve }) => {
   }
 
   return resolve(event)
+}
+
+/** True for urlencoded/multipart bodies — the only shapes that can carry the field. */
+function isFormRequest(request: Request): boolean {
+  const contentType = request.headers.get('content-type') ?? ''
+  return contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data')
+}
+
+/** Read the `_csrf` field from a form body without consuming the request stream. */
+async function readCsrfFieldToken(request: Request): Promise<FormData | undefined> {
+  if (!isFormRequest(request)) return undefined
+  try {
+    return await request.clone().formData()
+  } catch {
+    // Malformed body — no token to validate; the request will 403.
+    return undefined
+  }
+}
+
+/** Extract the CSRF field value from a parsed form body. */
+function getCsrfField(form: FormData | undefined): string | undefined {
+  const field = form?.get(CSRF_FIELD_NAME)
+  return typeof field === 'string' && field.length > 0 ? field : undefined
 }
 
 // ── Security Headers Handle ────────────────────────────────────────────────

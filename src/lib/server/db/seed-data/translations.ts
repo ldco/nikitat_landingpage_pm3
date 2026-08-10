@@ -1,20 +1,24 @@
 /**
- * Translations Seed — loads system + content + Paraglide translations
- * into the DB (idempotent).
+ * Translations Seed — loads the canonical catalogs into the DB (idempotent).
  *
- * Sources:
- *   - i18n/db-translations.json (system translations, DB-resident)
- *   - i18n/system-seed.json (fallback before db-translations is generated)
- *   - src/project/content.json (project content)
- *   - messages/{locale}.json (Paraglide-compiled UI messages)
+ * The database is the RUNTIME OWNER of ALL translations (PM v2 parity) and
+ * `t()` resolves from the DB first, so this seed is the bridge from the
+ * hand-edited sources to the runtime:
+ *
+ * Sources (the ONLY two catalogs engineers edit):
+ *   - i18n/system-seed.json   (system translations: UI + admin + settings,
+ *                              every configured locale — canonical)
+ *   - src/project/content.json (project content: hero.*, about.*, …)
+ *
+ * Generated artifacts (NEVER read here — they mirror the catalog):
+ *   - messages/{locale}.json      (Paraglide compile input, `npm run i18n:export`)
  */
 import { useDatabase, schema } from '$lib/server/db'
-import { readFileSync, existsSync, readdirSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { logger } from '$lib/server/utils/logger'
 
 interface FlatEntry { locale: string; key: string; value: string }
-interface TranslationEntry { locale: string; key: string; value: string }
 
 type ContentTree = Record<string, unknown>
 
@@ -48,59 +52,29 @@ function loadContentSeed(): FlatEntry[] {
   return result
 }
 
-function loadParaglideMessages(): TranslationEntry[] {
-  const result: TranslationEntry[] = []
-  const msgDir = join(process.cwd(), 'messages')
-  if (!existsSync(msgDir)) {
-    console.warn('⚠️  messages/ directory not found — no Paraglide translations seeded')
-    return result
-  }
-  for (const file of readdirSync(msgDir)) {
-    if (!file.endsWith('.json')) continue
-    const locale = file.replace('.json', '')
-    try {
-      const data = JSON.parse(readFileSync(join(msgDir, file), 'utf-8')) as Record<string, unknown>
-      for (const [key, value] of Object.entries(data)) {
-        if (typeof value === 'string') {
-          result.push({ locale, key: key.replace(/_/g, '.'), value })
-        }
-      }
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e)
-      logger.debug({ error: msg }, 'Skipping malformed message file')
-    }
-  }
-  return result
-}
-
-function loadSystemTranslations(): TranslationEntry[] {
-  const dbPath = join(process.cwd(), 'i18n', 'db-translations.json')
-  try {
-    if (existsSync(dbPath)) {
-      return JSON.parse(readFileSync(dbPath, 'utf-8')) as TranslationEntry[]
-    }
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : String(e)
-    logger.debug({ error: msg }, 'Skipping translations JSON read')
-  }
+/**
+ * Load the canonical system catalog (i18n/system-seed.json) — the single
+ * hand-edited source for ALL system translations across every locale.
+ */
+function loadSystemCatalog(): FlatEntry[] {
   const seedPath = join(process.cwd(), 'i18n', 'system-seed.json')
   try {
     if (existsSync(seedPath)) {
-      return JSON.parse(readFileSync(seedPath, 'utf-8')) as TranslationEntry[]
+      return JSON.parse(readFileSync(seedPath, 'utf-8')) as FlatEntry[]
     }
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e)
     logger.debug({ error: msg }, 'Skipping translations JSON read')
   }
+  console.warn('⚠️  i18n/system-seed.json not found — no system translations seeded')
   return []
 }
 
 export function seedTranslations() {
   const db = useDatabase()
   console.log('🌍 Loading translations...')
-  const systemTranslations = loadSystemTranslations()
+  const systemTranslations = loadSystemCatalog()
   const contentTranslations = loadContentSeed()
-  const paraglideTranslations = loadParaglideMessages()
   const existing = db.select().from(schema.translations).all()
   const existingKeys = new Set(existing.map(t => `${t.locale}:${t.key}`))
 
@@ -126,8 +100,7 @@ export function seedTranslations() {
     }
   }
 
-  const allTranslations = [...contentTranslations, ...paraglideTranslations]
-  for (const t of allTranslations) {
+  for (const t of contentTranslations) {
     const mapKey = `${t.locale}:${t.key}`
     if (existingKeys.has(mapKey)) {
       contentSkipped++

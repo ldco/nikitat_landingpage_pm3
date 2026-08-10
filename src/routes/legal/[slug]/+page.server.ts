@@ -1,9 +1,10 @@
 import type { PageServerLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { readFileSync } from 'fs'
+import { activeLocale } from '$lib/server/utils/locales'
 
 export const load: PageServerLoad = ({ params, locals }) => {
-  const locale = locals.paraglide?.lang ?? 'ru'
+  const locale = activeLocale(locals.paraglide?.lang)
   const slug = params.slug ?? ''
 
   // Map URL slug to file path

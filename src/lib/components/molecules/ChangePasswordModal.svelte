@@ -11,7 +11,7 @@
    *
    * @example <ChangePasswordModal bind:open {onChanged} />
    */
-  import * as m from '$lib/i18n'
+import { t } from '$lib/stores/content.svelte'
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { changePassword } from '$lib/api/client'
@@ -77,11 +77,11 @@
         close()
       } else {
         errorMessage = res.error?.code === 'http.401'
-          ? m.apiErrors_auth_currentPasswordIncorrect()
-          : m.apiErrors_auth_passwordPolicyFailed()
+          ? t('apiErrors.auth.currentPasswordIncorrect')
+          : t('apiErrors.auth.passwordPolicyFailed')
       }
     } catch {
-      errorMessage = m.common_error()
+      errorMessage = t('common.error')
     } finally {
       isSubmitting = false
     }
@@ -104,8 +104,8 @@
       role="presentation"
     >
       <div class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-pm-border">
-        <h2 id="change-password-title" class="text-lg font-semibold text-pm-text">{m.auth_changePassword()}</h2>
-        <button type="button" onclick={close} aria-label={m.common_close()} class="p-1 text-pm-text-muted hover:text-pm-text transition-colors">
+        <h2 id="change-password-title" class="text-lg font-semibold text-pm-text">{t('auth.changePassword')}</h2>
+        <button type="button" onclick={close} aria-label={t('common.close')} class="p-1 text-pm-text-muted hover:text-pm-text transition-colors">
           <IconX class="size-5" />
         </button>
       </div>
@@ -119,7 +119,7 @@
         {/if}
 
         <div class="flex flex-col gap-1.5">
-          <label for="current-password" class="text-sm font-medium text-pm-text">{m.auth_currentPassword()}</label>
+          <label for="current-password" class="text-sm font-medium text-pm-text">{t('auth.currentPassword')}</label>
           <div class="relative">
             <IconLock class="absolute start-3 top-1/2 -translate-y-1/2 size-4 text-pm-text-muted" aria-hidden="true" />
             <input
@@ -133,7 +133,7 @@
             <button
               type="button"
               onclick={() => showCurrent = !showCurrent}
-              aria-label={showCurrent ? m.auth_hidePassword() : m.auth_showPassword()}
+              aria-label={showCurrent ? t('auth.hidePassword') : t('auth.showPassword')}
               class="absolute end-3 top-1/2 -translate-y-1/2 text-pm-text-muted hover:text-pm-text transition-colors"
             >
               {#if showCurrent}<IconEyeOff class="size-4" />{:else}<IconEye class="size-4" />{/if}
@@ -142,7 +142,7 @@
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label for="new-password" class="text-sm font-medium text-pm-text">{m.auth_newPassword()}</label>
+          <label for="new-password" class="text-sm font-medium text-pm-text">{t('auth.newPassword')}</label>
           <div class="relative">
             <IconLock class="absolute start-3 top-1/2 -translate-y-1/2 size-4 text-pm-text-muted" aria-hidden="true" />
             <input
@@ -158,19 +158,19 @@
             <button
               type="button"
               onclick={() => showNew = !showNew}
-              aria-label={showNew ? m.auth_hidePassword() : m.auth_showPassword()}
+              aria-label={showNew ? t('auth.hidePassword') : t('auth.showPassword')}
               class="absolute end-3 top-1/2 -translate-y-1/2 text-pm-text-muted hover:text-pm-text transition-colors"
             >
               {#if showNew}<IconEyeOff class="size-4" />{:else}<IconEye class="size-4" />{/if}
             </button>
           </div>
           {#if passwordTooShort}
-            <span class="text-xs text-pm-danger">{m.auth_passwordMinLength()}</span>
+            <span class="text-xs text-pm-danger">{t('auth.passwordMinLength')}</span>
           {/if}
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label for="confirm-password" class="text-sm font-medium text-pm-text">{m.auth_confirmPassword()}</label>
+          <label for="confirm-password" class="text-sm font-medium text-pm-text">{t('auth.confirmPassword')}</label>
           <div class="relative">
             <IconLock class="absolute start-3 top-1/2 -translate-y-1/2 size-4 text-pm-text-muted" aria-hidden="true" />
             <input
@@ -185,14 +185,14 @@
             <button
               type="button"
               onclick={() => showConfirm = !showConfirm}
-              aria-label={showConfirm ? m.auth_hidePassword() : m.auth_showPassword()}
+              aria-label={showConfirm ? t('auth.hidePassword') : t('auth.showPassword')}
               class="absolute end-3 top-1/2 -translate-y-1/2 text-pm-text-muted hover:text-pm-text transition-colors"
             >
               {#if showConfirm}<IconEyeOff class="size-4" />{:else}<IconEye class="size-4" />{/if}
             </button>
           </div>
           {#if passwordMismatch}
-            <span class="text-xs text-pm-danger">{m.auth_passwordMismatch()}</span>
+            <span class="text-xs text-pm-danger">{t('auth.passwordMismatch')}</span>
           {/if}
         </div>
 
@@ -202,14 +202,14 @@
             onclick={close}
             class="px-4 py-2 text-sm font-medium text-pm-text-secondary hover:text-pm-text transition-colors"
           >
-            {m.common_cancel()}
+            {t('common.cancel')}
           </button>
           <button
             type="submit"
             disabled={!isValid || isSubmitting}
             class={twMerge(clsx('px-4 py-2 text-sm font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed', 'bg-pm-brand text-pm-white hover:bg-pm-brand-light'))}
           >
-            {isSubmitting ? m.common_saving() : m.common_save()}
+            {isSubmitting ? t('common.saving') : t('common.save')}
           </button>
         </div>
       </form>

@@ -13,7 +13,7 @@
    * @example
    *   <Pagination bind:page totalPages={meta.totalPages} onPageChange={reload} />
    */
-  import * as m from '$lib/i18n'
+import { t } from '$lib/stores/content.svelte'
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { pageNumbers } from '$lib/utils/pagination'
@@ -42,12 +42,12 @@
 </script>
 
 {#if totalPages > 1}
-  <nav class={twMerge(clsx('flex items-center justify-center gap-1', className))} aria-label={m.pagination_navigation()}>
+  <nav class={twMerge(clsx('flex items-center justify-center gap-1', className))} aria-label={t('pagination.navigation')}>
     <button
       type="button"
       onclick={() => goTo(page - 1)}
       disabled={page <= 1}
-      aria-label={m.common_previous()}
+      aria-label={t('common.previous')}
       class="flex items-center justify-center size-9 rounded-md border border-pm-border text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
     >
       <IconChevronLeft class="size-4" />
@@ -61,7 +61,7 @@
           type="button"
           onclick={() => goTo(item)}
           aria-current={item === page ? 'page' : undefined}
-          aria-label={m.pagination_page() + ' ' + item}
+          aria-label={t('pagination.page') + ' ' + item}
           class="flex items-center justify-center size-9 rounded-md border text-sm transition-colors"
           class:bg-pm-brand:text-pm-white:border-pm-brand={item === page}
           class:border-pm-border:text-pm-text-secondary:hover:text-pm-text:hover:bg-pm-bg-sunken={item !== page}
@@ -75,7 +75,7 @@
       type="button"
       onclick={() => goTo(page + 1)}
       disabled={page >= totalPages}
-      aria-label={m.common_next()}
+      aria-label={t('common.next')}
       class="flex items-center justify-center size-9 rounded-md border border-pm-border text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
     >
       <IconChevronRight class="size-4" />

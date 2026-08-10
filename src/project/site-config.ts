@@ -65,6 +65,12 @@ export const CONTACT = { email: 'contact@fabrica22.pro' }
 
 // ── Footer "Made by" branding ───────────────────────────────────────────────
 
+// BRANDING-ASSET fallback, NOT an i18n fallback: locales with a direct logo
+// file are detected from `available`; locales without one (fr, he) fall back
+// to the brand's secondary logo language en. Shared by LOGO and FOOTER_MADE_BY
+// so header vs footer branding can never diverge.
+const BRAND_ASSET_LANG_FALLBACK = { fr: 'en', he: 'en' } as const
+
 export const FOOTER_MADE_BY = {
   text: 'footer.madeBy',
   url: 'https://fabrica22.pro',
@@ -74,7 +80,7 @@ export const FOOTER_MADE_BY = {
     'horizontal_dark_en', 'horizontal_dark_ru', 'horizontal_light_en', 'horizontal_light_ru',
     'circle_dark_en', 'circle_dark_ru', 'circle_light_en', 'circle_light_ru'
   ],
-  langFallback: { en: 'en', fr: 'en', he: 'en' }
+  assetLangFallback: BRAND_ASSET_LANG_FALLBACK
 }
 
 // ── Modules (admin CRUD availability + per-module config) ──────────────────
@@ -199,7 +205,9 @@ export const ADMIN_CONFIG: AdminConfig = {
 export const LOGO = {
   basePath: '/logos',
   shapes: { horizontal: 'header' as const, circle: 'short' as const },
-  langFallback: { en: 'en', fr: 'en', he: 'en' },
+  // BRANDING-ASSET fallback (PM v2 parity): locales with a direct logo file
+  // resolve directly; the shared map (same as FOOTER_MADE_BY) covers the rest.
+  assetLangFallback: BRAND_ASSET_LANG_FALLBACK,
   available: [
     'horizontal_dark_en', 'horizontal_dark_ru', 'horizontal_light_en', 'horizontal_light_ru',
     'circle_dark_en', 'circle_dark_ru', 'circle_light_en', 'circle_light_ru'
@@ -211,6 +219,11 @@ export const LOGO = {
 export const DEFAULT_THEME: 'system' | 'light' | 'dark' = 'system'
 
 // ── PM Mode ─────────────────────────────────────────────────────────────────
+// NOTE: PM_MODE describes the app's configured state (drives /init, setup
+// guards, admin). It is a PERMANENT project value — including 'build' during
+// local development — and therefore deliberately does NOT gate the seed
+// bootstrap-credential enforcement (see seed-data/users.ts), which is keyed
+// on NODE_ENV=production or PM_ADMIN_BOOTSTRAP_ENFORCE=true.
 
 export const PM_MODE: 'unconfigured' | 'build' | 'develop' = 'build'
 

@@ -2,11 +2,13 @@
  * GET /api/setup/config
  *
  * Returns current setup state: whether the site is configured
- * (PM_MODE !== 'unconfigured') and basic config summary.
+ * (setup guard — PM_MODE !== 'unconfigured' or the setup wizard has
+ * completed) and basic config summary.
  */
 import { json } from '@sveltejs/kit'
 import type { RequestEvent } from '@sveltejs/kit'
-import { PM_MODE } from '$lib/config/site'
+import { PM_MODE, LOCALES, DEFAULT_LOCALE } from '$lib/config/site'
+import { isSetupRequired } from '$lib/server/utils/setup-guard'
 import { z } from 'zod'
 
 const querySchema = z.object({})
@@ -25,10 +27,10 @@ export function GET(event: RequestEvent) {
   return json({
     success: true,
     data: {
-      configured: PM_MODE !== 'unconfigured',
+      configured: !isSetupRequired(),
       mode: PM_MODE,
-      locales: ['ru', 'en', 'fr', 'he'],
-      defaultLocale: 'ru'
+      locales: LOCALES,
+      defaultLocale: DEFAULT_LOCALE
     }
   })
 }

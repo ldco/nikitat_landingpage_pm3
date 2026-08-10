@@ -7,21 +7,20 @@
   import { twMerge } from 'tailwind-merge'
   import AppImage from '$lib/components/atoms/AppImage.svelte'
   import Pagination from '$lib/components/molecules/Pagination.svelte'
-  import * as m from '$lib/i18n'
+  import Seo from '$lib/components/atoms/Seo.svelte'
+import { t } from '$lib/stores/content.svelte'
   import { goto } from '$app/navigation'
-  import { FEATURES, SEO } from '$lib/config/site'
+  import { FEATURES } from '$lib/config/site'
   import type { PageData } from './$types'
 
   let { data }: { data: PageData } = $props()
   const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
 </script>
 
-<svelte:head>
-  <title>{m.nav_blog()} — {SEO.title}</title>
-</svelte:head>
+<Seo title={t('nav.blog')} />
 
 <div class={clsx('w-full mx-auto px-6 md:px-8 py-24', isContained && 'max-w-[var(--max-w-container)]')}>
-  <h1 class="text-4xl font-bold text-pm-text font-display text-center mb-12">{m.nav_blog()}</h1>
+  <h1 class="text-4xl font-bold text-pm-text font-display text-center mb-12">{t('nav.blog')}</h1>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {#each data.posts as post}
@@ -33,7 +32,7 @@
         {/if}
         <div class="flex flex-col flex-1 p-5">
           {#if post.readingTimeMinutes}
-            <span class="text-xs text-pm-text-muted mb-2">{m.blog_minRead({ minutes: String(post.readingTimeMinutes) })}</span>
+            <span class="text-xs text-pm-text-muted mb-2">{t('blog.minRead', { minutes: String(post.readingTimeMinutes) })}</span>
           {/if}
           <h2 class="text-lg font-bold text-pm-text">
             <a href={`/blog/${post.slug}`} class="hover:text-pm-brand transition-colors">{post.title}</a>
@@ -50,7 +49,7 @@
   </div>
 
   {#if data.posts.length === 0}
-    <p class="text-center text-pm-text-muted py-16">{m.common_note()}</p>
+    <p class="text-center text-pm-text-muted py-16">{t('common.note')}</p>
   {/if}
 
   <!-- Pagination -->

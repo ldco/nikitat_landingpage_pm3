@@ -8,6 +8,7 @@ node_modules
 
 # Build outputs (rebuilt in container)
 .output
+build
 .nuxt
 dist
 .deploy
@@ -48,6 +49,10 @@ test-results/
 e2e-playwright/
 
 # Audit/misc dev dirs (audit N-14 — keep the build context lean)
+# NOTE: messages/ and project.inlang/ are intentionally NOT excluded — the
+# Paraglide plugin (vite.config.ts) compiles them into src/lib/paraglide
+# during `npm run build`, so a clean container build needs the same inputs
+# as local development.
 ansible/
 .kilo/
 .husky/
@@ -55,8 +60,6 @@ ansible/
 contributing/
 legal/
 project/
-messages/
-project.inlang/
 
 # Local data (should be mounted as volumes)
 data/

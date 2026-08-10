@@ -3,18 +3,18 @@
    * Admin Blog Posts List — CRUD listing
    */
   import { page } from '$app/stores'
-  import * as m from '$lib/i18n'
+import { t } from '$lib/stores/content.svelte'
   import { getAdminT } from '$lib/utils/admin-translations'
   import type { PageData } from './$types'
   let { data }: { data: PageData } = $props()
   const items = $derived(data.items)
-  const t = $derived(getAdminT($page.data))
+  const adminT = $derived(getAdminT($page.data))
 </script>
 
 <div class="max-w-[var(--max-w-content)] mx-auto">
   <div class="flex items-center justify-between gap-4 py-4 mb-6 border-b border-pm-border">
-    <h1 class="text-2xl font-bold text-pm-text">{t['admin.blog'] || 'Blog'}</h1>
-    <span class="text-sm text-pm-text-muted">{items.length} {t['admin.total'] || 'total'}</span>
+    <h1 class="text-2xl font-bold text-pm-text">{adminT['admin.blog'] || 'Blog'}</h1>
+    <span class="text-sm text-pm-text-muted">{items.length} {adminT['admin.total'] || 'total'}</span>
   </div>
 
   <div class="flex flex-col gap-3">
@@ -25,7 +25,7 @@
           <h3 class="font-semibold text-pm-text mb-1">{item.slug}</h3>
           <div class="flex flex-wrap gap-2 text-xs text-pm-text-muted">
             <span class:bg-pm-success-bg:text-pm-success={item.published} class:bg-pm-bg-sunken:text-pm-text-muted={!item.published} class="px-1.5 py-0.5 rounded">
-              {item.published ? (t['admin.published'] || 'Published') : (t['admin.draft'] || 'Draft')}
+              {item.published ? (adminT['admin.published'] || 'Published') : (adminT['admin.draft'] || 'Draft')}
             </span>
             {#if item.publishedAt}
               <span>{new Date(item.publishedAt).toLocaleDateString()}</span>
@@ -34,7 +34,7 @@
         </div>
       </div>
     {:else}
-      <p class="text-center text-pm-text-muted py-16">{t['admin.noItems'] || m.common_noResults()}</p>
+      <p class="text-center text-pm-text-muted py-16">{adminT['admin.noItems'] || t('common.noResults')}</p>
     {/each}
   </div>
 </div>

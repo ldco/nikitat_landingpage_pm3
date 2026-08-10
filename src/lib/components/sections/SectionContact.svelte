@@ -97,7 +97,7 @@
   }
 </script>
 
-<Section id="contact" background="elevated">
+<Section id="contact">
   <SectionContent>
     <SectionHeading title={title} align="center" />
     {#if intro}
@@ -132,7 +132,14 @@
         </div>
 
         <label class="flex items-start gap-[var(--gap-xs)] leading-relaxed cursor-pointer mt-[var(--space-5)]">
-          <input type="checkbox" bind:checked={consent} class="mt-1" aria-invalid={!!consentError} />
+          <!-- Tokenized brand-accent checkbox (PM v2 parity): accent-color from
+               the brand token, token size, focus ring matching the text inputs. -->
+          <input
+            type="checkbox"
+            bind:checked={consent}
+            class="mt-1 shrink-0 size-[var(--form-checkbox-size)] accent-pm-brand rounded-[var(--radius-xs)] focus:outline-none focus:ring focus:ring-pm-brand/30 transition"
+            aria-invalid={!!consentError}
+          />
           <span class="text-xs text-pm-text-secondary">
             {consentText}
             <a href="/legal/personal-data-policy" class="text-pm-brand hover:underline" target="_blank" rel="noopener noreferrer">{consentLink}</a>

@@ -1,5 +1,6 @@
 import type { RequestEvent } from '@sveltejs/kit'
 import { getPublishedPortfoliosPaginated } from '$lib/server/services/portfolio'
+import { activeLocale } from '$lib/server/utils/locales'
 import { z } from 'zod'
 
 const querySchema = z.object({
@@ -8,7 +9,7 @@ const querySchema = z.object({
 })
 
 export function GET(event: RequestEvent) {
-  const locale = event.locals.paraglide?.lang ?? 'ru'
+  const locale = activeLocale(event.locals.paraglide?.lang)
   const parsed = querySchema.safeParse(Object.fromEntries(event.url.searchParams))
   if (!parsed.success) {
     return new Response(JSON.stringify({

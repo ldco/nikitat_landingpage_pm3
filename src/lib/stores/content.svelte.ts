@@ -1,11 +1,19 @@
 /**
  * Translations Store — UNIFIED source for ALL translations (system + content)
  *
+ * The DATABASE is the canonical runtime owner (PM v2 parity): the root
+ * layout seeds this store from the translations table (seeded from
+ * `i18n/system-seed.json` + `src/project/content.json`), so admin edits
+ * take effect at runtime. `messages/*.json` are GENERATED Paraglide
+ * artifacts — they only serve as the compile-time fallback below.
+ *
  * Lookup chain (documented in AGENTS.md / i18n policy):
- *   1. Database content translations (seeded from content.json + messages)
+ *   1. Database content translations (seeded from i18n/system-seed.json +
+ *      src/project/content.json) — the runtime source of truth
  *   2. Framework message catalog (Paraglide messages via $lib/i18n) — the
  *      key is dotted (sections.testimonials) and mapped to the compiled
- *      snake_case message function (sections_testimonials)
+ *      snake_case message function (sections_testimonials). This catalog is
+ *      generated from i18n/system-seed.json, so 1 and 2 never diverge.
  *   3. Explicit fallback value passed as the second argument
  *   4. The key itself as a last resort
  *

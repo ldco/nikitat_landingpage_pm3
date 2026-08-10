@@ -7,8 +7,9 @@
  */
 import type { PageServerLoad } from './$types'
 import { loadSectionContent } from '$lib/server/services/section-content'
+import { activeLocale } from '$lib/server/utils/locales'
 
 export const load: PageServerLoad = async ({ locals }): Promise<{ sectionContent: ReturnType<typeof loadSectionContent> }> => {
-  const locale = locals.paraglide?.lang ?? 'ru'
+  const locale = activeLocale(locals.paraglide?.lang)
   return { sectionContent: loadSectionContent(locale) }
 }

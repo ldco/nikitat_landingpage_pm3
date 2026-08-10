@@ -13,7 +13,7 @@
   import { FOOTER_MADE_BY, LOCALES } from '$lib/config/site'
   import { sanitizeHtml } from '$lib/utils/sanitize'
   import { madeByLogoSrc, type MadeByLogoConfig } from '$lib/utils/made-by-logo'
-  import { page } from '$app/stores'
+  import { languageTag } from '$lib/paraglide/runtime.js'
   import Section from '$lib/components/atoms/Section.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
   import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
@@ -24,15 +24,16 @@
   const logoConfig: MadeByLogoConfig = {
     basePath: FOOTER_MADE_BY.basePath,
     available: FOOTER_MADE_BY.available,
-    langFallback: FOOTER_MADE_BY.langFallback,
+    assetLangFallback: FOOTER_MADE_BY.assetLangFallback,
     defaultLang: LOCALES[0] ?? ''
   }
   const madeByUrl = FOOTER_MADE_BY.url
   const madeByAlt = t(FOOTER_MADE_BY.logoAlt, 'Fabrica 22')
 
-  // PM v2 getLogo: theme inversion — light mode shows 'dark' logo file, dark mode shows 'light'
-  const _dl = LOCALES[0] ?? 'ru'
-  const activeLang = $derived($page.url.pathname === '/' ? _dl : $page.url.pathname.slice(1, 3))
+  // PM v2 getLogo: theme inversion — light mode shows 'dark' logo file, dark mode shows 'light'.
+  // Locale is the active Paraglide tag (not URL pathname slicing), matching the
+  // shared made-by flow.
+  const activeLang = $derived(languageTag())
   const lightLogo = $derived(madeByLogoSrc(logoConfig, activeLang, 'light'))
   const darkLogo = $derived(madeByLogoSrc(logoConfig, activeLang, 'dark'))
 </script>

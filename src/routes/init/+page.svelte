@@ -5,36 +5,30 @@
    * Shown only when PM_MODE === 'unconfigured' (see +page.server.ts guard).
    * Collects the minimal initial settings via the settings service, then the
    * operator completes the full project config in src/project/site-config.ts.
+   *
+   * The form is a real SvelteKit action form (method="POST" → the default
+   * action in +page.server.ts), so setup submission works without JavaScript.
+   * `use:enhance` is layered on top for inline validation errors and
+   * client-side navigation — it is an enhancement, not the only submission
+   * path.
    */
-  import * as m from '$lib/i18n'
+import { t } from '$lib/stores/content.svelte'
   import Logo from '$lib/components/atoms/Logo.svelte'
+  import { page } from '$app/stores'
+  import { enhance } from '$app/forms'
 
   let { data } = $props()
 
   let contactEmail = $state('')
   let defaultLocale = $state(data.locales[0] ?? 'en')
-  let fieldErrors = $state<Record<string, string[]> | null>(null)
-  let saved = $state(false)
 
-  async function handleSubmit(e: SubmitEvent) {
-    e.preventDefault()
-    saved = false
-    fieldErrors = null
-
-    const form = e.currentTarget as HTMLFormElement
-    const res = await fetch('/init', {
-      method: 'POST',
-      headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams(new FormData(form) as unknown as URLSearchParams)
-    })
-
-    if (res.status === 400) {
-      const body = await res.json()
-      fieldErrors = body.fieldErrors ?? null
-    } else if (res.ok) {
-      saved = true
-    }
-  }
+  // Validation errors flow through $page.form: the server action returns
+  // fail(400, { fieldErrors }), which the enhanced submission applies in
+  // place, and a native (no-JS) POST re-renders the page with $page.form set.
+  // Bare `use:enhance` keeps SvelteKit's default action handling (applyAction):
+  // failures update $page.form, redirects navigate — no custom callback needed.
+  const form = $derived($page.form)
+  const fieldErrors = $derived((form as { fieldErrors?: Record<string, string[]> } | null)?.fieldErrors ?? {})
 </script>
 
 <div class="min-h-screen flex items-center justify-center bg-pm-bg">
@@ -44,17 +38,14 @@
         <Logo shape="horizontal" />
       </div>
 
-      <h1 class="text-xl font-bold text-pm-text mb-2">{m.init_pageTitle()}</h1>
-      <p class="text-sm text-pm-text-muted mb-6">{m.init_subtitle()}</p>
+      <h1 class="text-xl font-bold text-pm-text mb-2">{t('init.pageTitle')}</h1>
+      <p class="text-sm text-pm-text-muted mb-6">{t('init.subtitle')}</p>
 
-      {#if saved}
-        <div class="text-sm text-pm-success mb-6">{m.init_saved()}</div>
-      {/if}
-
-      <form onsubmit={handleSubmit} class="space-y-4">
+      <form method="POST" use:enhance class="space-y-4">
+        <input type="hidden" name="_csrf" value={data.csrfToken} />
         <div>
           <label for="contactEmail" class="block text-sm font-medium text-pm-text mb-1">
-            {m.init_contactEmail()}
+            {t('init.contactEmail')}
           </label>
           <input
             id="contactEmail"
@@ -64,15 +55,15 @@
             bind:value={contactEmail}
             class="w-full rounded-md border border-pm-border bg-pm-bg px-3 py-2 text-sm text-pm-text focus:outline-none focus:ring-2 focus:ring-pm-brand"
           />
-          <p class="text-xs text-pm-text-muted mt-1">{m.init_contactEmailHint()}</p>
-          {#if fieldErrors?.contactEmail}
+          <p class="text-xs text-pm-text-muted mt-1">{t('init.contactEmailHint')}</p>
+          {#if fieldErrors.contactEmail}
             <p class="text-xs text-pm-error mt-1">{fieldErrors.contactEmail[0]}</p>
           {/if}
         </div>
 
         <div>
           <label for="defaultLocale" class="block text-sm font-medium text-pm-text mb-1">
-            {m.init_defaultLocale()}
+            {t('init.defaultLocale')}
           </label>
           <select
             id="defaultLocale"
@@ -90,7 +81,7 @@
           type="submit"
           class="w-full rounded-md bg-pm-brand px-4 py-2 text-sm font-semibold text-pm-white hover:bg-pm-brand-dark focus:outline-none focus:ring-2 focus:ring-pm-brand"
         >
-          {m.init_submit()}
+          {t('init.submit')}
         </button>
       </form>
     </div>

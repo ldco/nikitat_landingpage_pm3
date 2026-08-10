@@ -7,7 +7,7 @@
    * stored role relationship drives both the RBAC gates and the menu.
    */
   import { page } from '$app/stores'
-  import * as m from '$lib/i18n'
+import { t } from '$lib/stores/content.svelte'
   import { getCsrfToken } from '$lib/utils/auth'
   import { getAdminT } from '$lib/utils/admin-translations'
   import type { PageData } from './$types'
@@ -15,7 +15,7 @@
   let { data }: { data: PageData } = $props()
   const items = $derived(data.items)
   const roles = $derived(data.roles)
-  const t = $derived(getAdminT($page.data))
+  const adminT = $derived(getAdminT($page.data))
 
   let saving = $state<number | null>(null)
   let feedback = $state<string | null>(null)
@@ -53,8 +53,8 @@
 
 <div class="max-w-[var(--max-w-content)] mx-auto">
   <div class="flex items-center justify-between gap-4 py-4 mb-6 border-b border-pm-border">
-    <h1 class="text-2xl font-bold text-pm-text">{t['admin.users'] || 'Users'}</h1>
-    <span class="text-sm text-pm-text-muted">{items.length} {t['admin.total'] || 'total'}</span>
+    <h1 class="text-2xl font-bold text-pm-text">{adminT['admin.users'] || 'Users'}</h1>
+    <span class="text-sm text-pm-text-muted">{items.length} {adminT['admin.total'] || 'total'}</span>
   </div>
 
   {#if feedback}
@@ -65,10 +65,10 @@
     <table class="w-full text-sm">
       <thead class="bg-pm-bg-sunken">
         <tr>
-          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">{t['admin.id'] || 'ID'}</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">{t['admin.email'] || m.common_email()}</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">{t['admin.name'] || m.common_name()}</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">{t['admin.role'] || 'Role'}</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">{adminT['admin.id'] || 'ID'}</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">{adminT['admin.email'] || t('common.email')}</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">{adminT['admin.name'] || t('common.name')}</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">{adminT['admin.role'] || 'Role'}</th>
         </tr>
       </thead>
       <tbody>
@@ -82,7 +82,7 @@
                 value={item.roleId ?? ''}
                 disabled={saving === item.id}
                 class="bg-pm-bg-elevated border border-pm-border rounded-md px-2 py-1 text-sm text-pm-text focus:outline-none focus:ring-2 focus:ring-pm-focus-ring"
-                aria-label={t['admin.role'] || 'Role'}
+                aria-label={adminT['admin.role'] || 'Role'}
                 onchange={(e) => {
                   const val = (e.currentTarget as HTMLSelectElement).value
                   void assignRole(item.id, val === '' ? null : Number(val))
@@ -102,6 +102,6 @@
   </div>
 
   {#if items.length === 0}
-    <p class="text-center text-pm-text-muted py-8">{t['admin.noItems'] || m.common_noResults()}</p>
+    <p class="text-center text-pm-text-muted py-8">{adminT['admin.noItems'] || t('common.noResults')}</p>
   {/if}
 </div>

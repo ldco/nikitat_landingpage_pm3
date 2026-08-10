@@ -10,8 +10,7 @@
   import { twMerge } from 'tailwind-merge'
   import AppImage from '$lib/components/atoms/AppImage.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
-  import * as m from '$lib/i18n'
-
+import { t } from '$lib/stores/content.svelte'
   let {
     title = '',
     pages = [] as Array<{ url: string; caption?: string }>,
@@ -51,10 +50,10 @@
   {#if total > 1}
     <div class="flex items-center justify-center gap-4">
       <CtaButton variant="ghost" size="sm" onclick={prev} disabled={currentPage === 0}>
-        {m.common_previous()}
+        {t('common.previous')}
       </CtaButton>
       <CtaButton variant="ghost" size="sm" onclick={next} disabled={currentPage >= total - 1}>
-        {m.common_next()}
+        {t('common.next')}
       </CtaButton>
     </div>
   {/if}

@@ -16,19 +16,17 @@
   import { twMerge } from 'tailwind-merge'
   import { getTheme } from '$lib/stores/theme.svelte'
   import { LOGO, LOCALES } from '$lib/config/site'
+  import { resolveBrandLogoLang, type BrandLogoConfig } from '$lib/utils/brand-logo'
   import * as runtime from '$lib/paraglide/runtime.js'
 
-  const LOGO_BASE = LOGO.basePath
-  const LOGO_AVAILABLE = new Set(LOGO.available)
-  function makeFallbackMap(list: readonly string[]): Record<string, string> {
-    const map: Record<string, string> = {}
-    const first = list[0]
-    if (first) for (const l of list) map[l] = first
-    return map
-  }
-  const FALLBACK_MAP = makeFallbackMap(LOCALES)
-  function resolveLang(lang: string): string {
-    return FALLBACK_MAP[lang] ?? LOCALES[0] ?? ''
+  const logoConfig: BrandLogoConfig = {
+    basePath: LOGO.basePath,
+    available: LOGO.available,
+    // Branding-asset fallback (not i18n): locales without a direct logo file
+    // resolve through LOGO.assetLangFallback (project config); locales with
+    // a direct file (detected from `available`) never consult the map.
+    assetLangFallback: LOGO.assetLangFallback,
+    defaultLang: LOCALES[0] ?? ''
   }
 
   type Shape = 'horizontal' | 'circle'
@@ -47,14 +45,9 @@
     class?: string
   } = $props()
 
-  // Resolve locale with fallback chain
+  // Resolve locale with the SHARED branding rule (same as made-by flow).
   const currentLocale = $derived(locale ?? runtime.languageTag())
-  const effectiveLang = $derived.by(() => {
-    const lang = currentLocale
-    const hasDirect = [...LOGO_AVAILABLE].some(name => name.endsWith(`_${lang}`))
-    if (hasDirect) return lang
-    return resolveLang(lang)
-  })
+  const effectiveLang = $derived(resolveBrandLogoLang(logoConfig, currentLocale))
 
   // PM v2: invert theme — dark mode uses 'light' logo, light mode uses 'dark' logo
   const themeStore = getTheme()
@@ -63,16 +56,17 @@
 
   // Build reactive src path (client-side)
   const src = $derived.by(() => {
+    const logoAvailable = new Set(logoConfig.available)
     const primary = `${shape}_${invertedTheme}_${effectiveLang}`
-    if (LOGO_AVAILABLE.has(primary)) return `${LOGO_BASE}/${primary}.svg`
+    if (logoAvailable.has(primary)) return `${logoConfig.basePath}/${primary}.svg`
     const fallback = `${shape}_${invertedTheme}_en`
-    if (LOGO_AVAILABLE.has(fallback)) return `${LOGO_BASE}/${fallback}.svg`
-    return `${LOGO_BASE}/horizontal_dark_en.svg`
+    if (logoAvailable.has(fallback)) return `${logoConfig.basePath}/${fallback}.svg`
+    return `${logoConfig.basePath}/horizontal_dark_en.svg`
   })
 
   // SSR fallback paths (app-nuxt: ssrLightLogo / ssrDarkLogo)
-  const ssrDarkSrc = $derived(`${LOGO_BASE}/${shape}_light_${effectiveLang}.svg`)
-  const ssrLightSrc = $derived(`${LOGO_BASE}/${shape}_dark_${effectiveLang}.svg`)
+  const ssrDarkSrc = $derived(`${logoConfig.basePath}/${shape}_light_${effectiveLang}.svg`)
+  const ssrLightSrc = $derived(`${logoConfig.basePath}/${shape}_dark_${effectiveLang}.svg`)
 
   // Mounted flag for ClientOnly-like behavior (avoids SSR hydration mismatch)
   let mounted = $state(false)

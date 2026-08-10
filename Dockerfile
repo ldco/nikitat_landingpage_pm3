@@ -67,19 +67,27 @@ RUN apk add --no-cache \
     && addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 sveltekit
 
-# Copy built application from builder
-COPY --from=builder --chown=sveltekit:nodejs /app/.output ./.output
+# Copy built application from builder (adapter-node outputs to build/)
+COPY --from=builder --chown=sveltekit:nodejs /app/build ./build
+# Runtime dependencies — the adapter externalizes native/ESM deps
+# (better-sqlite3, drizzle-orm, otpauth, …), so node_modules must be shipped.
+# The deps stage already rebuilt better-sqlite3 for this Alpine base.
+COPY --from=deps --chown=sveltekit:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=sveltekit:nodejs /app/package.json ./package.json
+# Deploy/runtime scripts — the migration runner (schema-sync container + boot)
+# and the admin password rotation task both execute from /app/scripts.
+COPY --from=builder --chown=sveltekit:nodejs /app/scripts/docker-migrate.mjs ./scripts/docker-migrate.mjs
+COPY --from=builder --chown=sveltekit:nodejs /app/scripts/rotate-admin-passwords.mjs ./scripts/rotate-admin-passwords.mjs
 COPY --from=builder --chown=sveltekit:nodejs /app/scripts/docker-entrypoint.sh ./scripts/docker-entrypoint.sh
 RUN chmod +x /app/scripts/docker-entrypoint.sh
 
 # Create runtime directories
 RUN mkdir -p /app/data /app/i18n && chown -R sveltekit:nodejs /app/data /app/i18n
 
-# Copy Drizzle migrations and seed data
+# Copy Drizzle migrations and seed data — /app/drizzle is the single shipped
+# migration directory (docker-migrate.mjs resolves it relative to process.cwd()).
 COPY --from=builder --chown=sveltekit:nodejs /app/drizzle ./drizzle
 COPY --from=builder --chown=sveltekit:nodejs /app/i18n/system-seed.json ./i18n/system-seed.json
-COPY --from=builder --chown=sveltekit:nodejs /app/i18n/db-translations.json ./i18n/db-translations.json
 
 # Environment variables
 ENV NODE_ENV=production

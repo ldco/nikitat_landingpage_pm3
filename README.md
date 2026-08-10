@@ -28,6 +28,7 @@ npm run dev        # dev-сервер (порт 5173)
 | `npm run db:push` | Push Drizzle schema to SQLite |
 | `npm run db:seed` | Seed database |
 | `npm run db:reset` | Reset + seed |
+| `npm run i18n:export` | Regenerate Paraglide artifacts from `i18n/system-seed.json` + config |
 | `npm run db:studio` | Drizzle Studio |
 | `npm run setup` | Server provisioning (Ansible) |
 | `npm run deploy` | Deploy (build + Ansible rollout) |
@@ -59,8 +60,12 @@ ADMIN_CONFIG                     // RBAC по ролям (master/admin/editor)
 
 ## i18n
 
-- UI-строки: Paraglide (`messages/{lang}.json`; `ru` источник, цели `en`/`fr`/`he`), доступ через `t('key')`.
-- Контент: таблицы переводов в БД (`src/lib/server/db/seed.ts`, `i18n/db-translations.json`).
+Локали — конфиг-управляемые (языко-агностичный фреймворк, PM v2 parity):
+
+- **Локали**: `LOCALES`/`DEFAULT_LOCALE` в `src/project/site-config.ts` — единственный источник. Серверные контракты (валидация, детекция, setup-ответы) читают их через `src/lib/server/utils/locales.ts` — код под новую локаль не меняется.
+- **Переводы живут в БД** (runtime source of truth): `npm run db:seed` заливает `i18n/system-seed.json` (системные/UI строки, все локали) + `src/project/content.json` (контент проекта) в таблицу `translations`. `t('key')` сначала читает БД — правки из админки применяются на лету.
+- **Сгенерированные артефакты (не редактировать)**: `messages/{lang}.json` (вход Paraglide-компилятора) и `project.inlang/settings.json` — пересоздаются одной командой `npm run i18n:export` из `i18n/system-seed.json` + конфига.
+- **Добавить язык**: 1) `{code, iso, name}` в `PM_LOCALE_DATA` (site-config.ts), 2) переводы в `i18n/system-seed.json` и `content.json`, 3) `npm run i18n:export` + `npm run db:seed`. RTL определяется автоматически (`isRtlLocale`).
 - Запрещены новые не-переведённые литералы — валидатор (`scripts/pm3-validator.mjs`, check #10) и `scripts/i18n-literal-baseline.json`.
 
 ## Environment

@@ -3,16 +3,16 @@
    * Admin Clients — Manage client list
    */
   import { page } from '$app/stores'
-  import * as m from '$lib/i18n'
+import { t } from '$lib/stores/content.svelte'
   import { getAdminT } from '$lib/utils/admin-translations'
   let { data }: { data: { items: Array<{ id: number; name: string; logoUrl?: string; websiteUrl?: string }> } } = $props()
-  const t = $derived(getAdminT($page.data))
+  const adminT = $derived(getAdminT($page.data))
 </script>
 
 <div class="max-w-[var(--max-w-content)] mx-auto">
   <div class="flex items-center justify-between gap-4 py-4 mb-6 border-b border-pm-border">
-    <h1 class="text-2xl font-bold text-pm-text">{t['admin.clients'] || 'Clients'}</h1>
-    <span class="text-sm text-pm-text-muted">{data.items.length} {t['admin.total'] || 'total'}</span>
+    <h1 class="text-2xl font-bold text-pm-text">{adminT['admin.clients'] || 'Clients'}</h1>
+    <span class="text-sm text-pm-text-muted">{data.items.length} {adminT['admin.total'] || 'total'}</span>
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -28,7 +28,7 @@
         <p class="text-xs text-pm-text-muted">{item.websiteUrl ?? '—'}</p>
       </div>
     {:else}
-      <p class="text-center text-pm-text-muted py-16 col-span-full">{t['admin.noItems'] || m.common_noResults()}</p>
+      <p class="text-center text-pm-text-muted py-16 col-span-full">{adminT['admin.noItems'] || t('common.noResults')}</p>
     {/each}
   </div>
 </div>

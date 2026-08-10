@@ -24,7 +24,7 @@ export const load: PageServerLoad = async (event) => {
 export const actions = {
   default: async (event: RequestEvent) => {
     requireAdminPage(event, 'portfolios')
-    const form = await event.request.formData()
+    const form = event.locals.csrfForm ?? await event.request.formData()
     const parsed = updateSchema.safeParse({
       name: form.get('name'),
       slug: form.get('slug'),

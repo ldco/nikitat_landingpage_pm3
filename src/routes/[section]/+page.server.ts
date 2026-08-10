@@ -11,6 +11,7 @@ import type { PageServerLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { HOMEPAGE_SECTIONS } from '$lib/config/site'
 import { loadSectionContent } from '$lib/server/services/section-content'
+import { activeLocale } from '$lib/server/utils/locales'
 
 export const load: PageServerLoad = ({ params, locals }) => {
   const sectionId = params.section
@@ -20,7 +21,7 @@ export const load: PageServerLoad = ({ params, locals }) => {
     error(404, 'Section not found')
   }
 
-  const locale = locals.paraglide?.lang ?? 'ru'
+  const locale = activeLocale(locals.paraglide?.lang)
   // Load only the content slices the rendered section consumes — the loader
   // accepts the section id so non-onepager pages do not run all nine queries.
   return { section, sectionContent: loadSectionContent(locale, section.id) }

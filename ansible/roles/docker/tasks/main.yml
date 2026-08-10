@@ -108,7 +108,30 @@
 # ─── Automated DB backup cron (audit I-17 / E-6) ───────────────────────────
 # Installs a daily cron job running the project backup script with S3 upload.
 # Disabled by default (pm_backup_cron_enabled=false); enable per project by
-# setting the deploy var. The script and directory must exist on the host.
+# setting the deploy var. The script is installed into the shared project
+# scripts dir by the tasks below (nothing else copies it onto the host), with
+# execute permissions and the same `--remote` arguments the documented manual
+# backup flow uses (scripts/backup-db.sh header).
+- name: Create backup scripts directory
+  file:
+    path: '{{ deploy_shared_root }}/scripts'
+    state: directory
+    owner: '{{ deploy_user }}'
+    group: '{{ deploy_user }}'
+    mode: '0755'
+  when: pm_backup_cron_enabled | default(false) | bool
+  tags: [docker, backup]
+
+- name: Install database backup script
+  copy:
+    src: '{{ playbook_dir }}/../scripts/backup-db.sh'
+    dest: '{{ deploy_shared_root }}/scripts/backup-db.sh'
+    owner: '{{ deploy_user }}'
+    group: '{{ deploy_user }}'
+    mode: '0755'
+  when: pm_backup_cron_enabled | default(false) | bool
+  tags: [docker, backup]
+
 - name: Install automated database backup cron
   cron:
     name: 'pm-{{ project_id | default("app") }}-db-backup'

@@ -1,51 +1,42 @@
 /**
  * Translation Classification Reference
  *
- * ARCHITECTURE (Phase 2 — Paraglide + DB split):
+ * ONE-WAY PIPELINE (database is the runtime owner — PM v2 parity):
  *
- * Paraglide (compile-time, messages/*.json):
- *   UI strings: common.*, nav.*, auth.*, error.*, validation.*,
- *   cookies.*, theme.*, footer.*, sections.*, legal.*,
- *   pricing.*, setup.*, init.*, apiErrors.*
+ *   i18n/system-seed.json   ← THE canonical, hand-edited catalog.
+ *                             Contains EVERY system translation (UI + admin +
+ *                             settings) for EVERY configured locale. This is
+ *                             the only file engineers edit for system text.
+ *        │
+ *        ├── npm run db:seed ──► translations table (runtime source of truth,
+ *        │                         admin-editable; `t()` checks the DB first)
+ *        │
+ *        └── npm run i18n:export ──► messages/{locale}.json   (GENERATED —
+ *                                     Paraglide compile input, do not edit)
+ *                                     project.inlang/settings.json (GENERATED —
+ *                                     languageTags synced from LOCALES config)
  *
- * DB (runtime, admin-editable via admin panel):
- *   Content: admin.*, settings.*, blog.*, team.*, portfolio.*,
- *   testimonials.*, features.*, faq.*, clients.*
+ *   src/project/content.json ──► db:seed ──► translations table (project
+ *                                             content: hero.*, about.*, …)
  *
- * Paraglide keys are compiled into JS at build time.
- * DB keys are loaded at runtime and editable via admin panel.
+ * Adding a language = 1) add {code, iso, name} to PM_LOCALE_DATA in
+ * src/project/site-config.ts, 2) add translations to i18n/system-seed.json
+ * (+ src/project/content.json), 3) run `npm run i18n:export` + `npm run db:seed`.
+ * No server code changes — validation/detection read LOCALES via
+ * `$lib/server/utils/locales`.
  *
- * NEVER use string-based t('key') API in components.
- * ✅ import * as m from '$lib/i18n' → m.common_submit()
- * ❌ t('common.submit')
- *
- * DB content is loaded via $page.data:
- * ✅ {data.post.title}
+ * Never edit messages/*.json by hand — the export script regenerates it from
+ * system-seed.json.
  */
 
-// Paraglide UI prefixes (NOT in DB)
+// Prefixes compiled into the Paraglide catalog (messages/*.json) — every key
+// here is exposed as an `m.*()` function and used directly in components or
+// as the fallback branch of `t()`. Admin-only labels are NOT in this list,
+// so they stay out of the public client bundle and live in the DB only.
+// Anything NOT in this list is classified as a DB-resident key.
 export const PARAGLIDE_PREFIXES = [
-  'common.', 'cookies.', 'nav.', 'auth.', 'error.', 'validation.',
-  'theme.', 'footer.', 'sections.', 'legal.',
-  'pricing.', 'setup.', 'init.', 'apiErrors.'
+  'common', 'nav', 'auth', 'error', 'validation',
+  'cookies', 'theme', 'footer', 'sections', 'legal',
+  'pricing', 'setup', 'init', 'apiErrors',
+  'seo', 'cta', 'pagination', 'contact', 'blog', 'testimonials'
 ] as const
-
-// DB content prefixes (NOT in Paraglide)
-export const DB_PREFIXES = [
-  'admin.', 'settings.', 'blog.', 'team.', 'portfolio.',
-  'testimonials.', 'features.', 'faq.', 'clients.'
-] as const
-
-/**
- * Check if a translation key is a Paraglide (UI) key
- */
-export function isParaglideKey(key: string): boolean {
-  return PARAGLIDE_PREFIXES.some(prefix => key.startsWith(prefix))
-}
-
-/**
- * Check if a translation key is a DB (content) key
- */
-export function isDbKey(key: string): boolean {
-  return DB_PREFIXES.some(prefix => key.startsWith(prefix))
-}

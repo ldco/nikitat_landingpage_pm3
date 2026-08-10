@@ -6,7 +6,9 @@ import { Buffer } from 'node:buffer'
 import { createRequire } from 'node:module'
 import { URL } from 'node:url'
 
-const runtimeRequire = createRequire('/app/.output/server/package.json')
+// Resolve better-sqlite3 from the image's shipped package.json + node_modules
+// (fall back to the repo root when run outside the container).
+const runtimeRequire = createRequire(fs.existsSync('/app/package.json') ? '/app/package.json' : new URL('../package.json', import.meta.url).pathname)
 const Database = runtimeRequire('better-sqlite3')
 
 const port = Number(process.env.PM_OPS_AGENT_PORT || 3010)
@@ -181,7 +183,7 @@ function pathStatus(targetPath) {
 
 function migrationStatus() {
   try {
-    const migrationsDir = '/app/.output/server/database/migrations'
+    const migrationsDir = '/app/drizzle'
     const journal = JSON.parse(fs.readFileSync(path.join(migrationsDir, 'meta/_journal.json'), 'utf8'))
     const db = new Database(dbPath, { readonly: true, fileMustExist: true })
     const rows = db.prepare('SELECT count(*) AS count, max(created_at) AS lastCreatedAt FROM "__drizzle_migrations"').get()

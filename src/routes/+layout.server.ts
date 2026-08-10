@@ -11,9 +11,10 @@ import { getLegalDocuments } from '$lib/utils/legal-documents'
 import { getSanitizedContentTranslations } from '$lib/server/db/content-cache'
 import { getPublicSettings } from '$lib/server/services/settings'
 import { logger } from '$lib/server/utils/logger'
+import { activeLocale } from '$lib/server/utils/locales'
 
 export const load: LayoutServerLoad = async ({ locals }) => {
-  const locale = locals.paraglide?.lang ?? 'ru'
+  const locale = activeLocale(locals.paraglide?.lang)
 
   const contentTranslations = getSanitizedContentTranslations(locale)
   const publicSettings = getPublicSettings()

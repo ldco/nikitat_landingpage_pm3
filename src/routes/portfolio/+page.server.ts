@@ -1,7 +1,8 @@
 import type { PageServerLoad } from './$types'
 import { getPublishedPortfolios } from '$lib/server/services/portfolio'
+import { activeLocale } from '$lib/server/utils/locales'
 
 export const load: PageServerLoad = ({ locals }) => {
-  const locale = locals.paraglide?.lang ?? 'ru'
+  const locale = activeLocale(locals.paraglide?.lang)
   return { items: getPublishedPortfolios(locale) }
 }

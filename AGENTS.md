@@ -35,13 +35,15 @@ npm run db:reset   — reset + seed database
 
 ### i18n — No Untranslated Regressions (enforced)
 Every user-facing string in framework/project UI files must come from the i18n
-layer (`t('key')` or `m.*()`). The PM3 validator (check #10) fails on NEW
-user-facing string literals in `.svelte` files / `src/app.html`, and check
-#10b covers approved TS config surfaces that feed UI (`src/project/site-config.ts`
-and anything added to `TS_CONFIG_SCAN_FILES`). The frozen inventory lives in
-`scripts/i18n-literal-baseline.json`. Allowed exceptions and the workflow for
-adding new UI text are documented in `docs/contributing/i18n-literals-policy.md`
-(read it before adding any text). Never hardcode visible strings to "make it work".
+layer (`t('key')` — the DB-aware helper; direct `m.*()` catalog imports in
+components are FORBIDDEN, validator check #12). The PM3 validator (check #10)
+fails on NEW user-facing string literals in `.svelte` files / `src/app.html`,
+and check #10b covers approved TS config surfaces that feed UI
+(`src/project/site-config.ts` and anything added to `TS_CONFIG_SCAN_FILES`).
+The frozen inventory lives in `scripts/i18n-literal-baseline.json`. Allowed
+exceptions and the workflow for adding new UI text are documented in
+`docs/contributing/i18n-literals-policy.md` (read it before adding any text).
+Never hardcode visible strings to "make it work".
 
 ## Framework Rules (from PM MCP server — always apply)
 

@@ -14,7 +14,7 @@
   import { twMerge } from 'tailwind-merge'
   import { page } from '$app/stores'
   import type { AdminPageId } from '$lib/server/db/schema'
-  import * as m from '$lib/i18n'
+
   import { getAdminT } from '$lib/utils/admin-translations'
   import {
     IconHome, IconUsers, IconSettings, IconLanguage, IconPhoto,
@@ -99,7 +99,7 @@
     return () => clearInterval(interval)
   })
 </script>
-{#if $page.url.pathname.startsWith('/admin/login')}
+{#if $page.url.pathname.startsWith('/admin/login') || $page.url.pathname.startsWith('/admin/change-password')}
   <main class="min-h-screen bg-pm-bg">
     <div class="p-4 sm:p-6 mx-auto max-w-[var(--max-w-content)]">
       {@render children?.()}
@@ -154,7 +154,7 @@
               </div>
               <a href="/api/auth/logout" class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken">
                 <IconLogout class="size-4" />
-                {m.auth_logout()}
+                {contentT('auth.logout')}
               </a>
             </div>
           {/if}
@@ -197,7 +197,7 @@
                 </div>
                 <a href="/api/auth/logout" class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken">
                   <IconLogout class="size-4" />
-                  {m.auth_logout()}
+                  {contentT('auth.logout')}
                 </a>
               </div>
             {/if}
@@ -227,7 +227,7 @@
           {/if}
           <a href="/api/auth/logout" class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken">
             <IconLogout class="size-4" />
-            {m.auth_logout()}
+            {contentT('auth.logout')}
           </a>
         </div>
       {/if}
@@ -250,7 +250,7 @@
 
   <!-- Mobile Hamburger Toggle (phone only) -->
   <button class="fixed top-3 end-3 z-[var(--z-hamburger)] sm:hidden flex items-center justify-center size-10 rounded-md bg-pm-bg-elevated border border-pm-border shadow-md"
-    onclick={() => mobileOpen = !mobileOpen} aria-label={m.nav_openMenu()}>
+    onclick={() => mobileOpen = !mobileOpen} aria-label={contentT('nav.openMenu')}>
     <IconMenu2 class="size-5" />
   </button>
 

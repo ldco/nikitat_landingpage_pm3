@@ -4,6 +4,7 @@
    */
   import { FEATURES, HOMEPAGE_SECTIONS } from '$lib/config/site'
   import Onepager from '$lib/components/complex/Onepager.svelte'
+  import Seo from '$lib/components/atoms/Seo.svelte'
   import type { PageData } from './$types'
 
   let { data }: { data: PageData } = $props()
@@ -17,6 +18,9 @@
     )
   )
 </script>
+
+<!-- Homepage metadata: resolved site title + description (settings → i18n). -->
+<Seo />
 
 {#if isOnepager}
   <Onepager sections={sections} content={data.sectionContent} />

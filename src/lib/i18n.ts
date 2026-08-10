@@ -4,9 +4,10 @@
  * Re-exports Paraglide messages and creates the i18n instance
  * for locale detection, routing, and hooks.
  *
- * Usage in components:
- *   import * as m from '$lib/i18n'
- *   <h1>{m.hero_title()}</h1>
+ * RUNTIME CONTRACT: the DATABASE is the runtime owner of ALL translations.
+ * Components MUST read text through `t()` from `$lib/stores/content.svelte`
+ * (DB-first, Paraglide fallback) — never through `m.*()` directly, so admin
+ * edits to the translations table apply live.
  *
  * Usage in server code:
  *   import { i18n } from '$lib/i18n'
@@ -17,8 +18,8 @@ import * as runtime from '$lib/paraglide/runtime.js'
 import { createI18n } from '@inlang/paraglide-sveltekit'
 import { LOCALES, isRtlLocale } from '$lib/config/site'
 
-// Re-export all Paraglide messages for convenience
-// import * as m from '$lib/i18n' — then use m.hero_title(), m.common_submit(), etc.
+// The compiled Paraglide catalog is the FALLBACK branch of the unified
+// `t()` helper (content store) — components never import it directly.
 export * from '$lib/paraglide/messages.js'
 
 // Create i18n instance with locale detection strategy

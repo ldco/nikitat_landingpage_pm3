@@ -2,9 +2,7 @@ import type { RequestEvent } from '@sveltejs/kit'
 import { jsonSuccess } from '$lib/server/utils/api'
 import { useDatabase, schema } from '$lib/server/db'
 import { eq } from 'drizzle-orm'
-import { z } from 'zod'
-
-const localeSchema = z.enum(['ru', 'en', 'fr', 'he'])
+import { localeSchema, supportedLocalesText } from '$lib/server/utils/locales'
 
 export function GET(event: RequestEvent) {
   const locale = event.params.locale ?? ''
@@ -12,7 +10,7 @@ export function GET(event: RequestEvent) {
   if (!parsed.success) {
     return new Response(JSON.stringify({
       success: false,
-      error: { code: 'validation.locale', message: 'Invalid locale. Supported: ru, en, fr, he' }
+      error: { code: 'validation.locale', message: `Invalid locale. Supported: ${supportedLocalesText}` }
     }), {
       status: 400,
       headers: { 'content-type': 'application/json' }

@@ -973,6 +973,34 @@ normalize_totp_encryption_key() {
   export TOTP_ENCRYPTION_KEY
 }
 
+# Admin bootstrap rotation is MANDATORY for production deploys (security
+# audit: a guessable or empty master/admin credential makes the admin entry
+# point trivially predictable). Rotation cannot be opted out, and ALL THREE
+# privileged credentials (master/admin/editor) must be set — the rotation
+# container fails without any of them, so fail at preflight, not mid-deploy.
+validate_admin_rotation_contract() {
+  local rotation_enabled
+  rotation_enabled="${PM_ADMIN_PASSWORD_ROTATION_ENABLED:-true}"
+
+  if [[ "$rotation_enabled" != "true" ]]; then
+    printf '[deploy] PM_ADMIN_PASSWORD_ROTATION_ENABLED must be true — rotation of master/admin credentials is mandatory.\n' >&2
+    return 1
+  fi
+
+  local missing=()
+  [[ -z "${PM_ADMIN_MASTER_PASSWORD:-}" ]] && missing+=("PM_ADMIN_MASTER_PASSWORD")
+  [[ -z "${PM_ADMIN_ADMIN_PASSWORD:-}" ]] && missing+=("PM_ADMIN_ADMIN_PASSWORD")
+  [[ -z "${PM_ADMIN_USER_PASSWORD:-}" ]] && missing+=("PM_ADMIN_USER_PASSWORD")
+
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    printf '[deploy] Missing required admin bootstrap credential(s): %s\n' "${missing[*]}" >&2
+    printf '[deploy] Generate strong random values with: node scripts/rotate-admin-passwords.mjs --generate --write-env\n' >&2
+    return 1
+  fi
+
+  return 0
+}
+
 # NOTE (audit I-1): PM_SETTINGS_ENCRYPTION_KEY is generated and validated by the
 # deploy pipeline for PM2 parity, but NO src/ application code reads it today —
 # there is no encrypted-settings feature in PM3 yet. Do NOT add a boot-time
@@ -1071,7 +1099,7 @@ pm_backup_cron_enabled: $(quote_yaml_value "${PM_DEPLOY_BACKUP_CRON:-false}")
 netdata_url: $(quote_yaml_value "${NETDATA_URL:-http://127.0.0.1:19999}")
 pm_ops_agent_enabled: $(quote_yaml_value "${PM_OPS_AGENT_ENABLED:-true}")
 pm_ops_agent_token: $(quote_yaml_value "${PM_OPS_AGENT_TOKEN:-$(resolved_settings_encryption_key)}")
-pm_admin_password_rotation_enabled: $(quote_yaml_value "${PM_ADMIN_PASSWORD_ROTATION_ENABLED:-false}")
+pm_admin_password_rotation_enabled: $(quote_yaml_value "${PM_ADMIN_PASSWORD_ROTATION_ENABLED:-true}")
 pm_admin_master_email: $(quote_yaml_value "${PM_ADMIN_MASTER_EMAIL:-master@example.com}")
 pm_admin_master_password: $(quote_yaml_value "${PM_ADMIN_MASTER_PASSWORD:-}")
 pm_admin_admin_email: $(quote_yaml_value "${PM_ADMIN_ADMIN_EMAIL:-admin@example.com}")

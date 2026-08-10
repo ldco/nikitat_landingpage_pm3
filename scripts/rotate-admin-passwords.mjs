@@ -2,6 +2,7 @@
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
+import { Buffer } from 'node:buffer'
 import { createRequire } from 'node:module'
 
 const DEFAULT_ENV_FILE = '.env'
@@ -221,6 +222,23 @@ function hashPassword(password) {
   return `${salt}:${hash}`
 }
 
+/**
+ * True when `password` matches the stored `salt:hash` value. Used to make
+ * rotation idempotent: a deploy whose configured credential is unchanged
+ * must NOT re-hash, force another password change, or invalidate sessions.
+ */
+function passwordMatches(storedHash, password) {
+  try {
+    const [salt, hash] = String(storedHash).split(':')
+    if (!salt || !hash) return false
+    const expected = Buffer.from(hash, 'hex')
+    const actual = crypto.scryptSync(password, salt, KEY_LENGTH)
+    return expected.length === actual.length && crypto.timingSafeEqual(expected, actual)
+  } catch {
+    return false
+  }
+}
+
 function validatePassword(password, key) {
   const errors = []
   if (password.length < 20) errors.push('must be at least 20 characters')
@@ -235,7 +253,7 @@ function validatePassword(password, key) {
 }
 
 function databaseConstructor() {
-  const runtimePackageJson = '/app/.output/server/package.json'
+  const runtimePackageJson = '/app/package.json'
   const requireFrom = fs.existsSync(runtimePackageJson)
     ? createRequire(runtimePackageJson)
     : createRequire(import.meta.url)
@@ -287,14 +305,19 @@ function applyPasswords(dbPath, credentials, dryRun) {
   const db = new Database(dbPath)
 
   try {
-    const findByEmail = db.prepare('SELECT id, email, role FROM users WHERE lower(email) = lower(?)')
-    const findByRole = db.prepare('SELECT id, email, role FROM users WHERE role = ? ORDER BY id LIMIT 1')
+    const findByEmail = db.prepare('SELECT id, email, role, password_hash FROM users WHERE lower(email) = lower(?)')
+    const findByRole = db.prepare('SELECT id, email, role, password_hash FROM users WHERE role = ? ORDER BY id LIMIT 1')
+    const insertUser = db.prepare(`
+      INSERT INTO users (email, password_hash, name, role, must_change_password, created_at, updated_at)
+      VALUES (?, ?, ?, ?, 1, ?, ?)
+    `)
     const updateUser = db.prepare(`
       UPDATE users
       SET password_hash = ?,
           failed_login_attempts = 0,
           locked_until = NULL,
           last_failed_login = NULL,
+          must_change_password = 1,
           updated_at = ?
       WHERE id = ?
     `)
@@ -311,14 +334,31 @@ function applyPasswords(dbPath, credentials, dryRun) {
       for (const target of targets) {
         const configuredEmail = credentials[target.emailKey]
         const password = credentials[target.passwordKey]
-        const user = findByEmail.get(configuredEmail) || findByRole.get(target.role)
+        const displayName = target.label === 'master' ? 'Developer' : target.label === 'admin' ? 'Client Owner' : 'Content Editor'
+
+        let user = findByEmail.get(configuredEmail) || findByRole.get(target.role)
 
         if (!user) {
-          throw new Error(`No ${target.label} account found for ${configuredEmail} or role ${target.role}.`)
+          // Bootstrap path: a fresh database has no accounts yet — create the
+          // privileged target so rotation doubles as the complete first-run
+          // bootstrap (master/admin mandatory per security review).
+          insertUser.run(configuredEmail, hashPassword(password), displayName, target.role, now, now)
+          user = findByEmail.get(configuredEmail)
+          if (!user) {
+            throw new Error(`Failed to create ${target.label} account for ${configuredEmail}.`)
+          }
         }
 
         if (user.role !== target.role) {
           throw new Error(`${user.email} has role ${user.role}; expected ${target.role}.`)
+        }
+
+        // Idempotency: when the configured credential is unchanged, do NOT
+        // re-hash, force another password change, or wipe sessions — rotation
+        // must only act on an actual credential change.
+        if (passwordMatches(user.password_hash, password)) {
+          rotated.push(`${target.label}:${user.email}:unchanged`)
+          continue
         }
 
         updateUser.run(hashPassword(password), now, user.id)
@@ -329,7 +369,8 @@ function applyPasswords(dbPath, credentials, dryRun) {
             actor: 'scripts/rotate-admin-passwords.mjs',
             target: target.label,
             email: user.email,
-            sessionsInvalidated: true
+            sessionsInvalidated: true,
+            mustChangePassword: true
           }),
           now
         )

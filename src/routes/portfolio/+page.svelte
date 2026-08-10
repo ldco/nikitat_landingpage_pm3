@@ -6,19 +6,18 @@
   import { clsx } from 'clsx'
   import AppImage from '$lib/components/atoms/AppImage.svelte'
   import Badge from '$lib/components/atoms/Badge.svelte'
-  import * as m from '$lib/i18n'
-  import { FEATURES, SEO } from '$lib/config/site'
+  import Seo from '$lib/components/atoms/Seo.svelte'
+import { t } from '$lib/stores/content.svelte'
+  import { FEATURES } from '$lib/config/site'
   import type { PageData } from './$types'
   let { data }: { data: PageData } = $props()
   const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
 </script>
 
-<svelte:head>
-  <title>{m.nav_portfolio()} — {SEO.title}</title>
-</svelte:head>
+<Seo title={t('nav.portfolio')} />
 
 <div class={clsx('w-full mx-auto px-6 md:px-8 py-24', isContained && 'max-w-[var(--max-w-container)]')}>
-  <h1 class="text-4xl font-bold text-pm-text font-display text-center mb-12">{m.nav_portfolio()}</h1>
+  <h1 class="text-4xl font-bold text-pm-text font-display text-center mb-12">{t('nav.portfolio')}</h1>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {#each data.items as item}
@@ -39,6 +38,6 @@
   </div>
 
   {#if data.items.length === 0}
-    <p class="text-center text-pm-text-muted py-16">{m.common_note()}</p>
+    <p class="text-center text-pm-text-muted py-16">{t('common.note')}</p>
   {/if}
 </div>

@@ -49,12 +49,22 @@ placeholders, error messages, empty-state copy — MUST be a translation key.
 
 ## How agents should add new UI text
 
-1. Add the message key to **all four** locale files under `messages/`
-   (`ru`, `en`, `fr`, `he`) — snake_case name, e.g. `testimonials_next`.
-2. Recompile the catalog:
-   `npx paraglide-js compile --project ./project.inlang --outdir ./src/lib/paraglide`
-3. Reference it via `m.testimonials_next()` or `t('testimonials.next')`
-   (the dotted form resolves to the compiled message automatically).
+The database is the runtime owner of ALL translations (PM v2 parity), and
+`messages/*.json` are GENERATED artifacts — never edit them by hand. The
+canonical catalog is `i18n/system-seed.json`:
+
+1. Add the message key to `i18n/system-seed.json` for **every configured
+   locale** (dotted key, e.g. `testimonials.next`). The default locale
+   (`DEFAULT_LOCALE` in `src/project/site-config.ts`) must always be filled;
+   other locales may be added later — the export regenerates the catalog
+   with what exists.
+2. Regenerate the Paraglide artifacts (messages + inlang settings) from the
+   catalog and the config:
+   `npm run i18n:export`
+3. Reference it via `t('testimonials.next')` — the unified helper resolves the
+   DB first (admin edits apply live) and falls back to the compiled message.
+   NEVER import the Paraglide catalog directly (`import * as m from '$lib/i18n'`)
+   in components — validator check #12 blocks it: the DB is the runtime owner.
 
 Never hardcode a visible string to "make it work" — that is a regression this
 rule exists to catch.

@@ -12,7 +12,7 @@
    *
    * @example <TwoFactorVerify {onVerified} {onCancelled} />
    */
-  import * as m from '$lib/i18n'
+import { t } from '$lib/stores/content.svelte'
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { verify2fa } from '$lib/api/client'
@@ -37,7 +37,7 @@
 
   async function handleVerify() {
     if (!code) {
-      error = useBackupCode ? m.auth_twoFactor_enterBackupCode() : m.auth_twoFactor_enterCode()
+      error = useBackupCode ? t('auth.twoFactor.enterBackupCode') : t('auth.twoFactor.enterCode')
       return
     }
     loading = true
@@ -47,11 +47,11 @@
       if (res.success) {
         onVerified?.()
       } else {
-        error = m.auth_twoFactor_invalidCode()
+        error = t('auth.twoFactor.invalidCode')
         code = ''
       }
     } catch {
-      error = m.auth_twoFactor_invalidCode()
+      error = t('auth.twoFactor.invalidCode')
       code = ''
     } finally {
       loading = false
@@ -75,9 +75,9 @@
       <IconShieldLock class="size-5" />
     </span>
     <div>
-      <h3 class="text-lg font-semibold text-pm-text leading-tight">{m.auth_twoFactor_verifyTitle()}</h3>
+      <h3 class="text-lg font-semibold text-pm-text leading-tight">{t('auth.twoFactor.verifyTitle')}</h3>
       <p class="mt-1 text-sm text-pm-text-muted">
-        {useBackupCode ? m.auth_twoFactor_enterBackupDescription() : m.auth_twoFactor_verifyDescription()}
+        {useBackupCode ? t('auth.twoFactor.enterBackupDescription') : t('auth.twoFactor.verifyDescription')}
       </p>
     </div>
   </div>
@@ -85,7 +85,7 @@
   <form onsubmit={(e) => { e.preventDefault(); handleVerify() }} class="flex flex-col gap-3">
     <div class="flex flex-col gap-1.5">
       <label for="2fa-code" class="text-sm font-medium text-pm-text">
-        {useBackupCode ? m.auth_twoFactor_backupCode() : m.auth_twoFactor_verificationCode()}
+        {useBackupCode ? t('auth.twoFactor.backupCode') : t('auth.twoFactor.verificationCode')}
       </label>
       <input
         id="2fa-code"
@@ -97,7 +97,7 @@
         autocomplete="one-time-code"
         autofocus
         class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-pm-text text-sm focus:outline-none focus:ring-2 focus:ring-pm-focus-ring"
-        placeholder={useBackupCode ? m.auth_twoFactor_backupPlaceholder() : m.auth_twoFactor_codePlaceholder()}
+        placeholder={useBackupCode ? t('auth.twoFactor.backupPlaceholder') : t('auth.twoFactor.codePlaceholder')}
       />
     </div>
 
@@ -113,7 +113,7 @@
       disabled={loading}
       class="w-full py-2.5 px-4 rounded-md bg-pm-brand text-pm-white font-medium text-sm hover:bg-pm-brand-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
     >
-      {loading ? m.common_verifying() : m.auth_twoFactor_verify()}
+      {loading ? t('common.verifying') : t('auth.twoFactor.verify')}
     </button>
 
     <button
@@ -121,7 +121,7 @@
       onclick={toggleBackupCode}
       class="text-sm text-pm-text-muted hover:text-pm-text transition-colors self-center"
     >
-      {useBackupCode ? m.auth_twoFactor_useAuthenticator() : m.auth_twoFactor_useBackup()}
+      {useBackupCode ? t('auth.twoFactor.useAuthenticator') : t('auth.twoFactor.useBackup')}
     </button>
 
     <button
@@ -130,7 +130,7 @@
       class="flex items-center justify-center gap-1.5 text-sm text-pm-text-muted hover:text-pm-text transition-colors"
     >
       <IconArrowLeft class="size-4" />
-      {m.auth_twoFactor_backToLogin()}
+      {t('auth.twoFactor.backToLogin')}
     </button>
   </form>
 </div>

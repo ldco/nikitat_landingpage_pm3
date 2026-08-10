@@ -1,17 +1,21 @@
 /**
- * Translation Cache
+ * Translation Cache — the ONE authoritative admin-translation reader.
  *
  * PM v2 pattern: translations loaded at server start, cached in memory.
  * PM v3 equivalent: module-level cache, loaded on first request.
  *
  * Provides getAdminTranslations(locale) — returns cached translations
- * or loads them from DB on first call. Freshness mirrors content-cache:
- * a `MAX(updated_at)` check runs at most once per TTL window, so any write
- * path (even one that forgets to invalidate) self-heals on the next read.
+ * or loads them from DB on first call. When the requested locale has NO
+ * admin translations, it falls back to the project DEFAULT_LOCALE so a
+ * partially-translated locale never renders an empty admin panel. Freshness
+ * mirrors content-cache: a `MAX(updated_at)` check runs at most once per TTL
+ * window, so any write path (even one that forgets to invalidate)
+ * self-heals on the next read.
  */
 import { useDatabase } from '$lib/server/db'
 import { schema } from '$lib/server/db'
 import { eq, max } from 'drizzle-orm'
+import { DEFAULT_LOCALE } from '$lib/config/site'
 
 /** Skip the freshness query entirely within this window (cache is hot). */
 const FRESHNESS_TTL_MS = 30_000
@@ -42,7 +46,8 @@ function loadFromDb(locale: string): Record<string, string> {
   return map
 }
 
-export function getAdminTranslations(locale: string): Record<string, string> {
+/** Read one locale through the TTL-bounded freshness cache. */
+function getCached(locale: string): Record<string, string> {
   const now = Date.now()
   const entry = cache.get(locale)
 
@@ -66,6 +71,19 @@ export function getAdminTranslations(locale: string): Record<string, string> {
 
   const translations = loadFromDb(locale)
   cache.set(locale, { data: translations, maxUpdatedAt, lastChecked: now })
+  return translations
+}
+
+/**
+ * Admin translations for a locale, with DEFAULT_LOCALE fallback when the
+ * requested locale has none — a locale with an empty admin map never renders
+ * an empty panel.
+ */
+export function getAdminTranslations(locale: string): Record<string, string> {
+  const translations = getCached(locale)
+  if (locale !== DEFAULT_LOCALE && Object.keys(translations).length === 0) {
+    return getCached(DEFAULT_LOCALE)
+  }
   return translations
 }
 

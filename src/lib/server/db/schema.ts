@@ -6,7 +6,8 @@
  *         team_members, blog_posts, blog_categories, blog_tags, blog_media,
  *         clients, features, testimonials, faq_items, translations, audit_logs
  *
- * ≈31 tables with translations support for multi-locale (ru, en, fr, he)
+ * ≈31 tables with translations support for multi-locale (locales are
+ * config-driven — see LOCALES in src/project/site-config.ts)
  */
 import { sqliteTable, text, integer, unique, index } from 'drizzle-orm/sqlite-core'
 
@@ -53,6 +54,9 @@ export const users = sqliteTable('users', {
   lockedUntil: integer('locked_until', { mode: 'timestamp' }),
   lastFailedLogin: integer('last_failed_login', { mode: 'timestamp' }),
   twoFactorEnabled: integer('two_factor_enabled', { mode: 'boolean' }).default(false),
+  // First-login hardening: true when the account was bootstrapped/rotated with
+  // an operator-provided credential that must be changed before normal access.
+  mustChangePassword: integer('must_change_password', { mode: 'boolean' }).default(false),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
 })

@@ -8,8 +8,8 @@ export default {
       numberOfRuns: 3,
       // Test the production URL
       url: ['http://localhost:3000/en'],
-      // Use production server
-      startServerCommand: 'node .output/server/index.mjs',
+      // Use production server (adapter-node output — build/index.js)
+      startServerCommand: 'node build/index.js',
       // Give server time to start
       startServerReadyPattern: 'Listening on',
       startServerReadyTimeout: 30000,

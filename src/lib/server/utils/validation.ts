@@ -2,6 +2,9 @@
  * Common Zod Validation Schemas
  */
 import { z } from 'zod'
+import { localeSchema } from './locales'
+
+export { localeSchema }
 
 export const emailSchema = z.string().email('Invalid email address').max(255)
 
@@ -11,8 +14,6 @@ export const slugSchema = z.string()
   .regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with hyphens')
 
 export const urlSchema = z.string().url('Invalid URL').max(2048).optional().or(z.literal(''))
-
-export const localeSchema = z.enum(['ru', 'en', 'fr', 'he'])
 
 export const paginationSchema = z.object({
   page: z.coerce.number().int().positive().default(1),

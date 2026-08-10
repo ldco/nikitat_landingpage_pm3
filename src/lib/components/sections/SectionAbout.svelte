@@ -23,7 +23,7 @@
   const hasContent = $derived(paragraph1.length > 0)
 </script>
 
-<Section id="about" background="elevated">
+<Section id="about">
   <SectionContent>
     <SectionHeading title={title} align="center" />
 

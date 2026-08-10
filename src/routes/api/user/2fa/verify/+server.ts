@@ -130,7 +130,7 @@ export async function POST(event: RequestEvent) {
   audit.login(ip, ua, pending.userId)
 
   const user = db
-    .select({ id: schema.users.id, email: schema.users.email, name: schema.users.name, role: schema.users.role })
+    .select({ id: schema.users.id, email: schema.users.email, name: schema.users.name, role: schema.users.role, mustChangePassword: schema.users.mustChangePassword })
     .from(schema.users)
     .where(eq(schema.users.id, pending.userId))
     .get()
@@ -138,7 +138,9 @@ export async function POST(event: RequestEvent) {
   return json({
     success: true,
     data: {
-      user: user ?? { id: pending.userId, email: pending.email, name: null, role: 'editor' },
+      user: user
+        ? { id: user.id, email: user.email, name: user.name, role: user.role, mustChangePassword: user.mustChangePassword }
+        : { id: pending.userId, email: pending.email, name: null, role: 'editor', mustChangePassword: true },
       backupCodesRemaining: result.method === 'backup' ? hashedBackupCodes.length : undefined
     }
   })

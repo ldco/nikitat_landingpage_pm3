@@ -6,7 +6,7 @@
    * but no UI. This page hosts the ChangePasswordModal and TwoFactorSetup flows.
    */
   import { page } from '$app/stores'
-  import * as m from '$lib/i18n'
+import { t } from '$lib/stores/content.svelte'
   import { getAdminT } from '$lib/utils/admin-translations'
   import { fetch2faStatus, disable2fa, type TwoFactorStatusData } from '$lib/api/client'
   import { getOverlaysState } from '$lib/stores/overlays.svelte'
@@ -19,7 +19,7 @@
   import IconLock from '@tabler/icons-svelte/icons/lock'
 
   let { data }: { data: PageData } = $props()
-  const t = $derived(getAdminT($page.data))
+  const adminT = $derived(getAdminT($page.data))
   const overlays = getOverlaysState()
   const twoFactorAvailable = $derived(data.twoFactorAvailable)
 
@@ -49,13 +49,13 @@
       if (res.success) {
         disablePassword = ''
         status = null
-        overlays.showToast(m.auth_twoFactor_disable(), 'success')
+        overlays.showToast(t('auth.twoFactor.disable'), 'success')
         loadStatus()
       } else {
-        disableError = m.apiErrors_auth_currentPasswordIncorrect()
+        disableError = t('apiErrors.auth.currentPasswordIncorrect')
       }
     } catch {
-      disableError = m.common_error()
+      disableError = t('common.error')
     } finally {
       disabling = false
     }
@@ -64,18 +64,18 @@
   function on2faEnabled() {
     twoFactorSetupOpen = false
     setupDone = true
-    overlays.showToast(m.auth_twoFactor_enabled(), 'success')
+    overlays.showToast(t('auth.twoFactor.enabled'), 'success')
     loadStatus()
   }
 
   function onPasswordChanged() {
-    overlays.showToast(m.auth_passwordChanged(), 'success')
+    overlays.showToast(t('auth.passwordChanged'), 'success')
   }
 </script>
 
 <div class="max-w-[var(--max-w-content)] mx-auto">
   <div class="flex items-center justify-between gap-4 py-4 mb-6 border-b border-pm-border">
-    <h1 class="text-2xl font-bold text-pm-text">{t['admin.security'] || m.auth_changePassword()}</h1>
+    <h1 class="text-2xl font-bold text-pm-text">{adminT['admin.security'] || t('auth.changePassword')}</h1>
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -86,7 +86,7 @@
           <IconLock class="size-5" />
         </span>
         <div>
-          <h2 class="text-lg font-semibold text-pm-text">{m.auth_changePassword()}</h2>
+          <h2 class="text-lg font-semibold text-pm-text">{t('auth.changePassword')}</h2>
           <p class="text-sm text-pm-text-muted">{data.user?.email}</p>
         </div>
       </div>
@@ -95,7 +95,7 @@
         onclick={() => changePasswordOpen = true}
         class="w-fit px-4 py-2 rounded-md bg-pm-brand text-pm-white text-sm font-medium hover:bg-pm-brand-light transition-colors"
       >
-        {m.auth_changePassword()}
+        {t('auth.changePassword')}
       </button>
     </section>
 
@@ -106,17 +106,17 @@
           <IconShieldLock class="size-5" />
         </span>
         <div>
-          <h2 class="text-lg font-semibold text-pm-text">{m.auth_twoFactor_verifyTitle()}</h2>
+          <h2 class="text-lg font-semibold text-pm-text">{t('auth.twoFactor.verifyTitle')}</h2>
           {#if status?.enabled}
             <p class="flex items-center gap-1.5 text-sm text-pm-success">
               <IconCheck class="size-4" />
-              {m.auth_twoFactor_enabled()}
+              {t('auth.twoFactor.enabled')}
             </p>
             {#if status.backupCodesRemaining !== undefined}
-              <p class="text-xs text-pm-text-muted">{m.auth_twoFactor_backupCodesRemaining()}</p>
+              <p class="text-xs text-pm-text-muted">{t('auth.twoFactor.backupCodesRemaining')}</p>
             {/if}
           {:else}
-            <p class="text-sm text-pm-text-muted">{m.auth_twoFactor_statusDisabled()}</p>
+            <p class="text-sm text-pm-text-muted">{t('auth.twoFactor.statusDisabled')}</p>
           {/if}
         </div>
       </div>
@@ -124,12 +124,12 @@
       {#if !twoFactorAvailable}
         <p class="flex items-center gap-2 text-sm text-pm-text-muted">
           <IconAlertTriangle class="size-4 shrink-0" />
-          {m.apiErrors_auth_twoFactorNotEnabled()}
+          {t('apiErrors.auth.twoFactorNotEnabled')}
         </p>
       {:else if status?.enabled}
         <form onsubmit={(e) => { e.preventDefault(); handleDisable() }} class="flex flex-col gap-3">
           <div class="flex flex-col gap-1.5">
-            <label for="2fa-disable-password" class="text-sm font-medium text-pm-text">{m.auth_currentPassword()}</label>
+            <label for="2fa-disable-password" class="text-sm font-medium text-pm-text">{t('auth.currentPassword')}</label>
             <input
               id="2fa-disable-password"
               bind:value={disablePassword}
@@ -147,7 +147,7 @@
             disabled={disabling || !disablePassword}
             class="w-fit px-4 py-2 rounded-md border border-pm-danger text-pm-danger text-sm font-medium hover:bg-pm-danger hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {disabling ? m.common_loading() : m.auth_twoFactor_disable()}
+            {disabling ? t('common.loading') : t('auth.twoFactor.disable')}
           </button>
         </form>
       {:else}
@@ -159,13 +159,13 @@
             onclick={() => { setupDone = false; twoFactorSetupOpen = true }}
             class="w-fit px-4 py-2 rounded-md bg-pm-brand text-pm-white text-sm font-medium hover:bg-pm-brand-light transition-colors"
           >
-            {m.auth_twoFactor_setupTitle()}
+            {t('auth.twoFactor.setupTitle')}
           </button>
         {/if}
         {#if setupDone}
           <p class="flex items-center gap-2 text-sm text-pm-success">
             <IconCheck class="size-4" />
-            {m.auth_twoFactor_enabled()}
+            {t('auth.twoFactor.enabled')}
           </p>
         {/if}
       {/if}

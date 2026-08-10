@@ -55,7 +55,7 @@ export const DEFAULT_SETTINGS: Array<{ key: string; value: string; type: Setting
 
   // ── Legal ────────────────────────────────────────────────────────────────
   { key: 'legal.companyLegalName', value: '', type: 'string', group: 'legal' },
-  { key: 'legal.companyName', value: 'Puppet Master', type: 'string', group: 'legal' },
+  { key: 'legal.companyName', value: 'Фабрика 22', type: 'string', group: 'legal' },
   { key: 'legal.inn', value: '', type: 'string', group: 'legal' },
   { key: 'legal.kpp', value: '', type: 'string', group: 'legal' },
   { key: 'legal.ogrn', value: '', type: 'string', group: 'legal' },
@@ -66,9 +66,12 @@ export const DEFAULT_SETTINGS: Array<{ key: string; value: string; type: Setting
   { key: 'footer.ctaUrl', value: '#contact', type: 'string', group: 'footer' },
 
   // ── SEO ──────────────────────────────────────────────────────────────────
-  { key: 'seo.title', value: 'Puppet Master', type: 'string', group: 'seo' },
-  { key: 'seo.description', value: 'Puppet Master — SvelteKit meta-framework', type: 'string', group: 'seo' },
-  { key: 'seo.keywords', value: 'puppet master, sveltekit, framework, starter', type: 'string', group: 'seo' },
+  // Project metadata (nikitat.pro / Fabrica 22) — these are the FIRST-choice
+  // source for the shared Seo layer (src/lib/utils/seo.ts), so they must
+  // reflect this project, never the framework placeholder brand.
+  { key: 'seo.title', value: 'Фабрика 22 — дизайн-студия', type: 'string', group: 'seo' },
+  { key: 'seo.description', value: 'Фабрика 22 — дизайн-студия: брендинг, айдентика, сайты и диджитал-продакшн.', type: 'string', group: 'seo' },
+  { key: 'seo.keywords', value: 'фабрика 22, дизайн, брендинг, айдентика, сайты, диджитал', type: 'string', group: 'seo' },
 
   // ── Analytics (user fills in own IDs) ────────────────────────────────────
   { key: 'analytics.googleId', value: '', type: 'string', group: 'integrations' },
@@ -106,6 +109,25 @@ export function seedSettings() {
       .set({ value: 'social.telegram,contact.email' })
       .where(eq(schema.settings.key, 'contact.headerQuickItems'))
       .run()
+  }
+
+  // Backfill stale framework placeholder brand ('Puppet Master') rows to this
+  // project's metadata — the Seo layer reads settings FIRST, so a leftover
+  // placeholder would otherwise shadow the translated defaults forever.
+  const brandBackfill: Array<{ key: string; oldDefault: string; value: string }> = [
+    { key: 'legal.companyName', oldDefault: 'Puppet Master', value: 'Фабрика 22' },
+    { key: 'seo.title', oldDefault: 'Puppet Master', value: 'Фабрика 22 — дизайн-студия' },
+    { key: 'seo.description', oldDefault: 'Puppet Master — SvelteKit meta-framework', value: 'Фабрика 22 — дизайн-студия: брендинг, айдентика, сайты и диджитал-продакшн.' },
+    { key: 'seo.keywords', oldDefault: 'puppet master, sveltekit, framework, starter', value: 'фабрика 22, дизайн, брендинг, айдентика, сайты, диджитал' }
+  ]
+  for (const backfill of brandBackfill) {
+    const row = existing.find(s => s.key === backfill.key)
+    if (row?.value === backfill.oldDefault) {
+      db.update(schema.settings)
+        .set({ value: backfill.value })
+        .where(eq(schema.settings.key, backfill.key))
+        .run()
+    }
   }
 
   console.log(`   ✓ ${added} new settings added, ${preserved} existing preserved (total ${DEFAULT_SETTINGS.length})\n`)

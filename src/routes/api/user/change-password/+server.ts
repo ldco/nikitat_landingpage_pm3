@@ -57,7 +57,13 @@ export async function PUT(event: RequestEvent) {
   }
 
   db.update(schema.users)
-    .set({ passwordHash: hashPassword(newPassword), updatedAt: new Date() })
+    .set({
+      passwordHash: hashPassword(newPassword),
+      // First-login hardening cleared: the operator replaced the bootstrap
+      // credential, so normal admin access is now allowed.
+      mustChangePassword: false,
+      updatedAt: new Date()
+    })
     .where(eq(schema.users.id, user.id))
     .run()
 
