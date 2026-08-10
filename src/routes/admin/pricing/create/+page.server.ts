@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { requireAdmin } from '$lib/server/utils/admin-rbac'
+import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { useDatabase, schema } from '$lib/server/db'
 import { redirect, fail } from '@sveltejs/kit'
 import type { RequestEvent } from '@sveltejs/kit'
@@ -11,10 +11,10 @@ const createSchema = z.object({
   price: z.coerce.number().int().min(0).optional()
 })
 
-export const load: PageServerLoad = (event) => { requireAdmin(event) }
+export const load: PageServerLoad = (event) => { requireAdminPage(event, 'pricing') }
 export const actions = {
   default: async (event: RequestEvent) => {
-    requireAdmin(event)
+    requireAdminPage(event, 'pricing')
     const form = await event.request.formData()
     const parsed = createSchema.safeParse({ name: form.get('name'), slug: form.get('slug'), price: form.get('price') || undefined })
     if (!parsed.success) {

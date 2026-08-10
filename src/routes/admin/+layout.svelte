@@ -23,6 +23,7 @@
     IconLogout, IconShieldCheck, IconQuestionMark, IconX, IconMenu2
   } from '@tabler/icons-svelte'
   import { FEATURES } from '$lib/config/site'
+  import { t as contentT } from '$lib/stores/content.svelte'
 
   import type { PageData } from './$types'
 
@@ -32,32 +33,25 @@
 
   const useVerticalNav = $derived(FEATURES.appVerticalNav)
 
-  const SECTION_FALLBACKS: Record<string, string> = {
-    dashboard: 'Dashboard', users: 'Users', roles: 'Roles',
-    translations: 'Translations', settings: 'Settings', portfolios: 'Portfolios',
-    blog: 'Blog', team: 'Team', testimonials: 'Testimonials', faq: 'FAQ',
-    clients: 'Clients', pricing: 'Pricing', features: 'Features',
-    contacts: 'Contacts', audit: 'Audit', health: 'Health'
-  }
-
-  const SECTION_KEYS: Record<string, string> = {
+  // Admin navigation is derived from data.menuPages — computed server-side from
+  // ADMIN_CONFIG + MODULES + stored role permissions (see admin-pages.ts), so
+  // the menu and the enforced authorization use the same source of truth.
+  const PAGE_LABEL_KEYS: Record<string, string> = {
     dashboard: 'admin.dashboard', users: 'admin.users', roles: 'admin.roles',
     translations: 'admin.translations', settings: 'admin.settings',
     portfolios: 'admin.portfolios', blog: 'admin.blog', team: 'admin.team',
     testimonials: 'admin.testimonials', faq: 'admin.faq', clients: 'admin.clients',
     pricing: 'admin.pricing', features: 'admin.features', contacts: 'admin.contacts',
-    audit: 'admin.auditLog', health: 'admin.health'
+    audit: 'admin.auditLog', health: 'admin.health', security: 'admin.security'
   }
 
-  const SECTION_IDS = ['dashboard', 'users', 'roles', 'translations', 'settings',
-    'portfolios', 'blog', 'team', 'testimonials', 'faq', 'clients', 'pricing',
-    'features', 'contacts', 'audit', 'health']
-
   const adminSections = $derived(
-    SECTION_IDS.map(id => ({
-      id,
-      label: t[SECTION_KEYS[id] ?? ''] || (SECTION_FALLBACKS[id] ?? '')
-    }))
+    (data.menuPages ?? []).map(id => {
+      const labelKey = PAGE_LABEL_KEYS[id] ?? `admin.${id}`
+      // DB admin translations first, then the unified t() (which falls back to
+      // the Paraglide catalog, e.g. admin.auditLog → admin_auditLog), then id.
+      return { id, label: t[labelKey] ?? contentT(labelKey) ?? id }
+    })
   )
 
   const iconComponentMap: Record<string, typeof IconHome> = {
@@ -66,7 +60,7 @@
     portfolios: IconPhoto, blog: IconArticle, team: IconUsersGroup,
     testimonials: IconQuote, faq: IconHelpCircle, clients: IconBuilding,
     pricing: IconCreditCard, features: IconSparkles, contacts: IconMail,
-    audit: IconClipboardList, health: IconActivity
+    audit: IconClipboardList, health: IconActivity, security: IconShieldCheck
   }
 
   const currentPath = $derived($page.url.pathname)
@@ -77,7 +71,7 @@
     for (const s of adminSections) {
       if (isActive(s.id)) return s.label
     }
-    return t['admin.dashboard'] || 'Dashboard'
+    return t['admin.dashboard'] ?? 'admin.dashboard'
   })
 
   const userInitials = $derived(
@@ -107,7 +101,7 @@
 </script>
 {#if $page.url.pathname.startsWith('/admin/login')}
   <main class="min-h-screen bg-pm-bg">
-    <div class="p-4 sm:p-6 mx-auto max-w-content">
+    <div class="p-4 sm:p-6 mx-auto max-w-[var(--max-w-content)]">
       {@render children?.()}
     </div>
   </main>
@@ -121,7 +115,7 @@
 }} onkeydown={(e) => { if (e.key === 'Escape') { userMenuOpen = false; mobileUserMenuOpen = false } }} role="presentation">
   {#if useVerticalNav}
     <!-- VERTICAL MODE: Desktop Sidebar (PM v2: admin.vue lines 286-364) -->
-    <aside class="fixed top-0 start-0 z-sticky hidden lg:flex flex-col w-16 h-full bg-pm-bg-elevated border-e border-pm-border">
+    <aside class="fixed top-0 start-0 z-[var(--z-sticky)] hidden lg:flex flex-col w-16 h-full bg-pm-bg-elevated border-e border-pm-border">
       <div class="flex items-center justify-center h-16 border-b border-pm-border">
         <a href="/admin" class="text-lg font-bold text-pm-text">P</a>
       </div>
@@ -138,7 +132,7 @@
               <span class="absolute -top-0.5 -end-0.5 flex items-center justify-center min-w-3.5 h-3.5 px-1 rounded-full bg-pm-danger text-2xs font-bold text-white leading-none">{unreadCount > 9 ? '9+' : unreadCount}</span>
             {/if}
             <!-- Tooltip -->
-            <span class="absolute start-full ms-2 px-2 py-1 rounded-md bg-pm-bg-elevated border border-pm-border text-xs text-pm-text shadow-md whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-tooltip">
+            <span class="absolute start-full ms-2 px-2 py-1 rounded-md bg-pm-bg-elevated border border-pm-border text-xs text-pm-text shadow-md whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-[var(--z-tooltip)]">
               {section.label}
             </span>
           </a>
@@ -152,7 +146,7 @@
             {userInitials}
           </button>
           {#if userMenuOpen}
-            <div class="absolute bottom-full mb-2 start-2 w-56 bg-pm-bg-elevated border border-pm-border rounded-xl shadow-xl z-popover p-3">
+            <div class="absolute bottom-full mb-2 start-2 w-56 bg-pm-bg-elevated border border-pm-border rounded-xl shadow-xl z-[var(--z-popover)] p-3">
               <div class="flex flex-col gap-1 mb-3 pb-3 border-b border-pm-border">
                 <span class="text-sm font-medium text-pm-text">{user.name ?? user.email}</span>
                 <span class="text-xs text-pm-text-muted">{user.email}</span>
@@ -169,9 +163,9 @@
     </aside>
   {:else}
     <!-- HORIZONTAL MODE: Desktop Header (PM v2: admin.vue lines 198-281) -->
-    <header class="sticky top-0 z-sticky bg-pm-bg-elevated border-b border-pm-border">
+    <header class="sticky top-0 z-[var(--z-sticky)] bg-pm-bg-elevated border-b border-pm-border">
       <div class="flex items-center justify-between gap-4 px-4 py-2">
-        <a href="/admin" class="text-lg font-bold text-pm-text shrink-0">{t['admin.title'] || 'PM Admin'}</a>
+        <a href="/admin" class="text-lg font-bold text-pm-text shrink-0">{t['admin.title']}</a>
         <nav class="flex items-center gap-1 flex-1 justify-center">
           {#each adminSections as section}
             {@const SideIcon = iconComponentMap[section.id] || IconSettings}
@@ -181,7 +175,7 @@
               class:text-pm-text-secondary:hover:text-pm-text:hover:bg-pm-bg-sunken={!isActive(section.id)}
             >
               <SideIcon class="size-5" />
-              <span class="absolute top-full mt-2 px-2 py-1 rounded-md bg-pm-bg-elevated border border-pm-border text-xs text-pm-text shadow-md whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-tooltip">
+              <span class="absolute top-full mt-2 px-2 py-1 rounded-md bg-pm-bg-elevated border border-pm-border text-xs text-pm-text shadow-md whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-[var(--z-tooltip)]">
                 {section.label}
               </span>
             </a>
@@ -195,7 +189,7 @@
               {userInitials}
             </button>
             {#if userMenuOpen}
-              <div class="absolute top-full end-0 mt-2 w-56 bg-pm-bg-elevated border border-pm-border rounded-xl shadow-xl z-popover p-3">
+              <div class="absolute top-full end-0 mt-2 w-56 bg-pm-bg-elevated border border-pm-border rounded-xl shadow-xl z-[var(--z-popover)] p-3">
                 <div class="flex flex-col gap-1 mb-3 pb-3 border-b border-pm-border">
                   <span class="text-sm font-medium text-pm-text">{user.name ?? user.email}</span>
                   <span class="text-xs text-pm-text-muted">{user.email}</span>
@@ -214,7 +208,7 @@
   {/if}
 
   <!-- Mobile Header (PM v2: admin.vue lines 374-426) — shown on phones -->
-  <header class="sticky top-0 z-sticky lg:hidden flex items-center justify-between gap-3 px-4 py-2.5 bg-pm-bg-elevated border-b border-pm-border sm:hidden">
+  <header class="sticky top-0 z-[var(--z-sticky)] lg:hidden flex items-center justify-between gap-3 px-4 py-2.5 bg-pm-bg-elevated border-b border-pm-border sm:hidden">
     <span class="text-sm font-medium text-pm-text">{currentPageTitle()}</span>
     <div class="relative mobile-user-wrapper">
       <button type="button" onclick={toggleMobileUserMenu}
@@ -223,7 +217,7 @@
         {userInitials}
       </button>
       {#if mobileUserMenuOpen}
-        <div class="absolute end-0 top-full mt-2 w-64 bg-pm-bg-elevated border border-pm-border rounded-xl shadow-xl z-popover p-3">
+        <div class="absolute end-0 top-full mt-2 w-64 bg-pm-bg-elevated border border-pm-border rounded-xl shadow-xl z-[var(--z-popover)] p-3">
           {#if user}
             <div class="flex flex-col gap-1 mb-3 pb-3 border-b border-pm-border">
               <span class="text-sm font-medium text-pm-text">{user.name ?? user.email}</span>
@@ -241,7 +235,7 @@
   </header>
 
   <!-- Mobile Bottom Nav (PM v2: bottom-nav.css 255 lines) -->
-  <nav class="fixed bottom-0 left-0 right-0 z-sticky lg:hidden bg-pm-bg-elevated border-t border-pm-border sm:flex md:hidden">
+  <nav class="fixed bottom-0 left-0 right-0 z-[var(--z-sticky)] lg:hidden bg-pm-bg-elevated border-t border-pm-border sm:flex md:hidden">
     <div class="flex overflow-x-auto snap-x snap-mandatory scrollbar-none h-14">
       {#each adminSections.slice(0, 8) as section}
         <a href={section.id === 'dashboard' ? '/admin' : `/admin/${section.id}`}
@@ -255,7 +249,7 @@
   </nav>
 
   <!-- Mobile Hamburger Toggle (phone only) -->
-  <button class="fixed top-3 end-3 z-hamburger sm:hidden flex items-center justify-center size-10 rounded-md bg-pm-bg-elevated border border-pm-border shadow-md"
+  <button class="fixed top-3 end-3 z-[var(--z-hamburger)] sm:hidden flex items-center justify-center size-10 rounded-md bg-pm-bg-elevated border border-pm-border shadow-md"
     onclick={() => mobileOpen = !mobileOpen} aria-label={m.nav_openMenu()}>
     <IconMenu2 class="size-5" />
   </button>
@@ -263,9 +257,9 @@
   <!-- Mobile Menu Overlay (phone only) -->
   {#if mobileOpen}
     <div class="fixed inset-0 z-50 bg-black/50 sm:hidden" onclick={() => mobileOpen = false} onkeydown={() => {}} role="presentation"></div>
-    <div class="fixed inset-y-0 end-0 z-drawer w-drawer bg-pm-bg-elevated shadow-xl sm:hidden">
+    <div class="fixed inset-y-0 end-0 z-[var(--z-drawer)] w-[var(--drawer-width)] bg-pm-bg-elevated shadow-xl sm:hidden">
       <div class="flex items-center justify-between h-16 px-4 border-b border-pm-border">
-        <span class="text-lg font-bold text-pm-text">{t['admin.title'] || 'PM Admin'}</span>
+        <span class="text-lg font-bold text-pm-text">{t['admin.title']}</span>
         <button onclick={() => mobileOpen = false} class="p-1 text-pm-text-muted hover:text-pm-text"><IconX class="size-5" /></button>
       </div>
       <nav class="overflow-y-auto py-2">
@@ -283,7 +277,7 @@
 
   <!-- Main Content -->
   <main class={clsx('min-h-screen', 'pb-14 sm:pb-0', useVerticalNav && 'lg:ms-16')}>
-    <div class="p-4 sm:p-6 lg:p-10 mx-auto max-w-content">
+    <div class="p-4 sm:p-6 lg:p-10 mx-auto max-w-[var(--max-w-content)]">
       {@render children?.()}
     </div>
   </main>

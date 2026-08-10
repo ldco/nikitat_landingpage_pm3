@@ -30,6 +30,13 @@
 
   const currentLocale = $derived(languageTag())
 
+  // Shared option button styling — single source of truth for inline, side and
+  // dropdown panel so the modes can't drift apart.
+  const optionBase =
+    'lang-switcher-option flex items-center justify-center min-w-10 h-9 px-2 rounded-sm text-xs font-bold leading-none whitespace-nowrap transition-colors duration-150 uppercase'
+  const optionActive = 'bg-pm-brand text-pm-white'
+  const optionIdle = 'bg-transparent text-pm-text-secondary hover:bg-pm-brand-subtle hover:text-pm-text'
+
   function selectLocale(code: string) {
     const canonical = i18n.route($page.url.pathname)
     const resolved = i18n.resolveRoute(canonical, code as AvailableLanguageTag)
@@ -51,11 +58,10 @@
 {#if mode === 'inline'}
   <!-- ═══ INLINE MODE (PM v2: direction="inline") ═══ -->
   <div class={twMerge(clsx('lang-switcher-inline flex items-center gap-1', className))}>
-    {#each availableLanguageTags as code, i}
-      {#if i > 0}<span class="text-pm-border-strong">/</span>{/if}
+    {#each availableLanguageTags as code}
       <button
         type="button"
-        class={clsx('lang-switcher-option transition-colors uppercase', code === currentLocale ? 'text-pm-brand font-medium' : 'text-pm-text-secondary hover:text-pm-brand')}
+        class={clsx(optionBase, code === currentLocale ? optionActive : optionIdle)}
         onclick={() => selectLocale(code)}
       >
         {code}
@@ -69,7 +75,7 @@
     {#each availableLanguageTags as code}
       <button
         type="button"
-        class={clsx('lang-switcher-option transition-colors uppercase', code === currentLocale ? 'text-pm-brand font-medium' : 'text-pm-text-secondary hover:text-pm-brand')}
+        class={clsx(optionBase, code === currentLocale ? optionActive : optionIdle)}
         onclick={() => selectLocale(code)}
       >
         {code}
@@ -94,15 +100,11 @@
 
     {#if panelOpen}
       <!-- PM v2: shows ALL locales, current gets active class -->
-      <div class="lang-switcher-panel absolute top-full end-0 mt-1 z-popover flex gap-1 p-2 bg-pm-bg-elevated border border-pm-border rounded-sm shadow-lg">
+      <div class="lang-switcher-panel absolute top-full end-0 mt-1 z-[var(--z-popover)] flex gap-1 p-2 bg-pm-bg-elevated border border-pm-border rounded-sm shadow-lg">
         {#each availableLanguageTags as code}
           <button
             type="button"
-            class={clsx('lang-switcher-option flex items-center justify-center min-w-10 h-9 px-2 rounded-sm text-xs font-bold leading-none whitespace-nowrap transition-colors duration-150 uppercase',
-              code === currentLocale
-                ? 'bg-pm-brand text-pm-white'
-                : 'bg-transparent text-pm-text-secondary hover:bg-pm-brand-subtle hover:text-pm-text'
-            )}
+            class={clsx(optionBase, code === currentLocale ? optionActive : optionIdle)}
             onclick={() => selectLocale(code)}
           >
             {code}

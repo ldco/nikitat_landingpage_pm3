@@ -4,6 +4,7 @@
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/framework-versions.sh"
 
 PM_SETTINGS_ENCRYPTION_KEY_PLACEHOLDER='replace-with-64-character-hex-string-from-openssl'
+TOTP_ENCRYPTION_KEY_PLACEHOLDER='replace-with-64-character-hex-string-from-openssl'
 DEPLOY_DATABASE_ROOT='/app/data'
 SERVER_SSH_HOST_KEY_FINGERPRINT_PLACEHOLDER='SHA256:replace-with-server-host-key-fingerprint'
 
@@ -144,11 +145,11 @@ resolved_docker_image() {
 }
 
 resolved_app_container_name() {
-  printf '%s' "${PM_APP_CONTAINER_NAME:-puppetmaster2-app}"
+  printf '%s' "${PM_APP_CONTAINER_NAME:-pm-app}"
 }
 
 resolved_app_network_name() {
-  printf '%s' "${PM_APP_NETWORK:-puppetmaster2}"
+  printf '%s' "${PM_APP_NETWORK:-pm-shared}"
 }
 
 resolved_docker_image_ref() {
@@ -942,6 +943,44 @@ normalize_settings_encryption_key() {
   export PM_SETTINGS_ENCRYPTION_KEY
 }
 
+# TOTP_ENCRYPTION_KEY is required at runtime when FEATURES.twoFactorAuth is
+# enabled in production (src/hooks.server.ts fail-fast). Unlike the settings
+# key it has no legacy alias; only PM-prefixed and bare forms are accepted.
+resolved_totp_encryption_key() {
+  if [[ -n "${PM_TOTP_ENCRYPTION_KEY:-}" ]]; then
+    printf '%s' "$PM_TOTP_ENCRYPTION_KEY"
+    return
+  fi
+
+  printf '%s' "${TOTP_ENCRYPTION_KEY:-}"
+}
+
+validate_pm_totp_encryption_key() {
+  local resolved_key
+  resolved_key="$(resolved_totp_encryption_key)"
+
+  validate_required_hex_secret \
+    "PM_TOTP_ENCRYPTION_KEY or TOTP_ENCRYPTION_KEY" \
+    "$resolved_key" \
+    "$TOTP_ENCRYPTION_KEY_PLACEHOLDER" \
+    64
+}
+
+normalize_totp_encryption_key() {
+  local resolved_key
+  resolved_key="$(resolved_totp_encryption_key)"
+  printf -v TOTP_ENCRYPTION_KEY '%s' "$resolved_key"
+  export TOTP_ENCRYPTION_KEY
+}
+
+# NOTE (audit I-1): PM_SETTINGS_ENCRYPTION_KEY is generated and validated by the
+# deploy pipeline for PM2 parity, but NO src/ application code reads it today —
+# there is no encrypted-settings feature in PM3 yet. Do NOT add a boot-time
+# fail-fast for it: a check on an unused key would crash healthy servers.
+# If encrypted settings storage is ever implemented, port PM2's fail-fast from
+# server/plugins/01.env-validation.ts at that time. This key is intentionally
+# reserved/dead until then.
+
 resolved_database_url() {
   printf '%s' "${PM_DEPLOY_DATABASE_URL:-${DATABASE_URL:-/app/data/sqlite.db}}"
 }
@@ -1019,14 +1058,16 @@ deploy_ssh_key: $(quote_yaml_value "${DEPLOY_SSH_KEY:-}")
 acme_email: $(quote_yaml_value "${ACME_EMAIL:-}")
 database_url: $(quote_yaml_value "$(resolved_database_url)")
 database_relative_path: $(quote_yaml_value "$(resolved_database_relative_path)")
-pm_deploy_data_volume: $(quote_yaml_value "${PM_DEPLOY_DATA_VOLUME:-puppetmaster2_data}")
-pm_deploy_uploads_volume: $(quote_yaml_value "${PM_DEPLOY_UPLOADS_VOLUME:-puppetmaster2_uploads}")
+pm_deploy_data_volume: $(quote_yaml_value "${PM_DEPLOY_DATA_VOLUME:-pm_data}")
+pm_deploy_uploads_volume: $(quote_yaml_value "${PM_DEPLOY_UPLOADS_VOLUME:-pm_uploads}")
 pm_settings_encryption_key: $(quote_yaml_value "$(resolved_settings_encryption_key)")
+totp_encryption_key: $(quote_yaml_value "$(resolved_totp_encryption_key)")
 pm_deploy_schema_mode: $(quote_yaml_value "${PM_DEPLOY_SCHEMA_MODE:-compatible}")
 pm_deploy_repair_shared_ownership: $(quote_yaml_value "${PM_DEPLOY_REPAIR_SHARED_OWNERSHIP:-false}")
 app_version: $(quote_yaml_value "${APP_VERSION:-0.1.0}")
 uptime_kuma_subdomain: $(quote_yaml_value "${UPTIME_KUMA_SUBDOMAIN:-}")
 pm_monitoring_netdata_enabled: $(quote_yaml_value "${PM_MONITORING_NETDATA_ENABLED:-true}")
+pm_backup_cron_enabled: $(quote_yaml_value "${PM_DEPLOY_BACKUP_CRON:-false}")
 netdata_url: $(quote_yaml_value "${NETDATA_URL:-http://127.0.0.1:19999}")
 pm_ops_agent_enabled: $(quote_yaml_value "${PM_OPS_AGENT_ENABLED:-true}")
 pm_ops_agent_token: $(quote_yaml_value "${PM_OPS_AGENT_TOKEN:-$(resolved_settings_encryption_key)}")
@@ -1059,7 +1100,7 @@ api_key: $(quote_yaml_value "${API_KEY:-}")
 api_token_refresh_buffer: $(quote_yaml_value "${API_TOKEN_REFRESH_BUFFER:-300}")
 redis_url: $(quote_yaml_value "${REDIS_URL:-}")
 redis_prefix: $(quote_yaml_value "${REDIS_PREFIX:-pm-cache:}")
-app_service_name: 'puppetmaster2'
+app_service_name: 'pm'
 app_container_name: $(quote_yaml_value "$(resolved_app_container_name)")
 app_network_name: $(quote_yaml_value "$(resolved_app_network_name)")
 app_image: $(quote_yaml_value "$(resolved_docker_image)")

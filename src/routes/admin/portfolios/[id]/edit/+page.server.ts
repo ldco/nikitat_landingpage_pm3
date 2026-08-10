@@ -1,7 +1,7 @@
-import { requireAdmin } from '$lib/server/utils/admin-rbac'
+import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { useDatabase, schema } from '$lib/server/db'
 import { eq } from 'drizzle-orm'
-import { error, redirect } from '@sveltejs/kit'
+import { error, redirect, fail } from '@sveltejs/kit'
 import { z } from 'zod'
 import type { RequestEvent } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
@@ -14,7 +14,7 @@ const updateSchema = z.object({
 })
 
 export const load: PageServerLoad = async (event) => {
-  requireAdmin(event)
+  requireAdminPage(event, 'portfolios')
   const db = useDatabase()
   const portfolio = db.select().from(schema.portfolios).where(eq(schema.portfolios.id, Number(event.params.id))).get()
   if (!portfolio) error(404)
@@ -23,7 +23,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions = {
   default: async (event: RequestEvent) => {
-    requireAdmin(event)
+    requireAdminPage(event, 'portfolios')
     const form = await event.request.formData()
     const parsed = updateSchema.safeParse({
       name: form.get('name'),
@@ -32,7 +32,8 @@ export const actions = {
       description: form.get('description') || null
     })
 
-    if (!parsed.success) return { success: false, error: 'validation.required' }
+    // audit I-10: fail() so field errors surface to the UI (matches create).
+    if (!parsed.success) return fail(400, { fieldErrors: parsed.error.flatten().fieldErrors })
 
     const db = useDatabase()
     db.update(schema.portfolios)

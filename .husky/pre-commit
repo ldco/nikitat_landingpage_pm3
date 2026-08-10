@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Preserve the global secrets-scanning hook (installed via core.hooksPath)
+GLOBAL_HOOK="/home/ldco/.config/git/hooks/pre-commit"
+if [ -f "$GLOBAL_HOOK" ] && [ "$GLOBAL_HOOK" != "$0" ]; then
+  # shellcheck disable=SC1090
+  GLOBAL_HOOK="$GLOBAL_HOOK" bash -c 'source "$GLOBAL_HOOK"'
+  GLOBAL_EXIT=$?
+  if [ $GLOBAL_EXIT -ne 0 ]; then
+    exit $GLOBAL_EXIT
+  fi
+fi
+
+npx lint-staged

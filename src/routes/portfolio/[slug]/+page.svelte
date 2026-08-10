@@ -10,6 +10,7 @@
   import WebsiteViewer from '$lib/plugins/portfolio/WebsiteViewer.svelte'
   import BrandingViewer from '$lib/plugins/portfolio/BrandingViewer.svelte'
   import CaseStudyViewer from '$lib/plugins/portfolio/CaseStudyViewer.svelte'
+  import BrandbookViewer from '$lib/plugins/portfolio/BrandbookViewer.svelte'
   import type { PageData } from './$types'
   let { data }: { data: PageData } = $props()
   const { portfolio, items } = $derived(data)
@@ -25,7 +26,7 @@
   <title>{portfolio.name} — {m.nav_portfolio()}</title>
 </svelte:head>
 
-<article class="w-full mx-auto max-w-container px-6 md:px-8 py-24">
+<article class="w-full mx-auto max-w-[var(--max-w-container)] px-6 md:px-8 py-24">
   <a href="/portfolio" class="inline-flex items-center gap-2 text-sm text-pm-text-muted hover:text-pm-brand transition-colors mb-8">
     <IconArrowLeft class="size-4" />
     {m.nav_portfolio()}
@@ -44,11 +45,16 @@
       description={portfolio.description ?? ''}
       images={screenshots}
     />
-  {:else if portfolio.type === 'case_study' || portfolio.type === 'brandbook'}
+  {:else if portfolio.type === 'case_study'}
     <CaseStudyViewer
       title={portfolio.name}
       content={items.find(i => i.itemType === 'case_study')?.content ?? ''}
       {tags}
+    />
+  {:else if portfolio.type === 'brandbook'}
+    <BrandbookViewer
+      title={portfolio.name}
+      pages={screenshots}
     />
   {:else}
     <div class="text-center py-12">

@@ -3,7 +3,7 @@ import type { RequestEvent } from '@sveltejs/kit'
 import { error, json } from '@sveltejs/kit'
 import { z } from 'zod'
 import { getRawContentTranslations, setTranslation } from '$lib/server/services'
-import { requireAdmin } from '$lib/server/utils/admin-rbac'
+import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
 import { invalidateContentCache } from '$lib/server/db/content-cache'
 import { invalidateTranslationCache } from '$lib/server/db/translations-cache'
@@ -11,7 +11,7 @@ import { invalidateTranslationCache } from '$lib/server/db/translations-cache'
 const updateSchema = z.record(z.string(), z.string())
 
 export async function PUT(event: RequestEvent) {
-  requireAdmin(event)
+  requireAdminPage(event, 'translations')
   const locale = event.params.locale ?? ''
   if (!LOCALE_STRINGS.includes(locale)) throw error(400)
   const body = await event.request.json().catch(() => null)

@@ -5,7 +5,10 @@
    * Source: app-nuxt/app/assets/css/ui/overlays/toast.css (142 lines)
    * - bg-elevated with left-side colored border
    * - 4 variants: success, error, warning, info
-   * - Fixed bottom-right, z-toast
+   * - Fixed bottom-right, z-[var(--z-toast)]
+   *
+   * Reads toasts from the imperative OverlaysState (context) — see
+   * stores/overlays.svelte.ts. Mounted by <OverlayProvider>.
    *
    * Rule #1: class prop + twMerge
    */
@@ -17,14 +20,7 @@
   import { t } from '$lib/stores/content.svelte'
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-
-  type ToastType = 'success' | 'error' | 'info' | 'warning'
-
-  interface Toast {
-    id: number
-    message: string
-    type: ToastType
-  }
+  import { getOverlaysState, type ToastType } from '$lib/stores/overlays.svelte'
 
   let {
     class: className = ''
@@ -32,22 +28,8 @@
     class?: string
   } = $props()
 
-  const toasts = $state<Toast[]>([])
-  let nextId = 0
-
-  function show(message: string, type: ToastType = 'info', duration = 4000) {
-    const id = nextId++
-    toasts.push({ id, message, type })
-    setTimeout(() => {
-      const idx = toasts.findIndex(t => t.id === id)
-      if (idx >= 0) toasts.splice(idx, 1)
-    }, duration)
-  }
-
-  function dismiss(id: number) {
-    const idx = toasts.findIndex(t => t.id === id)
-    if (idx >= 0) toasts.splice(idx, 1)
-  }
+  const overlays = getOverlaysState()
+  const toasts = $derived(overlays.toasts)
 
   // PM v2: left-side colored border per type
   const borderClasses: Record<ToastType, string> = {
@@ -66,8 +48,8 @@
 </script>
 
 {#if toasts.length > 0}
-  <!-- .toast-container: fixed bottom-right, z-toast -->
-  <div class={twMerge(clsx('fixed bottom-4 right-4 z-toast flex flex-col gap-3 pointer-events-none', className))}>
+  <!-- .toast-container: fixed bottom-right, z-[var(--z-toast)] -->
+  <div class={twMerge(clsx('fixed bottom-4 right-4 z-[var(--z-toast)] flex flex-col gap-3 pointer-events-none', className))}>
     {#each toasts as toast (toast.id)}
       <!-- .toast: bg-elevated, border-l-4, rounded-lg, shadow-lg -->
       <div
@@ -99,7 +81,7 @@
         <!-- .toast-close -->
         <button
           class="flex items-center justify-center size-8 rounded-full text-pm-text-muted hover:bg-pm-bg-sunken hover:text-pm-text transition-colors flex-shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pm-focus-ring"
-          onclick={() => dismiss(toast.id)}
+          onclick={() => overlays.dismissToast(toast.id)}
           aria-label={t('common.dismiss')}
         >
           <IconX class="size-4 flex-shrink-0" />

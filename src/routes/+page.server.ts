@@ -1,29 +1,14 @@
 /**
  * Homepage Server Load — feeds section content to the page (rule 6 + 8)
  *
- * Delegates to the service layer ($lib/server/services) — routes never
- * query Drizzle directly. Content is returned as typed SectionContent,
- * the boundary contract consumed by SectionRenderer and sections.
+ * Delegates to the shared section-content loader ($lib/server/services/
+ * section-content) — the SAME typed payload used by the standalone [section]
+ * route in non-onepager mode. Routes never query Drizzle directly.
  */
 import type { PageServerLoad } from './$types'
-import type { SectionContent } from '$lib/components/sections/types'
-import { getHomepagePosts } from '$lib/server/services/blog'
-import { getHomepageFaq } from '$lib/server/services/faq'
-import { getHomepageFeatures } from '$lib/server/services/features'
-import { getHomepageTiers } from '$lib/server/services/pricing'
-import { getHomepagePortfolioItems } from '$lib/server/services/portfolio'
+import { loadSectionContent } from '$lib/server/services/section-content'
 
-export const load: PageServerLoad = async ({ locals }): Promise<{ sectionContent: SectionContent }> => {
+export const load: PageServerLoad = async ({ locals }): Promise<{ sectionContent: ReturnType<typeof loadSectionContent> }> => {
   const locale = locals.paraglide?.lang ?? 'ru'
-
-  return {
-    sectionContent: {
-      blog: getHomepagePosts(locale),
-      portfolioItems: getHomepagePortfolioItems(),
-      pricing: getHomepageTiers(),
-      faq: getHomepageFaq(locale),
-      features: getHomepageFeatures(locale),
-      locale
-    }
-  }
+  return { sectionContent: loadSectionContent(locale) }
 }

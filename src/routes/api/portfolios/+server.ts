@@ -8,6 +8,7 @@ const querySchema = z.object({
 })
 
 export function GET(event: RequestEvent) {
+  const locale = event.locals.paraglide?.lang ?? 'ru'
   const parsed = querySchema.safeParse(Object.fromEntries(event.url.searchParams))
   if (!parsed.success) {
     return new Response(JSON.stringify({
@@ -19,7 +20,7 @@ export function GET(event: RequestEvent) {
     })
   }
   const { page, pageSize } = parsed.data
-  const { items, total } = getPublishedPortfoliosPaginated(page, pageSize)
+  const { items, total } = getPublishedPortfoliosPaginated(page, pageSize, locale)
 
   return new Response(JSON.stringify({
     success: true,

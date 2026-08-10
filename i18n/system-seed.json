@@ -196,6 +196,11 @@
   },
   {
     "locale": "en",
+    "key": "admin.security",
+    "value": "Security"
+  },
+  {
+    "locale": "en",
     "key": "admin.healthComingSoon",
     "value": "Health metrics coming soon..."
   },
@@ -1251,6 +1256,11 @@
   },
   {
     "locale": "he",
+    "key": "admin.security",
+    "value": "אבטחה"
+  },
+  {
+    "locale": "he",
     "key": "admin.healthComingSoon",
     "value": "מדדי בריאות בקרוב..."
   },
@@ -2283,6 +2293,11 @@
     "locale": "ru",
     "key": "admin.health",
     "value": "Состояние сервера"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.security",
+    "value": "Безопасность"
   },
   {
     "locale": "ru",
@@ -11825,6 +11840,11 @@
   },
   {
     "locale": "fr",
+    "key": "admin.security",
+    "value": "Sécurité"
+  },
+  {
+    "locale": "fr",
     "key": "admin.healthComingSoon",
     "value": "Health metrics coming soon...",
     "updatedAt": 1780767179510
@@ -16160,5 +16180,33 @@
     "key": "footer.madeBy",
     "value": "נבנה על ידי",
     "updatedAt": 1780861355003
+  },
+  {
+    "locale": "ru",
+    "key": "admin.auditLog",
+    "value": {
+      "admin_auditLog": "Журнал аудита"
+    }
+  },
+  {
+    "locale": "en",
+    "key": "admin.auditLog",
+    "value": {
+      "admin_auditLog": "Audit Log"
+    }
+  },
+  {
+    "locale": "fr",
+    "key": "admin.auditLog",
+    "value": {
+      "admin_auditLog": "Journal d'audit"
+    }
+  },
+  {
+    "locale": "he",
+    "key": "admin.auditLog",
+    "value": {
+      "admin_auditLog": "יומן ביקורת"
+    }
   }
 ]

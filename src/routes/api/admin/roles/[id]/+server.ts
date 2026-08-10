@@ -3,7 +3,7 @@ import { error, json } from '@sveltejs/kit'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
-import { requireMaster } from '$lib/server/utils/admin-rbac'
+import { requireAdminPage, invalidateRolePermissionsCache } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
 import { getClientIp } from '$lib/server/security/rateLimit'
 import { audit } from '$lib/server/audit'
@@ -17,7 +17,7 @@ const updateRoleSchema = z.object({
 })
 
 export function GET(event: RequestEvent) {
-  requireMaster(event)
+  requireAdminPage(event, 'roles')
   const db = useDatabase()
   const id = Number(event.params.id)
   const role = db.select().from(schema.roles).where(eq(schema.roles.id, id)).get()
@@ -26,7 +26,7 @@ export function GET(event: RequestEvent) {
 }
 
 export async function PUT(event: RequestEvent) {
-  const actor = requireMaster(event)
+  const actor = requireAdminPage(event, 'roles')
   const id = Number(event.params.id)
   const body = await event.request.json().catch(() => null)
   if (!body) error(400)
@@ -36,21 +36,26 @@ export async function PUT(event: RequestEvent) {
   const existing = db.select().from(schema.roles).where(eq(schema.roles.id, id)).get()
   if (!existing) error(404)
   const result = db.update(schema.roles).set(parsed.data).where(eq(schema.roles.id, id)).returning().get()
-  const ip = getClientIp(event.request)
+  invalidateRolePermissionsCache(existing.slug)
+  const ip = getClientIp(event)
   const ua = event.request.headers.get('user-agent')
   audit.roleUpdate(ip, ua, actor.id, id, existing.name, parsed.data)
   return json(jsonSuccess(result))
 }
 
 export async function DELETE(event: RequestEvent) {
-  const actor = requireMaster(event)
+  const actor = requireAdminPage(event, 'roles')
   const id = Number(event.params.id)
   const db = useDatabase()
   const existing = db.select().from(schema.roles).where(eq(schema.roles.id, id)).get()
   if (!existing) error(404)
   if (existing.isBuiltIn) error(400)
   db.delete(schema.roles).where(eq(schema.roles.id, id)).run()
-  const ip = getClientIp(event.request)
+  // Deleting a role unlinks users (FK set-null → they fall back to the legacy
+  // role column), so the whole cache must go — stale entries for the deleted
+  // slug or fallback roles would keep access wrong.
+  invalidateRolePermissionsCache()
+  const ip = getClientIp(event)
   const ua = event.request.headers.get('user-agent')
   audit.roleDelete(ip, ua, actor.id, id, existing.name)
   return json(jsonSuccess({ deleted: true }))

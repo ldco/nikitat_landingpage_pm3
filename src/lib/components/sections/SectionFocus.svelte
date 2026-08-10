@@ -41,11 +41,22 @@
     {#if cards.length > 0}
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[var(--gap-lg)]">
         {#each cards as card}
-          <div class={twMerge(clsx('focus-card', card.category === 'dev' ? 'focus-card-branded' : 'focus-card-subtle'))}>
-            <span class={card.category === 'dev' ? 'focus-badge focus-badge-dev' : 'focus-badge focus-badge-design'}>
+          <div class={twMerge(clsx(
+            'flex flex-col items-start p-[var(--space-6)] bg-pm-bg-elevated border border-pm-border rounded-[var(--radius-xl)] shadow-frosted',
+            'border-t-[var(--focus-card-accent-height)] border-t-solid border-t-transparent',
+            'transition-[transform,box-shadow] duration-200 ease-smooth',
+            card.category === 'dev' ? 'border-t-pm-brand' : 'border-t-pm-brand-subtle'
+          ))}>
+            <span class={twMerge(clsx(
+              'inline-flex items-center px-[var(--space-2)] py-[var(--space-1)] text-xs font-semibold leading-none rounded-full uppercase tracking-[0.08em]',
+              card.category === 'dev' ? 'bg-pm-brand text-pm-white' : 'bg-pm-brand-subtle text-pm-brand'
+            ))}>
               {card.category === 'dev' ? devLabel : designLabel}
             </span>
-            <div class={card.category === 'dev' ? 'focus-icon-box focus-icon-box-dev' : 'focus-icon-box focus-icon-box-design'}>
+            <div class={twMerge(clsx(
+              'size-12 flex items-center justify-center rounded-lg',
+              card.category === 'dev' ? 'bg-pm-brand' : 'bg-pm-brand-subtle'
+            ))}>
               <card.icon size={24} class={card.category === 'dev' ? 'text-pm-white' : 'text-pm-brand'} />
             </div>
             <h3 class="text-xl font-semibold mb-[var(--space-2)] text-pm-text">{card.title}</h3>

@@ -1,7 +1,7 @@
 #!/bin/bash
 # ============================================
 # SQLite Database Restore Script
-# PuppetMaster2
+# Puppet Master v3
 # ============================================
 #
 # Usage:
@@ -38,7 +38,7 @@ NC='\033[0m' # No Color
 # Configuration
 DB_PATH="${DATABASE_URL:-/app/data/sqlite.db}"
 BACKUP_DIR="${BACKUP_DIR:-/app/data/backups}"
-APP_CONTAINER_NAME="${PM_APP_CONTAINER_NAME:-puppetmaster2-app}"
+APP_CONTAINER_NAME="${PM_APP_CONTAINER_NAME:-pm-app}"
 APP_CONTAINER_WAS_RUNNING=0
 
 log() {
@@ -288,7 +288,7 @@ restore_from_s3() {
 # Main
 main() {
     echo "======================================"
-    echo "PuppetMaster2 Database Restore"
+    echo "Puppet Master v3 Database Restore"
     echo "======================================"
     echo ""
 

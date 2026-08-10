@@ -1,153 +1,57 @@
 /**
- * ESLint Plugin for Puppet Master SSR Safety
+ * ESLint Plugin — PM3 SSR Safety
  *
- * Custom rules to enforce SSR-safe patterns in Vue components.
+ * Replaces the PM2-era plugin (audit N-7). PM2's version only matched Vue
+ * files and checked for `puppet-master.config` access patterns that no longer
+ * exist in PM3. This rewrite enforces a PM3-relevant rule: framework/client
+ * Svelte components must not import server-only modules directly.
  */
 
-// Rule: Warn on direct config access in template or non-computed script
-// Allows import if config is only accessed through computed() wrappers or for method calls
-const noDirectConfigAccess = {
+const noServerImportsInClient = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Disallow direct access to config object in Vue components (use useSafeConfig instead)',
+      description:
+        'Disallow importing server-only modules ($lib/server/**) into client Svelte components. Server code (DB, auth, storage) must stay server-side.',
       category: 'SSR Safety',
-      recommended: 'warn',
-      url: 'https://github.com/ldco/puppet-master/docs/ssr-safety.md'
+      recommended: 'warn'
     },
     schema: [],
     messages: {
-      directAccess:
-        'Direct project config access can cause SSR hydration errors. Use `useSafeConfig()` in Vue components or `usePmConfig()` for projected PM config access.'
+      serverImport:
+        'Client component imports a server-only module ("{{path}}"). Move this logic to a +page.server.ts/+server.ts loader and pass data via props (Route Contract).'
     }
   },
   create(context) {
     const filename = context.getFilename()
+    const isSvelte = filename.endsWith('.svelte')
 
-    // Skip non-Vue files (composables, plugins, middleware, types, utils)
-    // These files legitimately need direct config access
-    const skipPatterns = [
-      /\/composables\//,
-      /\/plugins\//,
-      /\/middleware\//,
-      /\/types\//,
-      /\/utils\//,
-      /\/server\//,
-      /\.config\.ts$/,
-      /drizzle\.config\.ts$/,
-      /nuxt\.config\.ts$/
-    ]
-
-    if (skipPatterns.some(pattern => pattern.test(filename))) {
-      return {}
-    }
-
-    // Only apply to Vue files
-    if (!filename.endsWith('.vue')) {
-      return {}
-    }
-
-    let configVarName = null
-    let unsafeAccesses = []
-
-    function isDirectProjectConfigImport(source) {
-      if (typeof source !== 'string') {
-        return false
-      }
-
-      const normalized = source
-        .replace(/\\/g, '/')
-        .replace(/\.(ts|js|mjs|cjs)$/, '')
-
-      return [
-        '~/puppet-master.config',
-        '~/project/puppet-master.config',
-        '@/project/puppet-master.config',
-        '~~/project/puppet-master.config',
-        '@@/project/puppet-master.config',
-        '~/../project/puppet-master.config',
-        '@/../project/puppet-master.config',
-        'project/puppet-master.config',
-        '/project/puppet-master.config'
-      ].includes(normalized) || /^\.\.\/(?:\.\.\/)*project\/puppet-master\.config$/.test(normalized)
-    }
+    if (!isSvelte) return {}
 
     return {
-      // Check for direct imports from the project config.
       ImportDeclaration(node) {
-        if (isDirectProjectConfigImport(node.source.value)) {
-          const configSpecifier = node.specifiers.find(
-            s => s.type === 'ImportDefaultSpecifier'
-          )
-          if (configSpecifier) {
-            configVarName = configSpecifier.local.name
-          }
-        }
-      },
-
-      // Check for direct config property access (config.xxx)
-      MemberExpression(node) {
-        if (!configVarName) return
-
-        // Check if this is config.xxx access
-        if (node.object.type === 'Identifier' && node.object.name === configVarName) {
-          const propertyName = node.property.name
-
-          // Skip method calls - these are safe (e.g., config.getAdminSectionsForRole())
-          if (node.parent.type === 'CallExpression' && node.parent.callee === node) {
-            return
-          }
-
-          // Skip config.settings, config.sections, config.locales, config.admin, config.logo
-          // when used inside computed() - check parent chain
-          let current = node.parent
-          let insideComputed = false
-
-          while (current) {
-            // Check for computed(() => ...) wrapper
-            if (
-              current.type === 'CallExpression' &&
-              current.callee.type === 'Identifier' &&
-              current.callee.name === 'computed'
-            ) {
-              insideComputed = true
-              break
-            }
-            // Check if we're in the init part of a variable declarator (const x = computed(...))
-            if (
-              current.type === 'VariableDeclarator' &&
-              current.init &&
-              current.init.type === 'CallExpression' &&
-              current.init.callee.type === 'Identifier' &&
-              current.init.callee.name === 'computed'
-            ) {
-              // Continue checking - we need to see if this is the init of a computed
-            }
-            current = current.parent
-          }
-
-          // Safe if inside computed()
-          if (insideComputed) {
-            return
-          }
-
-          // Track as potentially unsafe
-          unsafeAccesses.push({
-            node,
-            propertyName,
-            line: node.loc.start.line
-          })
-        }
-      },
-
-      // Report at Program exit if unsafe access was found
-      'Program:exit'() {
-        if (unsafeAccesses.length > 0 && configVarName) {
-          // Only report if there are unsafe accesses NOT inside computed
+        // Type-only imports are erased at compile time — no runtime server dep.
+        if (node.importKind === 'type') return
+        const value = node.source?.value
+        if (typeof value === 'string' && /^\$lib\/server\//.test(value)) {
           context.report({
-            loc: { line: 1, column: 0 },
-            messageId: 'directAccess'
+            node,
+            messageId: 'serverImport',
+            data: { path: value }
           })
+        }
+      },
+      CallExpression(node) {
+        // dynamic import('$lib/server/...') in client components
+        if (node.callee?.type === 'Import' && node.arguments[0]?.type === 'Literal') {
+          const value = node.arguments[0].value
+          if (typeof value === 'string' && /^\$lib\/server\//.test(value)) {
+            context.report({
+              node,
+              messageId: 'serverImport',
+              data: { path: value }
+            })
+          }
         }
       }
     }
@@ -156,6 +60,6 @@ const noDirectConfigAccess = {
 
 export default {
   rules: {
-    'no-direct-config-access': noDirectConfigAccess
+    'no-server-imports-in-client': noServerImportsInClient
   }
 }

@@ -18,7 +18,7 @@ const contactSchema = z.object({
 })
 
 export async function POST(event: RequestEvent) {
-  const ip = getClientIp(event.request)
+  const ip = getClientIp(event)
 
   if (!contactRateLimiter.check(ip)) {
     error(429)

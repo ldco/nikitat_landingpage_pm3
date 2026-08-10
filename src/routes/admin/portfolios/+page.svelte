@@ -11,6 +11,7 @@
   import IconPencil from '@tabler/icons-svelte/icons/pencil'
   import IconTrash from '@tabler/icons-svelte/icons/trash'
   import IconPlus from '@tabler/icons-svelte/icons/plus'
+  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import { goto } from '$app/navigation'
   let { data }: { data: PageData } = $props()
   const items = $derived(data.items)
@@ -38,13 +39,13 @@
   }
 </script>
 
-<div class="max-w-content mx-auto">
+<div class="max-w-[var(--max-w-content)] mx-auto">
   <div class="flex items-center justify-between gap-4 py-4 mb-6 border-b border-pm-border">
     <h1 class="text-2xl font-bold text-pm-text">{t['admin.portfolios']}</h1>
     <div class="flex items-center gap-3">
-      <a href={ADMIN_ROUTES.portfolioCreate} class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-pm-brand text-white text-sm rounded-lg hover:bg-pm-brand-dark transition-colors">
+      <CtaButton href={ADMIN_ROUTES.portfolioCreate} variant="primary" size="sm" class="rounded-lg gap-1.5">
         <IconPlus class="size-4" /> {m.common_create()}
-      </a>
+      </CtaButton>
       <span class="text-sm text-pm-text-muted">{items.length} total</span>
     </div>
   </div>

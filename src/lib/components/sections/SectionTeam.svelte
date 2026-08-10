@@ -1,20 +1,23 @@
 <script lang="ts">
   /**
   * SectionTeam — Team member cards (PM3 rule 6)
- *
- * @example <SectionTeam />
+  *
+  * @props members?: TeamMemberCard[] — typed payload from SectionContent.team
+  * @props class?: string — merged Tailwind classes
+  * @example <SectionTeam members={content.team} />
   */
   import { clsx } from 'clsx'
   import { t } from '$lib/stores/content.svelte'
   import { FEATURES, MODULES } from '$lib/config/site'
+  import type { TeamMemberCard } from './types'
   import Section from '$lib/components/atoms/Section.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
 
   let {
-    members = [] as Array<{ id: number; name: string; role: string; bio?: string; photoUrl?: string }>,
+    members = [] as TeamMemberCard[],
     class: className = ''
   }: {
-    members?: Array<{ id: number; name: string; role: string; bio?: string; photoUrl?: string }>
+    members?: TeamMemberCard[]
     class?: string
   } = $props()
 
@@ -40,7 +43,9 @@
             <div class="w-20 h-20 rounded-full mx-auto bg-pm-bg-sunken flex items-center justify-center text-pm-text-muted text-xl">{member.name.charAt(0)}</div>
           {/if}
           <h3 class="mt-4 font-bold text-pm-text">{member.name}</h3>
-          <p class="text-sm text-pm-brand mt-1">{member.role}</p>
+          {#if member.position}
+            <p class="text-sm text-pm-brand mt-1">{member.position}</p>
+          {/if}
           {#if member.bio}
             <p class="mt-2 text-xs text-pm-text-muted">{member.bio}</p>
           {/if}

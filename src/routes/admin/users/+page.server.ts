@@ -1,9 +1,9 @@
-import { requireAdmin } from '$lib/server/utils/admin-rbac'
-import { getUsers } from '$lib/server/services'
+import { requireAdminPage } from '$lib/server/utils/admin-rbac'
+import { getUsers, getAllRoles } from '$lib/server/services'
 import type { PageServerLoad } from './$types'
 
 export const load: PageServerLoad = (event) => {
-  requireAdmin(event)
+  requireAdminPage(event, 'users')
   const { users } = getUsers(100, 0)
-  return { items: users }
+  return { items: users, roles: getAllRoles() }
 }

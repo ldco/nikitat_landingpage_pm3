@@ -45,11 +45,6 @@
   --color-pm-bg-sunken: light-dark(color-mix(in srgb, var(--p-white), var(--p-black) 6%), color-mix(in srgb, var(--p-black), var(--p-white) 2%));
   --color-pm-surface: var(--color-pm-bg-elevated);
 
-  /* --- Legacy Background Aliases (kept for component compat — Phase 4+ refactors) --- */
-  --color-pm-bg-muted: var(--color-pm-bg-elevated);
-  --color-pm-bg-dark: var(--p-black);
-  --color-pm-bg-dark-muted: color-mix(in srgb, var(--p-black), var(--p-white) 10%);
-
   /* --- Border Tokens (from colors/auto.css, oklch mix pre-calculated) --- */
   --color-pm-border: light-dark(color-mix(in srgb, var(--p-black), transparent 88%), color-mix(in srgb, var(--p-white), transparent 85%));
   --color-pm-border-strong: light-dark(color-mix(in srgb, var(--p-black), transparent 75%), color-mix(in srgb, var(--p-white), transparent 70%));
@@ -59,9 +54,8 @@
   --color-pm-text-secondary: light-dark(color-mix(in srgb, var(--p-black), transparent 40%), color-mix(in srgb, var(--p-white), transparent 35%));
   --color-pm-text-muted: light-dark(color-mix(in srgb, var(--p-black), transparent 55%), color-mix(in srgb, var(--p-white), transparent 55%));
 
-  /* --- Muted Aliases --- */
+  /* --- Muted Alias --- */
   --color-pm-muted: var(--color-pm-text-muted);
-  --color-pm-muted-dark: #9ca3af;
 
   /* --- Semantic Colors (oklch from colors/auto.css) --- */
   --color-pm-success: oklch(65% 0.2 145);
@@ -135,7 +129,10 @@
   --z-modal-backdrop: 600;
   --z-modal: 700;
   --z-popover: 800;
+  --z-tooltip: 850;
   --z-toast: 900;
+  --z-max: 1000;
+  --z-hamburger: 60;
 
   /* --- Transition Durations --- */
   --transition-fast: 150ms;
@@ -202,6 +199,7 @@
 
   /* --- Component-level Tokens --- */
   --hero-min-height: 80vh;
+  --pt-hero: calc(var(--h-header) + var(--space-8));
   --lightbox-max-width: 90vw;
   --lightbox-max-height: 85vh;
   --lightbox-image-max-height: 80vh;
@@ -212,14 +210,21 @@
   --about-visual-radius: 40%;
   --about-accent-height: 3px;
   --contact-form-max-w: 40rem;
+  --form-textarea-min-h: 150px;
+  --contact-icon-size: 2.125rem;
   --hero-leading: 0.9;
   --hero-leading-mobile: 0.8;
   --text-hero-title-mobile: clamp(1.75rem, 9.6vw, 2.55rem);
+  --text-hero-title-mobile-ru: clamp(1.5rem, 8.2vw, 2.15rem); /* PM2: .hero-title--ru mobile */
+  --text-hero-subtitle: clamp(1.125rem, 2.5vw, 1.5rem); /* PM2: .hero-subtitle */
+  --leading-hero-subtitle: 1.6;
+  --max-w-hero-subtitle: 700px;
   --section-heading: clamp(1.75rem, 4vw, 2.5rem);
   --text-section-body: clamp(1.4rem, 3.2vw, 1.875rem);
   --hero-logo-max-w: min(420px, 42vw);
   --hero-logo-max-w-mobile: min(280px, 65vw);
   --focus-ring-width: 3px;
+  --focus-card-accent-height: 3px;
 
   --glass-backdrop-blur: 14px; /* PM2 */
   --glass-backdrop-blur-subtle: blur(10px) saturate(1.04);
@@ -235,19 +240,6 @@
   /* --- Breakpoints (extend only) --- */
   --breakpoint-xs: 480px;
   --breakpoint-header: 1120px;
-
-  /* --- Z-Index scale (PM v2) --- */
-  --z-base: 1;
-  --z-dropdown: 100;
-  --z-sticky: 200;
-  --z-fixed: 300;
-  --z-drawer-backdrop: 400;
-  --z-drawer: 500;
-  --z-modal-backdrop: 600;
-  --z-modal: 700;
-  --z-popover: 800;
-  --z-toast: 900;
-  --z-hamburger: 60;
 }
 
 /* ── Base Layer (PM v2 reset from reset.css) ─────────────────────────────────────── */
@@ -341,6 +333,10 @@
     --logo-mobile-max-width: 160px;
     --logo-scrolled-height: 28px;
 
+    /* --- Footer Logo Sizing (was footer-logo @utility fallback) --- */
+    --footer-logo-height: 2rem;
+    --footer-logo-max-width: 220px;
+
     /* --- Footer Sizing (from skeleton/footer.css) --- */
     --footer-padding-block: var(--space-8) var(--space-4);
     --footer-link-height: 28px;
@@ -351,6 +347,7 @@
     --surface-frosted-shadow: 0 1px 3px oklch(0% 0 0 / 8%);
     --shadow-slider-line: 0 0 4px oklch(0% 0 0 / 30%);
     --shadow-slider-grip: 0 2px 8px oklch(0% 0 0 / 12%);
+    --slider-line-width: 2px;
     --surface-frosted-backdrop: blur(16px) saturate(1.06);
 
     /* --- Scrollytelling CSS Var (from animations/scrollytelling.css) --- */
@@ -428,9 +425,6 @@
   h2 { font-size: var(--heading-2); }
   h3 { font-size: var(--heading-3); }
   h4 { font-size: var(--heading-4); }
-
-
-
 
 
   /* Lists */
@@ -585,7 +579,6 @@
    * ═══════════════════════════════════════════════════════════════════════════ */
 
 
-
   /* Remove tap highlight on mobile (iOS Safari + Chrome Android) */
   * {
     -webkit-tap-highlight-color: transparent;
@@ -648,17 +641,11 @@
   }
 }
 
-/* ── @layer utilities: кастомные утилиты-хаки (см. docs/CSS-EDGECASES.md §13) ───────── */
-@layer utilities {
-  /* iOS safe area (notch + home indicator). Поддержка: Safari 11.1+, Chrome 69+, Firefox 65+ */
-  
-  
-  
-  
-}
-
 /* ── Hamburger CSS Animations ──────────────────────────────────────────────────────── */
 @layer components {
+  /* Framework-infrastructure exception (PM3 infra): the rules in this layer use
+   * pseudo-elements (::before/::after), keyframe-driven transforms, and fixed
+   * positioning that cannot be expressed as inline Tailwind classes on a component. */
 
   /* PM2 skeleton/header.css parity — fixed header bar */
   .header-pm {
@@ -876,252 +863,15 @@
   50% { transform: translateY(-10px); }
 }
 
-@utility will-change-transform {
-  will-change: transform;
-}
 
-
-@utility max-w-content {
-  max-width: var(--max-w-content);
-}
-
-@utility max-w-container {
-  max-width: var(--max-w-container);
-}
-
-@utility max-w-container-narrow {
-  max-width: var(--content-narrow);
-}
-
-@utility max-w-container-wide {
-  max-width: var(--content-wide);
-}
-
-@utility max-w-cookie {
-  max-width: var(--cookie-max-width);
-}
-
-@utility max-h-dialog {
-  max-height: var(--dialog-max-height);
-}
-
-@utility min-h-hero {
-  min-height: var(--hero-min-height);
-}
-
-@utility max-w-lightbox {
-  max-width: var(--lightbox-max-width);
-}
-
-@utility max-h-lightbox {
-  max-height: var(--lightbox-max-height);
-}
-
-@utility max-h-lightbox-image {
-  max-height: var(--lightbox-image-max-height);
-}
-
-@utility max-h-brandbook-image {
-  max-height: var(--brandbook-image-max-height);
-}
-
-@utility w-drawer {
-  width: var(--drawer-width);
-}
-
+/* Browser-fix exception (PM3 infra): -webkit-backdrop-filter is required for Safari < 18; inline Tailwind classes cannot emit the prefixed property. Kept as framework infra. */
 @utility backdrop-blur-glass {
   backdrop-filter: blur(var(--glass-backdrop-blur)) saturate(1.05);
   -webkit-backdrop-filter: blur(var(--glass-backdrop-blur)) saturate(1.05);
 }
 
-@utility min-h-empty-state-compact {
-  min-height: var(--empty-state-compact-height);
-}
 
-@utility min-h-empty-state-default {
-  min-height: var(--empty-state-default-height);
-}
-
-@utility min-h-empty-state-large {
-  min-height: var(--empty-state-large-height);
-}
-
-@utility max-w-hero-logo {
-  max-width: min(420px, 42vw);
-}
-
-@utility max-w-hero-logo-mobile {
-  max-width: min(280px, 65vw);
-}
-
-@utility gap-header-nav {
-  gap: clamp(1.5rem, 3vw, 2.5rem);
-}
-
-@utility h-header {
-  height: var(--h-header);
-}
-
-@utility min-h-header {
-  min-height: var(--h-header);
-}
-
-@utility h-header-scrolled {
-  height: var(--h-header-scrolled);
-}
-
-@utility h-logo {
-  height: var(--logo-desktop-height);
-}
-
-@utility h-logo-scrolled {
-  height: var(--logo-scrolled-height);
-}
-
-@utility footer-logo {
-  height: var(--footer-logo-height, 2rem);
-  max-width: var(--footer-logo-max-width, 220px);
-  width: auto;
-}
-
-@utility px-container {
-  padding-inline: var(--px-container);
-}
-
-@utility grid-cols-header {
-  grid-template-columns: auto 1fr auto;
-}
-
-@utility gap-sm-custom {
-  gap: var(--gap-sm);
-}
-
-@utility gap-md-custom {
-  gap: var(--gap-md);
-}
-
-@utility px-hero-edge {
-  padding-inline: max(1.5rem, calc((100vw - 1280px) / 2));
-}
-
-@utility animate-parallaxFloat {
-  animation: parallaxFloat 6s ease-in-out infinite;
-}
-
-
-/* ═══════════════════════════════════════════════════════════
- * COMPONENT PATTERNS (PM3 @utility system)
- * ═══════════════════════════════════════════════════════════ */
-
-@utility focus-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: var(--space-6);
-  background: var(--color-pm-bg-elevated);
-  border: 1px solid var(--color-pm-border);
-  border-top-width: 3px;
-  border-top-style: solid;
-  border-top-color: transparent;
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-frosted);
-  transition: transform 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
-}
-
-@utility focus-card-branded {
-  border-top-color: var(--color-pm-brand);
-}
-
-@utility focus-card-subtle {
-  border-top-color: var(--color-pm-brand-subtle);
-}
-
-@utility focus-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--text-xs);
-  font-weight: var(--font-weight-semibold);
-  line-height: 1;
-  border-radius: var(--radius-full);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-@utility focus-icon-box {
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-lg);
-}
-
-@utility contact-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-  padding: var(--space-8);
-  background: var(--color-pm-bg-elevated);
-  border: 1px solid var(--color-pm-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-frosted);
-}
-
-@utility about-visual {
-  width: var(--about-visual-width);
-  aspect-ratio: 1;
-  background: var(--color-pm-bg-sunken);
-  border-radius: var(--about-visual-radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  color: var(--color-pm-text-muted);
-}
-
-
-
-@utility safe-area-top {
-  padding-top: env(safe-area-inset-top, 0px);
-}
-
-@utility safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-@utility safe-area-left {
-  padding-left: env(safe-area-inset-left, 0px);
-}
-
-@utility safe-area-right {
-  padding-right: env(safe-area-inset-right, 0px);
-}
-
-
-@utility min-h-form-textarea {
-  min-height: 150px;
-}
-
-@utility section-title {
-  font-size: var(--heading-2);
-  font-weight: var(--font-weight-black);
-  line-height: var(--leading-tight);
-  margin-block-end: var(--space-8);
-}
-
-
-@utility text-hero-sm {
-  font-size: var(--text-hero-title-mobile);
-}
-@utility text-hero-sm-ru {
-  font-size: var(--text-hero-title-mobile-ru);
-}
-@utility text-section-body {
-  font-size: var(--text-section-body);
-}
-
-
+/* Browser-fix exception (PM3 infra): must stay a @utility so it overrides Tailwind's built-in min-h-dvh — the -webkit-fill-available line is the fallback for older Safari/Chrome without 100dvh support. Cannot be expressed as inline classes. */
 @utility min-h-dvh {
   min-height: 100vh;
   min-height: -webkit-fill-available;
@@ -1202,45 +952,6 @@
  * ═══════════════════════════════════════════════════════════ */
 
 
-@utility header-grid-cols {
-  grid-template-columns: auto max-content auto;
-}
-
-
-@utility btn-style {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--gap-xs);
-  font-weight: var(--font-weight-medium);
-  border-radius: var(--radius-md);
-  border: none;
-  cursor: pointer;
-  transition: background-color 150ms var(--ease-smooth), color 150ms var(--ease-smooth), transform 150ms var(--ease-smooth), box-shadow 150ms var(--ease-smooth);
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-@utility focus-badge-dev {
-  background: var(--color-pm-brand);
-  color: var(--color-pm-white);
-}
-
-@utility focus-badge-design {
-  background: var(--color-pm-brand-subtle);
-  color: var(--color-pm-brand);
-}
-
-@utility focus-icon-box-dev {
-  background: var(--color-pm-brand);
-}
-
-@utility focus-icon-box-design {
-  background: var(--color-pm-brand-subtle);
-}
-
-
-
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-25%); }
@@ -1302,28 +1013,6 @@
 /* ═══════════════════════════════════════════════════════════
  * MOBILE NAVIGATION (PM2 skeleton/mobile-nav.css parity)
  * ═══════════════════════════════════════════════════════════ */
-
-@utility mobile-nav-panel {
-  position: fixed;
-  inset-block: 0;
-  inset-inline-start: 0;
-  z-index: var(--z-drawer);
-  width: var(--drawer-width);
-  background: var(--color-pm-bg);
-  box-shadow: 4px 0 20px oklch(0% 0 0 / 10%);
-  display: flex;
-  flex-direction: column;
-}
-
-@utility mobile-nav-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-drawer-backdrop);
-  background: oklch(0% 0 0 / 40%);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-
 
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -1719,14 +1408,3 @@
   }
 }
 
-/* ═══════════════════════════════════════════════════════════
- * HEADER GRID — explicit fallback (PM2 Nuxt parity)
- * Tailwind header:grid applies display:grid but the
- * grid-template-columns via arbitrary value are unreliable
- * across builds. This explicit rule guarantees the layout.
- * ═══════════════════════════════════════════════════════════ */
-
-
-@utility text-hero-subtitle {
-  font-size: clamp(1.125rem, 2.5vw, 1.5rem);
-}

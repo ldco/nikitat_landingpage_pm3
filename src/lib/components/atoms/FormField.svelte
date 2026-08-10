@@ -1,8 +1,10 @@
 <script lang="ts">
   /**
-   * FormField — Superforms-aware form field wrapper
+   * FormField — form field wrapper (input + label + error display)
    *
-   * Wraps input + label + error display from superforms $errors.
+   * The error display reads fieldErrors from $page.form (SvelteKit form actions
+   * with Zod + fail()). sveltekit-superforms is NOT used — admin forms follow
+   * the manual Zod + fail() pattern (audit I-21 decision: removed dependency).
    * Rule #1: class prop + twMerge
    * Rule #3: strict union types
    */

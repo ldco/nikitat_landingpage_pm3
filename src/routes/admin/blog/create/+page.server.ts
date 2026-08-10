@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { requireAdmin } from '$lib/server/utils/admin-rbac'
+import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { useDatabase, schema } from '$lib/server/db'
 import { redirect, fail } from '@sveltejs/kit'
 import type { RequestEvent } from '@sveltejs/kit'
@@ -9,11 +9,11 @@ const createSchema = z.object({
   slug: z.string().trim().min(1).max(100).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with hyphens')
 })
 
-export const load: PageServerLoad = (event) => { requireAdmin(event) }
+export const load: PageServerLoad = (event) => { requireAdminPage(event, 'blog') }
 
 export const actions = {
   default: async (event: RequestEvent) => {
-    requireAdmin(event)
+    requireAdminPage(event, 'blog')
     const form = await event.request.formData()
     const parsed = createSchema.safeParse({ slug: form.get('slug') })
     if (!parsed.success) {

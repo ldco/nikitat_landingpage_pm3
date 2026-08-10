@@ -17,6 +17,7 @@
   import IconSearch from '@tabler/icons-svelte/icons/search'
   import IconCircleX from '@tabler/icons-svelte/icons/circle-x'
   import IconCircleCheck from '@tabler/icons-svelte/icons/circle-check'
+  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
 
   type Illustration = 'empty-box' | 'search' | 'error' | 'success'
   type Size = 'compact' | 'default' | 'large'
@@ -41,9 +42,9 @@
 
   // PM v2 empty-state sizes
   const sizes: Record<Size, string> = {
-    compact: 'py-6 px-4 min-h-empty-state-compact',
-    default: 'py-12 px-6 min-h-empty-state-default',
-    large: 'py-16 px-8 min-h-empty-state-large'
+    compact: 'py-6 px-4 min-h-[var(--empty-state-compact-height)]',
+    default: 'py-12 px-6 min-h-[var(--empty-state-default-height)]',
+    large: 'py-16 px-8 min-h-[var(--empty-state-large-height)]'
   }
 
   // PM v2 contextual backgrounds
@@ -129,9 +130,7 @@
 
   <!-- Action button -->
   {#if action}
-    <a href={action.href} class="mt-6 inline-flex items-center px-4 py-2 text-sm font-medium text-pm-white bg-pm-brand rounded-md hover:bg-pm-brand-light transition-colors">
-      {action.label}
-    </a>
+    <CtaButton href={action.href} variant="primary" size="sm" class="mt-6">{action.label}</CtaButton>
   {/if}
 
   <!-- Slot for custom content -->

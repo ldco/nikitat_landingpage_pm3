@@ -28,23 +28,23 @@
   const width = $derived(widthProp ?? 'default')
 
   const maxWidth: Record<Width, string> = {
-    default: 'max-w-container',
-    narrow: 'max-w-container-narrow',
-    wide: 'max-w-container-wide',
-    prose: 'max-w-prose',
-    content: 'max-w-content',
+    default: 'max-w-[var(--max-w-container)]',
+    narrow: 'max-w-[var(--content-narrow)]',
+    wide: 'max-w-[var(--content-wide)]',
+    prose: 'max-w-[var(--max-w-prose)]',
+    content: 'max-w-[var(--max-w-content)]',
     full: 'max-w-full',
     bleed: 'max-w-none'
   }
 
-  // PM v2: only .container-bleed removes padding; all other widths keep px-container
+  // PM v2: only .container-bleed removes padding; all other widths keep px-[var(--px-container)]
   const padding: Record<Width, string> = {
-    default: 'px-container',
-    narrow: 'px-container',
-    wide: 'px-container',
-    prose: 'px-container',
-    content: 'px-container',
-    full: 'px-container',
+    default: 'px-[var(--px-container)]',
+    narrow: 'px-[var(--px-container)]',
+    wide: 'px-[var(--px-container)]',
+    prose: 'px-[var(--px-container)]',
+    content: 'px-[var(--px-container)]',
+    full: 'px-[var(--px-container)]',
     bleed: 'px-0'
   }
 

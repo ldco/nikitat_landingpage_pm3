@@ -4,10 +4,11 @@ declare global {
       user?: {
         id: number
         email: string
-        role: 'master' | 'admin' | 'editor'
+        /** Effective role slug — the stored role's slug when roleId is set, else the legacy role. */
+        role: string
         name: string | null
+        roleId?: number | null
       }
-      nonce?: string
       paraglide?: {
         lang: string
         textDirection: 'ltr' | 'rtl'

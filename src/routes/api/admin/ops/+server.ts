@@ -31,17 +31,17 @@ export async function POST(event: RequestEvent) {
   switch (parsed.data.action) {
     case 'flush_cache': {
       invalidateTranslationCache()
-      const ip = getClientIp(event.request); const ua = event.request.headers.get('user-agent'); audit.opsAction(ip, ua, actor.id, 'flush_cache', true)
+      const ip = getClientIp(event); const ua = event.request.headers.get('user-agent'); audit.opsAction(ip, ua, actor.id, 'flush_cache', true)
       logger.info('Ops: translation cache flushed')
       return json(jsonSuccess({ action: parsed.data.action, status: 'completed', note: 'Translation cache invalidated' }))
     }
     case 'rotate_logs': {
-      const ip = getClientIp(event.request); const ua = event.request.headers.get('user-agent'); audit.opsAction(ip, ua, actor.id, 'rotate_logs', true)
+      const ip = getClientIp(event); const ua = event.request.headers.get('user-agent'); audit.opsAction(ip, ua, actor.id, 'rotate_logs', true)
       logger.info('Ops: log rotation requested (pino stdout — no-op in dev)')
       return json(jsonSuccess({ action: parsed.data.action, status: 'completed', note: 'Log rotation triggered' }))
     }
     case 'restart': {
-      const ip = getClientIp(event.request); const ua = event.request.headers.get('user-agent'); audit.opsAction(ip, ua, actor.id, 'restart', true)
+      const ip = getClientIp(event); const ua = event.request.headers.get('user-agent'); audit.opsAction(ip, ua, actor.id, 'restart', true)
       return json(jsonSuccess({ action: parsed.data.action, status: 'not_supported', note: 'Restart via process manager (systemd/pm2)' }))
     }
   }

@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  quality-gate:
+    name: Validator + typecheck + lint + test + build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: PM3 framework validator (full repo)
+        run: npm run validate:pm3
+
+      - name: TypeScript check
+        run: npm run check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Dependency audit (audit N-3 — zod v4 / CVE watch)
+        run: npm audit --audit-level=high
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Production build
+        run: npm run build

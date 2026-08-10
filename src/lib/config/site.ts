@@ -91,7 +91,7 @@ export function isRtlLocale(locale: string): boolean {
 
 export const HEADER_CONTACT = {
   enabled: true,
-  items: ['contact.email', 'social.telegram']
+  items: ['social.telegram', 'contact.email']
 }
 
 export const STORAGE_CONFIG = {

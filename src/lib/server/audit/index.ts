@@ -81,6 +81,14 @@ export const audit = {
     logAudit({ action: '2fa_disabled', userId: actorId, targetUserId: targetUserId, ipAddress: ip, userAgent: ua, details: { reason: reason || 'User disabled 2FA', selfAction: actorId === targetUserId } })
   },
 
+  twoFactorVerified(ip: string, ua: string | null, userId: number, method: string) {
+    logAudit({ action: '2fa_verified', userId, targetUserId: userId, ipAddress: ip, userAgent: ua, details: { method } })
+  },
+
+  twoFactorFailed(ip: string, ua: string | null, userId: number, reason: string) {
+    logAudit({ action: '2fa_failed', userId, targetUserId: userId, ipAddress: ip, userAgent: ua, details: { reason }, success: false })
+  },
+
   settingsUpdate(ip: string, ua: string | null, actorId: number, details: Record<string, unknown>) {
     logAudit({ action: 'settings_update', userId: actorId, ipAddress: ip, userAgent: ua, details })
   },

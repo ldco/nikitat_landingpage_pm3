@@ -43,8 +43,24 @@ project files; project changes never require framework edits.
 | Colors | Derives ALL colors via `color-mix()` from 4 primitives | Sets the 4 primitives in `theme.css` |
 | Config | Types + helpers in `site.ts` | Values in `site-config.ts` |
 | Content | Renders via content store (`t()`) | Provides text in `content.json` (seed → DB) |
-| Components | SectionRenderer, layout shells | Registers overrides in `overrides.ts` |
+| Components | SectionRenderer resolves `SECTION_REGISTRY[component]` + spreads props from the prop-adapter (`sections/props.ts`) | Registers sections in `project/registry.ts` (`PROJECT_SECTIONS`) |
 | Text | UI labels in `messages/*.json` | Site text in `content.json` → DB |
+
+### Adding a project section — no framework edits
+
+1. Create the component in `src/project/` (e.g. `src/project/SectionBrand.svelte`)
+2. Register it in `src/project/registry.ts` → `PROJECT_SECTIONS = { SectionBrand }`
+3. Add it to `HOMEPAGE_SECTIONS` in `src/project/site-config.ts`
+
+SectionRenderer has **no component-name dispatch**: it resolves the component
+directly from `SECTION_REGISTRY[section.component]` and spreads the props built
+by the typed prop-adapter (`src/lib/components/sections/props.ts`). The adapter
+maps each **data-backed** framework section to its slice of `SectionContent`
+(`items`, `posts`, `features`, `tiers`, `members`, `testimonials`, `clients`).
+Content-less and project sections receive `{}` — a new project section renders
+with zero framework changes. `tests/lib/components/section-registry.test.ts`
+proves this: no framework file may name a project component, and unknown
+components resolve to `{}` props.
 
 ## Rebranding checklist (new PM3 site)
 

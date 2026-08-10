@@ -12,6 +12,18 @@ export default defineConfig({
       outdir: './src/lib/paraglide'
     })
   ],
+  ssr: {
+    // clamscan is an OPTIONAL runtime dependency (audit I-2 virus scanning),
+    // not installed by default — externalize so the server build does not try
+    // to resolve it. The scanner degrades to fail-open when it is absent.
+    external: ['clamscan']
+  },
+  build: {
+    // audit N-13: production build tuning — modern target and a chunk-size
+    // warning threshold so bundle regressions surface during `npm run build`.
+    target: 'es2022',
+    chunkSizeWarningLimit: 500
+  },
   test: {
     include: ['tests/**/*.test.ts'],
     environment: 'jsdom',

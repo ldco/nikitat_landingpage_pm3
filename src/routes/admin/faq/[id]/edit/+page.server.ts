@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { requireAdmin } from '$lib/server/utils/admin-rbac'
+import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { useDatabase, schema } from '$lib/server/db'
 import { eq } from 'drizzle-orm'
 import { error, redirect, fail } from '@sveltejs/kit'
@@ -11,7 +11,7 @@ const updateSchema = z.object({
 })
 
 export const load: PageServerLoad = async (event) => {
-  requireAdmin(event)
+  requireAdminPage(event, 'faq')
   const db = useDatabase()
   const item = db.select().from(schema.faqItems).where(eq(schema.faqItems.id, Number(event.params.id))).get()
   if (!item) error(404)
@@ -20,7 +20,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions = {
   default: async (event: RequestEvent) => {
-    requireAdmin(event)
+    requireAdminPage(event, 'faq')
     const form = await event.request.formData()
     const parsed = updateSchema.safeParse({ slug: form.get('slug') })
     if (!parsed.success) {

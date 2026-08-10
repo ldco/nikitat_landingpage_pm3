@@ -32,7 +32,7 @@
 
 <div class={twMerge(clsx('flex items-center gap-2', className))}>
   {#if showContact}
-    <HeaderContact mode="contacts" />
+    <HeaderContact />
   {/if}
   {#if showTheme}
     <ThemeToggle />

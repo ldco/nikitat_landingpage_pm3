@@ -53,6 +53,34 @@ export interface FeatureItemCard {
   icon?: string | null
 }
 
+export interface TeamMemberCard {
+  id: number
+  slug: string
+  name: string
+  position?: string | null
+  bio?: string | null
+  photoUrl?: string | null
+}
+
+export interface TestimonialCard {
+  id: number
+  authorName: string
+  authorTitle?: string | null
+  authorCompany?: string | null
+  authorPhotoUrl?: string | null
+  rating?: number | null
+  /** Always populated on public payloads (service falls back to the default locale, then filters). */
+  quote: string
+}
+
+export interface ClientCard {
+  id: number
+  name: string
+  logoUrl?: string | null
+  websiteUrl?: string | null
+  category?: string | null
+}
+
 /**
  * The full section content payload passed from +page.server.ts
  * through SectionRenderer to individual sections.
@@ -63,5 +91,8 @@ export interface SectionContent {
   pricing: PricingTierCard[]
   faq: FaqItemCard[]
   features: FeatureItemCard[]
+  team: TeamMemberCard[]
+  testimonials: TestimonialCard[]
+  clients: ClientCard[]
   locale: string
 }

@@ -2,7 +2,10 @@
  * PM Server Hooks
  *
  * Replaces Nuxt middleware + plugins.
- * Order: Paraglide (i18n) → Logger → Session → Rate Limit → CSRF → CSP
+ * Order: Paraglide (i18n) → Logger → Session → Rate Limit → CSRF → Security Headers
+ *
+ * The nonce-based Content-Security-Policy is owned by SvelteKit's built-in
+ * CSP (svelte.config.js → kit.csp) — see the securityHeadersHandle below.
  */
 import { sequence } from '@sveltejs/kit/hooks'
 import type { Handle } from '@sveltejs/kit'
@@ -11,13 +14,27 @@ import { i18n } from '$lib/i18n'
 import { getValidSession } from '$lib/server/auth/session'
 import { useDatabase, schema } from '$lib/server/db'
 import { eq } from 'drizzle-orm'
-import { generateCspNonce, buildSecurityHeaders } from '$lib/server/security/headers'
+import { buildSecurityHeaders } from '$lib/server/security/headers'
 import { validateCsrfToken, CSRF_COOKIE_NAME, CSRF_HEADER_NAME, generateCsrfToken } from '$lib/server/security/csrf'
 import { loginRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
 import { logger } from '$lib/server/utils/logger'
+import { FEATURES } from '$lib/config/site'
+import { initSentry, isSentryEnabled } from '$lib/server/security/sentry'
+import { sentryHandle, handleErrorWithSentry } from '@sentry/sveltekit'
 
 const SESSION_COOKIE = 'pm-session'
 const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
+
+// Sentry is optional — initialized at startup only when SENTRY_DSN is set.
+initSentry()
+
+// Fail-fast: when 2FA is enabled in production, TOTP secrets are encrypted
+// with TOTP_ENCRYPTION_KEY. Validate at startup so the server cannot pass
+// health checks yet 500 on the first 2FA setup/verify (or silently lock out
+// every 2FA-enabled account after a key omission).
+if (FEATURES.twoFactorAuth && process.env.NODE_ENV === 'production' && !process.env.TOTP_ENCRYPTION_KEY) {
+  throw new Error('TOTP_ENCRYPTION_KEY must be set when FEATURES.twoFactorAuth is enabled in production')
+}
 
 // ── Session Handle ──────────────────────────────────────────────────────────
 const sessionHandle: Handle = async ({ event, resolve }) => {
@@ -27,14 +44,26 @@ const sessionHandle: Handle = async ({ event, resolve }) => {
     const session = getValidSession(sessionId)
     if (session) {
       const db = useDatabase()
-      const user = db
-        .select({ id: schema.users.id, email: schema.users.email, role: schema.users.role, name: schema.users.name })
+      const row = db
+        .select({
+          id: schema.users.id,
+          email: schema.users.email,
+          role: schema.users.role,
+          roleId: schema.users.roleId,
+          name: schema.users.name,
+          roleSlug: schema.roles.slug
+        })
         .from(schema.users)
+        .leftJoin(schema.roles, eq(schema.users.roleId, schema.roles.id))
         .where(eq(schema.users.id, session.userId))
         .get()
 
-      if (user) {
-        event.locals.user = user
+      if (row) {
+        const { roleSlug, ...user } = row
+        // Effective role identity: the stored role's slug when the user is
+        // linked to a roles row (custom roles), else the legacy enum. This is
+        // the same slug getStoredRolePermissions() resolves against.
+        event.locals.user = { ...user, role: roleSlug ?? user.role }
       }
     }
   }
@@ -86,14 +115,16 @@ const csrfHandle: Handle = async ({ event, resolve }) => {
   return resolve(event)
 }
 
-// ── CSP Handle ──────────────────────────────────────────────────────────────
-const cspHandle: Handle = async ({ event, resolve }) => {
-  const nonce = generateCspNonce()
-  event.locals.nonce = nonce
-
+// ── Security Headers Handle ────────────────────────────────────────────────
+// The Content-Security-Policy header is owned by SvelteKit's built-in CSP
+// (svelte.config.js → kit.csp, mode 'nonce') — it generates the per-request
+// nonce, tags its inline <script>/<style> blocks, and writes the header on
+// page responses. Overriding it here would drop the nonce and break the shell.
+// This handle only applies the remaining defense-in-depth headers.
+const securityHeadersHandle: Handle = async ({ event, resolve }) => {
   const response = await resolve(event)
 
-  const securityHeaders = buildSecurityHeaders(nonce, process.env.NODE_ENV === 'production')
+  const securityHeaders = buildSecurityHeaders(process.env.NODE_ENV === 'production')
   for (const [key, value] of securityHeaders) {
     response.headers.set(key, value)
   }
@@ -107,7 +138,7 @@ const rateLimitHandle: Handle = async ({ event, resolve }) => {
 
   // Only rate-limit specific endpoints
   if (url.pathname === '/api/auth/login') {
-    const ip = getClientIp(event.request)
+    const ip = getClientIp(event)
     if (!loginRateLimiter.check(ip)) {
       return new Response(JSON.stringify({
         success: false,
@@ -192,22 +223,27 @@ const localeNormalizeHandle: Handle = async ({ event, resolve }) => {
 }
 
 // ── Export sequence ─────────────────────────────────────────────────────────
-// Order: i18n (lang/dir/html) → logger → session → rate-limit → CSRF → CSP
-export const handle = sequence(
+// Order: Sentry (if enabled, first) → i18n (lang/dir/html) → logger → session
+// → rate-limit → CSRF → security headers
+const baseHandle = sequence(
   localeNormalizeHandle,
   i18n.handle(),
   logHandle,
   sessionHandle,
   rateLimitHandle,
   csrfHandle,
-  cspHandle,
+  securityHeadersHandle,
   errorFormatHandle
 )
 
+export const handle: Handle = isSentryEnabled()
+  ? sequence(sentryHandle(), baseHandle)
+  : baseHandle
+
 // ── Error contract (rule 11) ───────────────────────────────────────────────
 // Formats all API errors into { success: false, error: { code, message } }.
-// Never leaks stack traces.
-export const handleError: import('@sveltejs/kit').HandleServerError = async ({ error: err, event }) => {
+// Never leaks stack traces. Sentry (when enabled) records the error server-side.
+const formatServerError: import('@sveltejs/kit').HandleServerError = async ({ error: err, event }) => {
   const isApi = event.url.pathname.startsWith('/api/')
 
   if (isApi) {
@@ -225,3 +261,7 @@ export const handleError: import('@sveltejs/kit').HandleServerError = async ({ e
     message: err instanceof Error ? err.message : 'Internal server error'
   }
 }
+
+export const handleError: import('@sveltejs/kit').HandleServerError = isSentryEnabled()
+  ? handleErrorWithSentry(formatServerError)
+  : formatServerError

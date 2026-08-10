@@ -3,7 +3,7 @@
    * SectionHeading — Standardized section title (PM3 framework)
    *
    * Standardizes the pattern every section uses:
-   *   <h2 class="section-title text-center">Title</h2>
+   *   <h2 class="text-[var(--heading-2)] font-black leading-tight mb-[var(--space-8)] text-center">Title</h2>
    *
    * Optional eyebrow kicker renders above the title in muted small caps.
    * Scroll-reveal is owned by the Section shell (root-level animation).
@@ -35,4 +35,4 @@
 {#if eyebrow}
   <p class="text-xs font-semibold uppercase tracking-[0.08em] text-pm-brand mb-[var(--space-2)] {alignClass}">{eyebrow}</p>
 {/if}
-<h2 class={twMerge(clsx('section-title', alignClass, className))}>{title}</h2>
+<h2 class={twMerge(clsx('text-[var(--heading-2)] font-black leading-tight mb-[var(--space-8)]', alignClass, className))}>{title}</h2>

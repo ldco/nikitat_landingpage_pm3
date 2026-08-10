@@ -5,6 +5,10 @@
    * Parses content lines: lines starting with "### " become headings,
    * everything else becomes paragraphs. Renders tags as badges.
    *
+   * Headings arrive already translated from the service layer
+   * (portfolio.ts `translateCaseStudyContent`) — this component renders
+   * the given text as-is and never derives translation keys.
+   *
    * Rule #1: class prop + twMerge
    */
   import { clsx } from 'clsx'
@@ -78,3 +82,4 @@
     </div>
   {/if}
 </article>
+

@@ -13,6 +13,11 @@ import { logger } from '$lib/server/utils/logger'
 const ENCRYPTION_ALGORITHM = 'aes-256-gcm'
 const IV_LENGTH = 16
 
+// Dev fallback key — cached for the process lifetime so encrypt/decrypt use the
+// same key. Without caching, every call generated a fresh key and any secret
+// encrypted in dev could never be decrypted again.
+let _ephemeralKey: Buffer | null = null
+
 function getEncryptionKey(): Buffer {
   const envKey = process.env.TOTP_ENCRYPTION_KEY
   if (envKey) return scryptSync(envKey, 'totp-salt', 32)
@@ -20,10 +25,14 @@ function getEncryptionKey(): Buffer {
   if (env.NODE_ENV === 'production') {
     throw new Error('TOTP_ENCRYPTION_KEY must be set in production')
   }
-  // Development only: generate a per-session key so encrypted secrets don't persist across restarts
-  const sessionKey = randomBytes(32).toString('hex')
-  logger.warn('TOTP_ENCRYPTION_KEY not set — using ephemeral key (TOTP secrets will be invalid on restart)')
-  return scryptSync(sessionKey, 'totp-salt', 32)
+  // Development only: generate a per-process key so encrypted secrets
+  // persist for the server's lifetime (invalid on restart).
+  if (!_ephemeralKey) {
+    const sessionKey = randomBytes(32).toString('hex')
+    logger.warn('TOTP_ENCRYPTION_KEY not set — using ephemeral key (TOTP secrets will be invalid on restart)')
+    _ephemeralKey = scryptSync(sessionKey, 'totp-salt', 32)
+  }
+  return _ephemeralKey
 }
 
 export function generateTotpSecret(): string {
@@ -49,6 +58,11 @@ export async function generateTotpQRCode(secret: string, userEmail: string, issu
     margin: 2,
     width: 256
   })
+}
+
+/** otpauth:// URI for manual entry in authenticator apps (PM v2 parity). */
+export function getTotpUri(secret: string, userEmail: string, issuer?: string): string {
+  return createTotpInstance(secret, userEmail, issuer).toString()
 }
 
 export function verifyTotpCode(secret: string, code: string, userEmail: string): boolean {

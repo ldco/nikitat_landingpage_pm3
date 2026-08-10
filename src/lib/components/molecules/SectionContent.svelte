@@ -3,7 +3,7 @@
    * SectionContent — Standard inner content wrapper for sections
    *
    * PM3 framework primitive. Standardizes the pattern every section uses:
-   *   <div class="px-container w-full max-w-container mx-auto">
+   *   <div class="px-[var(--px-container)] w-full max-w-[var(--max-w-container)] mx-auto">
    *
    * Composes the Container atom (width + fluid padding). Scroll-reveal is
    * owned by the Section shell (applied to the <section> root) to avoid

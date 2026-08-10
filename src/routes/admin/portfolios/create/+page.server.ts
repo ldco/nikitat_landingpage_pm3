@@ -1,6 +1,6 @@
-import { requireAdmin } from '$lib/server/utils/admin-rbac'
+import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { useDatabase, schema } from '$lib/server/db'
-import { redirect } from '@sveltejs/kit'
+import { redirect, fail } from '@sveltejs/kit'
 import { z } from 'zod'
 import type { RequestEvent } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
@@ -13,12 +13,12 @@ const insertSchema = z.object({
 })
 
 export const load: PageServerLoad = (event) => {
-  requireAdmin(event)
+  requireAdminPage(event, 'portfolios')
 }
 
 export const actions = {
   default: async (event: RequestEvent) => {
-    requireAdmin(event)
+    requireAdminPage(event, 'portfolios')
     const form = await event.request.formData()
     const parsed = insertSchema.safeParse({
       name: form.get('name'),
@@ -27,7 +27,9 @@ export const actions = {
       description: form.get('description') || null
     })
 
-    if (!parsed.success) return { success: false, error: 'validation.required' }
+    // audit I-10: use fail() so $page.form is populated and use:enhance can
+    // surface field errors to the UI (matches the blog/faq/features forms).
+    if (!parsed.success) return fail(400, { fieldErrors: parsed.error.flatten().fieldErrors })
 
     const db = useDatabase()
     db.insert(schema.portfolios).values({

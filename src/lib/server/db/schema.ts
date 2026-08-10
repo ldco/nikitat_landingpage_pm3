@@ -18,9 +18,9 @@ export const USER_ROLES = ['master', 'admin', 'editor'] as const
 export type UserRole = (typeof USER_ROLES)[number]
 
 export const ADMIN_PAGE_IDS = [
-  'users', 'roles', 'translations', 'settings', 'health',
+  'dashboard', 'users', 'roles', 'translations', 'settings', 'legal', 'health', 'logs',
   'sections', 'blog', 'portfolios', 'team', 'testimonials',
-  'faq', 'clients', 'pricing', 'features', 'contacts'
+  'faq', 'clients', 'pricing', 'features', 'contacts', 'audit', 'security'
 ] as const
 export type AdminPageId = (typeof ADMIN_PAGE_IDS)[number]
 export type RolePermissions = Partial<Record<AdminPageId, boolean>>

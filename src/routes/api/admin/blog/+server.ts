@@ -2,7 +2,7 @@ import type { RequestEvent } from '@sveltejs/kit'
 import { error, json } from '@sveltejs/kit'
 import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
-import { requireAdmin } from '$lib/server/utils/admin-rbac'
+import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
 import { paginationSchema } from '$lib/server/utils/validation'
 
@@ -14,7 +14,7 @@ const createSchema = z.object({
 })
 
 export function GET(event: RequestEvent) {
-  requireAdmin(event)
+  requireAdminPage(event, 'blog')
   const db = useDatabase()
   const parsed = paginationSchema.safeParse(Object.fromEntries(event.url.searchParams))
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
@@ -26,7 +26,7 @@ export function GET(event: RequestEvent) {
 }
 
 export async function POST(event: RequestEvent) {
-  const actor = requireAdmin(event)
+  const actor = requireAdminPage(event, 'blog')
   const body = await event.request.json().catch(() => null)
   if (!body) throw error(400)
   const parsed = createSchema.safeParse(body)

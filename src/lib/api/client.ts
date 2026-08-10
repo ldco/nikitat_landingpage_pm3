@@ -65,3 +65,61 @@ export function adminDelete(module: AdminDeleteModule, id: number) {
     body: JSON.stringify({ module, id })
   })
 }
+
+// ── 2FA ─────────────────────────────────────────────────────────────────────
+
+export interface TwoFactorSetupData {
+  qrCode: string
+  uri: string
+  backupCodes: string[]
+}
+
+export interface TwoFactorStatusData {
+  enabled: boolean
+  available: boolean
+  backupCodesRemaining?: number
+}
+
+export interface TwoFactorVerifyResult {
+  user?: { id: number; email: string; name: string | null; role: string }
+  backupCodesRemaining?: number
+}
+
+export function fetch2faStatus() {
+  return request<TwoFactorStatusData>('/api/user/2fa/status')
+}
+
+export function start2faSetup() {
+  return request<TwoFactorSetupData>('/api/user/2fa/setup', { method: 'POST' })
+}
+
+export function enable2fa(code: string) {
+  return request<{ message: string }>('/api/user/2fa/enable', {
+    method: 'POST',
+    body: JSON.stringify({ code })
+  })
+}
+
+export function disable2fa(password: string) {
+  return request<{ message: string }>('/api/user/2fa/disable', {
+    method: 'POST',
+    body: JSON.stringify({ password })
+  })
+}
+
+/** Verify a 2FA code during login (after password check). */
+export function verify2fa(code: string) {
+  return request<TwoFactorVerifyResult>('/api/user/2fa/verify', {
+    method: 'POST',
+    body: JSON.stringify({ code })
+  })
+}
+
+// ── Password ────────────────────────────────────────────────────────────────
+
+export function changePassword(currentPassword: string, newPassword: string) {
+  return request<{ message: string }>('/api/user/change-password', {
+    method: 'PUT',
+    body: JSON.stringify({ currentPassword, newPassword })
+  })
+}

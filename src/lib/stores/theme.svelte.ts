@@ -1,7 +1,6 @@
 import { browser } from '$app/environment'
 
 type Theme = 'light' | 'dark'
-const STORAGE_KEY = 'pm-theme'
 
 // The site forces `color-scheme: dark` (src/project/theme.css).
 // Theme is always 'dark' — localStorage persistence removed to prevent

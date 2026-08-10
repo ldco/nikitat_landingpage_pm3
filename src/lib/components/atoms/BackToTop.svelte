@@ -4,7 +4,7 @@
    *
    * Source: app-nuxt/app/assets/css/ui/content/back-to-top.css (68 lines)
    * - bg-pm-bg-elevated by default, turns bg-pm-brand on hover
-   * - Fixed bottom-right, z-sticky
+   * - Fixed bottom-right, z-[var(--z-sticky)]
    * - rounded-full with shadow
    *
    * Rule #1: class prop + twMerge
@@ -40,9 +40,9 @@
   }
 
   // PM v2: bg-elevated with border, turns brand on hover
-  // z-sticky = 200, fixed inset-6
+  // z-[var(--z-sticky)] = 200, fixed inset-6
   const base =
-    'fixed bottom-6 right-6 z-sticky ' +
+    'fixed bottom-6 right-6 z-[var(--z-sticky)] ' +
     'flex items-center justify-center ' +
     'size-11 rounded-full ' +
     'bg-pm-bg-elevated text-pm-text-secondary ' +

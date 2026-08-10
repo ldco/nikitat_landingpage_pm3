@@ -29,6 +29,8 @@
 - **`STYLE-RULES.md`** — абсолютные правила стилизации, которые нельзя нарушать
 - **`CSS-ARCHITECTURE.md`** — система стилей: что в app.css, что в компонентах, как работают токены
 - **`ARCHITECTURE.md`** — полный анализ фреймворка PM v2: 58 секций, CSS→Component map, API, БД, деплой
+- **`architecture/security-headers.md`** — решение: framework-owned заголовки (не helmet); CSP остаётся за SvelteKit
+- **`architecture/websocket-decision.md`** — решение: 30s polling вместо WebSocket hub (порт отложен)
 
 ## Быстрый старт
 

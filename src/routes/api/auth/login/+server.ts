@@ -5,9 +5,12 @@ import { useDatabase, schema } from '$lib/server/db'
 import { verifyPassword } from '$lib/server/auth/password'
 import { createSession } from '$lib/server/auth/session'
 import { checkAccountLocked, recordFailedAttempt, resetFailedAttempts } from '$lib/server/auth/lockout'
+import { createPendingVerification } from '$lib/server/auth/pending-2fa'
+import { getEffectiveRole } from '$lib/server/services/users'
 import { audit } from '$lib/server/audit'
 import { getClientIp } from '$lib/server/security/rateLimit'
 import { eq } from 'drizzle-orm'
+import { FEATURES } from '$lib/config/site'
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -22,7 +25,7 @@ export async function POST(event: RequestEvent) {
   if (!parsed.success) error(400)
 
   const { email, password } = parsed.data
-  const ip = getClientIp(event.request)
+  const ip = getClientIp(event)
   const ua = event.request.headers.get('user-agent')
 
   const db = useDatabase()
@@ -54,8 +57,26 @@ export async function POST(event: RequestEvent) {
     error(401)
   }
 
-  // Success — reset lockout, create session
+  // Password OK — reset lockout
   resetFailedAttempts(user.id)
+
+  // Two-factor challenge: password is verified but a session is only created
+  // after the 2FA code is validated (PM v2 login flow parity).
+  if (FEATURES.twoFactorAuth && user.twoFactorEnabled) {
+    const token = createPendingVerification(user.id, user.email)
+    event.cookies.set('pm-2fa-pending', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 10 * 60 // 10 minutes
+    })
+    return json({
+      success: true,
+      data: { requires2fa: true }
+    })
+  }
+
   const session = createSession(user.id)
   audit.login(ip, ua, user.id)
 
@@ -70,7 +91,7 @@ export async function POST(event: RequestEvent) {
   return json({
     success: true,
     data: {
-      user: { id: user.id, email: user.email, name: user.name, role: user.role },
+      user: { id: user.id, email: user.email, name: user.name, role: getEffectiveRole(user.id) ?? user.role },
       session: { id: session.id, expiresAt: session.expiresAt }
     }
   })

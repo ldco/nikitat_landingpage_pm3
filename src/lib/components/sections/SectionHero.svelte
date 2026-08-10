@@ -6,8 +6,8 @@
   import { breakHeroTitle } from '$lib/utils/titleBreaker'
   import { languageTag } from '$lib/paraglide/runtime.js'
   import Logo from '$lib/components/atoms/Logo.svelte'
-  import HeroParallaxScene from '../../../project/HeroParallaxScene.svelte'
-  import { gsapIntro } from '../../../project/gsapIntro'
+  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import type { Component } from 'svelte'
 
   let {
     title = t('hero.title', t('sections.hero')),
@@ -16,10 +16,18 @@
     primaryHref = '/#focus',
     secondaryCta = t('hero.secondaryCta', t('nav.portfolio')),
     secondaryHref = '/#about',
+    // audit I-22 / E-7: the project-specific parallax scene is injected by the
+    // orchestrator (Onepager) instead of imported from src/project/ here. This
+    // keeps SectionHero a pure framework component — a new PM3 project only
+    // needs to provide its parallax scene when it opts into heroParallax.
+    parallaxComponent = undefined,
+    parallaxIntro = undefined,
     class: className = ''
   }: {
     title?: string; subtitle?: string
     primaryCta?: string; primaryHref?: string; secondaryCta?: string; secondaryHref?: string
+    parallaxComponent?: Component | undefined
+    parallaxIntro?: ((node: HTMLElement) => { destroy(): void } | null | undefined) | undefined
     class?: string
   } = $props()
 
@@ -29,8 +37,8 @@
 
   let logoEl = $state<HTMLElement | null>(null)
   $effect(() => {
-    if (!logoEl) return
-    const intro = gsapIntro(logoEl)
+    if (!logoEl || !parallaxEnabled || typeof parallaxIntro !== 'function') return
+    const intro = parallaxIntro(logoEl)
     if (!intro) return
     return () => intro.destroy()
   })
@@ -39,18 +47,19 @@
 <section id="hero" class={twMerge(clsx(
   'relative grid grid-cols-1 md:grid-cols-2 items-center',
   'min-h-dvh gap-[var(--space-8)]',
-  'pt-[calc(var(--h-header)+var(--space-8))] pb-[var(--space-16)]',
+  'pt-[var(--pt-hero)] pb-[var(--space-16)]',
   'px-[max(var(--space-6),calc((100vw-var(--container-default))/2))]',
   'scroll-mt-0',
   'max-sm:min-h-svh max-sm:gap-[var(--space-2)] max-sm:px-[var(--space-2)]',
   className
 ))}>
-  {#if parallaxEnabled}
-    <HeroParallaxScene />
+  {#if parallaxEnabled && parallaxComponent}
+    {@const P = parallaxComponent}
+    <P />
   {/if}
 
   <div class="flex flex-col justify-center items-start w-full max-w-[var(--content-default)] mx-auto">
-    <h1 class="text-fluid-hero font-black text-pm-text leading-[var(--hero-leading)] mb-[var(--space-5)] space-y-[var(--hero-title-line-gap)] max-sm:text-hero-sm {locale.startsWith('ru') ? 'max-sm:text-hero-sm-ru' : ''}">
+    <h1 class="text-fluid-hero font-black text-pm-text leading-[var(--hero-leading)] mb-[var(--space-5)] space-y-[var(--hero-title-line-gap)] max-sm:text-[var(--text-hero-title-mobile)] {locale.startsWith('ru') ? 'max-sm:text-[var(--text-hero-title-mobile-ru)]' : ''}">
       {#each segments as segment}
         <span class="block w-fit" class:text-pm-brand={segment.brand}>
           {segment.text}
@@ -58,17 +67,17 @@
       {/each}
     </h1>
     {#if subtitle}
-      <p class="text-hero-subtitle font-normal text-pm-text-secondary leading-[1.6] max-w-[700px] mt-[1em] mb-[var(--space-8)] hyphens-auto break-words">
+      <p class="text-[var(--text-hero-subtitle)] font-normal text-pm-text-secondary leading-[var(--leading-hero-subtitle)] max-w-[var(--max-w-hero-subtitle)] mt-[1em] mb-[var(--space-8)] hyphens-auto break-words">
         <span>{subtitle}</span>
       </p>
     {/if}
     <div class="flex flex-wrap gap-[var(--gap-md)] max-sm:w-full">
-      <a href={primaryHref} class="inline-flex items-center justify-center rounded-md font-normal text-[var(--text-lg)] px-[var(--space-6)] py-[var(--space-3)] gap-[var(--gap-xs)] bg-pm-brand text-pm-white hover:bg-pm-brand-light active:bg-pm-brand-dark transition-colors duration-150 max-sm:w-full">
+      <CtaButton href={primaryHref} variant="primary" size="lg" class="max-sm:w-full">
         <span>{primaryCta}</span>
-      </a>
-      <a href={secondaryHref} class="inline-flex items-center justify-center rounded-md font-normal text-[var(--text-lg)] px-[var(--space-6)] py-[var(--space-3)] gap-[var(--gap-xs)] border border-pm-brand text-pm-text bg-transparent hover:bg-pm-brand hover:text-pm-white active:bg-pm-brand-dark active:text-pm-white transition-colors duration-150 max-sm:w-full">
+      </CtaButton>
+      <CtaButton href={secondaryHref} variant="outline" size="lg" class="border max-sm:w-full">
         <span>{secondaryCta}</span>
-      </a>
+      </CtaButton>
     </div>
   </div>
 

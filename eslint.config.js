@@ -11,11 +11,12 @@ const s5 = {
 }
 
 export default [
-  { ignores: ['**/node_modules/**','**/.svelte-kit/**','**/.nuxt/**','**/build/**','**/.output/**','**/dist/**','**/coverage/**','**/data/**','**/public/**','**/.tausik/**','**/.nocowboy/**','**/package-lock.json','**/tsconfig.tsbuildinfo'] },
+  { ignores: ['**/node_modules/**','**/.svelte-kit/**','**/.nuxt/**','**/build/**','**/.output/**','**/dist/**','**/coverage/**','**/data/**','**/public/**','**/.tausik/**','**/.nocowboy/**','**/package-lock.json','**/tsconfig.tsbuildinfo','**/src/lib/paraglide/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended.map(c => ({ ...c, files: ['**/*.ts'] })),
   {
     files: ['**/*.svelte'],
+    processor: 'svelte/svelte',
     languageOptions: {
       parser: svelteParser,
       parserOptions: { parser: tseslint.parser, ecmaVersion: 'latest', sourceType: 'module', extraFileExtensions: ['.svelte'] },
@@ -23,11 +24,14 @@ export default [
     },
     plugins: { 'svelte': svelte, 'ssr-safety': ssrSafety, '@typescript-eslint': tseslint.plugin },
     rules: {
-      'ssr-safety/no-direct-config-access': 'warn',
+      // audit N-7: PM3 SSR-safety rule — client components must not import server-only modules
+      'ssr-safety/no-server-imports-in-client': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/ban-ts-comment': ['error', { 'ts-ignore': true, 'ts-expect-error': true, 'ts-nocheck': true }],
       '@typescript-eslint/no-non-null-assertion': 'warn',
       'no-unused-vars': 'off', 'no-undef': 'off',
+      // Powers `<!-- eslint-disable-next-line -->` comment directives in templates
+      'svelte/comment-directive': 'error',
       'svelte/no-at-html-tags': 'warn',
       'svelte/no-navigation-without-resolve': 'off'
     }

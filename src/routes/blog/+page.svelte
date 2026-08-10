@@ -6,7 +6,9 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import AppImage from '$lib/components/atoms/AppImage.svelte'
+  import Pagination from '$lib/components/molecules/Pagination.svelte'
   import * as m from '$lib/i18n'
+  import { goto } from '$app/navigation'
   import { FEATURES, SEO } from '$lib/config/site'
   import type { PageData } from './$types'
 
@@ -18,7 +20,7 @@
   <title>{m.nav_blog()} — {SEO.title}</title>
 </svelte:head>
 
-<div class={clsx('w-full mx-auto px-6 md:px-8 py-24', isContained && 'max-w-container')}>
+<div class={clsx('w-full mx-auto px-6 md:px-8 py-24', isContained && 'max-w-[var(--max-w-container)]')}>
   <h1 class="text-4xl font-bold text-pm-text font-display text-center mb-12">{m.nav_blog()}</h1>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -53,14 +55,12 @@
 
   <!-- Pagination -->
   {#if data.pagination.totalPages > 1}
-    <div class="flex items-center justify-center gap-4 mt-12">
-      {#if data.pagination.page > 1}
-        <a href={`/blog?page=${data.pagination.page - 1}`} class="px-4 py-2 text-sm font-medium rounded-md border border-pm-border text-pm-text hover:bg-pm-bg-sunken transition-colors">{m.common_back()}</a>
-      {/if}
-      <span class="text-sm text-pm-text-muted">{data.pagination.page} / {data.pagination.totalPages}</span>
-      {#if data.pagination.page < data.pagination.totalPages}
-        <a href={`/blog?page=${data.pagination.page + 1}`} class="px-4 py-2 text-sm font-medium rounded-md border border-pm-border text-pm-text hover:bg-pm-bg-sunken transition-colors">{m.common_more()}</a>
-      {/if}
+    <div class="mt-12">
+      <Pagination
+        page={data.pagination.page}
+        totalPages={data.pagination.totalPages}
+        onPageChange={(p) => goto(`/blog?page=${p}`)}
+      />
     </div>
   {/if}
 </div>

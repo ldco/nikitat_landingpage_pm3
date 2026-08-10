@@ -123,7 +123,7 @@
 
   <!-- Handle: PM v2 section-about overrides → black line + black grip, on-brand arrows -->
   <div class="ba-slider__handle absolute inset-y-0 z-30" style={`left: ${position}%`}>
-    <div class="ba-slider__line absolute inset-y-0 w-[2px] -translate-x-1/2 bg-pm-black shadow-[var(--shadow-slider-line)]"></div>
+    <div class="ba-slider__line absolute inset-y-0 w-[var(--slider-line-width)] -translate-x-1/2 bg-pm-black shadow-[var(--shadow-slider-line)]"></div>
     <div class="ba-slider__grip absolute top-1/2 -translate-x-1/2 -translate-y-1/2 size-9 rounded-full bg-pm-black border-2 border-pm-black flex items-center justify-center shadow-[var(--shadow-slider-grip)]">
       <IconArrowLeft class="size-3.5 text-pm-white" />
       <IconArrowRight class="size-3.5 text-pm-white" />

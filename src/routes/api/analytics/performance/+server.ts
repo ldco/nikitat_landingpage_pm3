@@ -30,7 +30,7 @@ export async function POST(event: RequestEvent) {
   const parsed = performanceSchema.safeParse(body)
   if (!parsed.success) return json({ success: true })
 
-  const ip = getClientIp(event.request)
+  const ip = getClientIp(event)
   const ua = event.request.headers.get('user-agent')
 
   // In dev, log briefly. Production would persist to analytics table.

@@ -3,7 +3,7 @@ import { error, json } from '@sveltejs/kit'
 import { eq, and } from 'drizzle-orm'
 import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
-import { requireAdmin } from '$lib/server/utils/admin-rbac'
+import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
 
 const updateSchema = z.object({
@@ -18,7 +18,7 @@ const updateSchema = z.object({
 })
 
 export function GET(event: RequestEvent) {
-  requireAdmin(event)
+  requireAdminPage(event, 'portfolios')
   const db = useDatabase()
   const portfolioId = Number(event.params.id)
   const itemId = Number(event.params.itemId)
@@ -30,7 +30,7 @@ export function GET(event: RequestEvent) {
 }
 
 export async function PUT(event: RequestEvent) {
-  requireAdmin(event)
+  requireAdminPage(event, 'portfolios')
   const portfolioId = Number(event.params.id)
   const itemId = Number(event.params.itemId)
   const body = await event.request.json().catch(() => null)
@@ -49,7 +49,7 @@ export async function PUT(event: RequestEvent) {
 }
 
 export async function DELETE(event: RequestEvent) {
-  requireAdmin(event)
+  requireAdminPage(event, 'portfolios')
   const portfolioId = Number(event.params.id)
   const itemId = Number(event.params.itemId)
   const db = useDatabase()

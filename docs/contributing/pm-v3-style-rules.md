@@ -7,30 +7,27 @@
 
 ## PM v3 Critical Rules (for MCP server `topic=rules`)
 
-### Rule 1: Design Tokens — NO Arbitrary Values
-Do NOT use Tailwind `[...]` for typography, spacing, sizing. All sizing MUST come from `@theme` tokens.
+### Rule 1: Design Tokens — NO Raw Values
+Component markup uses **direct token-reference bracket syntax** only: `[var(--token)]`, optionally wrapped in `calc()`/`min()`/`max()`/`clamp()` composed only of token references and unitless/safe operators. Bracket values may reference tokens from `@theme` or `@layer base :root` in `src/app.css`.
 
 ```
-❌ text-[clamp(...)] max-w-[1280px] pt-[calc(...)] h-[clamp(...)]
-✅ text-fluid-3xl   max-w-container  pt-[var(--pt-section)] h-[var(--h-header)]
+❌ text-[14px]  max-w-[800px]  pt-[40px]  text-[#901504]
+✅ text-[var(--text-fluid-3xl)]  max-w-[var(--max-w-container)]  pt-[var(--pt-section)]  h-[var(--h-header)]
+✅ pt-[calc(var(--h-header)+var(--space-8))]
 ```
 
-Required tokens (defined in `app.css` → `@theme`):
-- Fluid typography: `text-fluid-hero`, `text-fluid-3xl`, `text-fluid-2xl`, `text-fluid-xl`, `text-fluid-base`
-- Semantic sizing: `--h-header`, `--pt-section`, `--px-container`
-- Container widths: `max-w-container`, `max-w-content`, `max-w-prose`, `max-w-narrow`
-- Allowed: `backdrop-blur-[16px]`, `shadow-[...]`, `grid-cols-[...]`, `max-w-[min(...)]` (CSS functions only)
+FORBIDDEN: literal colors, literal px/rem/%/ch values in brackets, and mixing a token reference with an ad hoc literal not promoted to a named token first. Before inventing any new token or bracket value, consult `docs/design-tokens.md` — the required first lookup step. There are NO token-bridge utility classes (`px-container`, `max-w-container`) — use the direct token-reference form.
 
-### Rule 2: Tailwind Utilities ONLY — No CSS Classes
-Components MUST use Tailwind utility classes exclusively. app.css contains ONLY:
+### Rule 2: Tokens + Svelte Components ONLY — No CSS Classes
+Components MUST use Tailwind utility classes + Svelte primitives. Shared CSS in `app.css` is limited to:
 ```
-@theme { }                    — design tokens
+@theme { }                    — design tokens (single canonical definitions, no duplicates)
 @layer base { }               — reset + :root vars + .dark + browser hacks
-@layer utilities { }          — safe-area hacks
-@layer components { }         — hamburger only (complex pseudo-elements)
+@layer components { }         — framework infrastructure ONLY (each block needs a "why not inline" comment)
 @keyframes { }                — animations
+@utility { }                  — ONLY the browser-fix exceptions min-h-dvh and backdrop-blur-glass
 ```
-NO `.btn`, `.card`, `.section-hero`, `<style>` blocks in components.
+Reusable multi-property visual patterns become **Svelte components** (see `docs/contributing/canonical-primitives.md`), NEVER `@utility` directives. BEM-style component CSS classes (`.btn-primary`, `.section-hero`) are FORBIDDEN. No `<style>` blocks in `.svelte` files. New `@utility` additions and unjustified `@layer components` additions are blocked by the PM3 validator pre-commit hook.
 
 ### Rule 3: class prop + twMerge on EVERY component
 ```svelte
@@ -61,3 +58,5 @@ const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
 | `<style>` blocks allowed | `<style>` blocks FORBIDDEN |
 | 5-layer CSS architecture | `@theme` tokens + `@layer base` |
 | Custom composables | Svelte `$state()` + `$derived()` + actions |
+| Token-bridge utilities (`px-container`, `max-w-container`) | Direct token-reference bracket syntax `[var(--token)]` |
+| `@utility` for reusable patterns | Svelte primitives (`CtaButton`, `Container`, `SectionHeading`, …) |

@@ -73,11 +73,11 @@
     state = 'hidden'
   }
 
-  // PM v2: fixed bottom, z-fixed, panel with gradient bg + border + shadow-xl
+  // PM v2: fixed bottom, z-[var(--z-fixed)], panel with gradient bg + border + shadow-xl
   const base =
-    'fixed bottom-0 left-0 right-0 z-fixed px-4 py-3 pointer-events-none'
+    'fixed bottom-0 left-0 right-0 z-[var(--z-fixed)] px-4 py-3 pointer-events-none'
   const panel =
-    'pointer-events-auto w-full max-w-cookie mx-auto ' +
+    'pointer-events-auto w-full max-w-[var(--cookie-max-width)] mx-auto ' +
     'grid grid-cols-[auto_1fr_auto] items-center gap-3 p-3 ' +
     'bg-pm-bg-elevated border border-pm-border-strong rounded-xl shadow-xl'
 </script>

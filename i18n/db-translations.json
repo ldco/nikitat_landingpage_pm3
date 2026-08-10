@@ -196,6 +196,11 @@
   },
   {
     "locale": "en",
+    "key": "admin.security",
+    "value": "Security"
+  },
+  {
+    "locale": "en",
     "key": "admin.healthComingSoon",
     "value": "Health metrics coming soon..."
   },
@@ -861,6 +866,11 @@
   },
   {
     "locale": "he",
+    "key": "admin.security",
+    "value": "אבטחה"
+  },
+  {
+    "locale": "he",
     "key": "admin.healthComingSoon",
     "value": "מדדי בריאות בקרוב..."
   },
@@ -1523,6 +1533,11 @@
     "locale": "ru",
     "key": "admin.health",
     "value": "Состояние сервера"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.security",
+    "value": "Безопасность"
   },
   {
     "locale": "ru",
@@ -6535,6 +6550,11 @@
   },
   {
     "locale": "fr",
+    "key": "admin.security",
+    "value": "Sécurité"
+  },
+  {
+    "locale": "fr",
     "key": "admin.healthComingSoon",
     "value": "Health metrics coming soon...",
     "updatedAt": 1780767179510
@@ -9004,5 +9024,648 @@
     "key": "admin.healthPage.warningsPlus",
     "value": "Warnings+",
     "updatedAt": 1780767179510
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.задача",
+    "value": "Задача"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.задача",
+    "value": "Задача"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.задача",
+    "value": "Задача"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.концепция",
+    "value": "Концепция"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.концепция",
+    "value": "Концепция"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.концепция",
+    "value": "Концепция"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.результат",
+    "value": "Результат"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.результат",
+    "value": "Результат"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.результат",
+    "value": "Результат"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.итог",
+    "value": "Итог"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.итог",
+    "value": "Итог"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.итог",
+    "value": "Итог"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.решение",
+    "value": "Решение"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.решение",
+    "value": "Решение"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.решение",
+    "value": "Решение"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.реализация",
+    "value": "Реализация"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.реализация",
+    "value": "Реализация"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.реализация",
+    "value": "Реализация"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.айдентика",
+    "value": "Айдентика"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.айдентика",
+    "value": "Айдентика"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.айдентика",
+    "value": "Айдентика"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.логотип",
+    "value": "Логотип"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.логотип",
+    "value": "Логотип"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.логотип",
+    "value": "Логотип"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.типографика",
+    "value": "Типографика"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.типографика",
+    "value": "Типографика"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.типографика",
+    "value": "Типографика"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.типографика-и-цвет",
+    "value": "Типографика и цвет"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.типографика-и-цвет",
+    "value": "Типографика и цвет"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.типографика-и-цвет",
+    "value": "Типографика и цвет"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.цветовая-палитра",
+    "value": "Цветовая палитра"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.цветовая-палитра",
+    "value": "Цветовая палитра"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.цветовая-палитра",
+    "value": "Цветовая палитра"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.цветовая-гамма",
+    "value": "Цветовая гамма"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.цветовая-гамма",
+    "value": "Цветовая гамма"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.цветовая-гамма",
+    "value": "Цветовая гамма"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.цветовая-стратегия",
+    "value": "Цветовая стратегия"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.цветовая-стратегия",
+    "value": "Цветовая стратегия"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.цветовая-стратегия",
+    "value": "Цветовая стратегия"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.палитра",
+    "value": "Палитра"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.палитра",
+    "value": "Палитра"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.палитра",
+    "value": "Палитра"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.колористика",
+    "value": "Колористика"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.колористика",
+    "value": "Колористика"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.колористика",
+    "value": "Колористика"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.дизайн-решения",
+    "value": "Дизайн-решения"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.дизайн-решения",
+    "value": "Дизайн-решения"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.дизайн-решения",
+    "value": "Дизайн-решения"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.визуальные-решения",
+    "value": "Визуальные решения"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.визуальные-решения",
+    "value": "Визуальные решения"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.визуальные-решения",
+    "value": "Визуальные решения"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.визуальный-код",
+    "value": "Визуальный код"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.визуальный-код",
+    "value": "Визуальный код"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.визуальный-код",
+    "value": "Визуальный код"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.концепция-и-нейминг",
+    "value": "Концепция и нейминг"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.концепция-и-нейминг",
+    "value": "Концепция и нейминг"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.концепция-и-нейминг",
+    "value": "Концепция и нейминг"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.позиционирование",
+    "value": "Позиционирование"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.позиционирование",
+    "value": "Позиционирование"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.позиционирование",
+    "value": "Позиционирование"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.стратегия",
+    "value": "Стратегия"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.стратегия",
+    "value": "Стратегия"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.стратегия",
+    "value": "Стратегия"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.стилистика",
+    "value": "Стилистика"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.стилистика",
+    "value": "Стилистика"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.стилистика",
+    "value": "Стилистика"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.описание-проекта",
+    "value": "Описание проекта"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.описание-проекта",
+    "value": "Описание проекта"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.описание-проекта",
+    "value": "Описание проекта"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.описание-работы",
+    "value": "Описание работы"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.описание-работы",
+    "value": "Описание работы"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.описание-работы",
+    "value": "Описание работы"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.о-проекте",
+    "value": "О проекте"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.о-проекте",
+    "value": "О проекте"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.о-проекте",
+    "value": "О проекте"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.ключевые-элементы",
+    "value": "Ключевые элементы"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.ключевые-элементы",
+    "value": "Ключевые элементы"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.ключевые-элементы",
+    "value": "Ключевые элементы"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.ключевые-элементы-дизайна",
+    "value": "Ключевые элементы дизайна"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.ключевые-элементы-дизайна",
+    "value": "Ключевые элементы дизайна"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.ключевые-элементы-дизайна",
+    "value": "Ключевые элементы дизайна"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.анализ-дизайна",
+    "value": "Анализ дизайна"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.анализ-дизайна",
+    "value": "Анализ дизайна"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.анализ-дизайна",
+    "value": "Анализ дизайна"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.визуальная-система",
+    "value": "Визуальная система"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.визуальная-система",
+    "value": "Визуальная система"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.визуальная-система",
+    "value": "Визуальная система"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.графика-и-носители",
+    "value": "Графика и носители"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.графика-и-носители",
+    "value": "Графика и носители"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.графика-и-носители",
+    "value": "Графика и носители"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.носители-стиля",
+    "value": "Носители стиля"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.носители-стиля",
+    "value": "Носители стиля"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.носители-стиля",
+    "value": "Носители стиля"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.носители",
+    "value": "Носители"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.носители",
+    "value": "Носители"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.носители",
+    "value": "Носители"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.материалы-и-носители",
+    "value": "Материалы и носители"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.материалы-и-носители",
+    "value": "Материалы и носители"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.материалы-и-носители",
+    "value": "Материалы и носители"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.адаптивность",
+    "value": "Адаптивность"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.адаптивность",
+    "value": "Адаптивность"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.адаптивность",
+    "value": "Адаптивность"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.применение-айдентика",
+    "value": "Применение айдентика"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.применение-айдентика",
+    "value": "Применение айдентика"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.применение-айдентика",
+    "value": "Применение айдентика"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.эмоциональный-ui",
+    "value": "Эмоциональный UI"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.эмоциональный-ui",
+    "value": "Эмоциональный UI"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.эмоциональный-ui",
+    "value": "Эмоциональный UI"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.ux-сценарии",
+    "value": "UX-сценарии"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.ux-сценарии",
+    "value": "UX-сценарии"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.ux-сценарии",
+    "value": "UX-сценарии"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.слоган",
+    "value": "Слоган"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.слоган",
+    "value": "Слоган"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.слоган",
+    "value": "Слоган"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.посыл",
+    "value": "Посыл"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.посыл",
+    "value": "Посыл"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.посыл",
+    "value": "Посыл"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.шрифтовая-система",
+    "value": "Шрифтовая система"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.шрифтовая-система",
+    "value": "Шрифтовая система"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.шрифтовая-система",
+    "value": "Шрифтовая система"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.цель",
+    "value": "Цель"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.цель",
+    "value": "Цель"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.цель",
+    "value": "Цель"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.auditLog",
+    "value": {
+      "admin_auditLog": "Журнал аудита"
+    }
+  },
+  {
+    "locale": "en",
+    "key": "admin.auditLog",
+    "value": {
+      "admin_auditLog": "Audit Log"
+    }
+  },
+  {
+    "locale": "fr",
+    "key": "admin.auditLog",
+    "value": {
+      "admin_auditLog": "Journal d'audit"
+    }
+  },
+  {
+    "locale": "he",
+    "key": "admin.auditLog",
+    "value": {
+      "admin_auditLog": "יומן ביקורת"
+    }
   }
 ]

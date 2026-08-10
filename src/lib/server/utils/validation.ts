@@ -19,4 +19,7 @@ export const paginationSchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(10)
 })
 
+/** Path param id for `[id]` routes — rejects non-numeric ids with a 400. */
+export const idParamSchema = z.coerce.number().int().positive()
+
 export const passwordSchema = z.string().min(8, 'Password must be at least 8 characters').max(128)

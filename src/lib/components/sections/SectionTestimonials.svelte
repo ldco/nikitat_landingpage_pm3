@@ -1,22 +1,26 @@
 <script lang="ts">
   /**
   * SectionTestimonials — Testimonial cards (PM3 rule 6)
- *
- * @example <SectionTestimonials />
+  *
+  * @props testimonials?: TestimonialCard[] — typed payload from SectionContent.testimonials
+  * @props class?: string — merged Tailwind classes
+  * @example <SectionTestimonials testimonials={content.testimonials} />
   */
   import { clsx } from 'clsx'
   import { t } from '$lib/stores/content.svelte'
+  import * as m from '$lib/i18n'
   import { FEATURES, MODULES } from '$lib/config/site'
+  import type { TestimonialCard } from './types'
   import IconChevronLeft from '@tabler/icons-svelte/icons/chevron-left'
   import IconChevronRight from '@tabler/icons-svelte/icons/chevron-right'
   import Section from '$lib/components/atoms/Section.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
 
   let {
-    testimonials = [] as Array<{ id: number; name: string; company?: string; text: string; photoUrl?: string; rating?: number }>,
+    testimonials = [] as TestimonialCard[],
     class: className = ''
   }: {
-    testimonials?: Array<{ id: number; name: string; company?: string; text: string; photoUrl?: string; rating?: number }>
+    testimonials?: TestimonialCard[]
     class?: string
   } = $props()
 
@@ -41,24 +45,24 @@
     <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{t('sections.testimonials')}</h2>
     {#if testimonials.length > 0}
       <div class="text-center p-8 rounded-xl bg-pm-bg-elevated border border-pm-border shadow-md">
-        <blockquote class="text-lg text-pm-text-secondary italic leading-relaxed">"{testimonials[current]?.text}"</blockquote>
+        <blockquote class="text-lg text-pm-text-secondary italic leading-relaxed">"{testimonials[current]?.quote}"</blockquote>
         <div class="mt-6">
-          <p class="font-bold text-pm-text">{testimonials[current]?.name}</p>
-          {#if testimonials[current]?.company}
-            <p class="text-sm text-pm-text-muted mt-1">{testimonials[current]?.company}</p>
+          <p class="font-bold text-pm-text">{testimonials[current]?.authorName}</p>
+          {#if testimonials[current]?.authorTitle || testimonials[current]?.authorCompany}
+            <p class="text-sm text-pm-text-muted mt-1">{testimonials[current]?.authorTitle}{testimonials[current]?.authorTitle && testimonials[current]?.authorCompany ? ', ' : ''}{testimonials[current]?.authorCompany}</p>
           {/if}
         </div>
         {#if testimonials.length > 1}
           <div class="flex items-center justify-center gap-4 mt-6">
-            <button aria-label="Previous" class="p-2 rounded-full border border-pm-border text-pm-text-secondary hover:bg-pm-bg-sunken transition-colors cursor-pointer" onclick={prev}>
+            <button aria-label={m.testimonials_previous()} class="p-2 rounded-full border border-pm-border text-pm-text-secondary hover:bg-pm-bg-sunken transition-colors cursor-pointer" onclick={prev}>
               <IconChevronLeft class="size-4" />
             </button>
             <div class="flex gap-2">
               {#each testimonials as _, i}
-                <button aria-label="Go to testimonial {i + 1}" class="w-2 h-2 rounded-full transition-colors cursor-pointer" class:bg-pm-brand={i === current} class:bg-pm-text-muted={i !== current} onclick={() => current = i}></button>
+                <button aria-label={m.testimonials_goTo({ i: i + 1 })} class="w-2 h-2 rounded-full transition-colors cursor-pointer" class:bg-pm-brand={i === current} class:bg-pm-text-muted={i !== current} onclick={() => current = i}></button>
               {/each}
             </div>
-            <button aria-label="Next" class="p-2 rounded-full border border-pm-border text-pm-text-secondary hover:bg-pm-bg-sunken transition-colors cursor-pointer" onclick={next}>
+            <button aria-label={m.testimonials_next()} class="p-2 rounded-full border border-pm-border text-pm-text-secondary hover:bg-pm-bg-sunken transition-colors cursor-pointer" onclick={next}>
               <IconChevronRight class="size-4" />
             </button>
           </div>

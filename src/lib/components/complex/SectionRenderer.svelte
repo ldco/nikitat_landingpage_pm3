@@ -2,9 +2,13 @@
   /**
    * SectionRenderer — Resolves and renders a section via the registry (ADR-003)
    *
-   * Reads HOMEPAGE_SECTIONS config to find the section, then dispatches to the
-   * component registered in SECTION_REGISTRY (framework + project sections).
-   * Project sections extend the framework catalog — no framework edits needed.
+   * Reads HOMEPAGE_SECTIONS config to find the section, resolves the component
+   * DIRECTLY from SECTION_REGISTRY (framework + project sections), and spreads
+   * the props produced by the typed prop-adapter (sections/props.ts).
+   *
+   * Project sections extend the framework catalog — no framework edits needed:
+   * they register in src/project/registry.ts and render here with `{}` props
+   * unless the adapter explicitly maps a content slice to them.
    *
    * Content is typed via SectionContent — the boundary contract from
    * +page.server.ts. Sections receive typed props; no `unknown` casts.
@@ -19,9 +23,8 @@
   import { t } from '$lib/stores/content.svelte'
   import { HOMEPAGE_SECTIONS } from '$lib/config/site'
   import { SECTION_REGISTRY } from '../sections/registry'
+  import { buildSectionProps } from '../sections/props'
   import type { SectionContent } from '../sections/types'
-
-  const REG = SECTION_REGISTRY
 
   let {
     sectionId,
@@ -38,38 +41,19 @@
   )
 
   const sectionData = $derived<SectionContent>(content ?? {
-    blog: [], portfolioItems: [], pricing: [], faq: [], features: [], locale: ''
+    blog: [], portfolioItems: [], pricing: [], faq: [], features: [],
+    team: [], testimonials: [], clients: [], locale: ''
   })
+
+  const SectionComponent = $derived(section ? SECTION_REGISTRY[section.component] : null)
+  const sectionProps = $derived(section ? buildSectionProps(section.component, sectionData) : {})
 </script>
 
-{#if section}
+{#if section && SectionComponent}
+  {@const Comp = SectionComponent}
   <div class={twMerge(clsx(className))}>
-    {#if section.component === 'SectionAbout'}
-      <REG.SectionAbout />
-    {:else if section.component === 'SectionFocus'}
-      <REG.SectionFocus />
-    {:else if section.component === 'SectionF22'}
-      <REG.SectionF22 />
-    {:else if section.component === 'SectionPortfolio'}
-      <REG.SectionPortfolio items={sectionData.portfolioItems} />
-    {:else if section.component === 'SectionContact'}
-      <REG.SectionContact />
-    {:else if section.component === 'SectionBlog'}
-      <REG.SectionBlog posts={sectionData.blog} />
-    {:else if section.component === 'SectionFeatures'}
-      <REG.SectionFeatures features={sectionData.features} />
-    {:else if section.component === 'SectionFaq'}
-      <REG.SectionFaq items={sectionData.faq} />
-    {:else if section.component === 'SectionPricing'}
-      <REG.SectionPricing tiers={sectionData.pricing} />
-    {:else if section.component === 'SectionTeam'}
-      <REG.SectionTeam />
-    {:else if section.component === 'SectionTestimonials'}
-      <REG.SectionTestimonials />
-    {:else if section.component === 'SectionClients'}
-      <REG.SectionClients />
-    {:else}
-      <p class="text-sm text-pm-muted text-center py-8">{t('common.sectionComponentNotFound', { section: section.component })}</p>
-    {/if}
+    <Comp {...sectionProps} />
   </div>
+{:else if section}
+  <p class="text-sm text-pm-muted text-center py-8">{t('common.sectionComponentNotFound', { section: section.component })}</p>
 {/if}

@@ -1,4 +1,4 @@
-# PuppetMaster2 Deployment Guide
+# Puppet Master v3 (PM3) Deployment Guide
 
 ## Overview
 
@@ -10,7 +10,7 @@ Production uses one deployment contract:
 - run the app as a Docker container on a private Docker network
 - run Traefik in Docker for HTTPS and routing
 
-This is the canonical framework-level operator flow. The app runtime is not a host `systemd` service. No third-party registry is required for the default `ssh-registry` mode.
+This is the canonical framework-level operator flow for Puppet Master v3 (SvelteKit). The app runtime is not a host `systemd` service. No third-party registry is required for the default `ssh-registry` mode.
 
 ## Release Model
 

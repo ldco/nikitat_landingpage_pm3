@@ -94,8 +94,8 @@
     name: '{{ item }}'
     state: present
   loop:
-    - '{{ pm_deploy_data_volume | default("puppetmaster2_data") }}'
-    - '{{ pm_deploy_uploads_volume | default("puppetmaster2_uploads") }}'
+    - '{{ pm_deploy_data_volume | default("pm_data") }}'
+    - '{{ pm_deploy_uploads_volume | default("pm_uploads") }}'
   tags: [docker]
 
 - name: Create Let's Encrypt directory
@@ -104,3 +104,18 @@
     state: directory
     mode: '0700'
   tags: [docker]
+
+# ─── Automated DB backup cron (audit I-17 / E-6) ───────────────────────────
+# Installs a daily cron job running the project backup script with S3 upload.
+# Disabled by default (pm_backup_cron_enabled=false); enable per project by
+# setting the deploy var. The script and directory must exist on the host.
+- name: Install automated database backup cron
+  cron:
+    name: 'pm-{{ project_id | default("app") }}-db-backup'
+    minute: '0'
+    hour: '2'
+    job: '{{ deploy_shared_root }}/scripts/backup-db.sh --remote >> /var/log/pm-backup.log 2>&1'
+    user: '{{ deploy_user }}'
+    state: present
+  when: pm_backup_cron_enabled | default(false) | bool
+  tags: [docker, backup]

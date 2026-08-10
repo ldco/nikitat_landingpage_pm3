@@ -1,5 +1,5 @@
 # ============================================
-# Docker Ignore - PuppetMaster2
+# Docker Ignore - Puppet Master v3
 # ============================================
 
 # Dependencies (reinstalled in container)
@@ -43,6 +43,20 @@ coverage
 *.test.ts
 tests/
 vitest.config.ts
+playwright.config.ts
+test-results/
+e2e-playwright/
+
+# Audit/misc dev dirs (audit N-14 — keep the build context lean)
+ansible/
+.kilo/
+.husky/
+.nocowboy/
+contributing/
+legal/
+project/
+messages/
+project.inlang/
 
 # Local data (should be mounted as volumes)
 data/

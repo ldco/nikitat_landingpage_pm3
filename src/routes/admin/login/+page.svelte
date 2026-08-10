@@ -1,17 +1,18 @@
 <script lang="ts">
   /**
-   * Admin Login — Auth form
+   * Admin Login — Auth form with 2FA challenge support
    */
   import * as m from '$lib/i18n'
   import { FRAMEWORK } from '$lib/config/site'
   import { goto } from '$app/navigation'
   import Logo from '$lib/components/atoms/Logo.svelte'
-  import { page } from '$app/stores'
+  import TwoFactorVerify from '$lib/components/molecules/TwoFactorVerify.svelte'
 
   let email = $state('')
   let password = $state('')
   let error = $state('')
   let loading = $state(false)
+  let requires2fa = $state(false)
 
   async function handleSubmit(e: Event) {
     e.preventDefault()
@@ -25,7 +26,9 @@
         body: JSON.stringify({ email, password })
       })
       const data = await res.json()
-      if (data.success) {
+      if (data.success && data.data?.requires2fa) {
+        requires2fa = true
+      } else if (data.success) {
         goto('/admin')
       } else {
         error = m.common_error()
@@ -45,47 +48,54 @@
         <Logo shape="horizontal" />
       </div>
 
-      <form onsubmit={handleSubmit} class="space-y-4">
-        <div>
-          <label for="email" class="block text-sm font-medium text-pm-text mb-1">{m.auth_email()}</label>
-          <input
-            id="email"
-            type="email"
-            bind:value={email}
-            required
-            class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-pm-text text-sm focus:outline-none focus:ring-2 focus:ring-pm-focus-ring"
-            placeholder={m.auth_email()}
-          />
-        </div>
+      {#if requires2fa}
+        <TwoFactorVerify
+          onVerified={() => goto('/admin')}
+          onCancelled={() => { requires2fa = false; password = '' }}
+        />
+      {:else}
+        <form onsubmit={handleSubmit} class="space-y-4">
+          <div>
+            <label for="email" class="block text-sm font-medium text-pm-text mb-1">{m.auth_email()}</label>
+            <input
+              id="email"
+              type="email"
+              bind:value={email}
+              required
+              class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-pm-text text-sm focus:outline-none focus:ring-2 focus:ring-pm-focus-ring"
+              placeholder={m.auth_email()}
+            />
+          </div>
 
-        <div>
-          <label for="password" class="block text-sm font-medium text-pm-text mb-1">{m.auth_password()}</label>
-          <input
-            id="password"
-            type="password"
-            bind:value={password}
-            required
-            class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-pm-text text-sm focus:outline-none focus:ring-2 focus:ring-pm-focus-ring"
-            placeholder={m.auth_password()}
-          />
-        </div>
+          <div>
+            <label for="password" class="block text-sm font-medium text-pm-text mb-1">{m.auth_password()}</label>
+            <input
+              id="password"
+              type="password"
+              bind:value={password}
+              required
+              class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-pm-text text-sm focus:outline-none focus:ring-2 focus:ring-pm-focus-ring"
+              placeholder={m.auth_password()}
+            />
+          </div>
 
-        {#if error}
-          <p class="text-sm text-pm-danger">{error}</p>
-        {/if}
+          {#if error}
+            <p class="text-sm text-pm-danger">{error}</p>
+          {/if}
 
-        <button
-          type="submit"
-          disabled={loading}
-          class="w-full py-2.5 px-4 rounded-md bg-pm-brand text-pm-white font-medium text-sm hover:bg-pm-brand-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {loading ? m.common_loading() + '...' : m.auth_login()}
-        </button>
+          <button
+            type="submit"
+            disabled={loading}
+            class="w-full py-2.5 px-4 rounded-md bg-pm-brand text-pm-white font-medium text-sm hover:bg-pm-brand-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? m.common_loading() + '...' : m.auth_login()}
+          </button>
 
-        <p class="text-xs text-center text-pm-text-muted mt-4">
-          {m.footer_madeBy()} — <a href={FRAMEWORK.url} target="_blank" rel="noopener noreferrer" class="hover:text-pm-brand transition-colors">{m.footer_madeBy()}</a>
-        </p>
-      </form>
+          <p class="text-xs text-center text-pm-text-muted mt-4">
+            {m.footer_madeBy()} — <a href={FRAMEWORK.url} target="_blank" rel="noopener noreferrer" class="hover:text-pm-brand transition-colors">{m.footer_madeBy()}</a>
+          </p>
+        </form>
+      {/if}
     </div>
   </div>
 </div>

@@ -62,13 +62,13 @@
   'py-8 md:py-8',
   className
 ))}>
-  <div class={clsx('w-full', !isFullWidth && 'mx-auto max-w-container', 'px-container')}>
+  <div class={clsx('w-full', !isFullWidth && 'mx-auto max-w-[var(--max-w-container)]', 'px-[var(--px-container)]')}>
     <!-- ═══ Footer Grid: Logo+Social | CTA+FooterNav (app-nuxt: .footer-grid) ═══ -->
     {#if showNav || showFooterCta}
     <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
       <!-- Left: Logo + Social (app-nuxt: .footer-brand) -->
       <div class="flex flex-col items-center sm:items-start gap-2 min-w-0">
-        <Logo shape="horizontal" class="footer-logo" />
+        <Logo shape="horizontal" class="h-[var(--footer-logo-height)] max-w-[var(--footer-logo-max-width)] w-auto" />
         <SocialNav class="justify-center sm:justify-start" />
       </div>
 

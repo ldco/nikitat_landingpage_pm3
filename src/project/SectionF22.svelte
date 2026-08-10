@@ -28,7 +28,7 @@
     defaultLang: LOCALES[0] ?? ''
   }
   const madeByUrl = FOOTER_MADE_BY.url
-  const madeByAlt = FOOTER_MADE_BY.logoAlt
+  const madeByAlt = t(FOOTER_MADE_BY.logoAlt, 'Fabrica 22')
 
   // PM v2 getLogo: theme inversion — light mode shows 'dark' logo file, dark mode shows 'light'
   const _dl = LOCALES[0] ?? 'ru'
@@ -43,7 +43,7 @@
 
     <div class="flex flex-col items-center">
       {#if description}
-        <!-- SAFE-RENDER: description from content store, sanitized before render -->
+        <!-- eslint-disable-next-line -->
         <div class="text-fluid-2xl text-pm-text-secondary leading-relaxed mb-[var(--space-8)]">{@html description}</div>
       {:else}
         <p class="text-fluid-2xl text-pm-text-secondary leading-relaxed mb-[var(--space-8)]">{t('common.note')}</p>

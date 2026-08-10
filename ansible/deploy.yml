@@ -9,7 +9,7 @@
 #   ansible-playbook -i inventory.yml deploy.yml \
 #     -e project_id=my-project \
 #     -e project_domain=my-project.com \
-#     -e app_image_ref=puppetmaster2-app:abc123
+#     -e app_image_ref=pm-app:abc123
 # ============================================
 
 - name: Deploy PM project to shared VPS
@@ -128,6 +128,7 @@
           APP_BUILD_BRANCH={{ build_branch | default('unknown') }}
           APP_BUILD_COMMIT_MESSAGE={{ build_commit_message | default('unknown') }}
           PM_SETTINGS_ENCRYPTION_KEY={{ pm_settings_encryption_key }}
+          TOTP_ENCRYPTION_KEY={{ totp_encryption_key }}
           SMTP_HOST={{ smtp_host }}
           SMTP_PORT={{ smtp_port }}
           SMTP_USER={{ smtp_user }}

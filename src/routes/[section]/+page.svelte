@@ -4,15 +4,22 @@
    * Only used when FEATURES.onepager === false.
    *
    * The section is validated server-side (+page.server.ts throws 404 for
-   * unknown ids). This page just renders the enabled section.
+   * unknown ids) and the typed SectionContent is loaded there too, so
+   * SectionRenderer receives the same typed data as on the homepage.
    */
   import { HOMEPAGE_SECTIONS } from '$lib/config/site'
   import SectionRenderer from '$lib/components/complex/SectionRenderer.svelte'
+  import type { SectionContent } from '$lib/components/sections/types'
 
-  let { data }: { data: { section: (typeof HOMEPAGE_SECTIONS)[number] } } = $props()
+  let { data }: {
+    data: {
+      section: (typeof HOMEPAGE_SECTIONS)[number]
+      sectionContent: SectionContent
+    }
+  } = $props()
 
   const section = $derived(data.section)
   // data is server-loaded — init is intentional
 </script>
 
-<SectionRenderer sectionId={section.id} />
+<SectionRenderer sectionId={section.id} content={data.sectionContent} />

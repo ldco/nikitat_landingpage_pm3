@@ -1,7 +1,12 @@
 import type { PageServerLoad } from './$types'
 import { useDatabase, schema } from '$lib/server/db'
+import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 
-export const load: PageServerLoad = () => {
+export const load: PageServerLoad = (event) => {
+  // audit I-9: explicit per-page RBAC guard, consistent with every other admin
+  // page. The parent layout only authenticates; this enforces authorization.
+  requireAdminPage(event, 'dashboard')
+
   const db = useDatabase()
 
   const userCount = db.select({ count: schema.users.id }).from(schema.users).all().length

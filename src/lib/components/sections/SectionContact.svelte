@@ -22,6 +22,7 @@
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
   import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
   import ContactInfo from '$lib/components/molecules/ContactInfo.svelte'
+  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
 
   const settings = useSettings()
 
@@ -100,12 +101,12 @@
   <SectionContent>
     <SectionHeading title={title} align="center" />
     {#if intro}
-      <p class="text-section-body text-pm-text-secondary text-center mb-[var(--space-6)] max-w-xl mx-auto">{intro}</p>
+      <p class="text-[var(--text-section-body)] text-pm-text-secondary text-center mb-[var(--space-6)] max-w-xl mx-auto">{intro}</p>
     {/if}
 
     <!-- PM2 .contact-grid: vertical stack, 640px centered column -->
     <div class="max-w-[var(--contact-form-max-w)] mx-auto flex flex-col gap-[var(--gap-xl)]">
-      <form onsubmit={handleSubmit} class="contact-card">
+      <form onsubmit={handleSubmit} class="flex flex-col gap-[var(--space-5)] p-[var(--space-8)] bg-pm-bg-elevated border border-pm-border rounded-[var(--radius-xl)] shadow-frosted">
         <div class="flex flex-col gap-[var(--space-2)]">
           <label for="c-name" class="text-sm font-medium text-pm-text">{nameLabel}</label>
           <input id="c-name" bind:value={name} type="text" autocomplete="name" placeholder={namePlaceholder} class="w-full px-[var(--space-3)] py-[var(--space-2)] bg-pm-bg border border-pm-border rounded-lg text-fluid-base text-pm-text placeholder-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring focus:ring-pm-brand/30 transition" aria-invalid={!!nameError} />
@@ -124,7 +125,7 @@
 
         <div class="flex flex-col gap-[var(--space-2)] mt-[var(--space-5)]">
           <label for="c-msg" class="text-sm font-medium text-pm-text">{messageLabel}</label>
-          <textarea id="c-msg" bind:value={message} rows={5} minlength={10} placeholder={messagePlaceholder} class="w-full px-[var(--space-3)] py-[var(--space-2)] bg-pm-bg border border-pm-border rounded-lg text-fluid-base text-pm-text placeholder-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring focus:ring-pm-brand/30 transition min-h-form-textarea resize-y" aria-invalid={!!messageError}></textarea>
+          <textarea id="c-msg" bind:value={message} rows={5} minlength={10} placeholder={messagePlaceholder} class="w-full px-[var(--space-3)] py-[var(--space-2)] bg-pm-bg border border-pm-border rounded-lg text-fluid-base text-pm-text placeholder-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring focus:ring-pm-brand/30 transition min-h-[var(--form-textarea-min-h)] resize-y" aria-invalid={!!messageError}></textarea>
           {#if messageError}
             <p class="text-xs text-pm-danger" transition:fly={{ y: -6, duration: 200 }}>{messageError}</p>
           {/if}
@@ -143,9 +144,16 @@
           <p class="text-xs text-pm-danger mt-[var(--space-1)]" transition:fly={{ y: -6, duration: 200 }}>{consentError}</p>
         {/if}
 
-        <button type="submit" disabled={sending} class="btn-style bg-pm-brand text-pm-white hover:bg-pm-brand-light px-[var(--space-6)] py-[var(--space-3)] text-fluid-lg rounded-lg w-full mt-[var(--space-5)]">
+        <CtaButton
+          type="submit"
+          variant="primary"
+          fullWidth
+          size="lg"
+          disabled={sending}
+          class="mt-[var(--space-5)]"
+        >
           {sending ? t('contact.sending', t('common.loading')) : sendLabel}
-        </button>
+        </CtaButton>
 
         <!-- Status messages with aria-live (PM2 parity) -->
         <div class="mt-[var(--space-5)]" aria-live="polite" aria-atomic="true">

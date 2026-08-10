@@ -2,7 +2,7 @@ import type { RequestEvent } from '@sveltejs/kit'
 import { error, json } from '@sveltejs/kit'
 import { z } from 'zod'
 import { getAllSettings, setSetting } from '$lib/server/services'
-import { requireAdmin } from '$lib/server/utils/admin-rbac'
+import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
 import { getClientIp } from '$lib/server/security/rateLimit'
 import { audit } from '$lib/server/audit'
@@ -10,13 +10,13 @@ import { audit } from '$lib/server/audit'
 const updateSettingsSchema = z.record(z.string(), z.string().nullable())
 
 export function GET(event: RequestEvent) {
-  requireAdmin(event)
+  requireAdminPage(event, 'settings')
   const all = getAllSettings()
   return json(jsonSuccess(all))
 }
 
 export async function PUT(event: RequestEvent) {
-  const actor = requireAdmin(event)
+  const actor = requireAdminPage(event, 'settings')
   const body = await event.request.json().catch(() => null)
   if (!body) throw error(400)
   const parsed = updateSettingsSchema.safeParse(body)
@@ -34,7 +34,7 @@ export async function PUT(event: RequestEvent) {
       createdKeys.push(key)
     }
   }
-  const ip = getClientIp(event.request)
+  const ip = getClientIp(event)
   const ua = event.request.headers.get('user-agent')
   audit.settingsUpdate(ip, ua, actor.id, { updatedKeys, createdKeys })
   return json(jsonSuccess({ updated: updatedKeys.length, created: createdKeys.length }))

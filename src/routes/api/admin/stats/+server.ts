@@ -1,11 +1,11 @@
 import type { RequestEvent } from '@sveltejs/kit'
 import { json } from '@sveltejs/kit'
-import { requireAdmin } from '$lib/server/utils/admin-rbac'
+import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
 import { useDatabase, schema } from '$lib/server/db'
 
 export function GET(event: RequestEvent) {
-  requireAdmin(event)
+  requireAdminPage(event, 'dashboard')
   const db = useDatabase()
   const stats = {
     users: db.select({ id: schema.users.id }).from(schema.users).all().length,

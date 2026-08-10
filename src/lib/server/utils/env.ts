@@ -41,6 +41,12 @@ export function useEnv(): EnvConfig {
     const result = envSchema.safeParse(process.env)
     if (!result.success) {
       console.error('Environment validation failed:', result.error.format())
+      // audit I-8: fail hard in production — a misconfigured NODE_ENV or
+      // missing critical var silently disables Secure cookies / HSTS in prod.
+      // Soft-fallbacks remain for development/test ergonomics.
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('Environment validation failed in production — refusing to start with a degraded configuration')
+      }
       _env = envSchema.parse({}) // Use defaults
     } else {
       _env = result.data

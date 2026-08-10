@@ -3,6 +3,7 @@ import type { LayoutServerLoad } from './$types'
 import { redirect } from '@sveltejs/kit'
 import { getAdminTranslations } from '$lib/server/db/translations-cache'
 import { getUnreadCount } from '$lib/server/services/contact'
+import { getAuthorizedAdminPages } from '$lib/server/utils/admin-rbac'
 import { LOCALES, DEFAULT_LOCALE } from '$lib/config/site'
 
 const LAYOUT_KEYS = [
@@ -22,7 +23,8 @@ const LAYOUT_KEYS = [
   'admin.create', 'admin.edit', 'admin.save', 'admin.back',
   'admin.deleteItem', 'admin.editItem', 'admin.price', 'admin.customPrice',
   'admin.portfolio', 'admin.portfolioName', 'admin.category', 'admin.tags',
-  'admin.managePortfolio', 'admin.noPortfolios', 'admin.order', 'admin.description'
+  'admin.managePortfolio', 'admin.noPortfolios', 'admin.order', 'admin.description',
+  'admin.security', 'admin.auditLog'
 ]
 
 const EXTRA_KEYS = ['validation.required', 'common.error']
@@ -69,5 +71,10 @@ export const load: LayoutServerLoad = (event) => {
     if (all[key]) t[key] = all[key]
   }
 
-  return { user: event.locals.user, t, unreadCount: getCachedUnreadCount() }
+  return {
+    user: event.locals.user,
+    menuPages: getAuthorizedAdminPages(event.locals.user),
+    t,
+    unreadCount: getCachedUnreadCount()
+  }
 }

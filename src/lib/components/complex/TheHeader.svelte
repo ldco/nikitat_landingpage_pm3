@@ -2,7 +2,7 @@
   /**
    * TheHeader — Main site header bar, fixed position.
    *
-   * Matches original PM2 header: fixed top, z-fixed, border-bottom,
+   * Matches original PM2 header: fixed top, z-[var(--z-fixed)], border-bottom,
    * inner content constrained to container-max, nav links with
    * header-column-gap spacing. Logo via Logo component.
    */
@@ -47,7 +47,7 @@
 <svelte:window onkeydown={(e) => { if (e.key === 'Escape') closeMobileNav() }} />
 
 {#if isVerticalNav}
-  <aside class="fixed top-0 start-0 z-fixed h-full w-16 border-e border-pm-border bg-pm-bg-elevated flex flex-col">
+  <aside class="fixed top-0 start-0 z-[var(--z-fixed)] h-full w-16 border-e border-pm-border bg-pm-bg-elevated flex flex-col">
     <div class="flex items-center justify-center h-16 border-b border-pm-border"><Logo shape="circle" /></div>
     <nav class="flex-1 flex flex-col items-center gap-1 py-3">
       <a href="/" class="flex items-center justify-center size-10 rounded-md transition-colors text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken" aria-label={t('nav.home')}>
@@ -66,7 +66,7 @@
       className
     ))}>
     <div class={clsx(
-      'flex items-center justify-between h-[var(--h-header)] px-[var(--container-padding)]',
+      'relative flex items-center justify-between h-[var(--h-header)] px-[var(--container-padding)]',
       !isFullWidth && 'max-w-[var(--max-w-container)] mx-auto'
     )}>
       <!-- Hamburger: mobile only -->
@@ -74,8 +74,8 @@
         <HamburgerIcon active={mobileOpen} type="squeeze" onclick={handleHamburger} ariaLabel={mobileOpen ? t('nav.closeMenu') : t('nav.openMenu')} />
       </div>
 
-      <!-- Logo -->
-      <a href="/" class="shrink-0">
+      <!-- Logo: centered on mobile/tablet, left on desktop -->
+      <a href="/" class="absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0 shrink-0">
         <Logo shape="horizontal" />
       </a>
 
@@ -86,8 +86,13 @@
 
       <!-- Actions: desktop only — contact icons + theme + lang -->
       <div class="hidden lg:flex items-center gap-[var(--gap-xs)]">
-        <HeaderContact mode="contacts" size={16} />
+        <HeaderContact size={16} />
         <HeaderActions langDirection="down" />
+      </div>
+
+      <!-- Mobile/tablet header: Contact buttons (right, opposite to hamburger) -->
+      <div class="lg:hidden ms-auto">
+        <HeaderContact size={16} />
       </div>
 
     </div>
@@ -107,8 +112,7 @@
     <div class="flex-1 overflow-y-auto p-[var(--space-4)]">
       <NavLinks vertical activeId={activeSection} onClick={closeMobileNav} />
     </div>
-    <div class="p-[var(--space-4)] border-t border-pm-border space-y-3">
-      <HeaderContact mode="all" size={20} />
+    <div class="p-[var(--space-4)] border-t border-pm-border">
       <HeaderActions langDirection="inline" />
     </div>
   </nav>

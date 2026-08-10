@@ -23,7 +23,6 @@
     basePath?: string
     class?: string
   } = $props()
-
   const themeStore = $derived(getTheme())
   // PM v2: invert theme — dark mode uses 'light' logo (white on dark bg)
   //         light mode uses 'dark' logo (dark on light bg)
@@ -45,6 +44,6 @@
 <div class={twMerge(clsx(base, className))}>
   <span>{text}</span>
   <a href={url} target="_blank" rel="noopener noreferrer" class="opacity-80 hover:opacity-100 transition-opacity">
-    <img src={logoSrc} alt="Fabrica 22" class="h-3.5 w-auto" />
+    <img src={logoSrc} alt={t('footer.madeByLogoAlt', 'Fabrica 22')} class="h-3.5 w-auto" />
   </a>
 </div>

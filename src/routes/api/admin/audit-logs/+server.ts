@@ -1,11 +1,11 @@
 import type { RequestEvent } from '@sveltejs/kit'
 import { error, json } from '@sveltejs/kit'
-import { requireMaster } from '$lib/server/utils/admin-rbac'
+import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { paginationSchema } from '$lib/server/utils/validation'
 import { useDatabase, schema } from '$lib/server/db'
 
 export function GET(event: RequestEvent) {
-  requireMaster(event)
+  requireAdminPage(event, 'audit')
   const db = useDatabase()
   const parsed = paginationSchema.safeParse(Object.fromEntries(event.url.searchParams))
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))

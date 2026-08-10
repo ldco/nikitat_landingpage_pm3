@@ -93,7 +93,7 @@ require_secret_tooling() {
 }
 
 derive_docker_image() {
-  printf '%s' "${PM_APP_CONTAINER_NAME:-puppetmaster2-app}"
+  printf '%s' "${PM_APP_CONTAINER_NAME:-pm-app}"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -168,8 +168,8 @@ DATABASE_URL="${DATABASE_URL:-./data/sqlite.db}"
 PM_DEPLOY_DATABASE_URL="${PM_DEPLOY_DATABASE_URL:-/app/data/sqlite.db}"
 PM_DOCKER_DEPLOY_MODE="${PM_DOCKER_DEPLOY_MODE:-ssh-registry}"
 PM_DOCKER_REGISTRY="${PM_DOCKER_REGISTRY:-}"
-PM_APP_CONTAINER_NAME="${PM_APP_CONTAINER_NAME:-puppetmaster2-app}"
-PM_APP_NETWORK="${PM_APP_NETWORK:-puppetmaster2}"
+PM_APP_CONTAINER_NAME="${PM_APP_CONTAINER_NAME:-pm-app}"
+PM_APP_NETWORK="${PM_APP_NETWORK:-pm-shared}"
 PM_DOCKER_STREAM_COMPRESSION="${PM_DOCKER_STREAM_COMPRESSION:-zstd}"
 TRAEFIK_IMAGE="${TRAEFIK_IMAGE:-$(default_traefik_image)}"
 
@@ -181,6 +181,13 @@ fi
 if is_missing_or_placeholder "${PM_SETTINGS_ENCRYPTION_KEY:-}" "$PM_SETTINGS_ENCRYPTION_KEY_PLACEHOLDER" "<literal-64-char-hex-secret>"; then
   PM_SETTINGS_ENCRYPTION_KEY="$(openssl rand -hex 32)"
   log "Generated PM_SETTINGS_ENCRYPTION_KEY."
+fi
+
+# TOTP_ENCRYPTION_KEY encrypts 2FA secrets at rest (required when
+# FEATURES.twoFactorAuth is enabled — the server fails fast without it).
+if is_missing_or_placeholder "${TOTP_ENCRYPTION_KEY:-}" "$TOTP_ENCRYPTION_KEY_PLACEHOLDER" "<literal-64-char-hex-secret>"; then
+  TOTP_ENCRYPTION_KEY="$(openssl rand -hex 32)"
+  log "Generated TOTP_ENCRYPTION_KEY."
 fi
 
 if is_missing_or_placeholder "${PM_DOCKER_IMAGE:-}" "registry.example.com/your-org/your-puppet-master-app"; then
@@ -211,6 +218,7 @@ upsert_env DEPLOY_USER_PASSWORD "$DEPLOY_USER_PASSWORD"
 upsert_env DATABASE_URL "$DATABASE_URL"
 upsert_env PM_DEPLOY_DATABASE_URL "$PM_DEPLOY_DATABASE_URL"
 upsert_env PM_SETTINGS_ENCRYPTION_KEY "$PM_SETTINGS_ENCRYPTION_KEY"
+upsert_env TOTP_ENCRYPTION_KEY "$TOTP_ENCRYPTION_KEY"
 upsert_env PM_DOCKER_DEPLOY_MODE "$PM_DOCKER_DEPLOY_MODE"
 upsert_env PM_DOCKER_REGISTRY "$PM_DOCKER_REGISTRY"
 upsert_env PM_DOCKER_IMAGE "$PM_DOCKER_IMAGE"

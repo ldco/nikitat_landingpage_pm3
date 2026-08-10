@@ -18,6 +18,29 @@
   import SectionRenderer from '$lib/components/complex/SectionRenderer.svelte'
   import type { HomepageSection } from '$lib/config/site'
   import type { SectionContent } from '../sections/types'
+  import { FEATURES } from '$lib/config/site'
+  import type { Component } from 'svelte'
+
+  // audit I-22 / E-7: project-specific parallax is injected here (complex
+  // layer) rather than imported inside the framework SectionHero component.
+  // The static import below only resolves when the project opts into
+  // FEATURES.heroParallax; SectionHero itself is a pure framework component.
+  let parallaxComponent: Component | undefined = $state(undefined)
+  let parallaxIntro: ((node: HTMLElement) => { destroy(): void } | null | undefined) | undefined = $state(undefined)
+
+  $effect(() => {
+    if (!FEATURES.heroParallax) {
+      parallaxComponent = undefined
+      parallaxIntro = undefined
+      return
+    }
+    import('../../../project/HeroParallaxScene.svelte').then((m) => {
+      parallaxComponent = m.default
+    })
+    import('../../../project/gsapIntro').then((m) => {
+      parallaxIntro = m.gsapIntro
+    })
+  })
 
   let {
     sections,
@@ -35,6 +58,8 @@
       subtitle={t('hero.subtitle', '')}
       primaryCta={t('hero.primaryCta', t('nav.contact'))}
       secondaryCta={t('hero.secondaryCta', t('nav.portfolio'))}
+      {parallaxComponent}
+      {parallaxIntro}
     />
   </div>
 

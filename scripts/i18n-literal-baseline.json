@@ -1,0 +1,104 @@
+{
+  "src/app.html": [
+    "\n      Skip to content\n    "
+  ],
+  "src/project/site-config.ts": [
+    "Русский",
+    "English",
+    "Français",
+    "עברית"
+  ],
+  "src/lib/components/atoms/MadeWith.svelte": [
+    "Puppet Master"
+  ],
+  "src/lib/components/complex/OnepagerThreeStoryScene.svelte": [
+    "Story"
+  ],
+  "src/lib/components/molecules/FooterCta.svelte": [
+    "#contact"
+  ],
+  "src/lib/components/molecules/LegalInfo.svelte": [
+    "Puppet Master"
+  ],
+  "src/routes/admin/+page.svelte": [
+    "Dashboard",
+    "Users",
+    "Portfolios",
+    "Blog Posts",
+    "Contacts"
+  ],
+  "src/routes/admin/audit/+page.svelte": [
+    "Audit Log",
+    "Action",
+    "User",
+    "Date"
+  ],
+  "src/routes/admin/blog/+page.svelte": [
+    "Blog",
+    "Published",
+    "Draft"
+  ],
+  "src/routes/admin/clients/+page.svelte": [
+    "Clients"
+  ],
+  "src/routes/admin/contacts/+page.svelte": [
+    "Contacts",
+    "Date",
+    "Actions"
+  ],
+  "src/routes/admin/faq/+page.svelte": [
+    "FAQ",
+    "Order",
+    "Published",
+    "Draft"
+  ],
+  "src/routes/admin/features/+page.svelte": [
+    "Features",
+    "Active",
+    "Draft",
+    "Order"
+  ],
+  "src/routes/admin/health/+page.svelte": [
+    "Health",
+    "Check",
+    "Status"
+  ],
+  "src/routes/admin/pricing/+page.svelte": [
+    "Featured"
+  ],
+  "src/routes/admin/roles/+page.svelte": [
+    "Roles",
+    "Slug",
+    "Level",
+    "Color",
+    "Actions"
+  ],
+  "src/routes/admin/settings/+page.svelte": [
+    "Settings",
+    "Key",
+    "Value",
+    "Group",
+    "Actions"
+  ],
+  "src/routes/admin/team/+page.svelte": [
+    "Team",
+    "Active",
+    "Hidden"
+  ],
+  "src/routes/admin/testimonials/+page.svelte": [
+    "Testimonials"
+  ],
+  "src/routes/admin/translations/+page.svelte": [
+    "Translations",
+    "Key",
+    "Locale",
+    "Value",
+    "Actions"
+  ],
+  "src/routes/admin/users/+page.svelte": [
+    "Failed to update role",
+    "Users",
+    "ID",
+    "Role"
+  ]
+}

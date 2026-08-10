@@ -43,7 +43,7 @@
 <Section id="faq" background="elevated" class={className}>
   <SectionContent width={isContained ? 'narrow' : 'full'}>
     <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{t('sections.faq')}</h2>
-    <div class="flex flex-col gap-sm-custom">
+    <div class="flex flex-col gap-[var(--gap-sm)]">
       {#each items as item}
         <div class="rounded-xl border border-pm-border bg-pm-bg overflow-hidden">
           <button class="flex items-center justify-between w-full px-6 py-4 text-left font-medium text-pm-text bg-transparent border-none cursor-pointer hover:bg-pm-bg-sunken transition-colors" onclick={() => toggle(item.id)} aria-expanded={openId === item.id}>

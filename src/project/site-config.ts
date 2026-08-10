@@ -66,9 +66,9 @@ export const CONTACT = { email: 'contact@fabrica22.pro' }
 // ── Footer "Made by" branding ───────────────────────────────────────────────
 
 export const FOOTER_MADE_BY = {
-  text: 'Made by',
+  text: 'footer.madeBy',
   url: 'https://fabrica22.pro',
-  logoAlt: 'Fabrica 22',
+  logoAlt: 'footer.madeByLogoAlt',
   basePath: '/madebylogos',
   available: [
     'horizontal_dark_en', 'horizontal_dark_ru', 'horizontal_light_en', 'horizontal_light_ru',
@@ -125,10 +125,12 @@ export const MODULES: Record<string, ModuleConfig> = {
     enabled: false,
     config: {
       showMap: false, mapProvider: 'yandex', showForm: true, showInfo: true,
+      // Labels are i18n keys (t('contact.form.name') etc.) — consumed via the
+      // content store, never rendered raw (validator check #10 scans this file).
       formFields: [
-        { name: 'name', type: 'text', label: 'Name', required: true },
-        { name: 'email', type: 'email', label: 'Email', required: true },
-        { name: 'message', type: 'textarea', label: 'Message', required: true }
+        { name: 'name', type: 'text', label: 'contact.form.name', required: true },
+        { name: 'email', type: 'email', label: 'contact.form.email', required: true },
+        { name: 'message', type: 'textarea', label: 'contact.form.message', required: true }
       ],
       notifications: 'email', showSocial: false
     }
@@ -153,7 +155,7 @@ export const FEATURES: Features = {
   bodyWidthMode: 'contained',
   pageTransitions: 'zoom',
   appVerticalNav: false,
-  twoFactorAuth: false,
+  twoFactorAuth: true,
   pwa: false,
   contactEmailConfirmation: false,
   contactTelegramNotify: false,

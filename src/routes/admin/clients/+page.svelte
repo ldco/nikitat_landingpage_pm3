@@ -9,7 +9,7 @@
   const t = $derived(getAdminT($page.data))
 </script>
 
-<div class="max-w-content mx-auto">
+<div class="max-w-[var(--max-w-content)] mx-auto">
   <div class="flex items-center justify-between gap-4 py-4 mb-6 border-b border-pm-border">
     <h1 class="text-2xl font-bold text-pm-text">{t['admin.clients'] || 'Clients'}</h1>
     <span class="text-sm text-pm-text-muted">{data.items.length} {t['admin.total'] || 'total'}</span>

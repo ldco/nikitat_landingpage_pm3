@@ -427,7 +427,7 @@ ensure_deploy_access() {
 
 load_env
 
-DATA_VOLUME="${PM_DEPLOY_DATA_VOLUME:-puppetmaster2_data}"
+DATA_VOLUME="${PM_DEPLOY_DATA_VOLUME:-pm_data}"
 BOOTSTRAP_AUTH_MODE="$(resolved_deploy_auth_mode)"
 FINAL_DEPLOY_AUTH_MODE="$BOOTSTRAP_AUTH_MODE"
 DEPLOY_AUTH_MODE="$BOOTSTRAP_AUTH_MODE"
@@ -444,6 +444,11 @@ validate_deploy_auth_mode || exit 1
 validate_deploy_user || exit 1
 validate_pm_settings_encryption_key || fail "PM_SETTINGS_ENCRYPTION_KEY or SETTINGS_ENCRYPTION_KEY must be a real 64+ character hexadecimal secret before setup."
 normalize_settings_encryption_key
+# TOTP_ENCRYPTION_KEY is required at runtime when FEATURES.twoFactorAuth is
+# enabled (src/hooks.server.ts fail-fast). deploy-secrets.sh generates it, so
+# requiring it here catches misconfiguration BEFORE the container crash-loops.
+validate_pm_totp_encryption_key || fail "TOTP_ENCRYPTION_KEY must be a real 64+ character hexadecimal secret before setup (required when FEATURES.twoFactorAuth is enabled)."
+normalize_totp_encryption_key
 validate_deploy_database_url || fail "PM_DEPLOY_DATABASE_URL must be inside /app/data for setup schema sync."
 
 require_command "ansible-playbook" "Arch: sudo pacman -S --needed ansible | Ubuntu/Debian: sudo apt-get update && sudo apt-get install -y ansible"

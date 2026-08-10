@@ -1,4 +1,6 @@
 import { jsonSuccess } from '$lib/server/utils/api'
+import { useDatabase } from '$lib/server/db'
+import { sql } from 'drizzle-orm'
 import type { RequestEvent } from '@sveltejs/kit'
 import { z } from 'zod'
 
@@ -15,11 +17,34 @@ export function GET(event: RequestEvent) {
       headers: { 'content-type': 'application/json' }
     })
   }
-  return new Response(JSON.stringify(jsonSuccess({
-    status: 'ok',
+
+  // audit I-14 / E-9: verify DB connectivity so the health check reflects
+  // more than "process is up". A DB failure returns 503 (unhealthy).
+  let db: 'ok' | 'error' = 'ok'
+  try {
+    useDatabase().run(sql`SELECT 1 as ok`)
+  } catch {
+    db = 'error'
+  }
+
+  const mem = process.memoryUsage()
+  const build = {
+    version: process.env.APP_BUILD_VERSION || undefined,
+    sha: process.env.APP_BUILD_SHA || undefined,
+    timestamp: process.env.APP_BUILD_TIMESTAMP || undefined
+  }
+
+  const body = jsonSuccess({
+    status: db === 'ok' ? 'ok' : 'degraded',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  })), {
+    uptime: process.uptime(),
+    db,
+    build,
+    memory: { heapUsed: mem.heapUsed, heapTotal: mem.heapTotal, rss: mem.rss }
+  })
+
+  return new Response(JSON.stringify(body), {
+    status: db === 'ok' ? 200 : 503,
     headers: { 'content-type': 'application/json' }
   })
 }

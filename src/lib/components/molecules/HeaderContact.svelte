@@ -2,10 +2,8 @@
   /**
    * HeaderContact — Quick contact buttons for header (PM v2 HeaderContact.vue parity)
    *
-   * Modes:
-   *   - 'all'      — contact icons + CTA
-   *   - 'contacts' — only contact icon buttons
-   *   - 'cta'      — only the CTA button
+   * Renders the circular contact icon buttons only (the CTA was served by the
+   * drawer footer in PM v2 and has been removed; FooterCta handles the CTA).
    *
    * Items come from settings DB (contact.headerQuickItems) with fallback to
    * HEADER_CONTACT config. Only items with non-empty values are rendered.
@@ -14,7 +12,6 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import { t } from '$lib/stores/content.svelte'
   import { HEADER_CONTACT } from '$lib/config/site'
   import { useSettings } from '$lib/stores/settings.svelte'
   import BrandTelegram from '@tabler/icons-svelte/icons/brand-telegram'
@@ -32,17 +29,12 @@
   import IconPhone from '@tabler/icons-svelte/icons/phone'
   import IconMapPin from '@tabler/icons-svelte/icons/map-pin'
   import IconMessageCircle from '@tabler/icons-svelte/icons/message-circle'
-  import IconArrowRight from '@tabler/icons-svelte/icons/arrow-right'
   import type { ComponentType } from 'svelte'
 
-  type Mode = 'all' | 'contacts' | 'cta'
-
   let {
-    mode = 'all',
     size = 20,
     class: className = ''
   }: {
-    mode?: Mode
     size?: number
     class?: string
   } = $props()
@@ -67,7 +59,6 @@
     'brand-youtube': BrandYoutube,
     'brand-linkedin': BrandLinkedin,
     'brand-github': BrandGithub,
-    'arrow-right': IconArrowRight,
 
     telegram: BrandTelegram,
     whatsapp: BrandWhatsapp,
@@ -83,19 +74,21 @@
     github: BrandGithub,
   }
 
-  const CTA_KEY = 'footer.ctaUrl'
-
   interface ContactItem {
     key: string
     url: string
     icon: ComponentType
-    isCta: boolean
   }
 
   function buildUrl(key: string, value: string): string {
-    if (key === CTA_KEY) return value
     if (key === 'contact.phone') return `tel:${value.replace(/\s/g, '')}`
     if (key === 'contact.email') return `mailto:${value}`
+    if (key === 'social.telegram' || key === 'telegram') {
+      const handle = value.trim().replace(/^@/, '')
+      if (!handle) return value
+      if (/^https?:\/\//i.test(handle)) return handle
+      return `https://t.me/${handle}`
+    }
     return value
   }
 
@@ -115,50 +108,31 @@
     for (const key of configItems) {
       const value = settings.get(key)
       if (!value) continue
-      const iconKey = key === CTA_KEY ? 'arrow-right' : key.split('.').pop() ?? ''
+      const iconKey = key.split('.').pop() ?? ''
       const icon = ICON_MAP[iconKey] ?? ICON_MAP[key] ?? IconMail
-      result.push({ key, url: buildUrl(key, value), icon, isCta: key === CTA_KEY })
+      result.push({ key, url: buildUrl(key, value), icon })
     }
 
     return result
   })
-
-  const visibleContacts = $derived(items.filter(i => !i.isCta && mode !== 'cta'))
-  const visibleCtas = $derived(items.filter(i => i.isCta && mode !== 'contacts'))
-
-  const ctaLabel = t('cta.primaryButton')
 
   function isExternal(url: string): boolean {
     return url.startsWith('http://') || url.startsWith('https://')
   }
 </script>
 
-{#if visibleContacts.length > 0 || visibleCtas.length > 0}
+{#if items.length > 0}
   <div class={twMerge(clsx('flex items-center gap-2', className))}>
-    {#each visibleContacts as item (item.key)}
+    {#each items as item (item.key)}
       {@const Icon = item.icon}
       <a
         href={item.url}
-        class="inline-flex items-center justify-center size-[2.125rem] rounded-full bg-pm-brand text-pm-white hover:bg-pm-brand-light active:bg-pm-brand-dark transition-colors duration-150"
+        class="inline-flex items-center justify-center size-[var(--contact-icon-size)] rounded-full bg-pm-brand text-pm-white hover:bg-pm-brand-light active:bg-pm-brand-dark transition-colors duration-150"
         aria-label={item.key}
         target={isExternal(item.url) ? '_blank' : undefined}
         rel={isExternal(item.url) ? 'noopener noreferrer' : undefined}
       >
         <Icon {size} />
-      </a>
-    {/each}
-
-    {#each visibleCtas as item (item.key)}
-      {@const Icon = item.icon}
-      <a
-        href={item.url}
-        class="inline-flex items-center gap-2 px-3 h-8 rounded-full bg-pm-brand text-pm-white text-sm font-medium hover:bg-pm-brand-light transition-colors"
-        aria-label={ctaLabel}
-        target={isExternal(item.url) ? '_blank' : undefined}
-        rel={isExternal(item.url) ? 'noopener noreferrer' : undefined}
-      >
-        <Icon size={18} />
-        <span>{ctaLabel}</span>
       </a>
     {/each}
   </div>

@@ -11,9 +11,9 @@ const Database = runtimeRequire('better-sqlite3')
 
 const port = Number(process.env.PM_OPS_AGENT_PORT || 3010)
 const token = process.env.PM_OPS_AGENT_TOKEN || ''
-const appContainer = process.env.PM_APP_CONTAINER_NAME || 'puppetmaster2-app'
-const traefikContainer = process.env.TRAEFIK_CONTAINER_NAME || 'puppetmaster2-traefik'
-const registryContainer = process.env.PM_REGISTRY_CONTAINER_NAME || 'puppetmaster2-registry'
+const appContainer = process.env.PM_APP_CONTAINER_NAME || 'pm-app'
+const traefikContainer = process.env.TRAEFIK_CONTAINER_NAME || 'pm-traefik'
+const registryContainer = process.env.PM_REGISTRY_CONTAINER_NAME || 'pm-registry'
 const dbPath = process.env.DATABASE_URL || '/app/data/sqlite.db'
 const backupDir = process.env.PM_BACKUP_DIR || '/app/backups'
 const uploadDir = process.env.UPLOAD_DIR || '/app/uploads'

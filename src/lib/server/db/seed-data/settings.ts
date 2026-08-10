@@ -4,6 +4,7 @@
  * INSERT OR IGNORE semantics: existing keys are preserved, new keys are added.
  */
 import { useDatabase, schema } from '$lib/server/db'
+import { eq } from 'drizzle-orm'
 
 export type SettingType = 'string' | 'number' | 'boolean' | 'json'
 
@@ -23,7 +24,7 @@ export const DEFAULT_SETTINGS: Array<{ key: string; value: string; type: Setting
   { key: 'contact.telegramBotToken', value: '', type: 'string', group: 'integrations' },
   { key: 'contact.telegramChatId', value: '', type: 'string', group: 'integrations' },
   { key: 'contact.headerQuickEnabled', value: 'true', type: 'boolean', group: 'contact' },
-  { key: 'contact.headerQuickItems', value: 'contact.email,social.telegram', type: 'string', group: 'contact' },
+  { key: 'contact.headerQuickItems', value: 'social.telegram,contact.email', type: 'string', group: 'contact' },
 
   // ── Social — Messaging ───────────────────────────────────────────────────
   { key: 'social.telegram', value: 'ldandco', type: 'string', group: 'contact' },
@@ -95,5 +96,17 @@ export function seedSettings() {
     db.insert(schema.settings).values(s).run()
     added++
   }
+
+  // Backfill default-value changes for rows that still hold a previous default.
+  // Only rows whose value matches the old default are updated, so admin
+  // customizations are never overwritten.
+  const headerQuickItems = existing.find(s => s.key === 'contact.headerQuickItems')
+  if (headerQuickItems?.value === 'contact.email,social.telegram') {
+    db.update(schema.settings)
+      .set({ value: 'social.telegram,contact.email' })
+      .where(eq(schema.settings.key, 'contact.headerQuickItems'))
+      .run()
+  }
+
   console.log(`   ✓ ${added} new settings added, ${preserved} existing preserved (total ${DEFAULT_SETTINGS.length})\n`)
 }
