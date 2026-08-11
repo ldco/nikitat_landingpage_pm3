@@ -27,6 +27,7 @@
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import AdminFormSection from '$lib/components/molecules/AdminFormSection.svelte'
   import MarkdownEditor from '$lib/components/molecules/MarkdownEditor.svelte'
+  import AdminTabs from '$lib/components/admin/AdminTabs.svelte'
   import type { PageData } from './$types'
   import type { AdminLegalRow } from './+page.server'
 
@@ -179,6 +180,17 @@
   const forceShowForm = $derived(legalSettingsForm['contact.forceShowFormWithoutLegalDocuments'] === 'true')
   const activeLocaleStatus = $derived(getLocaleStatus(activeLocale))
 
+  // Build tabs for AdminTabs component
+  const legalTabs = $derived(locales.map(loc => ({
+    id: loc,
+    label: localeNames[loc] || loc.toUpperCase()
+  })))
+
+  const legalTabIndicator = (id: string) => {
+    const status = getLocaleStatus(id)
+    return status.missingCount > 0
+  }
+
   function documentsStatusLabel(status: LegalLocaleStatus): string {
     return `${status.completeCount} of ${status.totalCount} documents complete`
   }
@@ -311,22 +323,8 @@
           {/each}
         </div>
 
-        <!-- Locale tabs with warning indicators -->
-        <div class="flex gap-4 border-b border-pm-border mb-6 overflow-x-auto">
-          {#each locales as loc (loc)}
-            {@const status = getLocaleStatus(loc)}
-            <button
-              type="button"
-              class={clsx('shrink-0 px-4 py-2 text-sm transition-colors border-b-2 -mb-px', activeLocale === loc ? 'text-pm-brand border-pm-brand font-medium' : 'text-pm-text-muted border-transparent hover:text-pm-text')}
-              onclick={() => activeLocale = loc}
-            >
-              {localeNames[loc] || loc.toUpperCase()}
-              {#if status.missingCount > 0}
-                <span class="inline-block ms-2 size-1.5 rounded-full bg-pm-warning align-middle" aria-hidden="true"></span>
-              {/if}
-            </button>
-          {/each}
-        </div>
+        <!-- Locale tabs (using AdminTabs component) -->
+        <AdminTabs tabs={legalTabs} active={activeLocale} indicator={legalTabIndicator} onchange={(id) => activeLocale = id} />
 
         <!-- Active locale status badges -->
         <div class="flex flex-wrap items-center gap-2 mb-5">

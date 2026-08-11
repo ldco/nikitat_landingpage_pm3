@@ -21,6 +21,8 @@
   import { getOverlaysState } from '$lib/stores/overlays.svelte'
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import EmptyState from '$lib/components/atoms/EmptyState.svelte'
+  import AdminTabs from '$lib/components/admin/AdminTabs.svelte'
   import AdminModal from '$lib/components/molecules/AdminModal.svelte'
   import IconPlus from '@tabler/icons-svelte/icons/plus'
   import IconTrash from '@tabler/icons-svelte/icons/trash'
@@ -36,6 +38,15 @@
   const byLocale = $derived((data.byLocale ?? {}) as Record<string, AdminTranslationRow[]>)
   const locales = $derived((data.locales ?? []) as string[])
   const localeNames = $derived((data.localeNames ?? {}) as Record<string, string>)
+
+  // Build tabs for AdminTabs component
+  const localeTabs = $derived(locales.map(loc => ({
+    id: loc,
+    label: localeNames[loc] || loc.toUpperCase(),
+    count: activeSection === 'system'
+      ? (byLocale[loc] ?? []).filter(r => r.type === 'system').length
+      : (byLocale[loc] ?? []).filter(r => r.type === 'content' && !hiddenContentNamespaces.has(r.key.split('.')[0] ?? 'root')).length
+  })))
 
   // PM2: system section only editable by master/admin; hidden namespace for legal docs
   const canEditSystem = $derived(data.user?.role === 'master' || data.user?.role === 'admin')
@@ -259,25 +270,8 @@
     </div>
   {/if}
 
-  <!-- Locale tabs with per-locale counts (PM2 .tabs--underline + .tab-badge) -->
-  <div class="flex gap-4 border-b border-pm-border mb-6 overflow-x-auto">
-    {#each locales as loc (loc)}
-      <button
-        type="button"
-        class={clsx('shrink-0 px-4 py-2 text-sm transition-colors border-b-2 -mb-px', activeLocale === loc
-          ? 'text-pm-brand border-pm-brand font-medium'
-          : 'text-pm-text-muted border-transparent hover:text-pm-text')}
-        onclick={() => activeLocale = loc}
-      >
-        {localeNames[loc] || loc.toUpperCase()}
-        <span class="ms-2 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-pm-bg-sunken text-xs text-pm-text-muted">
-          {activeSection === 'system'
-            ? (byLocale[loc] ?? []).filter(r => r.type === 'system').length
-            : (byLocale[loc] ?? []).filter(r => r.type === 'content' && !hiddenContentNamespaces.has(r.key.split('.')[0] ?? 'root')).length}
-        </span>
-      </button>
-    {/each}
-  </div>
+  <!-- Locale tabs (using AdminTabs component) -->
+  <AdminTabs tabs={localeTabs} active={activeLocale} onchange={(id) => activeLocale = id} />
 
   <!-- Search bar (PM2 .search-bar + .search-icon) -->
   <div class="relative mb-6">
@@ -292,7 +286,11 @@
 
   <!-- Empty state -->
   {#if filteredTranslations.length === 0}
-    <p class="py-16 text-center text-pm-text-muted">{searchQuery.trim() ? t('admin.noMatchesFound') : t('admin.noTranslations')}</p>
+    <EmptyState
+      type={searchQuery.trim() ? 'search' : 'empty-box'}
+      size="compact"
+      title={searchQuery.trim() ? t('admin.noMatchesFound') : t('admin.noTranslations')}
+    />
   {:else}
     <!-- Namespace-grouped accordion cards (PM2 .translation-group-list) -->
     <div class="flex flex-col gap-4">
