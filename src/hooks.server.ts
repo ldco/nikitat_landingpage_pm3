@@ -9,7 +9,7 @@
  */
 import { sequence } from '@sveltejs/kit/hooks'
 import type { Handle } from '@sveltejs/kit'
-import { LOCALE_STRINGS } from '$lib/config/site'
+import { LOCALE_STRINGS, DEFAULT_LOCALE, LOCALES } from '$lib/config/site'
 import { i18n } from '$lib/i18n'
 import { getValidSession } from '$lib/server/auth/session'
 import { useDatabase, schema } from '$lib/server/db'
@@ -263,12 +263,49 @@ const localeNormalizeHandle: Handle = async ({ event, resolve }) => {
   return resolve(event)
 }
 
+// ── Admin Locale Handle ─────────────────────────────────────────────────────
+// /admin/* is excluded from Paraglide's URL-prefix locale detection
+// (src/lib/i18n.ts), so those paths always resolve to the project default
+// locale regardless of the language the user is browsing the site in. This
+// handle restores the user's chosen site language (pm-locale preference,
+// written by LangSwitcher on switch) for admin requests by temporarily
+// reassigning event.url to a locale-prefixed URL before Paraglide runs:
+// Paraglide detects the preferred language (SSR languageTag, DB translations,
+// <html lang>) while SvelteKit's routing/render keep the canonical /admin/*
+// URL (routing uses its own URL snapshot, and the original URL is restored
+// in the resolve wrapper before render).
+const PREFERRED_LOCALE_COOKIE = 'pm-locale'
+const i18nHandle = i18n.handle()
+
+const adminLocaleHandle: Handle = ({ event, resolve }) => {
+  const pathname = event.url.pathname
+  if (pathname !== '/admin' && !pathname.startsWith('/admin/')) return i18nHandle({ event, resolve })
+
+  const preferred = event.cookies.get(PREFERRED_LOCALE_COOKIE)
+  if (!preferred || preferred === DEFAULT_LOCALE || !(LOCALES as readonly string[]).includes(preferred)) {
+    return i18nHandle({ event, resolve })
+  }
+
+  const originalUrl = event.url
+  const localizedUrl = new URL(originalUrl)
+  localizedUrl.pathname = `/${preferred}${pathname}`
+  event.url = localizedUrl
+
+  return i18nHandle({
+    event,
+    resolve: (e, opts) => {
+      e.url = originalUrl
+      return resolve(e, opts)
+    }
+  })
+}
+
 // ── Export sequence ─────────────────────────────────────────────────────────
 // Order: Sentry (if enabled, first) → i18n (lang/dir/html) → logger → session
 // → rate-limit → CSRF → security headers
 const baseHandle = sequence(
   localeNormalizeHandle,
-  i18n.handle(),
+  adminLocaleHandle,
   logHandle,
   sessionHandle,
   rateLimitHandle,

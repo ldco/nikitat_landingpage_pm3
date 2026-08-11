@@ -53,20 +53,24 @@ describe('CSRF + cookie contract', () => {
 
 describe('Login → 2FA → session path', () => {
   it('completes the full two-factor authentication flow over HTTP', async () => {
-    // 1. Login with password only → session (2FA not yet enabled).
+    // 1. Login with password only → session (2FA not yet enabled). Sends
+    //    rememberMe: true to verify the long-lived cookie lifetime.
     const login1 = await client.postJson('/api/auth/login', {
       email: SEED_USER.email,
-      password: SEED_USER.password
+      password: SEED_USER.password,
+      rememberMe: true
     })
     expect(login1.status).toBe(200)
     const login1Body = (await login1.json()) as { data?: { requires2fa?: boolean; user?: { role?: string } } }
     expect(login1Body.data?.requires2fa).toBeUndefined()
     expect(login1Body.data?.user?.role).toBe(SEED_USER.role)
-    // Session cookie is HttpOnly + same-site strict.
+    // Session cookie is HttpOnly + same-site strict, with the long-lived
+    // "remember me" lifetime (30 days).
     expect(client.getCookie('pm-session')).toBeDefined()
     const sessionCookie = login1.headers.getSetCookie?.().find((c) => c.startsWith('pm-session='))
     expect(sessionCookie).toContain('HttpOnly')
     expect(sessionCookie).toContain('SameSite=Strict')
+    expect(sessionCookie).toContain('Max-Age=2592000') // 30 days (remember me)
 
     // 2. Start 2FA setup → pending secret + backup codes.
     const setupRes = await client.postJson('/api/user/2fa/setup', {})
@@ -98,7 +102,9 @@ describe('Login → 2FA → session path', () => {
     expect(login2Body.data?.requires2fa).toBe(true)
     expect(client.getCookie('pm-2fa-pending')).toBeDefined()
 
-    // 6. Verify with a backup code → session issued.
+    // 6. Verify with a backup code → session issued. No remember-me was sent
+    //    on login2, so the session created here keeps the default 24h lifetime
+    //    (the non-remembered branch of the 2FA session-creation path).
     const verifyRes = await client.postJson('/api/user/2fa/verify', { code: backupCode })
     expect(verifyRes.status).toBe(200)
     const verifyBody = (await verifyRes.json()) as { data?: { user?: { role?: string }; backupCodesRemaining?: number } }
@@ -106,6 +112,10 @@ describe('Login → 2FA → session path', () => {
     expect(verifyBody.data?.backupCodesRemaining).toBe(9)
     expect(client.getCookie('pm-2fa-pending')).toBeUndefined()
     expect(client.getCookie('pm-session')).toBeDefined()
+    const verifyCookie = verifyRes.headers.getSetCookie?.().find((c) => c.startsWith('pm-session='))
+    expect(verifyCookie).toContain('HttpOnly')
+    expect(verifyCookie).toContain('SameSite=Strict')
+    expect(verifyCookie).toContain('Max-Age=86400') // 24 hours (no remember-me on the 2FA login)
 
     // 7. Session endpoint reflects the authenticated master user.
     const sessionRes = await client.get('/api/auth/session')
@@ -139,6 +149,9 @@ describe('First-login hardening (must_change_password)', () => {
     const loginBody = (await login.json()) as { data?: { mustChangePassword?: boolean } }
     expect(loginBody.data?.mustChangePassword).toBe(true)
     expect(freshClient.getCookie('pm-session')).toBeDefined()
+    // No remember-me sent → the session cookie keeps the default 24h lifetime.
+    const loginCookie = login.headers.getSetCookie?.().find((c) => c.startsWith('pm-session='))
+    expect(loginCookie).toContain('Max-Age=86400') // 24 hours
 
     // 2. Admin pages redirect to the forced change page; admin APIs are blocked.
     const adminPage = await freshClient.get('/admin')

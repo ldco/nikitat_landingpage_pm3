@@ -10422,7 +10422,7 @@
   {
     "locale": "he",
     "key": "apiErrors.auth.accountLocked",
-    "value": "Account temporarily locked because of too many failed attempts."
+    "value": "החשבון נחסם זמנית עקב ניסיונות התחברות כושלים מרובים."
   },
   {
     "locale": "he",
@@ -10432,17 +10432,17 @@
   {
     "locale": "he",
     "key": "apiErrors.auth.authenticationRequired",
-    "value": "Authentication required."
+    "value": "נדרשת התחברות."
   },
   {
     "locale": "he",
     "key": "apiErrors.auth.changePasswordInvalidInput",
-    "value": "Invalid password change request."
+    "value": "בקשת שינוי סיסמה לא תקינה."
   },
   {
     "locale": "he",
     "key": "apiErrors.auth.currentPasswordIncorrect",
-    "value": "Current password is incorrect."
+    "value": "הסיסמה הנוכחית שגויה."
   },
   {
     "locale": "he",
@@ -10452,12 +10452,12 @@
   {
     "locale": "he",
     "key": "apiErrors.auth.invalidCredentials",
-    "value": "Invalid email or password."
+    "value": "דוא\"ל או סיסמה שגויים."
   },
   {
     "locale": "he",
     "key": "apiErrors.auth.invalidLoginFormat",
-    "value": "Invalid email or password format."
+    "value": "פורמט דוא\"ל או סיסמה לא תקין."
   },
   {
     "locale": "he",
@@ -10467,77 +10467,77 @@
   {
     "locale": "he",
     "key": "apiErrors.auth.passwordPolicyFailed",
-    "value": "Password does not meet policy requirements."
+    "value": "הסיסמה אינה עומדת בדרישות המדיניות."
   },
   {
     "locale": "he",
     "key": "apiErrors.auth.tooManyLoginAttempts",
-    "value": "Too many login attempts. Please try again later."
+    "value": "יותר מדי ניסיונות התחברות. נסה שוב מאוחר יותר."
   },
   {
     "locale": "he",
     "key": "apiErrors.auth.twoFactorAlreadyEnabled",
-    "value": "Two-factor authentication is already enabled."
+    "value": "אימות דו-שלבי כבר מופעל."
   },
   {
     "locale": "he",
     "key": "apiErrors.auth.twoFactorInvalidCodeFormat",
-    "value": "Invalid verification code format."
+    "value": "פורמט קוד אימות לא תקין."
   },
   {
     "locale": "he",
     "key": "apiErrors.auth.twoFactorInvalidVerificationCode",
-    "value": "Invalid verification code. Please try again."
+    "value": "קוד אימות שגוי. נסה שוב."
   },
   {
     "locale": "he",
     "key": "apiErrors.auth.twoFactorNoLongerEnabled",
-    "value": "Two-factor authentication is no longer enabled. Please log in again."
+    "value": "אימות דו-שלבי כבר לא מופעל. התחבר שוב."
   },
   {
     "locale": "he",
     "key": "apiErrors.auth.twoFactorNoPendingSetup",
-    "value": "No pending two-factor setup was found. Please start setup again."
+    "value": "לא נמצא תהליך הגדרה תלוי ועומד. התחל הגדרה מחדש."
   },
   {
     "locale": "he",
     "key": "apiErrors.auth.twoFactorNoPendingVerification",
-    "value": "No pending two-factor verification. Please log in again."
+    "value": "לא נמצא אימות תלוי ועומד. התחבר שוב."
   },
   {
     "locale": "he",
     "key": "apiErrors.auth.twoFactorNotEnabled",
-    "value": "Two-factor authentication is not enabled for this project."
+    "value": "אימות דו-שלבי אינו מופעל עבור פרויקט זה."
   },
   {
     "locale": "he",
     "key": "apiErrors.auth.twoFactorRequired",
-    "value": "Two-factor authentication required."
+    "value": "נדרש אימות דו-שלבי."
   },
   {
     "locale": "he",
     "key": "apiErrors.auth.twoFactorSetupExpired",
-    "value": "Two-factor setup expired. Please start setup again."
+    "value": "הגדרת האימות הדו-שלבי פגה. התחל הגדרה מחדש."
   },
   {
     "locale": "he",
     "key": "apiErrors.auth.twoFactorSetupRateLimited",
-    "value": "Too many setup attempts. Please try again later."
+    "value": "יותר מדי ניסיונות הגדרה. נסה שוב מאוחר יותר."
   },
   {
     "locale": "he",
     "key": "apiErrors.auth.twoFactorTooManyFailedAttempts",
-    "value": "Too many failed attempts. Please log in again."
+    "value": "יותר מדי ניסיונות כושלים. התחבר שוב."
   },
   {
     "locale": "he",
     "key": "apiErrors.auth.twoFactorVerificationExpired",
-    "value": "Verification session expired. Please log in again."
+    "value": "סשן האימות פג. התחבר שוב."
   },
   {
     "locale": "he",
     "key": "apiErrors.auth.twoFactorVerifyRateLimited",
-    "value": "Too many verification attempts. Please try again later."
+    "value": "יותר מדי ניסיונות אימות. נסה שוב מאוחר יותר."
   },
   {
     "locale": "he",
@@ -10602,12 +10602,12 @@
   {
     "locale": "he",
     "key": "auth.adminLogin",
-    "value": "auth_adminLogin"
+    "value": "כניסה ללוח הניהול"
   },
   {
     "locale": "he",
     "key": "auth.backToWebsite",
-    "value": "auth_backToWebsite"
+    "value": "חזרה לאתר"
   },
   {
     "locale": "he",
@@ -10652,7 +10652,7 @@
   {
     "locale": "he",
     "key": "auth.loginFailed",
-    "value": "Login failed"
+    "value": "ההתחברות נכשלה"
   },
   {
     "locale": "he",
@@ -10692,12 +10692,12 @@
   {
     "locale": "he",
     "key": "auth.profile",
-    "value": "auth_profile"
+    "value": "פרופיל"
   },
   {
     "locale": "he",
     "key": "auth.register",
-    "value": "auth_register"
+    "value": "הרשמה"
   },
   {
     "locale": "he",
@@ -10712,12 +10712,12 @@
   {
     "locale": "he",
     "key": "auth.signIn",
-    "value": "auth_signIn"
+    "value": "התחברות"
   },
   {
     "locale": "he",
     "key": "auth.signOut",
-    "value": "auth_signOut"
+    "value": "התנתקות"
   },
   {
     "locale": "he",
@@ -10857,7 +10857,7 @@
   {
     "locale": "he",
     "key": "auth.twoFactor.verificationFailed",
-    "value": "Two-factor verification failed"
+    "value": "אימות דו-שלבי נכשל"
   },
   {
     "locale": "he",
@@ -16648,5 +16648,45 @@
     "locale": "ru",
     "key": "validation.required",
     "value": "Обязательное поле"
+  },
+  {
+    "locale": "ru",
+    "key": "auth.emailRequired",
+    "value": "Введите email"
+  },
+  {
+    "locale": "ru",
+    "key": "auth.passwordRequired",
+    "value": "Введите пароль"
+  },
+  {
+    "locale": "en",
+    "key": "auth.emailRequired",
+    "value": "Enter your email"
+  },
+  {
+    "locale": "en",
+    "key": "auth.passwordRequired",
+    "value": "Enter your password"
+  },
+  {
+    "locale": "fr",
+    "key": "auth.emailRequired",
+    "value": "Saisissez votre email"
+  },
+  {
+    "locale": "fr",
+    "key": "auth.passwordRequired",
+    "value": "Saisissez votre mot de passe"
+  },
+  {
+    "locale": "he",
+    "key": "auth.emailRequired",
+    "value": "הזן את הדוא\"ל שלך"
+  },
+  {
+    "locale": "he",
+    "key": "auth.passwordRequired",
+    "value": "הזן את הסיסמה שלך"
   }
 ]

@@ -14,6 +14,19 @@
 @custom-variant header (@media (min-width: 1120px));
 @custom-variant xs (@media (min-width: 480px));
 
+/* ── Transitions (Tailwind v4.3 fix) ──────────────────────────────────────── */
+/* Tailwind v4.3's default `transition-colors` (transitionProperty.colors)
+   includes `outline-color`. The unfocused outline-color defaults to
+   currentColor (cream/black text), so every focus/blur animates the focus
+   outline from white/black to the ring color and back — an ugly flash on
+   every input/button. Exclude outline-color so :focus-visible rings snap
+   instantly to the theme ring color. */
+@theme {
+  --transition-property-colors: color, background-color, border-color,
+    text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via,
+    --tw-gradient-to;
+}
+
 /* ── Design Tokens (PM v2 → Tailwind) ─────────────────────────────────────────────── */
 @theme {
   /* --- Brand Primitives (from colors/primitives.css) --- */

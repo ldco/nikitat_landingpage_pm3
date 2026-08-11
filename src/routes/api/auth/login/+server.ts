@@ -3,7 +3,7 @@ import type { RequestEvent } from '@sveltejs/kit'
 import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
 import { verifyPassword } from '$lib/server/auth/password'
-import { createSession } from '$lib/server/auth/session'
+import { createSession, sessionCookieMaxAge, REMEMBER_ME_TTL_MS } from '$lib/server/auth/session'
 import { checkAccountLocked, recordFailedAttempt, resetFailedAttempts } from '$lib/server/auth/lockout'
 import { createPendingVerification } from '$lib/server/auth/pending-2fa'
 import { getEffectiveRole } from '$lib/server/services/users'
@@ -14,7 +14,8 @@ import { FEATURES } from '$lib/config/site'
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(1)
+  password: z.string().min(1),
+  rememberMe: z.boolean().optional()
 })
 
 export async function POST(event: RequestEvent) {
@@ -24,7 +25,7 @@ export async function POST(event: RequestEvent) {
   const parsed = loginSchema.safeParse(body)
   if (!parsed.success) error(400)
 
-  const { email, password } = parsed.data
+  const { email, password, rememberMe = false } = parsed.data
   const ip = getClientIp(event)
   const ua = event.request.headers.get('user-agent')
 
@@ -61,9 +62,11 @@ export async function POST(event: RequestEvent) {
   resetFailedAttempts(user.id)
 
   // Two-factor challenge: password is verified but a session is only created
-  // after the 2FA code is validated (PM v2 login flow parity).
+  // after the 2FA code is validated (PM v2 login flow parity). The remember-me
+  // choice rides along in the pending token so the session created at verify
+  // (see /api/user/2fa/verify) uses the long-lived TTL.
   if (FEATURES.twoFactorAuth && user.twoFactorEnabled) {
-    const token = createPendingVerification(user.id, user.email)
+    const token = createPendingVerification(user.id, user.email, rememberMe)
     event.cookies.set('pm-2fa-pending', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -82,7 +85,8 @@ export async function POST(event: RequestEvent) {
     })
   }
 
-  const session = createSession(user.id)
+  const sessionTtl = rememberMe ? REMEMBER_ME_TTL_MS : undefined
+  const session = createSession(user.id, sessionTtl)
   audit.login(ip, ua, user.id)
 
   event.cookies.set('pm-session', session.id, {
@@ -90,7 +94,7 @@ export async function POST(event: RequestEvent) {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     path: '/',
-    maxAge: 24 * 60 * 60 // 24 hours
+    maxAge: sessionCookieMaxAge(rememberMe)
   })
 
   return json({

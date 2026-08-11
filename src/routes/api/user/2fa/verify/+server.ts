@@ -5,7 +5,7 @@ import { FEATURES } from '$lib/config/site'
 import { useDatabase, schema } from '$lib/server/db'
 import { eq } from 'drizzle-orm'
 import { verify2faCode } from '$lib/server/auth/totp'
-import { createSession } from '$lib/server/auth/session'
+import { createSession, sessionCookieMaxAge, REMEMBER_ME_TTL_MS } from '$lib/server/auth/session'
 import {
   getPendingVerification,
   clearPendingVerification,
@@ -114,7 +114,9 @@ export async function POST(event: RequestEvent) {
     db.delete(schema.sessions).where(eq(schema.sessions.id, oldSessionId)).run()
   }
 
-  const session = createSession(pending.userId)
+  // "Remember me" (chosen at the login form, carried in the pending token)
+  // extends the session lifetime to 30 days; otherwise the default 24 hours.
+  const session = createSession(pending.userId, pending.rememberMe ? REMEMBER_ME_TTL_MS : undefined)
   clearPendingVerification(pendingToken)
   event.cookies.delete(PENDING_COOKIE, { path: '/' })
 
@@ -123,7 +125,7 @@ export async function POST(event: RequestEvent) {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     path: '/',
-    maxAge: 24 * 60 * 60 // 24 hours
+    maxAge: sessionCookieMaxAge(pending.rememberMe)
   })
 
   audit.twoFactorVerified(ip, ua, pending.userId, result.method ?? 'totp')

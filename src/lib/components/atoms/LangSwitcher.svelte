@@ -40,6 +40,14 @@
   function selectLocale(code: string) {
     const canonical = i18n.route($page.url.pathname)
     const resolved = i18n.resolveRoute(canonical, code as AvailableLanguageTag)
+    // Persist the chosen language in a preference cookie so locale-less
+    // surfaces (the /admin/* area, which is excluded from URL-prefix locale
+    // detection) render in the same language as the site.
+    try {
+      document.cookie = `pm-locale=${code}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`
+    } catch (e) {
+      console.debug('[locale] preference cookie blocked:', e instanceof Error ? e.message : e)
+    }
     window.location.href = resolved
   }
 

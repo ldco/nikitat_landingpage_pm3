@@ -61,7 +61,7 @@ import { t } from '$lib/stores/content.svelte'
     'focus:outline-none focus:ring-2 focus:ring-pm-focus-ring'
 </script>
 
-<div class="min-h-screen flex items-center justify-center bg-pm-bg px-4 py-10">
+<div class="min-h-dvh flex items-center justify-center bg-pm-bg px-4 py-10">
   <div class="w-full max-w-md">
     <div class="bg-pm-bg-elevated border border-pm-border rounded-xl p-8 shadow-lg">
       <div class="flex justify-center mb-6">

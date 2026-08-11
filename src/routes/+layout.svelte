@@ -72,7 +72,7 @@ if (browser) {
   <ProjectAmbient />
   <TheHeader />
 {/if}
-<main id="main-content" class={clsx('min-h-screen', !$page.url.pathname.startsWith('/admin') && (isVerticalNav ? 'ms-16' : ''))} use:scrollSpy>
+<main id="main-content" class={clsx(!$page.url.pathname.startsWith('/admin') && 'min-h-screen', !$page.url.pathname.startsWith('/admin') && (isVerticalNav ? 'ms-16' : ''))} use:scrollSpy>
   {#key $page.url.pathname}
     {#if transitionType === 'fade'}
       <div transition:fade={{ duration: 200 }}>{@render children?.()}</div>

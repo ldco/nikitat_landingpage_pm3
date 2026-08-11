@@ -87,6 +87,11 @@
   function toggleMobileUserMenu() { mobileUserMenuOpen = !mobileUserMenuOpen }
 
   $effect(() => {
+    // Only the authenticated admin shell polls the unread count — the login
+    // and change-password pages (data.user is null there) must not fire an
+    // unauthorized /api/admin/contacts/unread request.
+    const isAuthPage = $page.url.pathname.startsWith('/admin/login') || $page.url.pathname.startsWith('/admin/change-password')
+    if (!user || isAuthPage) return
     async function fetchCount() {
       try {
         const res = await fetch('/api/admin/contacts/unread')
@@ -100,10 +105,8 @@
   })
 </script>
 {#if $page.url.pathname.startsWith('/admin/login') || $page.url.pathname.startsWith('/admin/change-password')}
-  <main class="min-h-screen bg-pm-bg">
-    <div class="p-4 sm:p-6 mx-auto max-w-[var(--max-w-content)]">
-      {@render children?.()}
-    </div>
+  <main class="bg-pm-bg">
+    {@render children?.()}
   </main>
 {:else}
 

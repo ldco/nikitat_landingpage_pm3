@@ -9,6 +9,7 @@ import { useDatabase, schema } from '$lib/server/db'
 import { generateSessionId } from './password'
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
+export const REMEMBER_ME_TTL_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
 
 export interface SessionData {
   id: string
@@ -16,10 +17,10 @@ export interface SessionData {
   expiresAt: Date
 }
 
-export function createSession(userId: number): SessionData {
+export function createSession(userId: number, ttlMs: number = SESSION_TTL_MS): SessionData {
   const db = useDatabase()
   const id = generateSessionId()
-  const expiresAt = new Date(Date.now() + SESSION_TTL_MS)
+  const expiresAt = new Date(Date.now() + ttlMs)
   db.insert(schema.sessions).values({ id, userId, expiresAt }).run()
   return { id, userId, expiresAt }
 }
@@ -59,16 +60,25 @@ export function cleanupExpiredSessions(): number {
   return result.changes
 }
 
-export function extendSession(sessionId: string): SessionData | null {
+export function extendSession(sessionId: string, ttlMs: number = SESSION_TTL_MS): SessionData | null {
   const session = getValidSession(sessionId)
   if (!session) return null
 
   const db = useDatabase()
-  const newExpiresAt = new Date(Date.now() + SESSION_TTL_MS)
+  const newExpiresAt = new Date(Date.now() + ttlMs)
   db.update(schema.sessions)
     .set({ expiresAt: newExpiresAt })
     .where(eq(schema.sessions.id, sessionId))
     .run()
 
   return { ...session, expiresAt: newExpiresAt }
+}
+
+/**
+ * Cookie lifetime (seconds) for a session. "Remember me" logins keep the
+ * browser cookie alive for 30 days; otherwise the session expires in 24h.
+ * Mirrors the server-side session TTL so the cookie and the DB row agree.
+ */
+export function sessionCookieMaxAge(rememberMe: boolean): number {
+  return rememberMe ? REMEMBER_ME_TTL_MS / 1000 : SESSION_TTL_MS / 1000
 }

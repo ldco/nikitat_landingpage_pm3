@@ -29,6 +29,9 @@ export interface PendingVerification {
   token: string
   userId: number
   email: string
+  /** True when the login requested "remember me" — the session created after
+   * 2FA verification must use the long-lived TTL (30 days vs 24 hours). */
+  rememberMe: boolean
   expiresAt: number
   attempts: number
 }
@@ -75,12 +78,13 @@ export function clearPendingSetup(userId: number): void {
 
 // ── Pending verification (login) ───────────────────────────────────────────
 
-export function createPendingVerification(userId: number, email: string): string {
+export function createPendingVerification(userId: number, email: string, rememberMe = false): string {
   const token = randomBytes(32).toString('hex')
   pendingVerifications.set(token, {
     token,
     userId,
     email,
+    rememberMe,
     expiresAt: Date.now() + VERIFY_TTL_MS,
     attempts: 0
   })
