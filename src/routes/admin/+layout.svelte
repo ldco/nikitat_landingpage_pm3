@@ -20,7 +20,7 @@
     IconHome, IconUsers, IconSettings, IconLanguage, IconPhoto,
     IconArticle, IconUsersGroup, IconQuote, IconHelpCircle, IconBuilding,
     IconCreditCard, IconSparkles, IconMail, IconClipboardList, IconActivity,
-    IconShieldCheck, IconQuestionMark, IconX, IconMenu2, IconScale
+    IconShieldCheck, IconQuestionMark, IconScale
   } from '@tabler/icons-svelte'
   import { FEATURES } from '$lib/config/site'
   import { t as contentT } from '$lib/stores/content.svelte'
@@ -79,7 +79,6 @@
     return t['admin.dashboard'] ?? 'admin.dashboard'
   })
 
-  let mobileOpen = $state(false)
   let unreadCount = $derived(Number($page.data.unreadCount) || 0)
 
   $effect(() => {
@@ -163,41 +162,46 @@
     </header>
   {/if}
 
+  <!-- Tablet Icon Rail (PM2: admin-sidebar.css — 80px icon-only, 768-1023px) -->
+  {#if useVerticalNav}
+    <aside class="hidden md:flex lg:hidden fixed top-0 start-0 z-[var(--z-sticky)] flex-col w-20 h-full bg-pm-bg-elevated border-e border-pm-border">
+      <div class="flex items-center justify-center h-16 border-b border-pm-border">
+        <a href="/admin" class="text-lg font-bold text-pm-text">P</a>
+      </div>
+      <nav class="flex-1 flex flex-col items-center gap-1 py-3 px-1 overflow-y-auto">
+        {#each adminSections as section}
+          {@const SideIcon = iconComponentMap[section.id] || IconSettings}
+          <a href={section.id === 'dashboard' ? '/admin' : `/admin/${section.id}`}
+            class="relative flex flex-col items-center justify-center gap-0.5 size-16 rounded-md transition-colors group"
+            class:bg-pm-brand-subtle:text-pm-brand={isActive(section.id)}
+            class:text-pm-text-secondary:hover:text-pm-text:hover:bg-pm-bg-sunken={!isActive(section.id)}>
+            <SideIcon class="size-5" />
+            <span class="text-[var(--text-2xs)] text-pm-text-muted group-hover:text-pm-text truncate max-w-16 px-1 text-center">
+              {section.label}
+            </span>
+            {#if section.id === 'contacts' && unreadCount > 0}
+              <span class="absolute top-1 end-2 flex items-center justify-center min-w-3.5 h-3.5 px-1 rounded-full bg-pm-danger text-[var(--text-2xs)] font-bold text-white leading-none">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            {/if}
+          </a>
+        {/each}
+      </nav>
+      <div class="p-2 border-t border-pm-border">
+        <UserMenu {user} />
+      </div>
+    </aside>
+  {/if}
+
   <!-- Mobile Header (using AppMobileHeader molecule) -->
   <AppMobileHeader pageTitle={currentPageTitle()} {user} />
 
   <!-- Mobile Bottom Nav (using AppBottomNav molecule) -->
   <AppBottomNav sections={adminSections} {currentPath} {unreadCount} />
 
-  <!-- Mobile Hamburger Toggle (phone only) -->
-  <button class="fixed top-3 end-3 z-[var(--z-hamburger)] sm:hidden flex items-center justify-center size-10 rounded-md bg-pm-bg-elevated border border-pm-border shadow-md"
-    onclick={() => mobileOpen = !mobileOpen} aria-label={contentT('nav.openMenu')}>
-    <IconMenu2 class="size-5" />
-  </button>
-
-  <!-- Mobile Menu Overlay (phone only) -->
-  {#if mobileOpen}
-    <div class="fixed inset-0 z-50 bg-black/50 sm:hidden" onclick={() => mobileOpen = false} onkeydown={() => {}} role="presentation"></div>
-    <div class="fixed inset-y-0 end-0 z-[var(--z-drawer)] w-[var(--drawer-width)] bg-pm-bg-elevated shadow-xl sm:hidden">
-      <div class="flex items-center justify-between h-16 px-4 border-b border-pm-border">
-        <span class="text-lg font-bold text-pm-text">{t['admin.title']}</span>
-        <button onclick={() => mobileOpen = false} class="p-1 text-pm-text-muted hover:text-pm-text"><IconX class="size-5" /></button>
-      </div>
-      <nav class="overflow-y-auto py-2">
-        {#each adminSections as section}
-          <a href={section.id === 'dashboard' ? '/admin' : `/admin/${section.id}`}
-            class={clsx('flex items-center gap-3 px-4 py-2.5 mx-2 rounded-md text-sm transition-colors',
-              isActive(section.id) ? 'bg-pm-brand-subtle text-pm-brand font-medium' : 'text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken'
-            )} onclick={() => mobileOpen = false}>
-            {section.label}
-          </a>
-        {/each}
-      </nav>
-    </div>
-  {/if}
 
   <!-- Main Content (PM v2 admin-content.css: p-10 desktop / p-8 px-5 tablet / p-6 px-4 phone, max-width 62.5rem) -->
-  <main class={clsx('min-h-screen', 'pb-14 sm:pb-0', useVerticalNav && 'lg:ms-16')}>
+  <main class={clsx('min-h-screen', 'pb-14 sm:pb-0', useVerticalNav && 'md:ms-20 lg:ms-16')}>
     <div class="mx-auto w-full max-w-[var(--max-w-content)] px-4 py-6 sm:px-5 sm:py-8 lg:px-0 lg:py-10">
       {@render children?.()}
     </div>
