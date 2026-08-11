@@ -1,46 +1,291 @@
 <script lang="ts">
   /**
-   * Admin Settings — Edit site settings
+   * Admin Settings — PM v2 settings.vue parity
+   *
+   * Structure (exact PM2 DOM):
+   *   page-header (title)
+   *   form.settings-form (bulk save, one submit button)
+   *     section.card per setting group
+   *       .card-header → h2.section-title
+   *       .card-body → .form-grid (auto-fit minmax(280px,1fr))
+   *         .form-group (.form-group--full for textareas)
+   *       .header-quick-picker (contact group only)
+   *   .form-actions → save button
+   *
+   * All values submit together via PUT /api/admin/settings; the save button
+   * is disabled until the form is dirty.
    */
-  import { page } from '$app/stores'
-import { t } from '$lib/stores/content.svelte'
-  import { getAdminT } from '$lib/utils/admin-translations'
+  import { clsx } from 'clsx'
+  import { t } from '$lib/stores/content.svelte'
+  import { getCsrfToken } from '$lib/utils/auth'
+  import { getOverlaysState } from '$lib/stores/overlays.svelte'
+  import PageHeader from '$lib/components/atoms/PageHeader.svelte'
+  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import AdminFormSection from '$lib/components/molecules/AdminFormSection.svelte'
+  import IconBrandTelegram from '@tabler/icons-svelte/icons/brand-telegram'
+  import IconBrandWhatsapp from '@tabler/icons-svelte/icons/brand-whatsapp'
+  import IconBrandDiscord from '@tabler/icons-svelte/icons/brand-discord'
+  import IconBrandInstagram from '@tabler/icons-svelte/icons/brand-instagram'
+  import IconBrandFacebook from '@tabler/icons-svelte/icons/brand-facebook'
+  import IconBrandX from '@tabler/icons-svelte/icons/brand-x'
+  import IconBrandYoutube from '@tabler/icons-svelte/icons/brand-youtube'
+  import IconBrandLinkedin from '@tabler/icons-svelte/icons/brand-linkedin'
+  import IconBrandGithub from '@tabler/icons-svelte/icons/brand-github'
+  import IconBrandVk from '@tabler/icons-svelte/icons/brand-vk'
+  import IconBrandTiktok from '@tabler/icons-svelte/icons/brand-tiktok'
+  import IconMail from '@tabler/icons-svelte/icons/mail'
+  import IconPhone from '@tabler/icons-svelte/icons/phone'
+  import IconMapPin from '@tabler/icons-svelte/icons/map-pin'
+  import IconMessageCircle from '@tabler/icons-svelte/icons/message-circle'
+  import type { ComponentType } from 'svelte'
   import type { PageData } from './$types'
+  import type { AdminSettingGroup, AdminSettingRow } from './+page.server'
+
   let { data }: { data: PageData } = $props()
-  const items = $derived(data.items)
-  const adminT = $derived(getAdminT($page.data))
+
+  const groups = $derived((data.groups ?? []) as AdminSettingGroup[])
+  const overlays = getOverlaysState()
+
+  // ── Form state (PM2: reactive form keyed by setting.key) ────────────────
+  // Initialized synchronously from server data so SSR renders filled inputs
+  // and the contact picker options (not blank-until-hydration).
+  const form = $state<Record<string, string>>({})
+  let initialSnapshot = $state('')
+
+  {
+    for (const group of groups) {
+      for (const item of group.items) {
+        if (form[item.key] === undefined) {
+          form[item.key] = item.value ?? (item.type === 'boolean' ? 'false' : '')
+        }
+      }
+    }
+    initialSnapshot = serializeForm()
+  }
+
+  function serializeForm(): string {
+    const flat: Array<[string, string]> = []
+    for (const group of groups) {
+      for (const item of group.items) {
+        flat.push([item.key, form[item.key] ?? ''])
+      }
+    }
+    return JSON.stringify(flat)
+  }
+
+  const hasChanges = $derived(serializeForm() !== initialSnapshot)
+
+  let saving = $state(false)
+
+  // ── Contact quick picker (PM2 .header-quick-picker) ─────────────────────
+  const CONTACT_OPTION_KEYS = [
+    'contact.email', 'contact.phone', 'social.telegram', 'social.whatsapp',
+    'social.viber', 'social.discord', 'social.instagram', 'social.facebook',
+    'social.twitter', 'social.youtube', 'social.linkedin', 'social.github',
+    'social.vk', 'social.tiktok'
+  ] as const
+
+  const ICON_MAP: Record<string, ComponentType> = {
+    mail: IconMail, phone: IconPhone, 'map-pin': IconMapPin, 'message-circle': IconMessageCircle,
+    'brand-telegram': IconBrandTelegram, 'brand-whatsapp': IconBrandWhatsapp, 'brand-discord': IconBrandDiscord,
+    'brand-instagram': IconBrandInstagram, 'brand-facebook': IconBrandFacebook, 'brand-x': IconBrandX,
+    'brand-youtube': IconBrandYoutube, 'brand-linkedin': IconBrandLinkedin, 'brand-github': IconBrandGithub,
+    'brand-vk': IconBrandVk, 'brand-tiktok': IconBrandTiktok
+  }
+
+  function parseItems(value: string | undefined): string[] {
+    if (!value) return []
+    return Array.from(new Set(value.split(',').map(i => i.trim()).filter(Boolean)))
+  }
+
+  function serializeItems(items: string[]): string {
+    return items.join(',')
+  }
+
+  const availableContactOptions = $derived(
+    CONTACT_OPTION_KEYS.filter((key): key is (typeof CONTACT_OPTION_KEYS)[number] => {
+      const value = form[key]
+      return typeof value === 'string' && value.trim().length > 0
+    })
+  )
+
+  const selectedHeaderQuick = $derived(parseItems(form['contact.headerQuickItems']))
+  const selectedHeaderQuickSet = $derived(new Set(selectedHeaderQuick))
+
+  function toggleHeaderQuick(key: string): void {
+    const next = new Set(selectedHeaderQuick)
+    if (next.has(key)) next.delete(key)
+    else next.add(key)
+    form['contact.headerQuickItems'] = serializeItems([...next])
+  }
+
+  const selectedContactPage = $derived(parseItems(form['contact.contactPageItems']))
+  const selectedContactPageSet = $derived(new Set(selectedContactPage))
+
+  function toggleContactPage(key: string): void {
+    const next = new Set(selectedContactPage)
+    if (next.has(key)) next.delete(key)
+    else next.add(key)
+    form['contact.contactPageItems'] = serializeItems([...next])
+  }
+
+  function optionLabel(key: string): string {
+    return t(`settings.${key}`)
+  }
+
+  function optionIcon(key: string): ComponentType {
+    const iconKey = key.split('.').pop() ?? key
+    return ICON_MAP[iconKey] ?? IconMail
+  }
+
+  function inputType(item: AdminSettingRow): string {
+    if (item.type === 'number') return 'number'
+    if (item.type === 'json') return 'text'
+    if (item.label.includes('email')) return 'email'
+    if (item.label.includes('url')) return 'url'
+    if (item.label.includes('phone') || item.label.includes('telegram') || item.label.includes('whatsapp')) return 'tel'
+    return 'text'
+  }
+
+  async function saveSettings(): Promise<void> {
+    if (!hasChanges || saving) return
+    saving = true
+    try {
+      const payload: Record<string, string> = {}
+      for (const group of groups) {
+        for (const item of group.items) {
+          payload[item.key] = form[item.key] ?? ''
+        }
+      }
+      const res = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', 'x-csrf-token': getCsrfToken() },
+        body: JSON.stringify(payload)
+      })
+      const body = await res.json().catch(() => null)
+      if (!res.ok || body?.success === false) throw new Error()
+      initialSnapshot = serializeForm()
+      overlays.showToast(t('common.saved'), 'success')
+    } catch {
+      overlays.showToast(t('admin.failedSaveSettings'), 'error')
+    } finally {
+      saving = false
+    }
+  }
 </script>
 
-<div class="max-w-[var(--max-w-content)] mx-auto">
-  <div class="flex items-center justify-between gap-4 py-4 mb-6 border-b border-pm-border">
-    <h1 class="text-2xl font-bold text-pm-text">{adminT['admin.settings'] || 'Settings'}</h1>
-    <span class="text-sm text-pm-text-muted">{items.length} {adminT['admin.total'] || 'total'}</span>
-  </div>
+<div class="admin-settings">
+  <PageHeader title={t('admin.settings')} />
 
-  <div class="bg-pm-bg-elevated border border-pm-border rounded-xl overflow-hidden">
-    <table class="w-full text-sm">
-      <thead class="bg-pm-bg-sunken">
-        <tr>
-          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">{adminT['admin.key'] || 'Key'}</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">{adminT['admin.value'] || 'Value'}</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase tracking-wider">{adminT['admin.group'] || 'Group'}</th>
-          <th class="px-4 py-3 text-right text-xs font-medium text-pm-text-muted uppercase tracking-wider">{adminT['admin.actions'] || 'Actions'}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each items as item (item.id)}
-          <tr class="border-b border-pm-border hover:bg-pm-bg-elevated transition-colors">
-            <td class="px-4 py-3 font-mono text-xs text-pm-text">{item.key}</td>
-            <td class="px-4 py-3 text-pm-text-muted max-w-72 truncate">{item.value ?? '—'}</td>
-            <td class="px-4 py-3 text-pm-text-muted">{item.group}</td>
-            <td class="px-4 py-3 text-right"><span class="text-xs text-pm-text-muted">—</span></td>
-          </tr>
-        {/each}
-      </tbody>
-    </table>
-  </div>
+  <form class="flex flex-col gap-6" novalidate onsubmit={(e) => { e.preventDefault(); saveSettings() }}>
+    {#each groups as group (group.key)}
+      <AdminFormSection title={t(group.label)}>
+          <div class={clsx('grid gap-4', "grid-cols-[var(--grid-admin-form)]")}>
+            {#each group.items as item (item.key)}
+              <div class={clsx('flex flex-col gap-1', (item.type === 'string' && (item.label.includes('address') || item.label.includes('description') || item.label.includes('headerQuickItems'))) ? 'col-span-full' : '')}>
+                {#if item.type !== 'boolean'}
+                  <label for="setting-{item.key}" class="text-sm font-medium text-pm-text">{t(item.label)}</label>
+                {/if}
 
-  {#if items.length === 0}
-    <p class="text-center text-pm-text-muted py-8">{adminT['admin.noItems'] || t('common.noResults')}</p>
-  {/if}
+                {#if item.type === 'boolean'}
+                  <label class="flex items-center gap-2 cursor-pointer text-sm text-pm-text-muted">
+                    <input
+                      type="checkbox"
+                      checked={form[item.key] === 'true'}
+                      class="size-4 accent-pm-brand flex-shrink-0"
+                      onchange={(e) => form[item.key] = (e.currentTarget as HTMLInputElement).checked ? 'true' : 'false'}
+                    />
+                    <span>{t(item.label)}</span>
+                  </label>
+                {:else if item.type === 'json'}
+                  <textarea
+                    id="setting-{item.key}"
+                    bind:value={form[item.key]}
+                    rows={3}
+                    class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text font-mono focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring"
+                  ></textarea>
+                {:else if item.key === 'contact.headerQuickItems' || item.key === 'contact.contactPageItems'}
+                  <input
+                    type="hidden"
+                    bind:value={form[item.key]}
+                  />
+                {:else}
+                  <input
+                    id="setting-{item.key}"
+                    type={inputType(item)}
+                    bind:value={form[item.key]}
+                    class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring"
+                  />
+                {/if}
+              </div>
+            {/each}
+          </div>
+
+          <!-- Contact group quick pickers (PM2 .header-quick-picker) -->
+          {#if group.key === 'contact'}
+            <div class="mt-5 pt-5 border-t border-pm-border">
+              <div class="flex flex-col gap-2 mb-4">
+                <h3 class="text-sm font-medium text-pm-text m-0">{t('admin.headerQuickContactIcons')}</h3>
+                <p class="text-sm text-pm-text-muted m-0">{t('admin.headerQuickContactIconsDesc')}</p>
+              </div>
+
+              {#if availableContactOptions.length > 0}
+                <div class="flex flex-wrap gap-3">
+                  {#each availableContactOptions as key (key)}
+                    {@const Icon = optionIcon(key)}
+                    <button
+                      type="button"
+                      class={clsx('inline-flex items-center gap-2 min-h-11 px-3 py-2 rounded-full border text-sm transition-all cursor-pointer', selectedHeaderQuickSet.has(key)
+                        ? 'border-pm-brand bg-pm-brand text-white'
+                        : 'border-pm-border bg-pm-bg text-pm-text-muted hover:border-pm-brand hover:text-pm-text')}
+                      aria-pressed={selectedHeaderQuickSet.has(key)}
+                      onclick={() => toggleHeaderQuick(key)}
+                    >
+                      <Icon class="size-5 shrink-0" />
+                      <span class="text-sm font-medium">{optionLabel(key)}</span>
+                    </button>
+                  {/each}
+                </div>
+              {:else}
+                <p class="text-sm text-pm-text-muted">{t('admin.headerQuickContactIconsEmpty')}</p>
+              {/if}
+            </div>
+
+            <div class="mt-5 pt-5 border-t border-pm-border">
+              <div class="flex flex-col gap-2 mb-4">
+                <h3 class="text-sm font-medium text-pm-text m-0">{t('admin.contactPageButtons')}</h3>
+                <p class="text-sm text-pm-text-muted m-0">{t('admin.contactPageButtonsDesc')}</p>
+              </div>
+
+              {#if availableContactOptions.length > 0}
+                <div class="flex flex-wrap gap-3">
+                  {#each availableContactOptions as key (key)}
+                    {@const Icon = optionIcon(key)}
+                    <button
+                      type="button"
+                      class={clsx('inline-flex items-center gap-2 min-h-11 px-3 py-2 rounded-full border text-sm transition-all cursor-pointer', selectedContactPageSet.has(key)
+                        ? 'border-pm-brand bg-pm-brand text-white'
+                        : 'border-pm-border bg-pm-bg text-pm-text-muted hover:border-pm-brand hover:text-pm-text')}
+                      aria-pressed={selectedContactPageSet.has(key)}
+                      onclick={() => toggleContactPage(key)}
+                    >
+                      <Icon class="size-5 shrink-0" />
+                      <span class="text-sm font-medium">{optionLabel(key)}</span>
+                    </button>
+                  {/each}
+                </div>
+              {:else}
+                <p class="text-sm text-pm-text-muted">{t('admin.contactPageButtonsEmpty')}</p>
+              {/if}
+            </div>
+          {/if}
+      </AdminFormSection>
+    {/each}
+
+    <div class="flex justify-end gap-4">
+      <CtaButton type="submit" variant="primary" size="md" disabled={saving || !hasChanges}>
+        {saving ? t('common.saving') : t('common.save')}
+      </CtaButton>
+    </div>
+  </form>
 </div>
