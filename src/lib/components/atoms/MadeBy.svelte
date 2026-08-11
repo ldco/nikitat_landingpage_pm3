@@ -17,7 +17,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { t } from '$lib/stores/content.svelte'
-  import { languageTag } from '$lib/paraglide/runtime.js'
+  import { currentLocale } from '$lib/stores/locale.svelte'
   import { LOCALES } from '$lib/config/site'
   import { FOOTER_MADE_BY } from '$lib/config/site'
   import { madeByLogoSrc, type MadeByLogoConfig } from '$lib/utils/made-by-logo'
@@ -43,7 +43,7 @@
     defaultLang: LOCALES[0] ?? ''
   })
   // Active Paraglide locale — the same source the header Logo and SectionF22 use.
-  const lang = $derived(languageTag())
+  const lang = $derived(currentLocale())
   // Explicit light/dark variants (PM v2 getLogo): light UI → 'dark' file,
   // dark UI → 'light' file. No pre-inversion before calling madeByLogoSrc.
   const lightLogo = $derived(madeByLogoSrc(logoConfig, lang, 'light'))

@@ -16,6 +16,7 @@ import { t } from '$lib/stores/content.svelte'
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { verify2fa } from '$lib/api/client'
+  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import IconShieldLock from '@tabler/icons-svelte/icons/shield-lock'
   import IconArrowLeft from '@tabler/icons-svelte/icons/arrow-left'
   import IconAlertTriangle from '@tabler/icons-svelte/icons/alert-triangle'
@@ -108,13 +109,16 @@ import { t } from '$lib/stores/content.svelte'
       </p>
     {/if}
 
-    <button
+    <CtaButton
       type="submit"
+      variant="primary"
+      size="compact"
+      fullWidth
       disabled={loading}
-      class="w-full py-2.5 px-4 rounded-md bg-pm-brand text-pm-white font-medium text-sm hover:bg-pm-brand-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      class="py-2.5"
     >
       {loading ? t('common.verifying') : t('auth.twoFactor.verify')}
-    </button>
+    </CtaButton>
 
     <button
       type="button"

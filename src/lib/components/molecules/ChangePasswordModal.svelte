@@ -15,6 +15,7 @@ import { t } from '$lib/stores/content.svelte'
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { changePassword } from '$lib/api/client'
+  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import IconX from '@tabler/icons-svelte/icons/x'
   import IconLock from '@tabler/icons-svelte/icons/lock'
   import IconEye from '@tabler/icons-svelte/icons/eye'
@@ -91,7 +92,7 @@ import { t } from '$lib/stores/content.svelte'
 {#if open}
   <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
   <div
-    class="fixed inset-0 z-[var(--z-modal-backdrop)] flex items-center justify-center bg-black/50 p-4"
+    class={twMerge(clsx('fixed inset-0 z-[var(--z-modal-backdrop)] flex items-center justify-center bg-black/50 p-4', className))}
     onclick={() => open = false}
     role="dialog"
     aria-modal="true"
@@ -197,20 +198,22 @@ import { t } from '$lib/stores/content.svelte'
         </div>
 
         <div class="flex justify-end gap-3 pt-2 border-t border-pm-border">
-          <button
-            type="button"
+          <CtaButton
+            variant="ghost"
+            size="compact"
+            class="text-pm-text-secondary hover:text-pm-text"
             onclick={close}
-            class="px-4 py-2 text-sm font-medium text-pm-text-secondary hover:text-pm-text transition-colors"
           >
             {t('common.cancel')}
-          </button>
-          <button
+          </CtaButton>
+          <CtaButton
             type="submit"
+            variant="primary"
+            size="compact"
             disabled={!isValid || isSubmitting}
-            class={twMerge(clsx('px-4 py-2 text-sm font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed', 'bg-pm-brand text-pm-white hover:bg-pm-brand-light'))}
           >
             {isSubmitting ? t('common.saving') : t('common.save')}
-          </button>
+          </CtaButton>
         </div>
       </form>
     </div>

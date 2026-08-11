@@ -13,6 +13,7 @@
   import PricingComparison from '$lib/components/molecules/PricingComparison.svelte'
   import Section from '$lib/components/atoms/Section.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
+  import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
 
   let {
     tiers = [] as Array<{
@@ -36,7 +37,7 @@
 
 <Section id="pricing" background="elevated" class={className}>
   <SectionContent width={isContained ? 'default' : 'full'}>
-    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{t('sections.pricing')}</h2>
+    <SectionHeading title={t('sections.pricing')} align="center" />
     <div class="grid grid-cols-1 md:grid-cols-3 gap-[var(--gap-lg)] items-start">
       {#each tiers as tier}
         <PricingCard {...tier} />

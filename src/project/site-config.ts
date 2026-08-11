@@ -29,8 +29,25 @@ export const LOCALE_CONFIG: Record<Locale, { iso: string; name: string }> = Obje
 
 export const DEFAULT_LOCALE: Locale = PM_LOCALE_DATA[0].code
 
+// ── Hero title ──────────────────────────────────────────────────────────────
+
+// Per-locale mobile hero-title token overrides (framework-agnostic: SectionHero
+// reads this map instead of hardcoding locale checks). Locales with longer
+// words/scripts use a tighter mobile clamp. The class is a literal here so
+// Tailwind generates it; the token itself lives in src/app.css as
+// `--text-hero-title-mobile-<suffix>`. A new locale needs a map entry + its
+// `--text-hero-title-mobile-*` token — no framework code changes.
+export const HERO_MOBILE_TITLE_TOKEN_BY_LOCALE: Record<string, string> = {
+  ru: 'max-sm:text-[var(--text-hero-title-mobile-ru)]'
+}
+
 // ── Navigation ──────────────────────────────────────────────────────────────
 
+// NAV_ITEMS hrefs are CANONICAL targets — locale-less paths ('/portfolio') and
+// onepager anchors ('/#about'). They are NEVER rendered raw: consumers derive
+// the locale-aware href at render time via localizedHref()/localizedSectionHref()
+// (src/lib/utils/navigation.ts), which prefixes the active locale (e.g. the
+// 'portfolio' item renders '/en/portfolio' for English visitors).
 export const NAV_ITEMS: NavItem[] = [
   { href: '/', label: 'nav.home', section: 'home' },
   { href: '/#about', label: 'nav.about', section: 'about' },
@@ -79,6 +96,22 @@ export const FOOTER_MADE_BY = {
   available: [
     'horizontal_dark_en', 'horizontal_dark_ru', 'horizontal_light_en', 'horizontal_light_ru',
     'circle_dark_en', 'circle_dark_ru', 'circle_light_en', 'circle_light_ru'
+  ],
+  assetLangFallback: BRAND_ASSET_LANG_FALLBACK
+}
+
+// Footer "Made with" branding — the Puppet Master logo lives in
+// /public/puppetmaster/ (framework brand, not client assets) and honors the
+// SAME branding-asset fallback rule as LOGO / FOOTER_MADE_BY: locales with a
+// direct logo file (en, ru) resolve directly; unsupported locales (fr, he)
+// fall back to en. Consumed by MadeWith.svelte via the shared brand-logo
+// resolution helper — no ad-hoc locale ternaries in the component.
+export const FOOTER_MADE_WITH = {
+  text: 'footer.madeWith',
+  url: 'https://puppetmaster.dev',
+  basePath: '/puppetmaster',
+  available: [
+    'horizontal_dark_en', 'horizontal_dark_ru', 'horizontal_light_en', 'horizontal_light_ru'
   ],
   assetLangFallback: BRAND_ASSET_LANG_FALLBACK
 }

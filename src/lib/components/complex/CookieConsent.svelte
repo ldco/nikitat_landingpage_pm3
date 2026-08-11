@@ -22,6 +22,9 @@
   import { onMount } from 'svelte'
   import { browser } from '$app/environment'
   import IconCookie from '@tabler/icons-svelte/icons/cookie'
+  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import { localizedHref } from '$lib/utils/navigation'
+  import { currentLocale } from '$lib/stores/locale.svelte'
   import { t } from '$lib/stores/content.svelte'
   import { FEATURES } from '$lib/config/site'
 
@@ -111,20 +114,24 @@
       <div class="min-w-0">
         <p class="m-0 text-sm text-pm-text-secondary leading-snug">
           {t('cookies.description')}
-          <a href="/legal/privacy-policy" class="text-pm-brand hover:text-pm-brand-light underline">{t('cookies.learnMore')}</a>.
+          <a href={localizedHref('/legal/privacy-policy', currentLocale())} class="text-pm-brand hover:text-pm-brand-light underline">{t('cookies.learnMore')}</a>.
         </p>
       </div>
 
       <!-- Actions -->
       <div class="flex items-center gap-2 flex-shrink-0">
-        <button
-          class="text-sm text-pm-text-muted hover:text-pm-text transition-colors whitespace-nowrap"
+        <CtaButton
+          variant="ghost"
+          size="sm"
+          class="px-0 py-0 whitespace-nowrap text-pm-text-muted hover:text-pm-text"
           onclick={reject}
-        >{t('cookies.decline')}</button>
-        <button
-          class="px-4 py-2 text-sm font-medium text-pm-white bg-pm-brand rounded-md hover:bg-pm-brand-light transition-colors whitespace-nowrap"
+        >{t('cookies.decline')}</CtaButton>
+        <CtaButton
+          variant="primary"
+          size="compact"
+          class="whitespace-nowrap"
           onclick={accept}
-        >{t('cookies.accept')}</button>
+        >{t('cookies.accept')}</CtaButton>
       </div>
     </div>
   </div>

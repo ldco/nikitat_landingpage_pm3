@@ -10,6 +10,8 @@
   import { twMerge } from 'tailwind-merge'
   import { t } from '$lib/stores/content.svelte'
   import { FEATURES } from '$lib/config/site'
+  import { localizedHref } from '$lib/utils/navigation'
+  import { currentLocale } from '$lib/stores/locale.svelte'
   import IconX from '@tabler/icons-svelte/icons/x'
   import { getNavState } from '$lib/stores/navigation.svelte'
   import Logo from '$lib/components/atoms/Logo.svelte'
@@ -25,6 +27,8 @@
   const isFullWidth = $derived(FEATURES.headerFooterWidthMode === 'full')
   const isInteractive = $derived(FEATURES.onepager && FEATURES.interactiveHeader)
   const isVerticalNav = $derived(FEATURES.verticalNav)
+  // Home link derived from the active locale (never a raw root href).
+  const homeHref = $derived(localizedHref('/', currentLocale()))
 
   let mobileOpen = $state(false)
   let showMenu = $state(false)
@@ -50,7 +54,7 @@
   <aside class="fixed top-0 start-0 z-[var(--z-fixed)] h-full w-16 border-e border-pm-border bg-pm-bg-elevated flex flex-col">
     <div class="flex items-center justify-center h-16 border-b border-pm-border"><Logo shape="circle" /></div>
     <nav class="flex-1 flex flex-col items-center gap-1 py-3">
-      <a href="/" class="flex items-center justify-center size-10 rounded-md transition-colors text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken" aria-label={t('nav.home')}>
+      <a href={homeHref} class="flex items-center justify-center size-10 rounded-md transition-colors text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken" aria-label={t('nav.home')}>
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       </a>
     </nav>
@@ -75,7 +79,7 @@
       </div>
 
       <!-- Logo: centered on mobile/tablet, left on desktop -->
-      <a href="/" class="absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0 shrink-0">
+      <a href={homeHref} class="absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0 shrink-0">
         <Logo shape="horizontal" />
       </a>
 

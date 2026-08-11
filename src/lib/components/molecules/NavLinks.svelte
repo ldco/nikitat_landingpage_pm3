@@ -14,6 +14,8 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { NAV_ITEMS } from '$lib/config/site'
+  import { localizedHref } from '$lib/utils/navigation'
+  import { currentLocale } from '$lib/stores/locale.svelte'
   import { t } from '$lib/stores/content.svelte'
 
   let {
@@ -39,6 +41,11 @@
 
   const activeClass = 'text-pm-brand border-pm-brand'
 
+  // Config stores CANONICAL targets (locale-less); the rendered href is
+  // derived from the active locale so /en/ visitors get /en/portfolio, not the
+  // default-locale URL.
+  const locale = $derived(currentLocale())
+
   function resolveLabel(key: string): string { return t(key) }
 </script>
 
@@ -50,7 +57,7 @@
 ))}>
   {#each NAV_ITEMS as item}
     <a
-      href={item.href}
+      href={localizedHref(item.href, locale)}
       class={twMerge(clsx(
         linkBase,
         activeId && item.href.endsWith(activeId) && activeClass

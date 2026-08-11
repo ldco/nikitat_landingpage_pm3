@@ -10,11 +10,14 @@
   import Seo from '$lib/components/atoms/Seo.svelte'
 import { t } from '$lib/stores/content.svelte'
   import { goto } from '$app/navigation'
+  import { localizedHref } from '$lib/utils/navigation'
+  import { currentLocale } from '$lib/stores/locale.svelte'
   import { FEATURES } from '$lib/config/site'
   import type { PageData } from './$types'
 
   let { data }: { data: PageData } = $props()
   const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
+  const locale = $derived(currentLocale())
 </script>
 
 <Seo title={t('nav.blog')} />
@@ -35,7 +38,7 @@ import { t } from '$lib/stores/content.svelte'
             <span class="text-xs text-pm-text-muted mb-2">{t('blog.minRead', { minutes: String(post.readingTimeMinutes) })}</span>
           {/if}
           <h2 class="text-lg font-bold text-pm-text">
-            <a href={`/blog/${post.slug}`} class="hover:text-pm-brand transition-colors">{post.title}</a>
+            <a href={localizedHref(`/blog/${post.slug}`, locale)} class="hover:text-pm-brand transition-colors">{post.title}</a>
           </h2>
           {#if post.excerpt}
             <p class="mt-2 text-sm text-pm-text-muted line-clamp-3">{post.excerpt}</p>
@@ -58,7 +61,7 @@ import { t } from '$lib/stores/content.svelte'
       <Pagination
         page={data.pagination.page}
         totalPages={data.pagination.totalPages}
-        onPageChange={(p) => goto(`/blog?page=${p}`)}
+        onPageChange={(p) => goto(`${localizedHref('/blog', locale)}?page=${p}`)}
       />
     </div>
   {/if}

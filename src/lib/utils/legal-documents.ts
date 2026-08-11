@@ -7,8 +7,18 @@
  */
 import { readdirSync, existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { DEFAULT_LOCALE } from '$lib/config/site'
 
 const LEGAL_DIR = 'legal'
+
+/**
+ * Framework baseline locale for legal documents: the /legal directory ships
+ * with an English corpus (legal/en/), so 'en' is the final fallback for any
+ * project. It is a FRAMEWORK constant (the shipped baseline corpus), not a
+ * project-locale assumption — the active locale and the project DEFAULT_LOCALE
+ * are tried first.
+ */
+const LEGAL_BASELINE_LOCALE = 'en'
 
 export interface LegalDocument {
   slug: string
@@ -51,18 +61,18 @@ export function getLegalDocuments(locale: string): Array<{ slug: string; file: s
 }
 
 /**
- * Read a legal document markdown for a locale, falling back to English.
- * Returns null if unavailable in both.
+ * Read a legal document markdown for a locale, falling back to the project
+ * DEFAULT_LOCALE, then to the framework's English baseline corpus.
+ * Returns null if unavailable in all three.
  */
 export function readLegalDocument(slug: string, locale: string): string | null {
   const fileSlug = DOCUMENT_SLUGS[slug] ?? slug
-  const primary = join(process.cwd(), LEGAL_DIR, locale, `${fileSlug}.md`)
-  if (existsSync(primary)) {
-    return readFileSync(primary, 'utf-8')
-  }
-  const fallback = join(process.cwd(), LEGAL_DIR, 'en', `${fileSlug}.md`)
-  if (existsSync(fallback)) {
-    return readFileSync(fallback, 'utf-8')
+  const candidates = [...new Set([locale, DEFAULT_LOCALE, LEGAL_BASELINE_LOCALE])]
+  for (const candidate of candidates) {
+    const file = join(process.cwd(), LEGAL_DIR, candidate, `${fileSlug}.md`)
+    if (existsSync(file)) {
+      return readFileSync(file, 'utf-8')
+    }
   }
   return null
 }

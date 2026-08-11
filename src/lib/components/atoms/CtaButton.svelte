@@ -4,7 +4,9 @@
    *
    * Source: app-nuxt/app/assets/css/ui/forms/buttons.css (235 lines)
    * Variants: primary, secondary, outline, ghost, danger, ghost-danger
-   * Sizes: sm, md, lg
+   * Sizes: sm, md, lg, compact (compact = md padding with text-sm, used by
+   * dialog/overlay action buttons so they share one size instead of each
+   * hand-rolling a `text-sm` override)
    *
    * Rule #1: class prop + twMerge
    * Rule #3: strict union types
@@ -13,7 +15,7 @@
   import { twMerge } from 'tailwind-merge'
 
   type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'ghost-danger'
-  type Size = 'sm' | 'md' | 'lg'
+  type Size = 'sm' | 'md' | 'lg' | 'compact'
 
   let {
     variant = 'primary',
@@ -77,7 +79,11 @@
   const sizes: Record<Size, string> = {
     sm: 'px-3 py-1 text-sm gap-2',
     md: 'px-4 py-2 text-base gap-2',
-    lg: 'px-6 py-3 text-lg gap-2'
+    lg: 'px-6 py-3 text-lg gap-2',
+    // Dialog/overlay actions: md padding with text-sm (the pre-primitive
+    // dialog buttons were `px-4 py-2 text-sm`; a single size replaces the
+    // repeated `class="text-sm"` overrides).
+    compact: 'px-4 py-2 text-sm gap-2'
   }
 
   // ── Full width modifier ───────────────────────────────────────────────────

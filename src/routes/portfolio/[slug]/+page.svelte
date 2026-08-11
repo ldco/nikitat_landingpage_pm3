@@ -6,6 +6,8 @@
   import AppImage from '$lib/components/atoms/AppImage.svelte'
   import Seo from '$lib/components/atoms/Seo.svelte'
 import { t } from '$lib/stores/content.svelte'
+  import { localizedHref } from '$lib/utils/navigation'
+  import { currentLocale } from '$lib/stores/locale.svelte'
   import IconArrowLeft from '@tabler/icons-svelte/icons/arrow-left'
   import { FEATURES } from '$lib/config/site'
   import WebsiteViewer from '$lib/plugins/portfolio/WebsiteViewer.svelte'
@@ -15,6 +17,7 @@ import { t } from '$lib/stores/content.svelte'
   import type { PageData } from './$types'
   let { data }: { data: PageData } = $props()
   const { portfolio, items } = $derived(data)
+  const backHref = $derived(localizedHref('/portfolio', currentLocale()))
   // Map portfolio items to plugins
   const screenshots = $derived(items.filter(i => i.itemType === 'image').map(i => ({
     url: i.mediaUrl ?? '', caption: i.caption ?? undefined
@@ -27,7 +30,7 @@ import { t } from '$lib/stores/content.svelte'
 <Seo title={portfolio.name} description={portfolio.description ?? undefined} />
 
 <article class="w-full mx-auto max-w-[var(--max-w-container)] px-6 md:px-8 py-24">
-  <a href="/portfolio" class="inline-flex items-center gap-2 text-sm text-pm-text-muted hover:text-pm-brand transition-colors mb-8">
+  <a href={backHref} class="inline-flex items-center gap-2 text-sm text-pm-text-muted hover:text-pm-brand transition-colors mb-8">
     <IconArrowLeft class="size-4" />
     {t('nav.portfolio')}
   </a>

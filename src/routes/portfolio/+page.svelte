@@ -8,10 +8,13 @@
   import Badge from '$lib/components/atoms/Badge.svelte'
   import Seo from '$lib/components/atoms/Seo.svelte'
 import { t } from '$lib/stores/content.svelte'
+  import { localizedHref } from '$lib/utils/navigation'
+  import { currentLocale } from '$lib/stores/locale.svelte'
   import { FEATURES } from '$lib/config/site'
   import type { PageData } from './$types'
   let { data }: { data: PageData } = $props()
   const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
+  const locale = $derived(currentLocale())
 </script>
 
 <Seo title={t('nav.portfolio')} />
@@ -21,7 +24,7 @@ import { t } from '$lib/stores/content.svelte'
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {#each data.items as item}
-      <a href={`/portfolio/${item.slug}`} class="group block overflow-hidden rounded-xl border border-pm-border bg-pm-bg hover:shadow-lg transition-all duration-200">
+      <a href={localizedHref(`/portfolio/${item.slug}`, locale)} class="group block overflow-hidden rounded-xl border border-pm-border bg-pm-bg hover:shadow-lg transition-all duration-200">
         {#if item.coverImageUrl}
           <div class="aspect-video overflow-hidden">
             <AppImage src={item.coverImageUrl} alt={item.name} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />

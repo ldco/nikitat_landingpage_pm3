@@ -7,6 +7,8 @@
   import AppImage from '$lib/components/atoms/AppImage.svelte'
   import Seo from '$lib/components/atoms/Seo.svelte'
 import { t } from '$lib/stores/content.svelte'
+  import { localizedHref } from '$lib/utils/navigation'
+  import { currentLocale } from '$lib/stores/locale.svelte'
   import IconArrowLeft from '@tabler/icons-svelte/icons/arrow-left'
   import { FEATURES } from '$lib/config/site'
   import type { PageData } from './$types'
@@ -14,6 +16,7 @@ import { t } from '$lib/stores/content.svelte'
   let { data }: { data: PageData } = $props()
   const { post } = $derived(data)
   const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
+  const backHref = $derived(localizedHref('/blog', currentLocale()))
 </script>
 
 <!-- Shared metadata contract: post title + excerpt (site name composed by Seo). -->
@@ -21,7 +24,7 @@ import { t } from '$lib/stores/content.svelte'
 
 <article class={clsx('w-full mx-auto px-6 md:px-8 py-24', isContained && 'max-w-prose')}>
   <!-- Back link -->
-  <a href="/blog" class="inline-flex items-center gap-2 text-sm text-pm-text-muted hover:text-pm-brand transition-colors mb-8">
+  <a href={backHref} class="inline-flex items-center gap-2 text-sm text-pm-text-muted hover:text-pm-brand transition-colors mb-8">
     <IconArrowLeft class="size-4" />
     {t('nav.blog')}
   </a>

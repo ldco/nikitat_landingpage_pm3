@@ -26,6 +26,23 @@ describe('Site config', () => {
     }
   })
 
+  it('NAV_ITEMS store CANONICAL targets — no locale prefix baked in', () => {
+    // Config holds locale-less targets ('/portfolio', '/#about'); the rendered
+    // href is derived per active locale at render time (localizedHref).
+    for (const item of NAV_ITEMS) {
+      expect(item.href.startsWith('/en/')).toBe(false)
+      expect(item.href.startsWith('/fr/')).toBe(false)
+      expect(item.href.startsWith('/he/')).toBe(false)
+      // Anchors keep their hash so onepager sections survive localizing.
+      expect(item.href.startsWith('/#') || item.href.startsWith('/')).toBe(true)
+    }
+  })
+
+  it('HOMEPAGE_SECTIONS contains a page-mode section for the portfolio nav target', () => {
+    const portfolio = HOMEPAGE_SECTIONS.find(s => s.id === 'portfolio')
+    expect(portfolio?.renderMode).toBe('page')
+  })
+
   it('exports HOMEPAGE_SECTIONS', () => {
     expect(Array.isArray(HOMEPAGE_SECTIONS)).toBe(true)
     expect(HOMEPAGE_SECTIONS.length).toBeGreaterThan(0)

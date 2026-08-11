@@ -10,6 +10,7 @@
   import IconChevronDown from '@tabler/icons-svelte/icons/chevron-down'
   import Section from '$lib/components/atoms/Section.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
+  import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
 
   let {
     items = [] as Array<{ id: number; question: string; answer: string }>,
@@ -42,7 +43,7 @@
 
 <Section id="faq" background="elevated" class={className}>
   <SectionContent width={isContained ? 'narrow' : 'full'}>
-    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{t('sections.faq')}</h2>
+    <SectionHeading title={t('sections.faq')} align="center" />
     <div class="flex flex-col gap-[var(--gap-sm)]">
       {#each items as item}
         <div class="rounded-xl border border-pm-border bg-pm-bg overflow-hidden">

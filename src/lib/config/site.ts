@@ -75,11 +75,21 @@ export type PmMode = 'unconfigured' | 'build' | 'develop'
 
 // ── RTL Detection (framework — auto, no per-language flag) ─────────────────
 
+/**
+ * Language codes written right-to-left, regardless of the project's own
+ * locale set (a Hindi project must still flip the layout for its RTL visitors,
+ * e.g. he/yi/ar/fa/ur/ps). Covers the RTL scripts: Arabic, Hebrew, Syriac,
+ * Thaana, Mandaic, Samaritan, N'Ko, Rohingya, Adlam, Kikakui.
+ * ISO 639-1 codes plus their common ISO 639-2/3 aliases; `isRtlLocale` matches
+ * on the primary language subtag, so region tags (ar-SA, fa-IR) work too.
+ */
 const RTL_CODES = new Set([
-  'ar', 'ara', 'arc', 'dv', 'div', 'fa', 'per', 'fas', 'ha', 'hau',
-  'he', 'heb', 'khw', 'ks', 'kas', 'ku', 'kur', 'ps', 'pus',
-  'sd', 'snd', 'syr', 'ug', 'uig', 'ur', 'urd', 'yi', 'yid',
-  'nqo', 'rhg', 'fuf', 'mid', 'men', 'sam'
+  'ar', 'ara', 'arc', 'azb', 'bal', 'bqi', 'ckb', 'div', 'dv',
+  'fa', 'fas', 'ff', 'fuf', 'glk', 'ha', 'hau', 'he', 'heb',
+  'jpr', 'kas', 'khw', 'ks', 'ku', 'kur', 'lad', 'lrc', 'men',
+  'mid', 'mzn', 'nqo', 'per', 'pnb', 'ps', 'pus', 'rhg', 'sam',
+  'sd', 'sdh', 'skr', 'smp', 'snd', 'syc', 'syr', 'tru', 'ug',
+  'uig', 'ur', 'urd', 'yi', 'yid'
 ])
 
 export function isRtlLocale(locale: string): boolean {
@@ -119,6 +129,8 @@ import {
   SEO,
   CONTACT,
   FOOTER_MADE_BY,
+  FOOTER_MADE_WITH,
+  HERO_MOBILE_TITLE_TOKEN_BY_LOCALE,
   MODULES,
   FEATURES,
   ADMIN_CONFIG,
@@ -129,7 +141,7 @@ import {
 } from '../../project/site-config'
 import type { Locale } from '../../project/site-config'
 
-export { LOCALES, LOCALE_STRINGS, LOCALE_CONFIG, DEFAULT_LOCALE, NAV_ITEMS, HOMEPAGE_SECTIONS, SEO, CONTACT, FOOTER_MADE_BY, MODULES, FEATURES, ADMIN_CONFIG, LOGO, DEFAULT_THEME, PM_MODE, ENTITIES }
+export { LOCALES, LOCALE_STRINGS, LOCALE_CONFIG, DEFAULT_LOCALE, NAV_ITEMS, HOMEPAGE_SECTIONS, SEO, CONTACT, FOOTER_MADE_BY, FOOTER_MADE_WITH, HERO_MOBILE_TITLE_TOKEN_BY_LOCALE, MODULES, FEATURES, ADMIN_CONFIG, LOGO, DEFAULT_THEME, PM_MODE, ENTITIES }
 export type { Locale }
 
 // ── Brand Colors (project theme) ────────────────────────────────────────────

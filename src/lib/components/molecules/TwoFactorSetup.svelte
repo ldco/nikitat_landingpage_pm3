@@ -16,6 +16,7 @@ import { t } from '$lib/stores/content.svelte'
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { start2faSetup, enable2fa, type TwoFactorSetupData } from '$lib/api/client'
+  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import IconShieldLock from '@tabler/icons-svelte/icons/shield-lock'
   import IconCopy from '@tabler/icons-svelte/icons/copy'
   import IconCheck from '@tabler/icons-svelte/icons/check'
@@ -158,13 +159,15 @@ import { t } from '$lib/stores/content.svelte'
         </details>
       </div>
     {:else if error}
-      <button
+      <CtaButton
         type="button"
+        variant="primary"
+        size="compact"
+        class="w-fit"
         onclick={() => { autoStarted = false; startSetup() }}
-        class="w-fit px-4 py-2 rounded-md bg-pm-brand text-pm-white text-sm font-medium hover:bg-pm-brand-light transition-colors"
       >
         {t('common.retry')}
-      </button>
+      </CtaButton>
     {/if}
 
     {#if step === 'verify'}
@@ -182,14 +185,15 @@ import { t } from '$lib/stores/content.svelte'
             class="w-40 px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-pm-text text-sm focus:outline-none focus:ring-2 focus:ring-pm-focus-ring"
             placeholder={t('auth.twoFactor.codePlaceholder')}
           />
-          <button
+          <CtaButton
             type="button"
-            onclick={verifyAndEnable}
+            variant="primary"
+            size="compact"
             disabled={isLoading || verificationCode.length !== 6}
-            class="px-4 py-2 rounded-md bg-pm-brand text-pm-white text-sm font-medium hover:bg-pm-brand-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            onclick={verifyAndEnable}
           >
             {isLoading ? t('common.verifying') : t('auth.twoFactor.verifyEnable')}
-          </button>
+          </CtaButton>
         </div>
       </div>
     {/if}
@@ -254,13 +258,14 @@ import { t } from '$lib/stores/content.svelte'
         {/if}
         {copiedIndex === -1 ? t('auth.twoFactor.copied') : t('auth.twoFactor.copyAll')}
       </button>
-      <button
+      <CtaButton
         type="button"
+        variant="primary"
+        size="compact"
         onclick={complete}
-        class="px-4 py-2 rounded-md bg-pm-brand text-pm-white text-sm font-medium hover:bg-pm-brand-light transition-colors"
       >
         {t('auth.twoFactor.done')}
-      </button>
+      </CtaButton>
     </div>
   {/if}
 </div>

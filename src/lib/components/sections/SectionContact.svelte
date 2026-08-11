@@ -15,6 +15,8 @@
   import { fly } from 'svelte/transition'
   import { z } from 'zod'
   import { t } from '$lib/stores/content.svelte'
+  import { localizedHref } from '$lib/utils/navigation'
+  import { currentLocale } from '$lib/stores/locale.svelte'
   import { submitContact } from '$lib/api/client'
   import { useSettings } from '$lib/stores/settings.svelte'
   import { CONTACT } from '$lib/config/site'
@@ -142,9 +144,9 @@
           />
           <span class="text-xs text-pm-text-secondary">
             {consentText}
-            <a href="/legal/personal-data-policy" class="text-pm-brand hover:underline" target="_blank" rel="noopener noreferrer">{consentLink}</a>
+            <a href={localizedHref('/legal/personal-data-policy', currentLocale())} class="text-pm-brand hover:underline" target="_blank" rel="noopener noreferrer">{consentLink}</a>
             {consentAnd}
-            <a href="/legal/privacy-policy" class="text-pm-brand hover:underline" target="_blank" rel="noopener noreferrer">{consentPrivacy}</a>
+            <a href={localizedHref('/legal/privacy-policy', currentLocale())} class="text-pm-brand hover:underline" target="_blank" rel="noopener noreferrer">{consentPrivacy}</a>
           </span>
         </label>
         {#if consentError}

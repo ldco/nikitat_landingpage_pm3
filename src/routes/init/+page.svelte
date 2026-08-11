@@ -14,13 +14,14 @@
    */
 import { t } from '$lib/stores/content.svelte'
   import Logo from '$lib/components/atoms/Logo.svelte'
+  import { DEFAULT_LOCALE } from '$lib/config/site'
   import { page } from '$app/stores'
   import { enhance } from '$app/forms'
 
   let { data } = $props()
 
   let contactEmail = $state('')
-  let defaultLocale = $state(data.locales[0] ?? 'en')
+  let defaultLocale = $state(data.locales[0] ?? DEFAULT_LOCALE)
 
   // Validation errors flow through $page.form: the server action returns
   // fail(400, { fieldErrors }), which the enhanced submission applies in

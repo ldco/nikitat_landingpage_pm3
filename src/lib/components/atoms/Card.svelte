@@ -13,6 +13,15 @@
    *     <svelte:fragment slot="actions">...</svelte:fragment>
    *   </Card>
    *
+   * @props hover — lift + shadow on hover
+   * @props href — optional link wrapper
+   * @props padding — 'none' | 'sm' | 'default' body padding (default 'default')
+   * @props class — merged onto the shell (twMerge)
+   * @props classBody — merged onto the body wrapper (twMerge; lets consumers
+   *   add layout like 'flex flex-col flex-1' while keeping Card's padding)
+   * @props onclick — click handler (renders the shell as a button-like div)
+   * @props children/header/footer/image/actions — content snippets
+   *
    * Rule #1: class prop + twMerge
    */
   import { clsx } from 'clsx'
@@ -23,6 +32,7 @@
     href,
     padding = 'default',
     class: className = '',
+    classBody = '',
     onclick,
     children,
     header,
@@ -34,6 +44,7 @@
     href?: string
     padding?: 'none' | 'sm' | 'default'
     class?: string
+    classBody?: string
     onclick?: (e: MouseEvent) => void
     children?: import('svelte').Snippet
     header?: import('svelte').Snippet
@@ -53,6 +64,8 @@
     default: 'px-6 py-6'
   }
 
+  const bodyClass = $derived(twMerge(clsx(bodyPadding[padding], classBody)))
+
   const merged = $derived(twMerge(clsx(base, className)))
 </script>
 
@@ -64,7 +77,7 @@
         {@render header()}
       </div>
     {/if}
-    <div class={bodyPadding[padding]}>
+    <div class={bodyClass}>
       {@render children?.()}
     </div>
     {#if actions}
@@ -87,7 +100,7 @@
         {@render header()}
       </div>
     {/if}
-    <div class={bodyPadding[padding]}>
+    <div class={bodyClass}>
       {@render children?.()}
     </div>
     {#if actions}

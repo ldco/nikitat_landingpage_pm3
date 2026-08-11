@@ -13,11 +13,11 @@
 import { useSettings } from '$lib/stores/settings.svelte'
 import { t } from '$lib/stores/content.svelte'
 import { DEFAULT_LOCALE } from '$lib/config/site'
-import { languageTag } from '$lib/paraglide/runtime.js'
+import { currentLocale } from '$lib/stores/locale.svelte'
 
 /** True when the active locale is the project's default locale. */
 function isDefaultLocale(): boolean {
-  return languageTag() === DEFAULT_LOCALE
+  return currentLocale() === DEFAULT_LOCALE
 }
 
 /** Site-wide default title: admin settings (default locale only), then translated i18n default. */

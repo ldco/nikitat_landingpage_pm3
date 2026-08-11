@@ -12,6 +12,7 @@
   import type { TeamMemberCard } from './types'
   import Section from '$lib/components/atoms/Section.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
+  import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
 
   let {
     members = [] as TeamMemberCard[],
@@ -29,7 +30,7 @@
 
 <Section id="team" background="sunken" class={className}>
   <SectionContent width={isContained ? 'default' : 'full'}>
-    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{t('sections.team')}</h2>
+    <SectionHeading title={t('sections.team')} align="center" />
     <div class={clsx('grid grid-cols-1 gap-[var(--gap-lg)]',
       colsDesktopTeam >= 2 && 'sm:grid-cols-2',
       colsDesktopTeam >= 3 && 'lg:grid-cols-3',

@@ -20,6 +20,11 @@
  *     (signal to promote to a named token).
  *  6. No canonical-primitive bypass — hand-rolled button/container/section
  *     heading/card class bundles are rejected when a canonical primitive exists.
+ *     Detects: canonical section-heading bundles repo-wide + legacy fluid
+ *     section-title bundles in section files, elevated card-shell bundles and
+ *     branded action-button bundles in framework-owned components
+ *     (src/lib/components/**), plus container bundles repo-wide. Primitive
+ *     definition files are exempt.
  *  7. No type suppressions (`@ts-ignore`, `@ts-expect-error`, `@ts-nocheck`)
  *     and no non-null assertions (`!`) in source files (Rule D.12).
  *  8. No empty catch blocks — every catch must log, re-throw, or return a typed
@@ -78,6 +83,19 @@ const COMPONENT_INFRA_KEYWORDS = [
   'browser', 'webkit', 'prefix', 'keyframe', 'page transition', 'view-transition',
   'hamburger', 'pseudo', 'infra', 'cannot be', 'can\'t be', 'not possible'
 ]
+
+/**
+ * Files that legitimately define a canonical primitive and therefore own the
+ * class bundle their rule guards. Each bypass rule skips its own primitive so
+ * the registry definition never flags itself (Rule: if a primitive exists,
+ * bypassing it is not allowed — defining it is not a bypass).
+ */
+const PRIMITIVE_FILES = {
+  sectionHeading: 'src/lib/components/molecules/SectionHeading.svelte',
+  card: 'src/lib/components/atoms/Card.svelte',
+  loadingCard: 'src/lib/components/atoms/LoadingCard.svelte',
+  button: 'src/lib/components/atoms/CtaButton.svelte'
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Helpers
@@ -300,38 +318,92 @@ function checkLiteralDuplication(file) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Check 6: canonical-primitive bypass (linear token checks per class value)
 // ═══════════════════════════════════════════════════════════════════════════
+//
+// Scoping: the NEW primitive rules introduced here — legacy fluid section
+// titles (section files), elevated card-shell bundles, branded action-button
+// bundles — apply to FRAMEWORK-OWNED components (src/lib/components/**), where
+// the reusable-visual-pattern rules are enforced. Admin/project route pages are
+// a separate, explicitly-scoped workstream (admin surface primitives) and are
+// not scanned by those three rules. The canonical section-heading and container
+// checks remain repo-wide (pre-existing scope, unchanged).
 
 function checkPrimitiveBypass(file) {
   const issues = []
   const content = readFile(file)
+  const rel = relative(ROOT, file)
+  const isSection = rel.startsWith('src/lib/components/sections/')
+  const isFrameworkComponent = rel.startsWith('src/lib/components/')
+
   for (const { value, index } of extractClassValues(content)) {
     const tokens = value.split(/\s+/)
+    // `has` is a substring test for partial tokens (px-, rounded-md, ...);
+    // `exact` requires the full token so `bg-pm-brand-subtle` never matches
+    // `bg-pm-brand` (badges, avatar initials, hover states must stay legal).
     const has = (s) => tokens.some((t) => t.includes(s))
+    const exact = (s) => tokens.includes(s)
 
-    const isButton = has('inline-flex') && (has('rounded-md') || has('rounded-lg')) && has('bg-pm-brand')
-    if (isButton) {
+    // ── Section title heading (canonical bundle, any file) ─────────────────
+    const isSectionHeading =
+      has('text-[var(--heading-') && has('font-black')
+    if (isSectionHeading && rel !== PRIMITIVE_FILES.sectionHeading) {
       issues.push({
-        file: relative(ROOT, file),
+        file: rel,
         line: lineAt(content, index),
-        message: 'Canonical-primitive bypass: hand-rolled button classes — use <CtaButton>'
+        message: 'Canonical-primitive bypass: hand-rolled section heading — use <SectionHeading>'
       })
     }
 
+    // ── Section title heading (legacy fluid bundle in section files) ───────
+    // The built-in sections previously hand-rolled
+    // `<h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">`.
+    const isFluidSectionTitle =
+      has('text-fluid-3xl') && has('font-bold') && has('leading-tight') &&
+      (has('mb-8') || has('mb-[var(--space-8)]'))
+    if (isFluidSectionTitle && isSection) {
+      issues.push({
+        file: rel,
+        line: lineAt(content, index),
+        message: 'Canonical-primitive bypass: hand-rolled section title — use <SectionHeading>'
+      })
+    }
+
+    // ── Card shell (elevated card bundle in framework components) ──────────
+    // The repeated elevated card shell
+    // `bg-pm-bg-elevated border border-pm-border rounded-xl overflow-hidden`
+    // (with or without a hover shadow) is the Card primitive's own bundle.
+    const isCardShell =
+      exact('bg-pm-bg-elevated') && exact('border') && exact('border-pm-border') &&
+      has('rounded-xl') && (has('overflow-hidden') || has('hover:shadow-lg'))
+    if (isCardShell && isFrameworkComponent && rel !== PRIMITIVE_FILES.card && rel !== PRIMITIVE_FILES.loadingCard) {
+      issues.push({
+        file: rel,
+        line: lineAt(content, index),
+        message: 'Canonical-primitive bypass: hand-rolled card shell — compose <Card> (or an approved card primitive)'
+      })
+    }
+
+    // ── Branded action button (framework components) ───────────────────────
+    // A brand/danger-filled button hand-rolled as
+    // `px-... py-... rounded-md bg-pm-brand ...` bypasses the button system.
+    const isActionButton =
+      (exact('bg-pm-brand') || exact('bg-pm-danger')) &&
+      (has('rounded-md') || has('rounded-lg')) &&
+      has('px-') && has('py-')
+    if (isActionButton && isFrameworkComponent && rel !== PRIMITIVE_FILES.button) {
+      issues.push({
+        file: rel,
+        line: lineAt(content, index),
+        message: 'Canonical-primitive bypass: hand-rolled action button — use <CtaButton> (extend it if a variant is missing)'
+      })
+    }
+
+    // ── Content width wrapper (any file) ────────────────────────────────────
     const isContainer = has('max-w-[var(--max-w-container)]') && has('mx-auto') && has('px-[var(--px-container)]')
     if (isContainer) {
       issues.push({
-        file: relative(ROOT, file),
+        file: rel,
         line: lineAt(content, index),
         message: 'Canonical-primitive bypass: hand-rolled container classes — use <Container> or <SectionContent>'
-      })
-    }
-
-    const isSectionHeading = has('text-[var(--heading-') && has('font-black')
-    if (isSectionHeading) {
-      issues.push({
-        file: relative(ROOT, file),
-        line: lineAt(content, index),
-        message: 'Canonical-primitive bypass: hand-rolled section heading — use <SectionHeading>'
       })
     }
   }

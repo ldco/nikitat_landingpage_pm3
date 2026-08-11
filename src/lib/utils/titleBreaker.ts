@@ -10,6 +10,11 @@
  * - " с " separator → everything after is brand-colored
  * - Otherwise: 45%/55% split, second part is brand-colored
  * - Each line balanced by character count per locale
+ *
+ * Locale behavior is DATA-DRIVEN, not hardcoded: glue words and per-line
+ * character targets live in TITLE_METRICS keyed by locale code. A locale
+ * without an entry (e.g. hi, ur) falls back to the 'en' defaults — add a
+ * TITLE_METRICS entry to tune it; no logic changes needed.
  */
 
 export interface HeroTextSegment {
@@ -17,14 +22,38 @@ export interface HeroTextSegment {
   brand: boolean
 }
 
-const RUSSIAN_GLUE_WORDS = new Set([
-  'а', 'в', 'во', 'для', 'до', 'и', 'из', 'к', 'ко', 'на', 'над', 'не', 'но', 'о', 'об',
-  'от', 'по', 'под', 'при', 'с', 'со', 'у'
-])
+interface LocaleTitleMetrics {
+  glueWords: readonly string[]
+  /** Per-line character targets: [brand, plain] for each mode. */
+  targetChars: {
+    default: readonly [number, number]
+    compact: readonly [number, number]
+  }
+}
 
-const ENGLISH_GLUE_WORDS = new Set([
-  'a', 'an', 'and', 'as', 'at', 'by', 'for', 'from', 'in', 'of', 'on', 'or', 'the', 'to'
-])
+/** English baseline — the guaranteed fallback for any locale without an entry. */
+const enMetrics: LocaleTitleMetrics = {
+  glueWords: [
+    'a', 'an', 'and', 'as', 'at', 'by', 'for', 'from', 'in', 'of', 'on', 'or', 'the', 'to'
+  ],
+  targetChars: { default: [34, 34], compact: [13, 15] }
+}
+
+const TITLE_METRICS: Record<string, LocaleTitleMetrics> = {
+  ru: {
+    glueWords: [
+      'а', 'в', 'во', 'для', 'до', 'и', 'из', 'к', 'ко', 'на', 'над', 'не', 'но', 'о', 'об',
+      'от', 'по', 'под', 'при', 'с', 'со', 'у'
+    ],
+    targetChars: { default: [27, 28], compact: [10, 11] }
+  },
+  en: enMetrics
+}
+
+function metricsForLocale(locale: string): LocaleTitleMetrics {
+  const code = locale.split(/[-_]/)[0] ?? ''
+  return TITLE_METRICS[code] ?? enMetrics
+}
 
 function normalizeGlueToken(token: string): string {
   return token
@@ -32,13 +61,9 @@ function normalizeGlueToken(token: string): string {
     .replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '')
 }
 
-function getGlueWords(locale: string): Set<string> {
-  return locale.startsWith('ru') ? RUSSIAN_GLUE_WORDS : ENGLISH_GLUE_WORDS
-}
-
 function buildWordGroups(text: string, locale: string): string[] {
   const words = text.trim().split(/\s+/).filter(Boolean)
-  const glueWords = getGlueWords(locale)
+  const glueWords = new Set(metricsForLocale(locale).glueWords)
   const groups: string[] = []
 
   for (let index = 0; index < words.length; index += 1) {
@@ -101,10 +126,9 @@ function splitWordGroupsIntoLines(groups: string[], targetCharsPerLine: number):
 }
 
 function splitSegmentIntoLines(text: string, locale: string, brand: boolean, compact: boolean): HeroTextSegment[] {
-  const isRussian = locale.startsWith('ru')
-  const targetCharsPerLine = compact
-    ? (isRussian ? (brand ? 10 : 11) : (brand ? 13 : 15))
-    : (isRussian ? (brand ? 27 : 28) : (brand ? 34 : 34))
+  const targets = metricsForLocale(locale).targetChars
+  const mode = compact ? targets.compact : targets.default
+  const targetCharsPerLine = brand ? mode[0] : mode[1]
 
   return splitWordGroupsIntoLines(buildWordGroups(text, locale), targetCharsPerLine)
     .map(line => ({ text: line, brand }))

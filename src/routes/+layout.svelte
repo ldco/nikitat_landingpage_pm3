@@ -22,17 +22,17 @@ import { useSettings } from '$lib/stores/settings.svelte'
   import ProjectAmbient from '../project/ProjectAmbient.svelte'
   import type { LayoutData } from './$types'
 
-import { setLanguageTag, isAvailableLanguageTag } from '$lib/paraglide/runtime.js'
 import { browser } from '$app/environment'
+import { syncLocaleFromHtml } from '$lib/stores/locale.svelte'
 
-// Ensure Paraglide locale matches the SSR lang attribute BEFORE hydration
-// (Paraglide-SvelteKit strategy may not fire early enough, causing
-// system translations to render in the default locale on the client)
+// BOOTSTRAP-ONLY hydration sync: align the reactive locale store with the SSR
+// <html lang> attribute BEFORE the first render (the Paraglide strategy may
+// not fire early enough on the client). It runs once per page load and is NOT
+// the language-switch mechanism — subsequent locale changes are handled by
+// LangSwitcher (setLocale() + client-side goto), which updates the runtime
+// locale, the reactive store, and the <html lang>/dir attributes.
 if (browser) {
-  const lang = document.documentElement.lang
-  if (lang && isAvailableLanguageTag(lang)) {
-    setLanguageTag(lang)
-  }
+  syncLocaleFromHtml()
 }
 
 

@@ -9,6 +9,7 @@
   import { FEATURES, MODULES } from '$lib/config/site'
   import Section from '$lib/components/atoms/Section.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
+  import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
 
   let {
     features = [] as Array<{ title: string; description: string; icon?: string }>,
@@ -26,7 +27,7 @@
 
 <Section id="features" background="default" class={className}>
   <SectionContent width={isContained ? 'default' : 'full'}>
-    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{t('sections.features')}</h2>
+    <SectionHeading title={t('sections.features')} align="center" />
     <div class={clsx('grid grid-cols-1 gap-[var(--gap-lg)]',
       colsDesktop >= 2 && 'sm:grid-cols-2',
       colsDesktop >= 3 && 'lg:grid-cols-3',

@@ -2,9 +2,10 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { t } from '$lib/stores/content.svelte'
-  import { FEATURES } from '$lib/config/site'
+  import { FEATURES, HERO_MOBILE_TITLE_TOKEN_BY_LOCALE } from '$lib/config/site'
+  import { localizedHref } from '$lib/utils/navigation'
+  import { currentLocale } from '$lib/stores/locale.svelte'
   import { breakHeroTitle } from '$lib/utils/titleBreaker'
-  import { languageTag } from '$lib/paraglide/runtime.js'
   import Logo from '$lib/components/atoms/Logo.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import type { Component } from 'svelte'
@@ -31,9 +32,20 @@
     class?: string
   } = $props()
 
-  const locale = $derived(languageTag())
+  const locale = $derived(currentLocale())
   const segments = $derived(breakHeroTitle(title, locale))
+  // Per-locale mobile title override (config-driven — no hardcoded locale
+  // checks). The map lives in site config (HERO_MOBILE_TITLE_TOKEN_BY_LOCALE);
+  // token variants are defined in src/app.css as --text-hero-title-mobile-*.
+  const mobileTitleClass = $derived(
+    Object.entries(HERO_MOBILE_TITLE_TOKEN_BY_LOCALE)
+      .find(([code]) => locale.startsWith(code))?.[1] ?? ''
+  )
   const parallaxEnabled = $derived(FEATURES.heroParallax)
+  // CTA hrefs are canonical targets (e.g. '/#focus'); derive the locale-aware
+  // URL at render time so a non-default-locale visitor keeps the locale prefix.
+  const primaryHrefLocalized = $derived(localizedHref(primaryHref, locale))
+  const secondaryHrefLocalized = $derived(localizedHref(secondaryHref, locale))
 
   let logoEl = $state<HTMLElement | null>(null)
   $effect(() => {
@@ -59,7 +71,7 @@
   {/if}
 
   <div class="flex flex-col justify-center items-start w-full max-w-[var(--content-default)] mx-auto">
-    <h1 class="text-fluid-hero font-black text-pm-text leading-[var(--hero-leading)] mb-[var(--space-5)] space-y-[var(--hero-title-line-gap)] max-sm:text-[var(--text-hero-title-mobile)] {locale.startsWith('ru') ? 'max-sm:text-[var(--text-hero-title-mobile-ru)]' : ''}">
+    <h1 class="text-fluid-hero font-black text-pm-text leading-[var(--hero-leading)] mb-[var(--space-5)] space-y-[var(--hero-title-line-gap)] max-sm:text-[var(--text-hero-title-mobile)] {mobileTitleClass}">
       {#each segments as segment}
         <span class="block w-fit" class:text-pm-brand={segment.brand}>
           {segment.text}
@@ -72,10 +84,10 @@
       </p>
     {/if}
     <div class="flex flex-wrap gap-[var(--gap-md)] max-sm:w-full">
-      <CtaButton href={primaryHref} variant="primary" size="lg" class="max-sm:w-full">
+      <CtaButton href={primaryHrefLocalized} variant="primary" size="lg" class="max-sm:w-full">
         <span>{primaryCta}</span>
       </CtaButton>
-      <CtaButton href={secondaryHref} variant="outline" size="lg" class="border max-sm:w-full">
+      <CtaButton href={secondaryHrefLocalized} variant="outline" size="lg" class="border max-sm:w-full">
         <span>{secondaryCta}</span>
       </CtaButton>
     </div>

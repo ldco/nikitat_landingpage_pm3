@@ -15,6 +15,7 @@
   import IconChevronRight from '@tabler/icons-svelte/icons/chevron-right'
   import Section from '$lib/components/atoms/Section.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
+  import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
 
   let {
     testimonials = [] as TestimonialCard[],
@@ -42,7 +43,7 @@
 
 <Section id="testimonials" background="default" class={className}>
   <SectionContent width={isContained ? 'narrow' : 'full'}>
-    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{t('sections.testimonials')}</h2>
+    <SectionHeading title={t('sections.testimonials')} align="center" />
     {#if testimonials.length > 0}
       <div class="text-center p-8 rounded-xl bg-pm-bg-elevated border border-pm-border shadow-md">
         <blockquote class="text-lg text-pm-text-secondary italic leading-relaxed">"{testimonials[current]?.quote}"</blockquote>

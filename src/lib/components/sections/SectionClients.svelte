@@ -9,6 +9,7 @@
   import { FEATURES, MODULES } from '$lib/config/site'
   import Section from '$lib/components/atoms/Section.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
+  import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
 
   let {
     clients = [] as Array<{ id: number; name: string; logoUrl?: string; websiteUrl?: string }>,
@@ -25,7 +26,7 @@
 
 <Section id="clients" background="sunken" class={className}>
   <SectionContent width={isContained ? 'default' : 'full'}>
-    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{t('sections.clients')}</h2>
+    <SectionHeading title={t('sections.clients')} align="center" />
     <div class={clsx('flex flex-wrap items-center justify-center gap-8 transition-all duration-500',
       clientsConfig.grayscale && 'opacity-50 grayscale hover:opacity-100 hover:grayscale-0',
     )}>

@@ -6,7 +6,9 @@
    * THEME INVERSION: 'dark' mode → 'light' logo, 'light' mode → 'dark' logo
    * (White logo on dark background, dark logo on light background)
    *
-   * Fallback chain: shape_theme_lang → shape_theme_en → horizontal_dark_en
+   * Fallback chain: shape_theme_lang → shape_theme_defaultLang → horizontal_dark_defaultLang
+   * (defaultLang is the project default logo language from LOGO config — never
+   * a hardcoded language)
    *
    * Rule #1: class prop + twMerge
    */
@@ -17,7 +19,7 @@
   import { getTheme } from '$lib/stores/theme.svelte'
   import { LOGO, LOCALES } from '$lib/config/site'
   import { resolveBrandLogoLang, type BrandLogoConfig } from '$lib/utils/brand-logo'
-  import * as runtime from '$lib/paraglide/runtime.js'
+  import { currentLocale as getCurrentLocale } from '$lib/stores/locale.svelte'
 
   const logoConfig: BrandLogoConfig = {
     basePath: LOGO.basePath,
@@ -46,7 +48,7 @@
   } = $props()
 
   // Resolve locale with the SHARED branding rule (same as made-by flow).
-  const currentLocale = $derived(locale ?? runtime.languageTag())
+  const currentLocale = $derived(locale ?? getCurrentLocale())
   const effectiveLang = $derived(resolveBrandLogoLang(logoConfig, currentLocale))
 
   // PM v2: invert theme — dark mode uses 'light' logo, light mode uses 'dark' logo
@@ -55,13 +57,16 @@
   const invertedTheme = $derived(currentTheme === 'dark' ? 'light' : 'dark')
 
   // Build reactive src path (client-side)
+  // Fallback chain (config-driven, NO hardcoded language): resolved locale file
+  // (via resolveBrandLogoLang: direct → assetLangFallback → defaultLang) →
+  // defaultLang file → horizontal_dark_defaultLang as the ultimate fallback.
   const src = $derived.by(() => {
     const logoAvailable = new Set(logoConfig.available)
     const primary = `${shape}_${invertedTheme}_${effectiveLang}`
     if (logoAvailable.has(primary)) return `${logoConfig.basePath}/${primary}.svg`
-    const fallback = `${shape}_${invertedTheme}_en`
-    if (logoAvailable.has(fallback)) return `${logoConfig.basePath}/${fallback}.svg`
-    return `${logoConfig.basePath}/horizontal_dark_en.svg`
+    const defaultFile = `${shape}_${invertedTheme}_${logoConfig.defaultLang}`
+    if (logoAvailable.has(defaultFile)) return `${logoConfig.basePath}/${defaultFile}.svg`
+    return `${logoConfig.basePath}/horizontal_dark_${logoConfig.defaultLang}.svg`
   })
 
   // SSR fallback paths (app-nuxt: ssrLightLogo / ssrDarkLogo)

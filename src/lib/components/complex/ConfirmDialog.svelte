@@ -15,6 +15,7 @@
   import { twMerge } from 'tailwind-merge'
   import { t } from '$lib/stores/content.svelte'
   import { getOverlaysState } from '$lib/stores/overlays.svelte'
+  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
 
   let {
     open = $bindable(false),
@@ -47,10 +48,6 @@
   const activeConfirmText = $derived(isStoreDriven ? (storeRequest?.confirmText ?? t('common.confirm')) : confirmText)
   const activeCancelText = $derived(isStoreDriven ? (storeRequest?.cancelText ?? t('common.cancel')) : cancelText)
   const activeVariant = $derived(isStoreDriven ? (storeRequest?.variant ?? 'primary') : variant)
-
-  const confirmClass = $derived(activeVariant === 'danger'
-    ? 'bg-pm-danger text-white hover:bg-pm-danger'
-    : 'bg-pm-brand text-pm-white hover:bg-pm-brand-light')
 
   $effect(() => {
     if (!isOpen) return
@@ -103,18 +100,22 @@
       </div>
       <!-- .modal-footer: flex justify-end, gap-sm, p-4, border-top -->
       <div class="flex justify-end gap-3 px-6 py-4 border-t border-pm-border">
-        <button
-          class="px-4 py-2 text-sm font-medium text-pm-text-secondary hover:text-pm-text transition-colors"
+        <CtaButton
+          variant="ghost"
+          size="compact"
+          class="text-pm-text-secondary hover:text-pm-text"
           onclick={handleCancel}
         >
           {activeCancelText}
-        </button>
-        <button
-          class={twMerge(clsx('px-4 py-2 text-sm font-medium rounded-md transition-colors', confirmClass, className))}
+        </CtaButton>
+        <CtaButton
+          variant={activeVariant === 'danger' ? 'danger' : 'primary'}
+          size="compact"
+          class={twMerge(clsx(className))}
           onclick={handleConfirm}
         >
           {activeConfirmText}
-        </button>
+        </CtaButton>
       </div>
     </div>
   </div>

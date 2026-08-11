@@ -9,6 +9,7 @@
   import BlogPostCard from '$lib/components/molecules/BlogPostCard.svelte'
   import Section from '$lib/components/atoms/Section.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
+  import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
 
   let {
     posts = [] as Array<{ slug: string; title: string; excerpt?: string; coverImageUrl?: string; publishedAt?: string }>,
@@ -23,7 +24,7 @@
 
 <Section id="blog" background="elevated" class={className}>
   <SectionContent width={isContained ? 'default' : 'full'}>
-    <h2 class="text-fluid-3xl font-bold leading-tight mb-8 text-center">{t('sections.blog')}</h2>
+    <SectionHeading title={t('sections.blog')} align="center" />
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[var(--gap-lg)]">
       {#each posts as post}
         <BlogPostCard {...post} />
