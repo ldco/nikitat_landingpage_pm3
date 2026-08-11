@@ -26,6 +26,7 @@
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import AdminFormSection from '$lib/components/molecules/AdminFormSection.svelte'
+  import MarkdownEditor from '$lib/components/molecules/MarkdownEditor.svelte'
   import type { PageData } from './$types'
   import type { AdminLegalRow } from './+page.server'
 
@@ -76,13 +77,32 @@
   const docsForm = $state<Record<string, Record<string, string>>>({})
   let initialDocsSnapshot = $state('')
 
+
+
+  // Reactive content accessor with guaranteed non-optional access for MarkdownEditor
+  function contentFor(slug: string, locale: string): string {
+    // Ensure nested objects exist (always true after init, but TS doesn't know)
+    if (!docsForm[slug]) docsForm[slug] = {}
+    return (docsForm[slug] as Record<string, string>)[locale] ?? ''
+  }
+  function setContentFor(slug: string, locale: string, value: string): void {
+    if (!docsForm[slug]) docsForm[slug] = {}
+    ;(docsForm[slug] as Record<string, string>)[locale] = value
+  }
+
+  /** Ensure docsForm[slug] is initialized for type-safe access */
+  function getDocContent(slug: string, locale: string): string {
+    docsForm[slug] = docsForm[slug] ?? {}
+    return docsForm[slug][locale] ?? ''
+  }
+
   function serializeDocs(): string {
     return JSON.stringify(
       DOC_SLUGS.map(slug => [slug, Object.fromEntries(locales.map(loc => [loc, docsForm[slug]?.[loc] ?? '']))])
     )
   }
 
-  // Synchronous init for the default locale (SSR renders document textareas).
+  // Synchronous init for all locales (SSR renders document textareas).
   {
     for (const slug of DOC_SLUGS) {
       docsForm[slug] = docsForm[slug] ?? {}
@@ -90,6 +110,10 @@
       const row = rows.find(r => r.slug === slug)
       if (docsForm[slug][activeLocale] === undefined) {
         docsForm[slug][activeLocale] = row?.content ?? ''
+      }
+      // Ensure all locales have the nested object initialized
+      for (const loc of locales) {
+        docsForm[slug][loc] = docsForm[slug][loc] ?? ''
       }
     }
     initialDocsSnapshot = serializeDocs()
@@ -210,8 +234,7 @@
     }
   }
 
-  // Preview toggle per document
-  const previewMode = $state<Record<string, boolean>>({})
+
 </script>
 
 <div class="admin-legal">
@@ -334,31 +357,17 @@
                 </span>
               </h3>
 
-              <div class="flex flex-col gap-1.5">
-                <label for="doc-body-{slug}" class="text-sm font-medium text-pm-text">{t('admin.legalDocumentBody')}</label>
-                {#if previewMode[slug]}
-                  <div class="min-h-72 px-4 py-3 rounded-md border border-pm-border bg-pm-bg prose prose-sm max-w-none prose-headings:text-pm-text prose-p:text-pm-text-secondary">
-                    <!-- eslint-disable-next-line svelte/no-at-html-tags -- renderLegalMarkdown is escape-first XSS-safe (PM2 parity) -->
-                    {@html renderLegalMarkdown(docsForm[slug]?.[activeLocale] ?? '')}
-                  </div>
-                {:else}
-                  <textarea
-                    id="doc-body-{slug}"
-                    value={docsForm[slug]?.[activeLocale] ?? ''}
-                    rows={12}
-                    class="w-full min-h-72 px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text font-mono focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring resize-y"
-                    oninput={(e) => {
-                      docsForm[slug] = docsForm[slug] ?? {}
-                      docsForm[slug][activeLocale] = (e.currentTarget as HTMLTextAreaElement).value
-                    }}
-                  ></textarea>
-                {/if}
-                <div class="flex justify-end">
-                  <CtaButton type="button" variant="ghost" size="compact" onclick={() => previewMode[slug] = !previewMode[slug]}>
-                    {previewMode[slug] ? t('admin.legalEditMode') : t('admin.legalPreviewMode')}
-                  </CtaButton>
-                </div>
-              </div>
+              <MarkdownEditor
+                content={docsForm[slug]?.[activeLocale] ?? ''}
+                onchange={(v) => {
+                  docsForm[slug] = docsForm[slug] ?? {}
+                  docsForm[slug][activeLocale] = v
+                }}
+                previewHtml={renderLegalMarkdown(docsForm[slug]?.[activeLocale] ?? '')}
+                label={t('admin.legalDocumentBody')}
+                editLabel={t('admin.legalEditMode')}
+                previewLabel={t('admin.legalPreviewMode')}
+              />
             </div>
           {/each}
       </div>

@@ -22,6 +22,7 @@
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import AdminFormSection from '$lib/components/molecules/AdminFormSection.svelte'
+  import ContactPicker from '$lib/components/molecules/ContactPicker.svelte'
   import IconBrandTelegram from '@tabler/icons-svelte/icons/brand-telegram'
   import IconBrandWhatsapp from '@tabler/icons-svelte/icons/brand-whatsapp'
   import IconBrandDiscord from '@tabler/icons-svelte/icons/brand-discord'
@@ -109,25 +110,32 @@
     })
   )
 
-  const selectedHeaderQuick = $derived(parseItems(form['contact.headerQuickItems']))
-  const selectedHeaderQuickSet = $derived(new Set(selectedHeaderQuick))
+  // Reactive contact picker arrays (synced with form string values)
+  let selectedHeaderQuick = $state<string[]>([])
+  let selectedContactPage = $state<string[]>([])
 
-  function toggleHeaderQuick(key: string): void {
-    const next = new Set(selectedHeaderQuick)
-    if (next.has(key)) next.delete(key)
-    else next.add(key)
-    form['contact.headerQuickItems'] = serializeItems([...next])
+  // Init from server data synchronously
+  {
+    selectedHeaderQuick = parseItems(form['contact.headerQuickItems'])
+    selectedContactPage = parseItems(form['contact.contactPageItems'])
   }
 
-  const selectedContactPage = $derived(parseItems(form['contact.contactPageItems']))
-  const selectedContactPageSet = $derived(new Set(selectedContactPage))
+  // Sync arrays → form string
+  $effect(() => {
+    form['contact.headerQuickItems'] = serializeItems(selectedHeaderQuick)
+  })
+  $effect(() => {
+    form['contact.contactPageItems'] = serializeItems(selectedContactPage)
+  })
 
-  function toggleContactPage(key: string): void {
-    const next = new Set(selectedContactPage)
-    if (next.has(key)) next.delete(key)
-    else next.add(key)
-    form['contact.contactPageItems'] = serializeItems([...next])
-  }
+  // Contact option objects for ContactPicker component
+  const contactOptions = $derived(
+    availableContactOptions.map(key => ({
+      key,
+      label: optionLabel(key),
+      icon: optionIcon(key)
+    }))
+  )
 
   function optionLabel(key: string): string {
     return t(`settings.${key}`)
@@ -229,23 +237,8 @@
                 <p class="text-sm text-pm-text-muted m-0">{t('admin.headerQuickContactIconsDesc')}</p>
               </div>
 
-              {#if availableContactOptions.length > 0}
-                <div class="flex flex-wrap gap-3">
-                  {#each availableContactOptions as key (key)}
-                    {@const Icon = optionIcon(key)}
-                    <button
-                      type="button"
-                      class={clsx('inline-flex items-center gap-2 min-h-11 px-3 py-2 rounded-full border text-sm transition-all cursor-pointer', selectedHeaderQuickSet.has(key)
-                        ? 'border-pm-brand bg-pm-brand text-white'
-                        : 'border-pm-border bg-pm-bg text-pm-text-muted hover:border-pm-brand hover:text-pm-text')}
-                      aria-pressed={selectedHeaderQuickSet.has(key)}
-                      onclick={() => toggleHeaderQuick(key)}
-                    >
-                      <Icon class="size-5 shrink-0" />
-                      <span class="text-sm font-medium">{optionLabel(key)}</span>
-                    </button>
-                  {/each}
-                </div>
+              {#if contactOptions.length > 0}
+                <ContactPicker options={contactOptions} bind:selected={selectedHeaderQuick} />
               {:else}
                 <p class="text-sm text-pm-text-muted">{t('admin.headerQuickContactIconsEmpty')}</p>
               {/if}
@@ -257,23 +250,8 @@
                 <p class="text-sm text-pm-text-muted m-0">{t('admin.contactPageButtonsDesc')}</p>
               </div>
 
-              {#if availableContactOptions.length > 0}
-                <div class="flex flex-wrap gap-3">
-                  {#each availableContactOptions as key (key)}
-                    {@const Icon = optionIcon(key)}
-                    <button
-                      type="button"
-                      class={clsx('inline-flex items-center gap-2 min-h-11 px-3 py-2 rounded-full border text-sm transition-all cursor-pointer', selectedContactPageSet.has(key)
-                        ? 'border-pm-brand bg-pm-brand text-white'
-                        : 'border-pm-border bg-pm-bg text-pm-text-muted hover:border-pm-brand hover:text-pm-text')}
-                      aria-pressed={selectedContactPageSet.has(key)}
-                      onclick={() => toggleContactPage(key)}
-                    >
-                      <Icon class="size-5 shrink-0" />
-                      <span class="text-sm font-medium">{optionLabel(key)}</span>
-                    </button>
-                  {/each}
-                </div>
+              {#if contactOptions.length > 0}
+                <ContactPicker options={contactOptions} bind:selected={selectedContactPage} />
               {:else}
                 <p class="text-sm text-pm-text-muted">{t('admin.contactPageButtonsEmpty')}</p>
               {/if}
