@@ -221,13 +221,13 @@ export const ADMIN_CONFIG: AdminConfig = {
   },
   websiteModules: {
     sections: { enabled: false, roles: ['master', 'admin', 'editor'] },
-    blog: { enabled: false, roles: ['master', 'admin', 'editor'] },
+    blog: { enabled: true, roles: ['master', 'admin', 'editor'] },
     portfolio: { enabled: true, roles: ['master', 'admin'] },
     team: { enabled: false, roles: ['master', 'admin'] },
     testimonials: { enabled: false, roles: ['master', 'admin', 'editor'] },
     faq: { enabled: true, roles: ['master', 'admin', 'editor'] },
     clients: { enabled: false, roles: ['master', 'admin'] },
-    pricing: { enabled: false, roles: ['master', 'admin'] },
+    pricing: { enabled: true, roles: ['master', 'admin'] },
     features: { enabled: true, roles: ['master', 'admin', 'editor'] },
     contacts: { enabled: true, roles: ['master', 'admin'] }
   }

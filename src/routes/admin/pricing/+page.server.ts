@@ -1,10 +1,33 @@
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { useDatabase, schema } from '$lib/server/db'
+import { eq, and, asc } from 'drizzle-orm'
 import type { PageServerLoad } from './$types'
+import { detectAdminLocale } from '$lib/server/utils/locales'
 
 export const load: PageServerLoad = (event) => {
   requireAdminPage(event, 'pricing')
   const db = useDatabase()
-  const items = db.select({ id: schema.pricingTiers.id, slug: schema.pricingTiers.slug, name: schema.pricingTiers.name, price: schema.pricingTiers.price, featured: schema.pricingTiers.featured }).from(schema.pricingTiers).all()
+  const locale = detectAdminLocale(event)
+
+  const items = db.select({
+    id: schema.pricingTiers.id,
+    slug: schema.pricingTiers.slug,
+    name: schema.pricingTiers.name,
+    price: schema.pricingTiers.price,
+    currency: schema.pricingTiers.currency,
+    period: schema.pricingTiers.period,
+    featured: schema.pricingTiers.featured,
+    published: schema.pricingTiers.published,
+    order: schema.pricingTiers.order,
+    translationName: schema.pricingTierTranslations.name
+  })
+    .from(schema.pricingTiers)
+    .leftJoin(schema.pricingTierTranslations, and(
+      eq(schema.pricingTierTranslations.tierId, schema.pricingTiers.id),
+      eq(schema.pricingTierTranslations.locale, locale)
+    ))
+    .orderBy(asc(schema.pricingTiers.order))
+    .all()
+
   return { items }
 }
