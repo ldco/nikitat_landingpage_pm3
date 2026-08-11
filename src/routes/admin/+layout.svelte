@@ -20,10 +20,13 @@
     IconHome, IconUsers, IconSettings, IconLanguage, IconPhoto,
     IconArticle, IconUsersGroup, IconQuote, IconHelpCircle, IconBuilding,
     IconCreditCard, IconSparkles, IconMail, IconClipboardList, IconActivity,
-    IconLogout, IconShieldCheck, IconQuestionMark, IconX, IconMenu2
+    IconShieldCheck, IconQuestionMark, IconX, IconMenu2, IconScale
   } from '@tabler/icons-svelte'
   import { FEATURES } from '$lib/config/site'
   import { t as contentT } from '$lib/stores/content.svelte'
+  import UserMenu from '$lib/components/molecules/UserMenu.svelte'
+  import AppBottomNav from '$lib/components/molecules/AppBottomNav.svelte'
+  import AppMobileHeader from '$lib/components/molecules/AppMobileHeader.svelte'
 
   import type { PageData } from './$types'
 
@@ -42,7 +45,8 @@
     portfolios: 'admin.portfolios', blog: 'admin.blog', team: 'admin.team',
     testimonials: 'admin.testimonials', faq: 'admin.faq', clients: 'admin.clients',
     pricing: 'admin.pricing', features: 'admin.features', contacts: 'admin.contacts',
-    audit: 'admin.auditLog', health: 'admin.health', security: 'admin.security'
+    audit: 'admin.auditLog', health: 'admin.health', security: 'admin.security',
+    legal: 'admin.legal'
   }
 
   const adminSections = $derived(
@@ -60,7 +64,8 @@
     portfolios: IconPhoto, blog: IconArticle, team: IconUsersGroup,
     testimonials: IconQuote, faq: IconHelpCircle, clients: IconBuilding,
     pricing: IconCreditCard, features: IconSparkles, contacts: IconMail,
-    audit: IconClipboardList, health: IconActivity, security: IconShieldCheck
+    audit: IconClipboardList, health: IconActivity, security: IconShieldCheck,
+    legal: IconScale
   }
 
   const currentPath = $derived($page.url.pathname)
@@ -74,17 +79,8 @@
     return t['admin.dashboard'] ?? 'admin.dashboard'
   })
 
-  const userInitials = $derived(
-    user ? (user.name ?? user.email).charAt(0).toUpperCase() : '?'
-  )
-
   let mobileOpen = $state(false)
-  let userMenuOpen = $state(false)
-  let mobileUserMenuOpen = $state(false)
   let unreadCount = $derived(Number($page.data.unreadCount) || 0)
-
-  function toggleUserMenu() { userMenuOpen = !userMenuOpen }
-  function toggleMobileUserMenu() { mobileUserMenuOpen = !mobileUserMenuOpen }
 
   $effect(() => {
     // Only the authenticated admin shell polls the unread count — the login
@@ -110,12 +106,7 @@
   </main>
 {:else}
 
-<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<div class="min-h-screen bg-pm-bg" onclick={(e) => {
-  const t2 = e.target as HTMLElement
-  if (!t2.closest('.user-menu-wrapper')) { userMenuOpen = false }
-  if (!t2.closest('.mobile-user-wrapper')) { mobileUserMenuOpen = false }
-}} onkeydown={(e) => { if (e.key === 'Escape') { userMenuOpen = false; mobileUserMenuOpen = false } }} role="presentation">
+<div class="min-h-screen bg-pm-bg">
   {#if useVerticalNav}
     <!-- VERTICAL MODE: Desktop Sidebar (PM v2: admin.vue lines 286-364) -->
     <aside class="fixed top-0 start-0 z-[var(--z-sticky)] hidden lg:flex flex-col w-16 h-full bg-pm-bg-elevated border-e border-pm-border">
@@ -141,27 +132,8 @@
           </a>
         {/each}
       </nav>
-      <div class="p-2 border-t border-pm-border user-menu-wrapper">
-        {#if user}
-          <button type="button" onclick={toggleUserMenu}
-            class="flex items-center justify-center size-10 rounded-full bg-pm-brand-subtle text-pm-brand text-sm font-bold mx-auto hover:scale-105 transition-transform"
-          >
-            {userInitials}
-          </button>
-          {#if userMenuOpen}
-            <div class="absolute bottom-full mb-2 start-2 w-56 bg-pm-bg-elevated border border-pm-border rounded-xl shadow-xl z-[var(--z-popover)] p-3">
-              <div class="flex flex-col gap-1 mb-3 pb-3 border-b border-pm-border">
-                <span class="text-sm font-medium text-pm-text">{user.name ?? user.email}</span>
-                <span class="text-xs text-pm-text-muted">{user.email}</span>
-                <span class="text-xs text-pm-text-muted capitalize">{user.role}</span>
-              </div>
-              <a href="/api/auth/logout" class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken">
-                <IconLogout class="size-4" />
-                {contentT('auth.logout')}
-              </a>
-            </div>
-          {/if}
-        {/if}
+      <div class="p-2 border-t border-pm-border">
+        <UserMenu {user} />
       </div>
     </aside>
   {:else}
@@ -184,72 +156,18 @@
             </a>
           {/each}
         </nav>
-        <div class="flex items-center gap-2 user-menu-wrapper">
-          {#if user}
-            <button type="button" onclick={toggleUserMenu}
-              class="size-9 rounded-full bg-pm-brand-subtle text-pm-brand text-sm font-bold flex items-center justify-center hover:scale-105 transition-transform"
-            >
-              {userInitials}
-            </button>
-            {#if userMenuOpen}
-              <div class="absolute top-full end-0 mt-2 w-56 bg-pm-bg-elevated border border-pm-border rounded-xl shadow-xl z-[var(--z-popover)] p-3">
-                <div class="flex flex-col gap-1 mb-3 pb-3 border-b border-pm-border">
-                  <span class="text-sm font-medium text-pm-text">{user.name ?? user.email}</span>
-                  <span class="text-xs text-pm-text-muted">{user.email}</span>
-                  <span class="text-xs text-pm-text-muted capitalize">{user.role}</span>
-                </div>
-                <a href="/api/auth/logout" class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken">
-                  <IconLogout class="size-4" />
-                  {contentT('auth.logout')}
-                </a>
-              </div>
-            {/if}
-          {/if}
+        <div class="flex items-center gap-2">
+          <UserMenu {user} />
         </div>
       </div>
     </header>
   {/if}
 
-  <!-- Mobile Header (PM v2: admin.vue lines 374-426) — shown on phones -->
-  <header class="sticky top-0 z-[var(--z-sticky)] lg:hidden flex items-center justify-between gap-3 px-4 py-2.5 bg-pm-bg-elevated border-b border-pm-border sm:hidden">
-    <span class="text-sm font-medium text-pm-text">{currentPageTitle()}</span>
-    <div class="relative mobile-user-wrapper">
-      <button type="button" onclick={toggleMobileUserMenu}
-        class="size-9 rounded-full bg-pm-brand-subtle text-pm-brand text-sm font-bold flex items-center justify-center"
-      >
-        {userInitials}
-      </button>
-      {#if mobileUserMenuOpen}
-        <div class="absolute end-0 top-full mt-2 w-64 bg-pm-bg-elevated border border-pm-border rounded-xl shadow-xl z-[var(--z-popover)] p-3">
-          {#if user}
-            <div class="flex flex-col gap-1 mb-3 pb-3 border-b border-pm-border">
-              <span class="text-sm font-medium text-pm-text">{user.name ?? user.email}</span>
-              <span class="text-xs text-pm-text-muted">{user.email}</span>
-              <span class="text-xs text-pm-text-muted capitalize">{user.role}</span>
-            </div>
-          {/if}
-          <a href="/api/auth/logout" class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken">
-            <IconLogout class="size-4" />
-            {contentT('auth.logout')}
-          </a>
-        </div>
-      {/if}
-    </div>
-  </header>
+  <!-- Mobile Header (using AppMobileHeader molecule) -->
+  <AppMobileHeader pageTitle={currentPageTitle()} {user} />
 
-  <!-- Mobile Bottom Nav (PM v2: bottom-nav.css 255 lines) -->
-  <nav class="fixed bottom-0 left-0 right-0 z-[var(--z-sticky)] lg:hidden bg-pm-bg-elevated border-t border-pm-border sm:flex md:hidden">
-    <div class="flex overflow-x-auto snap-x snap-mandatory scrollbar-none h-14">
-      {#each adminSections.slice(0, 8) as section}
-        <a href={section.id === 'dashboard' ? '/admin' : `/admin/${section.id}`}
-          class={clsx('flex flex-col items-center justify-center gap-0.5 px-3 py-1 text-xs snap-start shrink-0 min-w-16 transition-colors',
-            isActive(section.id) ? 'text-pm-brand' : 'text-pm-text-muted hover:text-pm-text'
-          )}>
-          <span class="text-xs font-medium">{section.label}</span>
-        </a>
-      {/each}
-    </div>
-  </nav>
+  <!-- Mobile Bottom Nav (using AppBottomNav molecule) -->
+  <AppBottomNav sections={adminSections} {currentPath} {unreadCount} />
 
   <!-- Mobile Hamburger Toggle (phone only) -->
   <button class="fixed top-3 end-3 z-[var(--z-hamburger)] sm:hidden flex items-center justify-center size-10 rounded-md bg-pm-bg-elevated border border-pm-border shadow-md"
@@ -278,9 +196,9 @@
     </div>
   {/if}
 
-  <!-- Main Content -->
+  <!-- Main Content (PM v2 admin-content.css: p-10 desktop / p-8 px-5 tablet / p-6 px-4 phone, max-width 62.5rem) -->
   <main class={clsx('min-h-screen', 'pb-14 sm:pb-0', useVerticalNav && 'lg:ms-16')}>
-    <div class="p-4 sm:p-6 lg:p-10 mx-auto max-w-[var(--max-w-content)]">
+    <div class="mx-auto w-full max-w-[var(--max-w-content)] px-4 py-6 sm:px-5 sm:py-8 lg:px-0 lg:py-10">
       {@render children?.()}
     </div>
   </main>
