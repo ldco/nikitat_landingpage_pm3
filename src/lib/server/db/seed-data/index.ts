@@ -9,6 +9,7 @@ import { seedUsers } from './users'
 import { seedRoles } from './roles'
 import { seedSettings } from './settings'
 import { seedTranslations } from './translations'
+import { seedLegalDocuments } from './legal'
 import { seedFeatures } from './features'
 import { seedFaq } from './faq'
 
@@ -17,6 +18,7 @@ export function seedAll() {
   seedRoles()
   seedSettings()
   seedTranslations()
+  seedLegalDocuments()
   seedFeatures()
   seedFaq()
 }

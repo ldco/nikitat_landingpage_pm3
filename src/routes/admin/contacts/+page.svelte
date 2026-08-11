@@ -1,46 +1,123 @@
 <script lang="ts">
   /**
-   * Admin Contact Inbox — View submissions
+   * Admin Contact Inbox — View submissions with read/unread indicators
    */
   import { page } from '$app/stores'
-import { t } from '$lib/stores/content.svelte'
+  import { t } from '$lib/stores/content.svelte'
+  import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
   import { getAdminT } from '$lib/utils/admin-translations'
+  import { adminDelete } from '$lib/api/client'
+  import PageHeader from '$lib/components/atoms/PageHeader.svelte'
+  import EmptyState from '$lib/components/atoms/EmptyState.svelte'
+  import AdminDataTable, { type AdminTableColumn } from '$lib/components/admin/AdminDataTable.svelte'
+  import IconEye from '@tabler/icons-svelte/icons/eye'
+  import IconTrash from '@tabler/icons-svelte/icons/trash'
+  import { goto } from '$app/navigation'
+  import { clsx } from 'clsx'
   import type { PageData } from './$types'
+
   let { data }: { data: PageData } = $props()
   const items = $derived(data.items)
   const adminT = $derived(getAdminT($page.data))
+  let deletePending = $state<number | null>(null)
+  let deleteError = $state<string | null>(null)
+
+  const columns = $derived<AdminTableColumn[]>([
+    { key: 'read', label: '' },
+    { key: 'name', label: adminT['admin.name'] ?? t('common.name') },
+    { key: 'email', label: adminT['admin.email'] ?? t('common.email') },
+    { key: 'date', label: adminT['admin.date'] ?? t('common.date') }
+  ])
+
+  async function handleMarkRead(id: number) {
+    try {
+      const res = await fetch('/api/admin/contacts/' + id, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': $page.data.csrfToken
+        },
+        body: JSON.stringify({ read: true })
+      })
+      if (!res.ok) throw new Error('HTTP ' + res.status)
+      goto(ADMIN_ROUTES.contacts)
+    } catch (e: unknown) {
+      console.error('[admin] mark read failed:', e instanceof Error ? e.message : e)
+    }
+  }
+
+  async function handleDelete(id: number, name: string) {
+    const msg = adminT['admin.confirmDelete'] ?? t('common.areYouSure')
+    if (!confirm(msg + ' "' + name + '"?')) return
+    deletePending = id
+    deleteError = null
+    try {
+      const result = await adminDelete('contacts', id)
+      if (!result.success) {
+        deleteError = result.error?.message ?? t('common.error')
+        return
+      }
+      goto(ADMIN_ROUTES.contacts)
+    } catch (e: unknown) {
+      console.error('[admin] contacts delete failed:', e instanceof Error ? e.message : e)
+      deleteError = t('common.error')
+    } finally {
+      deletePending = null
+    }
+  }
 </script>
 
 <div class="max-w-[var(--max-w-content)] mx-auto">
-  <div class="flex items-center justify-between gap-4 py-4 mb-6 border-b border-pm-border">
-    <h1 class="text-2xl font-bold text-pm-text">{adminT['admin.contacts'] || 'Contacts'}</h1>
-    <span class="text-sm text-pm-text-muted">{items.length} {adminT['admin.total'] || 'total'}</span>
-  </div>
+  <PageHeader title={adminT['admin.contacts'] ?? t('admin.contacts')} itemCount={items.length} />
 
-  <div class="bg-pm-bg-elevated border border-pm-border rounded-xl overflow-hidden">
-    <table class="w-full text-sm">
-      <thead class="bg-pm-bg-sunken">
-        <tr>
-          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase">{adminT['admin.name'] || t('common.name')}</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase">{adminT['admin.email'] || t('common.email')}</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase">{adminT['admin.date'] || 'Date'}</th>
-          <th class="px-4 py-3 text-right text-xs font-medium text-pm-text-muted uppercase">{adminT['admin.actions'] || 'Actions'}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each items as item (item.id)}
-          <tr class="border-b border-pm-border hover:bg-pm-bg-elevated transition-colors">
-            <td class="px-4 py-3 font-medium text-pm-text">{item.name}</td>
-            <td class="px-4 py-3 text-pm-text-muted">{item.email}</td>
-            <td class="px-4 py-3 text-pm-text-muted">{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '—'}</td>
-            <td class="px-4 py-3 text-right text-xs text-pm-text-muted">—</td>
-          </tr>
-        {/each}
-      </tbody>
-    </table>
-  </div>
-
-  {#if items.length === 0}
-    <p class="text-center text-pm-text-muted py-8">{adminT['admin.noItems'] || t('common.noResults')}</p>
+  {#if deleteError}
+    <div class="mb-4 p-3 bg-pm-danger-bg border border-pm-danger rounded-[var(--radius-lg)] text-sm text-pm-danger">
+      {deleteError}
+      <button onclick={() => deleteError = null} class="ms-2 underline hover:no-underline">{t('common.dismiss')}</button>
+    </div>
   {/if}
+
+  <div class="mt-6">
+    {#if items.length === 0}
+      <EmptyState type="empty-box" size="compact" title={adminT['admin.noItems'] ?? t('common.noResults')} />
+    {:else}
+      <AdminDataTable {columns} items={items} emptyMessage={adminT['admin.noItems'] ?? t('common.noResults')}>
+        {#snippet cell(column, item)}
+          {@const row = item as { id: number; name: string; email: string; read: boolean; createdAt: Date }}
+          {#if column.key === 'read'}
+            {#if !row.read}
+              <span class="inline-block size-2 rounded-full bg-pm-brand" title={adminT['admin.markRead'] ?? t('admin.markRead')}></span>
+            {/if}
+          {:else if column.key === 'name'}
+            <span class={clsx('font-medium', !row.read && 'font-bold text-pm-text')}>
+              {row.name}
+            </span>
+          {:else if column.key === 'email'}
+            <span class="text-pm-text-muted">{row.email}</span>
+          {:else}
+            <span class="text-pm-text-muted text-sm">{new Date(row.createdAt).toLocaleDateString()}</span>
+          {/if}
+        {/snippet}
+        {#snippet actions(item)}
+          {@const row = item as { id: number; name: string; read: boolean }}
+          <div class="flex items-center justify-end gap-1">
+            {#if !row.read}
+              <button onclick={() => handleMarkRead(row.id)}
+                class="p-1.5 rounded-md text-pm-text-muted hover:text-pm-brand hover:bg-pm-bg-sunken transition-colors"
+                title={adminT['admin.markRead'] ?? t('admin.markRead')}
+                aria-label={adminT['admin.markRead'] ?? t('admin.markRead')}>
+                <IconEye class="size-4" />
+              </button>
+            {/if}
+            <button onclick={() => handleDelete(row.id, row.name)}
+              disabled={deletePending === row.id}
+              class="p-1.5 rounded-md text-pm-text-muted hover:text-pm-danger hover:bg-pm-bg-sunken transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label={t('common.delete')}>
+              <IconTrash class="size-4" />
+            </button>
+          </div>
+        {/snippet}
+      </AdminDataTable>
+    {/if}
+  </div>
 </div>

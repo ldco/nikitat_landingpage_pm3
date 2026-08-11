@@ -3,13 +3,18 @@
  *
  * Credentials NEVER have reusable defaults. Every seeded account is
  * bootstrapped from environment variables (PM_ADMIN_MASTER_* / PM_ADMIN_ADMIN_*
- * / PM_ADMIN_USER_*). When the environment does not provide a password:
+ * / PM_ADMIN_USER_*). The npm flows (`npm run db:seed` / `npm run db:reset`)
+ * bootstrap .env FIRST (predb:* runs scripts/env-bootstrap.mjs) and pass it to
+ * this process via `tsx --env-file=.env`, so the seeded credentials and the
+ * generated .env values come from the same source from the first command
+ * onward. When the environment does not provide a password:
  *   - local development — a one-time random password is generated and printed
  *     to the console (interactive TTY only, never to log-captured output) so
  *     the developer can log in; it is never persisted anywhere and never
- *     reused. Local resets are NOT blocked by the project being in 'build'
- *     PM_MODE (that mode is a permanent project config, not a deployment
- *     signal).
+ *     reused. This fallback applies only when the seed runs directly (e.g.
+ *     `npx tsx src/lib/server/db/seed.ts`) without a .env. Local resets are
+ *     NOT blocked by the project being in 'build' PM_MODE (that mode is a
+ *     permanent project config, not a deployment signal).
  *   - production / explicitly enforced environments (NODE_ENV=production or
  *     PM_ADMIN_BOOTSTRAP_ENFORCE=true) — the seed FAILS FAST with the list of
  *     missing keys; the operator must provide credentials (e.g. via
@@ -32,9 +37,27 @@ interface SeedTarget {
 }
 
 const SEED_TARGETS: SeedTarget[] = [
-  { role: 'master', emailKey: 'PM_ADMIN_MASTER_EMAIL', passwordKey: 'PM_ADMIN_MASTER_PASSWORD', defaultEmail: 'master@example.com', name: 'Developer' },
-  { role: 'admin', emailKey: 'PM_ADMIN_ADMIN_EMAIL', passwordKey: 'PM_ADMIN_ADMIN_PASSWORD', defaultEmail: 'admin@example.com', name: 'Client Owner' },
-  { role: 'editor', emailKey: 'PM_ADMIN_USER_EMAIL', passwordKey: 'PM_ADMIN_USER_PASSWORD', defaultEmail: 'editor@example.com', name: 'Content Editor' }
+  {
+    role: 'master',
+    emailKey: 'PM_ADMIN_MASTER_EMAIL',
+    passwordKey: 'PM_ADMIN_MASTER_PASSWORD',
+    defaultEmail: 'master@example.com',
+    name: 'Developer'
+  },
+  {
+    role: 'admin',
+    emailKey: 'PM_ADMIN_ADMIN_EMAIL',
+    passwordKey: 'PM_ADMIN_ADMIN_PASSWORD',
+    defaultEmail: 'admin@example.com',
+    name: 'Client Owner'
+  },
+  {
+    role: 'editor',
+    emailKey: 'PM_ADMIN_USER_EMAIL',
+    passwordKey: 'PM_ADMIN_USER_PASSWORD',
+    defaultEmail: 'editor@example.com',
+    name: 'Content Editor'
+  }
 ]
 
 /**
@@ -62,7 +85,7 @@ function assertStrongBootstrapPassword(target: SeedTarget, password: string): vo
   if (!result.valid) {
     throw new Error(
       `${target.passwordKey} is not strong enough: ${result.errors.join(', ')}. ` +
-      'Generate strong random values with: node scripts/rotate-admin-passwords.mjs --generate --write-env'
+        'Generate strong random values with: node scripts/rotate-admin-passwords.mjs --generate --write-env'
     )
   }
 }
@@ -76,20 +99,19 @@ function assertStrongBootstrapPassword(target: SeedTarget, password: string): vo
 export function validateBootstrapCredentials(): void {
   if (!shouldEnforceBootstrapCredentials()) return
 
-  const problems = SEED_TARGETS
-    .map(target => {
-      const configured = process.env[target.passwordKey]
-      if (!configured) return `${target.passwordKey} is missing`
-      const result = validatePassword(configured, DEFAULT_PASSWORD_POLICY)
-      if (!result.valid) return `${target.passwordKey} is not strong enough (${result.errors.join(', ')})`
-      return null
-    })
-    .filter((problem): problem is string => problem !== null)
+  const problems = SEED_TARGETS.map(target => {
+    const configured = process.env[target.passwordKey]
+    if (!configured) return `${target.passwordKey} is missing`
+    const result = validatePassword(configured, DEFAULT_PASSWORD_POLICY)
+    if (!result.valid)
+      return `${target.passwordKey} is not strong enough (${result.errors.join(', ')})`
+    return null
+  }).filter((problem): problem is string => problem !== null)
 
   if (problems.length > 0) {
     throw new Error(
       `Bootstrap credentials invalid in enforced environment: ${problems.join('; ')}. ` +
-      'Set them in the environment or generate them with: node scripts/rotate-admin-passwords.mjs --generate --write-env'
+        'Set them in the environment or generate them with: node scripts/rotate-admin-passwords.mjs --generate --write-env'
     )
   }
 }
@@ -123,7 +145,11 @@ function generateBootstrapPassword(): string {
 }
 
 /** Resolve credentials for one target: env → dev-generated random → fail fast. */
-function resolveCredentials(target: SeedTarget): { email: string; password: string; generated: boolean } {
+function resolveCredentials(target: SeedTarget): {
+  email: string
+  password: string
+  generated: boolean
+} {
   const email = process.env[target.emailKey] || target.defaultEmail
   const configured = process.env[target.passwordKey]
 
@@ -137,8 +163,8 @@ function resolveCredentials(target: SeedTarget): { email: string; password: stri
   if (shouldEnforceBootstrapCredentials()) {
     throw new Error(
       `Cannot seed ${target.role} account: ${target.passwordKey} is required in this environment ` +
-      `(NODE_ENV=production or PM_ADMIN_BOOTSTRAP_ENFORCE=true). Set ${target.passwordKey} (and optionally ${target.emailKey}) ` +
-      'or generate credentials with: node scripts/rotate-admin-passwords.mjs --generate --write-env'
+        `(NODE_ENV=production or PM_ADMIN_BOOTSTRAP_ENFORCE=true). Set ${target.passwordKey} (and optionally ${target.emailKey}) ` +
+        'or generate credentials with: node scripts/rotate-admin-passwords.mjs --generate --write-env'
     )
   }
 
@@ -156,15 +182,17 @@ export function seedUsers() {
   console.log('👤 Creating users...')
   for (const target of SEED_TARGETS) {
     const { email, password, generated } = resolveCredentials(target)
-    db.insert(schema.users).values({
-      email,
-      passwordHash: hashPassword(password),
-      name: target.name,
-      role: target.role,
-      // First-login hardening: bootstrap credentials must be replaced by the
-      // operator on the first login before normal admin access is allowed.
-      mustChangePassword: true
-    }).run()
+    db.insert(schema.users)
+      .values({
+        email,
+        passwordHash: hashPassword(password),
+        name: target.name,
+        role: target.role,
+        // First-login hardening: bootstrap credentials must be replaced by the
+        // operator on the first login before normal admin access is allowed.
+        mustChangePassword: true
+      })
+      .run()
     if (generated) {
       // One-time dev bootstrap only — printed once because it is not stored
       // anywhere and cannot be recovered otherwise. Only print on an
@@ -174,7 +202,9 @@ export function seedUsers() {
         console.log(`   ✓ ${email} (${target.role}) — temporary dev password: ${password}`)
         console.log('     Change it on first login. This password is not persisted.')
       } else {
-        console.log(`   ✓ ${email} (${target.role}) — temporary dev password generated (not shown on non-interactive output)`)
+        console.log(
+          `   ✓ ${email} (${target.role}) — temporary dev password generated (not shown on non-interactive output)`
+        )
       }
     } else {
       console.log(`   ✓ ${email} (${target.role}) — bootstrapped from ${target.passwordKey}`)

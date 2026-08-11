@@ -64,7 +64,18 @@ ansible-galaxy collection install -r ansible/requirements.yml
 
 ## Required `.env` contract
 
-Generate and fill the baseline deploy contract first:
+The env model has three distinct contracts (PM2-style narrow runtime surface + automated bootstrap/validation lifecycle), not one mixed workspace:
+
+1. **Runtime app config** — the narrow surface the app reads via `process.env` and validates in `src/lib/server/utils/env.ts` (`NODE_ENV`, `PORT`, `DATABASE_URL`, `LOG_LEVEL`, `TOTP_ENCRYPTION_KEY`, `PM_TRUST_PROXY`, `SMTP_*`, `CLAMAV_*`, `SENTRY_*`, `PM_FEATURES_HIBP`). There are no soft dev fallbacks — a missing required value fails clearly and early.
+2. **Long-lived deploy secrets** — generated **only during first-time bootstrap** (`ensure_framework_env` in `scripts/lib/deploy-env.sh`): `DEPLOY_USER_PASSWORD`, `PM_SETTINGS_ENCRYPTION_KEY`, `PM_ADMIN_MASTER_PASSWORD`, `PM_ADMIN_ADMIN_PASSWORD`, `PM_ADMIN_USER_PASSWORD`. Never read by the app; used only by setup/deploy/rotation.
+3. **First-run operator inputs** — site facts + deploy transport: `SERVER_IP`, `SITE_DOMAIN`, `ACME_EMAIL` (+ `SERVER_ROOT_PASSWORD` for the first-time password bootstrap), `SSH_KEY`, `DEPLOY_USER`, Docker/registry settings, Traefik image, admin rotation flag.
+
+### Lifecycle: bootstrap vs steady-state
+
+- **First-time bootstrap** (no setup state file yet, or explicit `PM_ENV_INIT=1`): `npm run setup`, `npm run deploy`, `npm run dev` and `npm run db:seed`/`db:reset` may create `.env` from `.env.example` and auto-generate the long-lived secrets. `npm run setup` prompts for the site facts on a TTY; the preflight otherwise fails fast listing the missing ones.
+- **Steady state** (setup state exists): `npm run setup` and `npm run deploy` validate the initialized `.env` — `.env` must exist and the stable keys above must be real values. They **fail instead of regenerating**: silently regenerating long-lived secrets would orphan encrypted settings and 2FA secrets on the deployed server. Restore `.env` from a backup, or re-initialize intentionally with `PM_ENV_INIT=1`.
+
+`npm run deploy:secrets` remains available as an explicit helper for the same contract:
 
 ```bash
 npm run deploy:secrets
@@ -76,9 +87,7 @@ If you intentionally choose registry mode, pass the registry token through the e
 PM_DOCKER_TOKEN=your_registry_token npm run deploy:secrets
 ```
 
-The script generates `DEPLOY_USER_PASSWORD` and `PM_SETTINGS_ENCRYPTION_KEY`, then writes the Docker-first keys below. Values that cannot be safely generated, such as `SERVER_IP`, `SITE_DOMAIN`, `ACME_EMAIL`, `DEPLOY_SSH_KEY`, and optional registry credentials, must still come from the operator or secret manager.
-
-Minimum production values:
+Reference of the deploy contract (contracts 2 + 3; all but the site facts are framework-generated/defaulted):
 
 ```env
 APP_VERSION=0.1.0
@@ -103,6 +112,13 @@ PM_DOCKER_SSH_REGISTRY_PORT=5000
 PM_DOCKER_STREAM_COMPRESSION=zstd
 PM_APP_CONTAINER_NAME=puppetmaster2-app
 PM_APP_NETWORK=puppetmaster2
+PM_ADMIN_PASSWORD_ROTATION_ENABLED=true
+PM_ADMIN_MASTER_EMAIL=master@example.com
+PM_ADMIN_MASTER_PASSWORD=<strong-random-password>
+PM_ADMIN_ADMIN_EMAIL=admin@example.com
+PM_ADMIN_ADMIN_PASSWORD=<strong-random-password>
+PM_ADMIN_USER_EMAIL=editor@example.com
+PM_ADMIN_USER_PASSWORD=<strong-random-password>
 ```
 
 `APP_VERSION` is the stable product/app version shown in admin and health responses.
@@ -112,13 +128,7 @@ The build version is generated automatically from the exact deploy build timesta
 If the server does not already have the private registry image, setup/deploy loads `PM_DOCKER_SSH_REGISTRY_IMAGE` from the operator PC over SSH before starting the registry. The default is `registry:2`.
 `PM_DOCKER_STREAM_COMPRESSION` controls only `PM_DOCKER_DEPLOY_MODE=local`, the emergency full-image stream fallback.
 
-Generate the encryption key once:
-
-```bash
-openssl rand -hex 32
-```
-
-Do not place command substitutions in `.env`.
+Encryption keys are auto-generated on first run and must stay stable between deploys: keep the old `PM_SETTINGS_ENCRYPTION_KEY` / `TOTP_ENCRYPTION_KEY` values (restore them from a backup) when reinstalling, otherwise encrypted settings and 2FA secrets become unreadable. Do not place command substitutions in `.env`.
 
 Optional PM-native resource monitoring:
 
@@ -134,6 +144,19 @@ Important behavior:
 - `SSH_KEY=true` keeps SSH-key deploy access as the steady-state path.
 - `SSH_KEY=false` keeps password-based deploy access.
 - `SERVER_SSH_HOST_KEY_FINGERPRINT` is optional. If blank, the scripts trust the first `ssh-keyscan` result and pin it into `ansible/known_hosts`.
+
+### Admin bootstrap & password rotation (mandatory)
+
+`PM_ADMIN_PASSWORD_ROTATION_ENABLED`, `PM_ADMIN_MASTER_PASSWORD`, `PM_ADMIN_ADMIN_PASSWORD`, and `PM_ADMIN_USER_PASSWORD` are required production bootstrap and rotation inputs for the built-in privileged accounts (master/admin/editor).
+
+- Rotation is mandatory, not opt-in: the deploy preflight (`scripts/deploy.sh` → `validate_admin_rotation_contract` in `scripts/lib/deploy-env.sh`) and the Ansible playbook (`ansible/deploy.yml`) both fail the rollout unless `PM_ADMIN_PASSWORD_ROTATION_ENABLED=true` and **all three** password variables are set. Any of the three being unset or weak aborts the deploy before the container is replaced.
+- Every deploy runs the rotation container (`node scripts/rotate-admin-passwords.mjs --apply`); when a configured password differs from the stored hash it re-hashes it, flags the account for a forced password change on next login, and revokes its sessions. Unchanged credentials are skipped — rotation is idempotent and only acts on an actual credential change.
+- The bootstrap credentials are **not persisted in the long-lived runtime app environment**: they are injected only into the one-off rotation container via its `env` overrides and never written to `/home/<deploy-user>/app/shared/.env.runtime`. The running app container therefore has no `PM_ADMIN_*_PASSWORD` values — they exist only in the operator's local `.env` (and `ansible/deploy-vars.yml`) and must be treated as deploy-time secrets.
+- Strong random values are auto-generated on first run (`ensure_framework_env`). To use explicit values instead (e.g. from a password manager), set them in `.env` — the framework keeps them and only generates what is missing. To regenerate on demand:
+
+```bash
+node scripts/rotate-admin-passwords.mjs --generate --write-env
+```
 
 ## First-Time Setup
 
@@ -201,6 +224,7 @@ Deploy preflight blocks the rollout if:
 - required Docker registry/image settings are missing
 - `PM_DEPLOY_DATABASE_URL` does not point inside `/app/data`
 - the encryption key is absent or invalid
+- admin bootstrap rotation is disabled or any of `PM_ADMIN_MASTER_PASSWORD` / `PM_ADMIN_ADMIN_PASSWORD` / `PM_ADMIN_USER_PASSWORD` is unset
 - schema rollout mode is invalid
 
 ## Health-Check Retries

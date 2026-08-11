@@ -3,10 +3,10 @@
     "\n      Skip to content\n    "
   ],
   "src/project/site-config.ts": [
-    "Русский",
+    "\u0420\u0443\u0441\u0441\u043a\u0438\u0439",
     "English",
-    "Français",
-    "עברית"
+    "Fran\u00e7ais",
+    "\u05e2\u05d1\u05e8\u05d9\u05ea"
   ],
   "src/lib/components/atoms/MadeWith.svelte": [
     "Puppet Master"
@@ -41,11 +41,6 @@
   "src/routes/admin/clients/+page.svelte": [
     "Clients"
   ],
-  "src/routes/admin/contacts/+page.svelte": [
-    "Contacts",
-    "Date",
-    "Actions"
-  ],
   "src/routes/admin/faq/+page.svelte": [
     "FAQ",
     "Order",
@@ -67,11 +62,12 @@
     "Featured"
   ],
   "src/routes/admin/roles/+page.svelte": [
-    "Roles",
-    "Slug",
-    "Level",
-    "Color",
-    "Actions"
+    "primary",
+    "secondary",
+    "success",
+    "warning",
+    "danger",
+    "error"
   ],
   "src/routes/admin/settings/+page.svelte": [
     "Settings",

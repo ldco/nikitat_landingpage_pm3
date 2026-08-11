@@ -14,6 +14,7 @@
  *   - messages/{locale}.json      (Paraglide compile input, `npm run i18n:export`)
  */
 import { useDatabase, schema } from '$lib/server/db'
+import { eq } from 'drizzle-orm'
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { logger } from '$lib/server/utils/logger'
@@ -21,6 +22,17 @@ import { logger } from '$lib/server/utils/logger'
 interface FlatEntry { locale: string; key: string; value: string }
 
 type ContentTree = Record<string, unknown>
+
+/**
+ * System-translation key prefixes (PM v2 parity): UI labels, navigation,
+ * buttons, auth, validation, footer — anything managed by developers.
+ * Everything else (hero.*, about.*, section content) is editor-managed content.
+ */
+const SYSTEM_PREFIXES = ['admin.', 'nav.', 'common.', 'auth.', 'validation.', 'footer.', 'error.', 'apiErrors.']
+
+export function classifyTranslationType(key: string): 'system' | 'content' {
+  return SYSTEM_PREFIXES.some(prefix => key.startsWith(prefix)) ? 'system' : 'content'
+}
 
 function flattenTree(obj: ContentTree, prefix = ''): Array<{ key: string; value: string }> {
   const result: Array<{ key: string; value: string }> = []
@@ -78,6 +90,18 @@ export function seedTranslations() {
   const existing = db.select().from(schema.translations).all()
   const existingKeys = new Set(existing.map(t => `${t.locale}:${t.key}`))
 
+  // Backfill: classify rows that predate the type column. SQLite added the
+  // column with DEFAULT 'content', so system-prefixed keys inserted before the
+  // migration need their type corrected here (idempotent, cheap).
+  let typeBackfilled = 0
+  for (const row of existing) {
+    if (row.type !== 'system' && classifyTranslationType(row.key) === 'system') {
+      db.update(schema.translations).set({ type: 'system' }).where(eq(schema.translations.id, row.id)).run()
+      typeBackfilled++
+    }
+  }
+  if (typeBackfilled > 0) console.log(`   ✓ ${typeBackfilled} existing translations classified as system`)
+
   let systemCount = 0
   let contentCount = 0
   let systemSkipped = 0
@@ -90,7 +114,7 @@ export function seedTranslations() {
       continue
     }
     try {
-      db.insert(schema.translations).values({ locale: t.locale, key: t.key, value: t.value }).run()
+      db.insert(schema.translations).values({ locale: t.locale, key: t.key, value: t.value, type: 'system' }).run()
       systemCount++
       existingKeys.add(mapKey)
     } catch (e: unknown) {
@@ -107,7 +131,7 @@ export function seedTranslations() {
       continue
     }
     try {
-      db.insert(schema.translations).values({ locale: t.locale, key: t.key, value: t.value }).run()
+      db.insert(schema.translations).values({ locale: t.locale, key: t.key, value: t.value, type: classifyTranslationType(t.key) }).run()
       contentCount++
       existingKeys.add(mapKey)
     } catch (e: unknown) {

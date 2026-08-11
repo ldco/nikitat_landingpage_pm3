@@ -8,6 +8,269 @@ TOTP_ENCRYPTION_KEY_PLACEHOLDER='replace-with-64-character-hex-string-from-opens
 DEPLOY_DATABASE_ROOT='/app/data'
 SERVER_SSH_HOST_KEY_FINGERPRINT_PLACEHOLDER='SHA256:replace-with-server-host-key-fingerprint'
 
+# ─────────────────────────────────────────────────────────────────────────
+# ENV LIFECYCLE — THREE DISTINCT CONTRACTS (never one mixed workspace)
+# ─────────────────────────────────────────────────────────────────────────
+# 1. RUNTIME APP CONFIG — the narrow surface the app reads via process.env
+#    and validates in src/lib/server/utils/env.ts (NODE_ENV, PORT, DATABASE_URL,
+#    LOG_LEVEL, TOTP_ENCRYPTION_KEY, PM_TRUST_PROXY, SMTP_*, CLAMAV_*,
+#    SENTRY_*, PM_FEATURES_HIBP). No soft dev fallbacks; missing required
+#    values fail clearly and early.
+# 2. LONG-LIVED DEPLOY SECRETS — generated ONLY during first-time bootstrap
+#    (ensure_framework_env) and never read by the app: PM_SETTINGS_ENCRYPTION_KEY,
+#    PM_ADMIN_*_PASSWORD, DEPLOY_USER_PASSWORD. Steady-state setup/deploy
+#    validate them and fail instead of regenerating (validate_initialized_env).
+#    TOTP_ENCRYPTION_KEY is dual-ownership: runtime-required (env.ts) AND
+#    bootstrap-generated (listed below).
+# 3. FIRST-RUN OPERATOR INPUTS — site facts + deploy transport the operator
+#    provides or the framework defaults: SITE_DOMAIN, SERVER_IP, ACME_EMAIL,
+#    SERVER_ROOT_PASSWORD, SSH_KEY, DEPLOY_USER, PM_DOCKER_*, TRAEFIK_IMAGE.
+#
+# The two arrays below are the tooling-owned classes (2 + transport half of 3);
+# the runtime class lives in src/lib/server/utils/env.ts.
+
+FRAMEWORK_SECRET_KEYS=(
+  DEPLOY_USER_PASSWORD
+  PM_SETTINGS_ENCRYPTION_KEY
+  TOTP_ENCRYPTION_KEY
+  PM_ADMIN_MASTER_PASSWORD
+  PM_ADMIN_ADMIN_PASSWORD
+  PM_ADMIN_USER_PASSWORD
+)
+
+FRAMEWORK_TRANSPORT_KEYS=(
+  APP_VERSION
+  SSH_KEY
+  PM_DEPLOY_AUTH_MODE
+  DEPLOY_USER
+  DATABASE_URL
+  PM_DEPLOY_DATABASE_URL
+  PM_DOCKER_DEPLOY_MODE
+  PM_DOCKER_REGISTRY
+  PM_DOCKER_IMAGE
+  PM_DOCKER_USERNAME
+  PM_APP_CONTAINER_NAME
+  PM_APP_NETWORK
+  PM_DOCKER_STREAM_COMPRESSION
+  TRAEFIK_IMAGE
+  PM_ADMIN_PASSWORD_ROTATION_ENABLED
+)
+
+generate_hex_key() {
+  printf '%s' "$(openssl rand -hex 32)"
+}
+
+# Strong random password matching the framework policy used by
+# scripts/rotate-admin-passwords.mjs (>=20 chars, upper, lower, digit, special).
+generate_strong_password() {
+  local password
+  while :; do
+    password="$(openssl rand -base64 24 | tr -d '\n')"
+    [[ "${#password}" -ge 20 ]] || continue
+    [[ "$password" == *[A-Z]* ]] || continue
+    [[ "$password" == *[a-z]* ]] || continue
+    [[ "$password" == *[0-9]* ]] || continue
+    [[ "$password" == *[^A-Za-z0-9]* ]] || continue
+    printf '%s' "$password"
+    return 0
+  done
+}
+
+# The .env.example placeholder that signals "not configured yet" for a key.
+framework_secret_placeholder() {
+  local key="$1"
+  case "$key" in
+    PM_SETTINGS_ENCRYPTION_KEY|TOTP_ENCRYPTION_KEY)
+      printf '%s' "$PM_SETTINGS_ENCRYPTION_KEY_PLACEHOLDER"
+      ;;
+    *)
+      printf '%s' 'replace-with-a-strong-random-password'
+      ;;
+  esac
+}
+
+is_missing_or_placeholder() {
+  local value="$1"
+  shift
+
+  [[ -z "$value" ]] && return 0
+
+  local placeholder
+  for placeholder in "$@"; do
+    [[ "$value" == "$placeholder" ]] && return 0
+  done
+
+  return 1
+}
+
+# Upsert one key=value into a dotenv file (preserves order and comments).
+upsert_env_file() {
+  local env_file="$1"
+  local key="$2"
+  local value="$3"
+  local tmp rendered line trimmed updated=0
+
+  rendered="$(format_env_assignment "$key" "$value")"
+  tmp="$(mktemp)"
+
+  if [[ -f "$env_file" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      trimmed="$(trim_whitespace "${line%$'\r'}")"
+      if [[ "$trimmed" == "$key="* || "$trimmed" == "export $key="* ]]; then
+        printf '%s\n' "$rendered" >>"$tmp"
+        updated=1
+      else
+        printf '%s\n' "$line" >>"$tmp"
+      fi
+    done <"$env_file"
+  fi
+
+  if [[ $updated -eq 0 ]]; then
+    printf '%s\n' "$rendered" >>"$tmp"
+  fi
+
+  mv "$tmp" "$env_file"
+  chmod 600 "$env_file"
+}
+
+# Framework-owned default/derived value for a deploy transport key. Existing
+# values (e.g. a restored backup) are always preserved.
+framework_transport_default() {
+  local key="$1"
+  case "$key" in
+    APP_VERSION) printf '%s' "${APP_VERSION:-0.1.0}" ;;
+    SSH_KEY) printf '%s' "${SSH_KEY:-true}" ;;
+    PM_DEPLOY_AUTH_MODE) printf '%s' "${PM_DEPLOY_AUTH_MODE:-ssh_key}" ;;
+    DEPLOY_USER) printf '%s' "${DEPLOY_USER:-deploy}" ;;
+    DATABASE_URL) printf '%s' "${DATABASE_URL:-./data/sqlite.db}" ;;
+    PM_DEPLOY_DATABASE_URL) printf '%s' "${PM_DEPLOY_DATABASE_URL:-/app/data/sqlite.db}" ;;
+    PM_DOCKER_DEPLOY_MODE) printf '%s' "${PM_DOCKER_DEPLOY_MODE:-ssh-registry}" ;;
+    PM_DOCKER_REGISTRY) printf '%s' "${PM_DOCKER_REGISTRY:-}" ;;
+    PM_DOCKER_IMAGE) printf '%s' "${PM_DOCKER_IMAGE:-$(resolved_app_container_name)}" ;;
+    PM_DOCKER_USERNAME) printf '%s' "${PM_DOCKER_USERNAME:-}" ;;
+    PM_APP_CONTAINER_NAME) printf '%s' "${PM_APP_CONTAINER_NAME:-pm-app}" ;;
+    PM_APP_NETWORK) printf '%s' "${PM_APP_NETWORK:-pm-shared}" ;;
+    PM_DOCKER_STREAM_COMPRESSION) printf '%s' "${PM_DOCKER_STREAM_COMPRESSION:-zstd}" ;;
+    TRAEFIK_IMAGE) printf '%s' "${TRAEFIK_IMAGE:-$(default_traefik_image)}" ;;
+    PM_ADMIN_PASSWORD_ROTATION_ENABLED) printf '%s' "${PM_ADMIN_PASSWORD_ROTATION_ENABLED:-true}" ;;
+    *) printf '%s' "${!key:-}" ;;
+  esac
+}
+
+# Auto-generate every framework-managed secret that is missing or still a
+# .env.example placeholder. Explicit operator-provided values are preserved.
+ensure_framework_secrets() {
+  local env_file="${1:?env file path required}"
+  local key value
+
+  for key in "${FRAMEWORK_SECRET_KEYS[@]}"; do
+    value="${!key:-}"
+    if is_missing_or_placeholder "$value" "$(framework_secret_placeholder "$key")" \
+      "<strong-random-password>" "<literal-64-char-hex-secret>" "changeme" "your-deploy-password"; then
+      case "$key" in
+        PM_SETTINGS_ENCRYPTION_KEY|TOTP_ENCRYPTION_KEY)
+          value="$(generate_hex_key)"
+          ;;
+        *)
+          value="$(generate_strong_password)"
+          ;;
+      esac
+      printf -v "$key" '%s' "$value"
+      upsert_env_file "$env_file" "$key" "$value"
+      printf '[deploy-env] Generated %s.\n' "$key"
+    fi
+  done
+}
+
+# Framework-level env bootstrap — FIRST-TIME INITIALIZATION ONLY. Creates
+# managed runtime state (.env) from .env.example — or a framework-owned
+# skeleton when no example exists — and auto-generates framework-managed
+# secrets + deploy transport defaults. An existing .env is never overwritten;
+# only missing/placeholder values change.
+#
+# Production-like flows (setup.sh, deploy.sh) must NOT call this
+# unconditionally: long-lived secrets (encryption keys, admin passwords) must
+# only be generated during an intentional bootstrap, otherwise an existing
+# deployment gets silently orphaned (encrypted settings / 2FA secrets become
+# unreadable after a key change). Those flows gate on env_bootstrap_allowed()
+# and run validate_initialized_env() for steady state instead.
+ensure_framework_env() {
+  local env_file="${1:?env file path required}"
+  local example_file="${2:-}"
+  local key
+
+  if [[ ! -f "$env_file" ]]; then
+    if [[ -n "$example_file" && -f "$example_file" ]]; then
+      cp "$example_file" "$env_file"
+      printf '[deploy-env] Created %s from %s.\n' "${env_file##*/}" "${example_file##*/}"
+    else
+      printf '# Framework-generated .env (no .env.example found)\n' >"$env_file"
+      printf '[deploy-env] Created a framework-generated %s (no %s found).\n' "${env_file##*/}" 'env.example'
+    fi
+    chmod 600 "$env_file"
+  fi
+
+  load_dotenv_file "$env_file"
+
+  ensure_framework_secrets "$env_file"
+
+  for key in "${FRAMEWORK_TRANSPORT_KEYS[@]}"; do
+    printf -v "$key" '%s' "$(framework_transport_default "$key")"
+    upsert_env_file "$env_file" "$key" "${!key}"
+  done
+
+  return 0
+}
+
+# ─────────────────────────────────────────────────────────────────────────
+# FIRST-TIME INIT vs STEADY STATE (setup.sh / deploy.sh gating)
+# ─────────────────────────────────────────────────────────────────────────
+# Long-lived secrets must only be auto-generated during an intentional
+# bootstrap. An environment is "already initialized" once the setup state
+# file exists; from then on setup/deploy NEVER regenerate secrets — they fail
+# clearly instead, so an existing deployment can never be silently broken.
+
+# True when the operator explicitly opted into env (re)initialization.
+env_init_requested() {
+  [[ "${PM_ENV_INIT:-}" == "1" || "${PM_ENV_INIT:-}" == "true" ]]
+}
+
+# Whether auto-generation is permitted for this run: explicit PM_ENV_INIT
+# opt-in, or a genuine first run (no setup state file yet).
+env_bootstrap_allowed() {
+  local state_file="${1:-}"
+  env_init_requested || [[ ! -f "$state_file" ]]
+}
+
+# Steady-state guard: for an already-initialized environment, .env and the
+# stable secrets must exist and be real values. Returns 1 (with a specific
+# message) when .env is missing or any long-lived key is missing/placeholder.
+validate_initialized_env() {
+  local env_file="${1:?env file path required}"
+  local key value
+
+  if [[ ! -f "$env_file" ]]; then
+    printf '[deploy-env] %s is missing for an already-initialized environment.\n' "${env_file##*/}" >&2
+    printf '[deploy-env] Restore it from a backup, or re-initialize intentionally (PM_ENV_INIT=1) — auto-regenerating would silently orphan encrypted settings and 2FA secrets.\n' >&2
+    return 1
+  fi
+
+  load_dotenv_file "$env_file"
+
+  for key in PM_SETTINGS_ENCRYPTION_KEY TOTP_ENCRYPTION_KEY \
+    PM_ADMIN_MASTER_PASSWORD PM_ADMIN_ADMIN_PASSWORD PM_ADMIN_USER_PASSWORD; do
+    value="${!key:-}"
+    if is_missing_or_placeholder "$value" "$(framework_secret_placeholder "$key")" \
+      "<strong-random-password>" "<literal-64-char-hex-secret>" "changeme" "your-deploy-password"; then
+      printf '[deploy-env] %s is missing or still a placeholder for an already-initialized environment.\n' "$key" >&2
+      printf '[deploy-env] Restore it from a backup, or re-initialize intentionally (PM_ENV_INIT=1) — auto-regenerating would silently orphan encrypted settings and 2FA secrets.\n' >&2
+      return 1
+    fi
+  done
+
+  return 0
+}
+
 trim_whitespace() {
   local value="$1"
   value="${value#"${value%%[![:space:]]*}"}"

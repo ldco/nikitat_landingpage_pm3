@@ -7,32 +7,22 @@
 import { TOTP, Secret } from 'otpauth'
 import QRCode from 'qrcode'
 import { randomBytes, createCipheriv, createDecipheriv, scryptSync } from 'node:crypto'
-import { useEnv } from '$lib/server/utils/env'
-import { logger } from '$lib/server/utils/logger'
 
 const ENCRYPTION_ALGORITHM = 'aes-256-gcm'
 const IV_LENGTH = 16
 
-// Dev fallback key — cached for the process lifetime so encrypt/decrypt use the
-// same key. Without caching, every call generated a fresh key and any secret
-// encrypted in dev could never be decrypted again.
-let _ephemeralKey: Buffer | null = null
-
+// TOTP_ENCRYPTION_KEY is a hard operational requirement in EVERY environment
+// (hooks.server.ts fails the boot without it). There is deliberately NO dev
+// fallback: an ephemeral key would silently invalidate every 2FA secret on
+// restart and hide a broken .env bootstrap behind "it works now".
 function getEncryptionKey(): Buffer {
   const envKey = process.env.TOTP_ENCRYPTION_KEY
-  if (envKey) return scryptSync(envKey, 'totp-salt', 32)
-  const env = useEnv()
-  if (env.NODE_ENV === 'production') {
-    throw new Error('TOTP_ENCRYPTION_KEY must be set in production')
+  if (!envKey) {
+    throw new Error(
+      'TOTP_ENCRYPTION_KEY is not set. Run `npm run dev` once to bootstrap .env (or `npm run setup`), or add a key generated with `openssl rand -hex 32` to .env.'
+    )
   }
-  // Development only: generate a per-process key so encrypted secrets
-  // persist for the server's lifetime (invalid on restart).
-  if (!_ephemeralKey) {
-    const sessionKey = randomBytes(32).toString('hex')
-    logger.warn('TOTP_ENCRYPTION_KEY not set — using ephemeral key (TOTP secrets will be invalid on restart)')
-    _ephemeralKey = scryptSync(sessionKey, 'totp-salt', 32)
-  }
-  return _ephemeralKey
+  return scryptSync(envKey, 'totp-salt', 32)
 }
 
 export function generateTotpSecret(): string {
@@ -51,7 +41,11 @@ function createTotpInstance(secret: string, userEmail: string, issuer?: string):
   })
 }
 
-export async function generateTotpQRCode(secret: string, userEmail: string, issuer?: string): Promise<string> {
+export async function generateTotpQRCode(
+  secret: string,
+  userEmail: string,
+  issuer?: string
+): Promise<string> {
   const totp = createTotpInstance(secret, userEmail, issuer)
   return QRCode.toDataURL(totp.toString(), {
     errorCorrectionLevel: 'M',

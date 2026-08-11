@@ -150,8 +150,51 @@ persist_bootstrap_password_checkpoint() {
 }
 
 load_env() {
-  [[ -f "$ENV_FILE" ]] || fail ".env is missing. Create it from .env.example first."
+  # Env lifecycle split (three contracts, see scripts/lib/deploy-env.sh):
+  #   - runtime app config — validated by src/lib/server/utils/env.ts (no soft
+  #     dev fallbacks).
+  #   - long-lived deploy secrets — generated ONLY during first-time bootstrap
+  #     (no setup state file yet, or explicit PM_ENV_INIT=1).
+  #   - steady state (setup state exists) — NEVER regenerate secrets; fail
+  #     clearly when .env or the stable keys are missing/placeholder, so an
+  #     existing deployment can never be silently orphaned.
+  local state_file
+  state_file="$(resolved_pm_deploy_state_file "$ROOT_DIR")"
+  if env_bootstrap_allowed "$state_file"; then
+    ensure_framework_env "$ENV_FILE" "$ROOT_DIR/.env.example"
+  else
+    validate_initialized_env "$ENV_FILE" || exit 1
+  fi
   load_dotenv_file "$ENV_FILE"
+}
+
+# Interactive first-run collection of the operator site facts. Only runs on a
+# real TTY; non-interactive runs skip prompting and the preflight below fails
+# fast listing the exact missing keys.
+collect_site_facts() {
+  [[ -t 0 && -t 1 ]] || return 0
+  local key prompt value input
+  local pairs=(
+    "SITE_DOMAIN:production site domain (e.g. example.com)"
+    "SERVER_IP:server public IP address"
+    "ACME_EMAIL:Let's Encrypt certificate email"
+  )
+  for pair in "${pairs[@]}"; do
+    key="${pair%%:*}"
+    prompt="${pair#*:}"
+    value="${!key:-}"
+    if is_placeholder_env_value "$key" "$value"; then
+      printf '[setup] %s is not set. Enter %s: ' "$key" "$prompt"
+      IFS= read -r input
+      input="$(trim_whitespace "$input")"
+      if [[ -n "$input" ]]; then
+        printf -v "$key" '%s' "$input"
+        export "$key=$input"
+        upsert_env "$key" "$input"
+        log "Stored $key in .env."
+      fi
+    fi
+  done
 }
 
 build_deploy_ssh_base() {
@@ -425,7 +468,14 @@ ensure_deploy_access() {
   fail "Deploy access exists but DEPLOY_USER_PASSWORD is stale, and SERVER_ROOT_PASSWORD recovery is not configured. Restore the real deploy password or provide a valid root password, then rerun setup."
 }
 
+# Framework-level env contract: first-time runs bootstrap .env and
+# auto-generate the framework-managed secrets (load_env → env_bootstrap_allowed);
+# steady-state runs validate the existing secrets instead of regenerating.
+# Only site facts cannot be generated: SITE_DOMAIN, SERVER_IP, ACME_EMAIL.
+log "Resolving the framework env contract (.env bootstrap or steady-state validation)."
+require_command "openssl" "sudo apt-get update && sudo apt-get install -y openssl"
 load_env
+collect_site_facts
 
 DATA_VOLUME="${PM_DEPLOY_DATA_VOLUME:-pm_data}"
 BOOTSTRAP_AUTH_MODE="$(resolved_deploy_auth_mode)"
@@ -445,8 +495,8 @@ validate_deploy_user || exit 1
 validate_pm_settings_encryption_key || fail "PM_SETTINGS_ENCRYPTION_KEY or SETTINGS_ENCRYPTION_KEY must be a real 64+ character hexadecimal secret before setup."
 normalize_settings_encryption_key
 # TOTP_ENCRYPTION_KEY is required at runtime when FEATURES.twoFactorAuth is
-# enabled (src/hooks.server.ts fail-fast). deploy-secrets.sh generates it, so
-# requiring it here catches misconfiguration BEFORE the container crash-loops.
+# enabled (src/hooks.server.ts fail-fast). ensure_framework_env generates it,
+# so requiring it here catches misconfiguration BEFORE the container crash-loops.
 validate_pm_totp_encryption_key || fail "TOTP_ENCRYPTION_KEY must be a real 64+ character hexadecimal secret before setup (required when FEATURES.twoFactorAuth is enabled)."
 normalize_totp_encryption_key
 validate_deploy_database_url || fail "PM_DEPLOY_DATABASE_URL must be inside /app/data for setup schema sync."

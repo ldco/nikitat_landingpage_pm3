@@ -15,6 +15,13 @@
       "when": 1786396559489,
       "tag": "0001_add-must-change-password",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1786470523855,
+      "tag": "0002_add-translation-type-and-legal-docs",
+      "breakpoints": true
     }
   ]
 }

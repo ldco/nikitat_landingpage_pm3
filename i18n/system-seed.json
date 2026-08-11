@@ -16688,5 +16688,725 @@
     "locale": "he",
     "key": "auth.passwordRequired",
     "value": "הזן את הסיסמה שלך"
+  },
+  {
+    "locale": "en",
+    "key": "admin.key",
+    "value": "Key"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.key",
+    "value": "Ключ"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.key",
+    "value": "Clé"
+  },
+  {
+    "locale": "he",
+    "key": "admin.key",
+    "value": "מפתח"
+  },
+  {
+    "locale": "en",
+    "key": "admin.locale",
+    "value": "Locale"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.locale",
+    "value": "Язык"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.locale",
+    "value": "Langue"
+  },
+  {
+    "locale": "he",
+    "key": "admin.locale",
+    "value": "שפה"
+  },
+  {
+    "locale": "en",
+    "key": "admin.value",
+    "value": "Value"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.value",
+    "value": "Значение"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.value",
+    "value": "Valeur"
+  },
+  {
+    "locale": "he",
+    "key": "admin.value",
+    "value": "ערך"
+  },
+  {
+    "locale": "en",
+    "key": "admin.total",
+    "value": "total"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.total",
+    "value": "всего"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.total",
+    "value": "total"
+  },
+  {
+    "locale": "he",
+    "key": "admin.total",
+    "value": "סה\"כ"
+  },
+  {
+    "locale": "en",
+    "key": "admin.type",
+    "value": "Type"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.type",
+    "value": "Тип"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.type",
+    "value": "Type"
+  },
+  {
+    "locale": "he",
+    "key": "admin.type",
+    "value": "סוג"
+  },
+  {
+    "locale": "en",
+    "key": "admin.entries",
+    "value": "entries"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.entries",
+    "value": "записей"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.entries",
+    "value": "entrées"
+  },
+  {
+    "locale": "he",
+    "key": "admin.entries",
+    "value": "רשומות"
+  },
+  {
+    "locale": "en",
+    "key": "admin.search",
+    "value": "Search"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.search",
+    "value": "Поиск"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.search",
+    "value": "Recherche"
+  },
+  {
+    "locale": "he",
+    "key": "admin.search",
+    "value": "חיפוש"
+  },
+  {
+    "locale": "en",
+    "key": "admin.all",
+    "value": "All"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.all",
+    "value": "Все"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.all",
+    "value": "Tous"
+  },
+  {
+    "locale": "he",
+    "key": "admin.all",
+    "value": "הכל"
+  },
+  {
+    "locale": "en",
+    "key": "admin.filter",
+    "value": "Filter"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.filter",
+    "value": "Фильтр"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.filter",
+    "value": "Filtre"
+  },
+  {
+    "locale": "he",
+    "key": "admin.filter",
+    "value": "סינון"
+  },
+  {
+    "locale": "en",
+    "key": "admin.saved",
+    "value": "Saved"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.saved",
+    "value": "Сохранено"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.saved",
+    "value": "Enregistré"
+  },
+  {
+    "locale": "he",
+    "key": "admin.saved",
+    "value": "נשמר"
+  },
+  {
+    "locale": "en",
+    "key": "admin.preview",
+    "value": "Preview"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.preview",
+    "value": "Предпросмотр"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.preview",
+    "value": "Aperçu"
+  },
+  {
+    "locale": "he",
+    "key": "admin.preview",
+    "value": "תצוגה מקדימה"
+  },
+  {
+    "locale": "en",
+    "key": "admin.addSettingValue",
+    "value": "Value"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.addSettingValue",
+    "value": "Значение"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.addSettingValue",
+    "value": "Valeur"
+  },
+  {
+    "locale": "he",
+    "key": "admin.addSettingValue",
+    "value": "ערך"
+  },
+  {
+    "locale": "en",
+    "key": "admin.settingsGroup",
+    "value": "Group"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.settingsGroup",
+    "value": "Группа"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.settingsGroup",
+    "value": "Groupe"
+  },
+  {
+    "locale": "he",
+    "key": "admin.settingsGroup",
+    "value": "קבוצה"
+  },
+  {
+    "locale": "en",
+    "key": "admin.settingsSubtitle",
+    "value": "Manage site settings grouped by category."
+  },
+  {
+    "locale": "ru",
+    "key": "admin.settingsSubtitle",
+    "value": "Управление настройками сайта по категориям."
+  },
+  {
+    "locale": "fr",
+    "key": "admin.settingsSubtitle",
+    "value": "Gérez les paramètres du site par catégorie."
+  },
+  {
+    "locale": "he",
+    "key": "admin.settingsSubtitle",
+    "value": "נהל הגדרות אתר לפי קטגוריות."
+  },
+  {
+    "locale": "en",
+    "key": "admin.translationAddTitle",
+    "value": "Add translation"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.translationAddTitle",
+    "value": "Добавить перевод"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.translationAddTitle",
+    "value": "Ajouter une traduction"
+  },
+  {
+    "locale": "he",
+    "key": "admin.translationAddTitle",
+    "value": "הוסף תרגום"
+  },
+  {
+    "locale": "en",
+    "key": "admin.translationAddKeyPlaceholder",
+    "value": "e.g. section.key"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.translationAddKeyPlaceholder",
+    "value": "например, section.key"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.translationAddKeyPlaceholder",
+    "value": "ex. section.key"
+  },
+  {
+    "locale": "he",
+    "key": "admin.translationAddKeyPlaceholder",
+    "value": "לדוגמה, section.key"
+  },
+  {
+    "locale": "en",
+    "key": "admin.translationKeyRequired",
+    "value": "Key is required"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.translationKeyRequired",
+    "value": "Ключ обязателен"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.translationKeyRequired",
+    "value": "La clé est requise"
+  },
+  {
+    "locale": "he",
+    "key": "admin.translationKeyRequired",
+    "value": "נדרש מפתח"
+  },
+  {
+    "locale": "en",
+    "key": "admin.translationKeyExists",
+    "value": "This key already exists for this locale"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.translationKeyExists",
+    "value": "Этот ключ уже существует для этого языка"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.translationKeyExists",
+    "value": "Cette clé existe déjà pour cette langue"
+  },
+  {
+    "locale": "he",
+    "key": "admin.translationKeyExists",
+    "value": "מפתח זה כבר קיים עבור שפה זו"
+  },
+  {
+    "locale": "en",
+    "key": "admin.translationValueRequired",
+    "value": "Value is required"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.translationValueRequired",
+    "value": "Значение обязательно"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.translationValueRequired",
+    "value": "La valeur est requise"
+  },
+  {
+    "locale": "he",
+    "key": "admin.translationValueRequired",
+    "value": "נדרש ערך"
+  },
+  {
+    "locale": "en",
+    "key": "admin.translationDeleted",
+    "value": "Translation deleted"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.translationDeleted",
+    "value": "Перевод удалён"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.translationDeleted",
+    "value": "Traduction supprimée"
+  },
+  {
+    "locale": "he",
+    "key": "admin.translationDeleted",
+    "value": "התרגום נמחק"
+  },
+  {
+    "locale": "en",
+    "key": "admin.translationDeleteConfirm",
+    "value": "Delete this translation? This cannot be undone."
+  },
+  {
+    "locale": "ru",
+    "key": "admin.translationDeleteConfirm",
+    "value": "Удалить этот перевод? Это действие нельзя отменить."
+  },
+  {
+    "locale": "fr",
+    "key": "admin.translationDeleteConfirm",
+    "value": "Supprimer cette traduction ? Cette action est irréversible."
+  },
+  {
+    "locale": "he",
+    "key": "admin.translationDeleteConfirm",
+    "value": "למחוק תרגום זה? לא ניתן לבטל פעולה זו."
+  },
+  {
+    "locale": "en",
+    "key": "admin.noTranslationsForFilter",
+    "value": "No translations match your filter."
+  },
+  {
+    "locale": "ru",
+    "key": "admin.noTranslationsForFilter",
+    "value": "Нет переводов, соответствующих фильтру."
+  },
+  {
+    "locale": "fr",
+    "key": "admin.noTranslationsForFilter",
+    "value": "Aucune traduction ne correspond à votre filtre."
+  },
+  {
+    "locale": "he",
+    "key": "admin.noTranslationsForFilter",
+    "value": "אין תרגומים התואמים למסנן."
+  },
+  {
+    "locale": "en",
+    "key": "admin.legalDocumentDeleted",
+    "value": "Document reset to default"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.legalDocumentDeleted",
+    "value": "Документ сброшен к значению по умолчанию"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.legalDocumentDeleted",
+    "value": "Document réinitialisé"
+  },
+  {
+    "locale": "he",
+    "key": "admin.legalDocumentDeleted",
+    "value": "המסמך אופס לברירת מחדל"
+  },
+  {
+    "locale": "en",
+    "key": "admin.legalDocumentSaved",
+    "value": "Legal document saved"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.legalDocumentSaved",
+    "value": "Юридический документ сохранён"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.legalDocumentSaved",
+    "value": "Document juridique enregistré"
+  },
+  {
+    "locale": "he",
+    "key": "admin.legalDocumentSaved",
+    "value": "המסמך המשפטי נשמר"
+  },
+  {
+    "locale": "en",
+    "key": "admin.legalBodyPlaceholder",
+    "value": "Write the document in Markdown..."
+  },
+  {
+    "locale": "ru",
+    "key": "admin.legalBodyPlaceholder",
+    "value": "Напишите документ в Markdown..."
+  },
+  {
+    "locale": "fr",
+    "key": "admin.legalBodyPlaceholder",
+    "value": "Rédigez le document en Markdown..."
+  },
+  {
+    "locale": "he",
+    "key": "admin.legalBodyPlaceholder",
+    "value": "כתוב את המסמך ב-Markdown..."
+  },
+  {
+    "locale": "en",
+    "key": "admin.legalEditMode",
+    "value": "Edit"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.legalEditMode",
+    "value": "Редактирование"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.legalEditMode",
+    "value": "Édition"
+  },
+  {
+    "locale": "he",
+    "key": "admin.legalEditMode",
+    "value": "עריכה"
+  },
+  {
+    "locale": "en",
+    "key": "admin.legalPreviewMode",
+    "value": "Preview"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.legalPreviewMode",
+    "value": "Предпросмотр"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.legalPreviewMode",
+    "value": "Aperçu"
+  },
+  {
+    "locale": "he",
+    "key": "admin.legalPreviewMode",
+    "value": "תצוגה מקדימה"
+  },
+  {
+    "locale": "en",
+    "key": "admin.settingsSensitiveReveal",
+    "value": "Show"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.settingsSensitiveReveal",
+    "value": "Показать"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.settingsSensitiveReveal",
+    "value": "Afficher"
+  },
+  {
+    "locale": "he",
+    "key": "admin.settingsSensitiveReveal",
+    "value": "הצג"
+  },
+  {
+    "locale": "en",
+    "key": "admin.settingsSensitiveHide",
+    "value": "Hide"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.settingsSensitiveHide",
+    "value": "Скрыть"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.settingsSensitiveHide",
+    "value": "Masquer"
+  },
+  {
+    "locale": "he",
+    "key": "admin.settingsSensitiveHide",
+    "value": "הסתר"
+  },
+  {
+    "locale": "en",
+    "key": "admin.settingsSensitiveLabel",
+    "value": "Sensitive value"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.settingsSensitiveLabel",
+    "value": "Конфиденциальное значение"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.settingsSensitiveLabel",
+    "value": "Valeur sensible"
+  },
+  {
+    "locale": "he",
+    "key": "admin.settingsSensitiveLabel",
+    "value": "ערך רגיש"
+  },
+  {
+    "locale": "en",
+    "key": "admin.settingsEmptyValue",
+    "value": "Not set"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.settingsEmptyValue",
+    "value": "Не задано"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.settingsEmptyValue",
+    "value": "Non défini"
+  },
+  {
+    "locale": "he",
+    "key": "admin.settingsEmptyValue",
+    "value": "לא הוגדר"
+  },
+  {
+    "locale": "en",
+    "key": "common.breadcrumb",
+    "value": "Breadcrumb"
+  },
+  {
+    "locale": "ru",
+    "key": "common.breadcrumb",
+    "value": "Хлебные крошки"
+  },
+  {
+    "locale": "fr",
+    "key": "common.breadcrumb",
+    "value": "Fil d'Ariane"
+  },
+  {
+    "locale": "he",
+    "key": "common.breadcrumb",
+    "value": "פירורי לחם"
+  },
+  {
+    "locale": "en",
+    "key": "admin.settingsEnabled",
+    "value": "Enabled"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.settingsEnabled",
+    "value": "Включено"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.settingsEnabled",
+    "value": "Activé"
+  },
+  {
+    "locale": "he",
+    "key": "admin.settingsEnabled",
+    "value": "מופעל"
+  },
+  {
+    "locale": "en",
+    "key": "admin.yes",
+    "value": "Yes"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.yes",
+    "value": "Да"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.yes",
+    "value": "Oui"
+  },
+  {
+    "locale": "he",
+    "key": "admin.yes",
+    "value": "כן"
+  },
+  {
+    "locale": "en",
+    "key": "admin.no",
+    "value": "No"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.no",
+    "value": "Нет"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.no",
+    "value": "Non"
+  },
+  {
+    "locale": "he",
+    "key": "admin.no",
+    "value": "לא"
+  },
+  {
+    "locale": "en",
+    "key": "admin.legalContactFormBypassEnabled",
+    "value": "Contact form shown without legal text"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.legalContactFormBypassEnabled",
+    "value": "Форма связи показывается без юридического текста"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.legalContactFormBypassEnabled",
+    "value": "Formulaire de contact affiché sans texte légal"
+  },
+  {
+    "locale": "he",
+    "key": "admin.legalContactFormBypassEnabled",
+    "value": "טופס יצירת קשר מוצג ללא טקסט משפטי"
   }
 ]

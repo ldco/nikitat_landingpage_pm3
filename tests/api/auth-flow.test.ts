@@ -195,3 +195,87 @@ describe('First-login hardening (must_change_password)', () => {
     expect(freshBody.data?.mustChangePassword).toBe(false)
   })
 })
+
+describe('Password change revokes existing sessions (two clients)', () => {
+  // Separate server instance: the shared server already burned its per-IP
+  // login rate-limit budget in the earlier describe blocks, and a fresh DB
+  // guarantees the seeded bootstrap credential is the one in effect.
+  let server2: TestServerHandle
+  let clientA: ApiClient
+  let clientB: ApiClient
+
+  beforeAll(async () => {
+    server2 = await startTestServer()
+    clientA = new ApiClient(server2.baseUrl, server2.origin)
+    clientB = new ApiClient(server2.baseUrl, server2.origin)
+  }, 180_000)
+
+  afterAll(async () => {
+    await server2.stop()
+  }, 30_000)
+
+  it('kills a session created before the forced password change', async () => {
+    // Fresh bootstrap: flag the account so every login is a forced-change
+    // login (the contract under test — a bootstrap session must not stay
+    // privileged after the change clears the flag).
+    {
+      const db = new Database(server2.dbPath)
+      db.prepare('UPDATE users SET must_change_password = 1, two_factor_enabled = 0 WHERE email = ?').run(SEED_USER.email)
+      db.close()
+    }
+
+    // Both clients log in with the bootstrap credential → two live sessions.
+    for (const c of [clientA, clientB]) {
+      await c.get('/') // prime the CSRF cookie
+      const login = await c.postJson('/api/auth/login', {
+        email: SEED_USER.email,
+        password: SEED_USER.password
+      })
+      expect(login.status).toBe(200)
+      const body = (await login.json()) as { data?: { mustChangePassword?: boolean } }
+      expect(body.data?.mustChangePassword).toBe(true)
+      expect(c.getCookie('pm-session')).toBeDefined()
+    }
+
+    // Both sessions are live before the change.
+    for (const c of [clientA, clientB]) {
+      const session = await c.get('/api/auth/session')
+      expect(((await session.json()) as { data?: { authenticated?: boolean } }).data?.authenticated).toBe(true)
+    }
+
+    // Client A performs the forced change → ALL pre-change sessions are
+    // revoked, and A's browser receives a fresh session (admin access back).
+    const newPassword = 'S3ss!Revoked#N0w'
+    const change = await clientA.putJson('/api/user/change-password', {
+      currentPassword: SEED_USER.password,
+      newPassword
+    })
+    expect(change.status).toBe(200)
+
+    const adminAfter = await clientA.get('/admin')
+    expect(adminAfter.status).toBe(200)
+
+    // Client B's pre-change session no longer authenticates anywhere.
+    const sessionB = await clientB.get('/api/auth/session')
+    expect(((await sessionB.json()) as { data?: { authenticated?: boolean } }).data?.authenticated).toBe(false)
+
+    const adminB = await clientB.get('/admin')
+    expect(adminB.status).toBe(302)
+    expect(adminB.headers.get('location')).toBe('/admin/login')
+
+    const adminApiB = await clientB.get('/api/admin/features')
+    expect(adminApiB.status).toBe(401)
+    const adminApiBBody = (await adminApiB.json()) as { error?: { code?: string } }
+    expect(adminApiBBody.error?.code).toBe('http.401')
+
+    // The account itself still works — B just has to re-authenticate with
+    // the NEW password (the flag was cleared by A's forced change).
+    const relogin = await clientB.postJson('/api/auth/login', {
+      email: SEED_USER.email,
+      password: newPassword
+    })
+    expect(relogin.status).toBe(200)
+    const reloginBody = (await relogin.json()) as { data?: { mustChangePassword?: boolean } }
+    expect(reloginBody.data?.mustChangePassword).toBe(false)
+  })
+})

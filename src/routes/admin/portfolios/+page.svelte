@@ -4,14 +4,18 @@
    */
   import type { PageData } from './$types'
   import { page } from '$app/stores'
-import { t } from '$lib/stores/content.svelte'
+  import { t } from '$lib/stores/content.svelte'
   import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
   import { getAdminT } from '$lib/utils/admin-translations'
   import { adminDelete } from '$lib/api/client'
+  import PageHeader from '$lib/components/atoms/PageHeader.svelte'
+  import EmptyState from '$lib/components/atoms/EmptyState.svelte'
+  import Badge from '$lib/components/atoms/Badge.svelte'
+  import AdminDataTable, { type AdminTableColumn } from '$lib/components/admin/AdminDataTable.svelte'
+  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import IconPencil from '@tabler/icons-svelte/icons/pencil'
   import IconTrash from '@tabler/icons-svelte/icons/trash'
   import IconPlus from '@tabler/icons-svelte/icons/plus'
-  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import { goto } from '$app/navigation'
   let { data }: { data: PageData } = $props()
   const items = $derived(data.items)
@@ -31,69 +35,65 @@ import { t } from '$lib/stores/content.svelte'
         return
       }
       goto(ADMIN_ROUTES.portfolios)
-    } catch (e: unknown) {
+    } catch {
       deleteError = t('common.error')
     } finally {
       deletePending = null
     }
   }
+
+  const columns = $derived<AdminTableColumn[]>([
+    { key: 'name', label: adminT['admin.name'] ?? t('common.name') },
+    { key: 'type', label: adminT['admin.portfolioType'] ?? t('admin.portfolioType') },
+    { key: 'status', label: adminT['admin.status'] ?? t('admin.status') }
+  ])
 </script>
 
 <div class="max-w-[var(--max-w-content)] mx-auto">
-  <div class="flex items-center justify-between gap-4 py-4 mb-6 border-b border-pm-border">
-    <h1 class="text-2xl font-bold text-pm-text">{adminT['admin.portfolios']}</h1>
-    <div class="flex items-center gap-3">
-      <CtaButton href={ADMIN_ROUTES.portfolioCreate} variant="primary" size="sm" class="rounded-lg gap-1.5">
+  <PageHeader title={adminT['admin.portfolios'] ?? t('admin.portfolios')} itemCount={items.length}>
+    {#snippet actions()}
+      <CtaButton href={ADMIN_ROUTES.portfolioCreate} variant="primary" size="sm">
         <IconPlus class="size-4" /> {t('common.create')}
       </CtaButton>
-      <span class="text-sm text-pm-text-muted">{items.length} total</span>
-    </div>
-  </div>
+    {/snippet}
+  </PageHeader>
 
   {#if deleteError}
-    <div class="mb-4 p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
+    <div class="mb-4 p-3 bg-pm-danger-bg border border-pm-danger rounded-lg text-sm text-pm-danger">
       {deleteError}
-      <button onclick={() => deleteError = null} class="ml-2 underline hover:no-underline">{t('common.dismiss')}</button>
+      <button onclick={() => deleteError = null} class="ms-2 underline hover:no-underline">{t('common.dismiss')}</button>
     </div>
   {/if}
 
-  <div class="bg-pm-bg-elevated border border-pm-border rounded-xl overflow-hidden">
-    <table class="w-full text-sm">
-      <thead class="bg-pm-bg-sunken">
-        <tr>
-          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase">{adminT['admin.name']}</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase">{adminT['admin.portfolioType']}</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase">{adminT['admin.status']}</th>
-          <th class="px-4 py-3 text-right text-xs font-medium text-pm-text-muted uppercase">{adminT['admin.actions']}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each items as item (item.id)}
-          <tr class="border-b border-pm-border hover:bg-pm-bg-elevated transition-colors">
-            <td class="px-4 py-3 font-medium text-pm-text">{item.name}</td>
-            <td class="px-4 py-3 text-pm-text-muted">{item.type}</td>
-            <td class="px-4 py-3">
-              <span class="px-1.5 py-0.5 rounded text-xs" class:bg-pm-success-bg:text-pm-success={item.published} class:bg-pm-bg-sunken:text-pm-text-muted={!item.published}>
-                {item.published ? adminT['admin.published'] : adminT['admin.draft']}
-              </span>
-            </td>
-            <td class="px-4 py-3">
-              <div class="flex items-center justify-end gap-1">
-                <a href={ADMIN_ROUTES.portfolioEdit(item.id)} class="p-1.5 rounded hover:bg-pm-bg-sunken text-pm-text-muted hover:text-pm-brand transition-colors" title={t('common.edit')}>
-                  <IconPencil class="size-4" />
-                </a>
-                <button onclick={() => handleDelete(item.id, item.name)} disabled={deletePending === item.id} class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-950 text-pm-text-muted hover:text-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed" title={t('common.delete')}>
-                  <IconTrash class="size-4" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        {/each}
-      </tbody>
-    </table>
+  <div class="mt-6">
+    {#if items.length === 0}
+      <EmptyState type="empty-box" size="compact" title={t('common.noResults')} />
+    {:else}
+      <AdminDataTable {columns} items={items} emptyMessage={t('common.noResults')}>
+        {#snippet cell(column, item)}
+          {@const row = item as { id: number; name: string; type: string; published: boolean }}
+          {#if column.key === 'name'}
+            <span class="font-medium text-pm-text">{row.name}</span>
+          {:else if column.key === 'type'}
+            <span class="text-pm-text-muted">{row.type}</span>
+          {:else}
+            <Badge variant={row.published ? 'success' : 'default'}>
+              {row.published ? adminT['admin.published'] : adminT['admin.draft']}
+            </Badge>
+          {/if}
+        {/snippet}
+        {#snippet actions(item)}
+          {@const row = item as { id: number; name: string }}
+          <div class="flex items-center justify-end gap-1">
+            <a href={ADMIN_ROUTES.portfolioEdit(row.id)} class="p-1.5 rounded-md text-pm-text-muted hover:text-pm-brand hover:bg-pm-bg-sunken transition-colors" aria-label={t('common.edit')}>
+              <IconPencil class="size-4" />
+            </a>
+            <button onclick={() => handleDelete(row.id, row.name)} disabled={deletePending === row.id} class="p-1.5 rounded-md text-pm-text-muted hover:text-pm-danger hover:bg-pm-bg-sunken transition-colors disabled:opacity-40 disabled:cursor-not-allowed" aria-label={t('common.delete')}>
+              <IconTrash class="size-4" />
+            </button>
+          </div>
+        {/snippet}
+      </AdminDataTable>
+    {/if}
   </div>
-
-  {#if items.length === 0}
-    <p class="text-center text-pm-text-muted py-8">{t('common.noResults')}</p>
-  {/if}
 </div>

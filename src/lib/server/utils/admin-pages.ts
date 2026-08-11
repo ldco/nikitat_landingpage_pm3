@@ -39,7 +39,7 @@ export const ADMIN_PAGE_DEFS: Record<AdminPageId, AdminPageDef> = {
   roles: { id: 'roles', group: 'system', menu: true, defaultEnabled: true, defaultRoles: ['master'] },
   translations: { id: 'translations', group: 'system', menu: true, defaultEnabled: true, defaultRoles: ['master', 'admin', 'editor'] },
   settings: { id: 'settings', group: 'system', menu: true, defaultEnabled: true, defaultRoles: ['master', 'admin'] },
-  legal: { id: 'legal', group: 'system', menu: false, defaultEnabled: true, defaultRoles: ['master', 'admin'] },
+  legal: { id: 'legal', group: 'system', menu: true, defaultEnabled: true, defaultRoles: ['master', 'admin'] },
   health: { id: 'health', group: 'system', menu: true, defaultEnabled: true, defaultRoles: ['master'] },
   logs: { id: 'logs', group: 'system', menu: false, defaultEnabled: false, defaultRoles: ['master'] },
   sections: { id: 'sections', group: 'website', configKey: 'sections', menu: false, defaultEnabled: true, defaultRoles: ['master', 'admin', 'editor'] },

@@ -3,8 +3,11 @@
    * Admin Team — Manage team members
    */
   import { page } from '$app/stores'
-import { t } from '$lib/stores/content.svelte'
+  import { t } from '$lib/stores/content.svelte'
   import { getAdminT } from '$lib/utils/admin-translations'
+  import PageHeader from '$lib/components/atoms/PageHeader.svelte'
+  import EmptyState from '$lib/components/atoms/EmptyState.svelte'
+  import Badge from '$lib/components/atoms/Badge.svelte'
   import type { PageData } from './$types'
   let { data }: { data: PageData } = $props()
   const items = $derived(data.items)
@@ -12,10 +15,7 @@ import { t } from '$lib/stores/content.svelte'
 </script>
 
 <div class="max-w-[var(--max-w-content)] mx-auto">
-  <div class="flex items-center justify-between gap-4 py-4 mb-6 border-b border-pm-border">
-    <h1 class="text-2xl font-bold text-pm-text">{adminT['admin.team'] || 'Team'}</h1>
-    <span class="text-sm text-pm-text-muted">{items.length} {adminT['admin.total'] || 'total'}</span>
-  </div>
+  <PageHeader title={adminT['admin.team'] ?? t('admin.team')} itemCount={items.length} />
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     {#each items as item (item.id)}
@@ -28,14 +28,14 @@ import { t } from '$lib/stores/content.svelte'
           <p class="text-sm text-pm-text-muted mb-2">{item.position ?? '—'}</p>
           <div class="flex gap-2 text-xs text-pm-text-muted">
             <span>{item.slug}</span>
-            <span class:bg-pm-success-bg:text-pm-success={item.published} class:bg-pm-bg-sunken:text-pm-text-muted={!item.published} class="px-1.5 py-0.5 rounded">
-              {item.published ? (adminT['admin.published'] || 'Active') : (adminT['admin.hidden'] || 'Hidden')}
-            </span>
+            <Badge variant={item.published ? 'success' : 'default'}>
+              {item.published ? (adminT['admin.published'] ?? t('admin.published')) : (adminT['admin.hidden'] ?? 'Hidden')}
+            </Badge>
           </div>
         </div>
       </div>
     {:else}
-      <p class="text-center text-pm-text-muted py-16 col-span-full">{adminT['admin.noItems'] || t('common.noResults')}</p>
+      <EmptyState type="empty-box" size="compact" title={adminT['admin.noItems'] ?? t('common.noResults')} />
     {/each}
   </div>
 </div>

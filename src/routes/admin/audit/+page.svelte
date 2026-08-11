@@ -3,42 +3,43 @@
    * Admin Audit Logs — View log entries
    */
   import { page } from '$app/stores'
-import { t } from '$lib/stores/content.svelte'
+  import { t } from '$lib/stores/content.svelte'
   import { getAdminT } from '$lib/utils/admin-translations'
+  import PageHeader from '$lib/components/atoms/PageHeader.svelte'
+  import EmptyState from '$lib/components/atoms/EmptyState.svelte'
+  import AdminDataTable, { type AdminTableColumn } from '$lib/components/admin/AdminDataTable.svelte'
   import type { PageData } from './$types'
+
   let { data }: { data: PageData } = $props()
   const items = $derived(data.items)
   const adminT = $derived(getAdminT($page.data))
+
+  const columns = $derived<AdminTableColumn[]>([
+    { key: 'action', label: adminT['admin.action'] ?? 'Action' },
+    { key: 'user', label: adminT['admin.user'] ?? 'User' },
+    { key: 'date', label: adminT['admin.date'] ?? 'Date' }
+  ])
 </script>
 
 <div class="max-w-[var(--max-w-content)] mx-auto">
-  <div class="flex items-center justify-between gap-4 py-4 mb-6 border-b border-pm-border">
-    <h1 class="text-2xl font-bold text-pm-text">{adminT['admin.auditLog'] || 'Audit Log'}</h1>
-    <span class="text-sm text-pm-text-muted">{items.length} {adminT['admin.entries'] || 'entries'}</span>
-  </div>
+  <PageHeader title={adminT['admin.auditLog'] ?? t('admin.auditLog')} itemCount={items.length} />
 
-  <div class="bg-pm-bg-elevated border border-pm-border rounded-xl overflow-hidden">
-    <table class="w-full text-sm">
-      <thead class="bg-pm-bg-sunken">
-        <tr>
-          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase">{adminT['admin.action'] || 'Action'}</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase">{adminT['admin.user'] || 'User'}</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-pm-text-muted uppercase">{adminT['admin.date'] || 'Date'}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each items as item (item.id)}
-          <tr class="border-b border-pm-border">
-            <td class="px-4 py-3 font-mono text-xs text-pm-text">{item.action}</td>
-            <td class="px-4 py-3 text-pm-text-muted">{item.userId}</td>
-            <td class="px-4 py-3 text-pm-text-muted text-xs">{item.createdAt ? new Date(item.createdAt).toLocaleString() : '—'}</td>
-          </tr>
-        {/each}
-      </tbody>
-    </table>
+  <div class="mt-6">
+    {#if items.length === 0}
+      <EmptyState type="empty-box" size="compact" title={adminT['admin.noItems'] ?? t('common.noResults')} />
+    {:else}
+      <AdminDataTable {columns} items={items} emptyMessage={adminT['admin.noItems'] ?? t('common.noResults')}>
+        {#snippet cell(column, item)}
+          {@const row = item as { action: string; userId?: number | null; createdAt?: string | Date | null }}
+          {#if column.key === 'action'}
+            <code class="font-mono text-xs text-pm-text">{row.action}</code>
+          {:else if column.key === 'user'}
+            <span class="text-pm-text-muted">{row.userId ?? '—'}</span>
+          {:else}
+            <span class="text-pm-text-muted text-xs">{row.createdAt ? new Date(row.createdAt).toLocaleString() : '—'}</span>
+          {/if}
+        {/snippet}
+      </AdminDataTable>
+    {/if}
   </div>
-
-  {#if items.length === 0}
-    <p class="text-center text-pm-text-muted py-8">{adminT['admin.noItems'] || t('common.noResults')}</p>
-  {/if}
 </div>

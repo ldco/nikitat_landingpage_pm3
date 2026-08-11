@@ -161,7 +161,7 @@ export const MODULES: Record<string, ModuleConfig> = {
     config: { layout: 'strip', showNames: false, grayscale: true, hoverColor: true }
   },
   contact: {
-    enabled: false,
+    enabled: true,
     config: {
       showMap: false, mapProvider: 'yandex', showForm: true, showInfo: true,
       // Labels are i18n keys (t('contact.form.name') etc.) — consumed via the

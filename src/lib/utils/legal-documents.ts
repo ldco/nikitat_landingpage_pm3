@@ -1,13 +1,17 @@
 /**
  * Legal Documents Utility
  *
- * Reads legal document markdown files from /legal/{locale}/{slug}.md
- * and returns metadata for footer navigation and document pages.
- * Mirrors PM v2 useLegalDocuments composable.
+ * Reads legal document content from the DB (runtime owner, admin-editable)
+ * with a filesystem /legal/{locale}/{slug}.md fallback for locales or slugs
+ * that have no DB row yet. Mirrors PM v2 useLegalDocuments composable.
+ * Server-only: imports $lib/server/db (the DB may be uninitialized in some
+ * paths, so every DB access is guarded and falls back to the filesystem).
  */
 import { readdirSync, existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { DEFAULT_LOCALE } from '$lib/config/site'
+import { useDatabase, schema } from '$lib/server/db'
+import { and, eq } from 'drizzle-orm'
 
 const LEGAL_DIR = 'legal'
 
@@ -36,10 +40,53 @@ const DOCUMENT_SLUGS: Record<string, string> = {
 }
 
 /**
+ * DB-first content read: returns the row content for a slug+locale, or null
+ * when the table has no row or the DB is unavailable. The filesystem remains
+ * the fallback so the footer/legal page never break on an empty DB.
+ */
+function readDbContent(slug: string, locale: string): string | null {
+  try {
+    const row = useDatabase()
+      .select({ content: schema.legalDocuments.content })
+      .from(schema.legalDocuments)
+      .where(and(eq(schema.legalDocuments.slug, slug), eq(schema.legalDocuments.locale, locale)))
+      .get()
+    return row?.content ?? null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * DB-first slug list: slugs that have a row for the locale, or null when the
+ * table has no rows for that locale at all (caller falls back to filesystem).
+ */
+function readDbSlugs(locale: string): string[] | null {
+  try {
+    const rows = useDatabase()
+      .select({ slug: schema.legalDocuments.slug })
+      .from(schema.legalDocuments)
+      .where(eq(schema.legalDocuments.locale, locale))
+      .all()
+    return rows.length > 0 ? rows.map(row => row.slug) : null
+  } catch {
+    return null
+  }
+}
+
+/**
  * List legal documents available in a given locale.
- * Returns slugs that have a markdown file in /legal/{locale}/.
+ * DB first (admin-edited rows), filesystem fallback for unseeded locales.
  */
 export function listLegalDocuments(locale: string): LegalDocument[] {
+  const dbSlugs = readDbSlugs(locale)
+  if (dbSlugs) {
+    return dbSlugs.map(slug => {
+      const file = DOCUMENT_SLUGS[slug] ?? slug
+      return { slug, file, locales: [locale] }
+    })
+  }
+
   const localeDir = join(process.cwd(), LEGAL_DIR, locale)
   if (!existsSync(localeDir)) return []
 
@@ -61,14 +108,17 @@ export function getLegalDocuments(locale: string): Array<{ slug: string; file: s
 }
 
 /**
- * Read a legal document markdown for a locale, falling back to the project
- * DEFAULT_LOCALE, then to the framework's English baseline corpus.
- * Returns null if unavailable in all three.
+ * Read a legal document for a locale: DB row first, then the filesystem
+ * corpus falling back through requested locale → DEFAULT_LOCALE → framework
+ * English baseline. Returns null if unavailable in all sources.
  */
 export function readLegalDocument(slug: string, locale: string): string | null {
   const fileSlug = DOCUMENT_SLUGS[slug] ?? slug
   const candidates = [...new Set([locale, DEFAULT_LOCALE, LEGAL_BASELINE_LOCALE])]
+
   for (const candidate of candidates) {
+    const dbContent = readDbContent(slug, candidate)
+    if (dbContent !== null) return dbContent
     const file = join(process.cwd(), LEGAL_DIR, candidate, `${fileSlug}.md`)
     if (existsSync(file)) {
       return readFileSync(file, 'utf-8')

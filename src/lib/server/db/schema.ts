@@ -436,13 +436,32 @@ export const faqItemTranslations = sqliteTable('faq_item_translations', {
 // TRANSLATIONS (DB-driven i18n)
 // ═══════════════════════════════════════════════════════════════════════════
 
+export const TRANSLATION_TYPES = ['system', 'content'] as const
+export type TranslationType = (typeof TRANSLATION_TYPES)[number]
+
 export const translations = sqliteTable('translations', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   locale: text('locale').notNull(),
   key: text('key').notNull(),
   value: text('value').notNull(),
+  type: text('type', { enum: ['system', 'content'] }).default('content').notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
 }, table => [unique().on(table.locale, table.key)])
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LEGAL DOCUMENTS (DB-backed, admin-editable; filesystem acts as seed source)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const legalDocuments = sqliteTable('legal_documents', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  slug: text('slug').notNull(),
+  locale: text('locale').notNull(),
+  content: text('content').notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
+}, table => [
+  unique().on(table.slug, table.locale),
+  index('legal_documents_slug_locale_idx').on(table.slug, table.locale)
+])
 
 // ═══════════════════════════════════════════════════════════════════════════
 // AUDIT LOGGING

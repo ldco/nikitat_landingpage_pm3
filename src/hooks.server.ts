@@ -15,7 +15,13 @@ import { getValidSession } from '$lib/server/auth/session'
 import { useDatabase, schema } from '$lib/server/db'
 import { eq } from 'drizzle-orm'
 import { buildSecurityHeaders } from '$lib/server/security/headers'
-import { validateCsrfToken, CSRF_COOKIE_NAME, CSRF_HEADER_NAME, CSRF_FIELD_NAME, generateCsrfToken } from '$lib/server/security/csrf'
+import {
+  validateCsrfToken,
+  CSRF_COOKIE_NAME,
+  CSRF_HEADER_NAME,
+  CSRF_FIELD_NAME,
+  generateCsrfToken
+} from '$lib/server/security/csrf'
 import { loginRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
 import { logger } from '$lib/server/utils/logger'
 import { FEATURES } from '$lib/config/site'
@@ -28,12 +34,17 @@ const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 // Sentry is optional — initialized at startup only when SENTRY_DSN is set.
 initSentry()
 
-// Fail-fast: when 2FA is enabled in production, TOTP secrets are encrypted
-// with TOTP_ENCRYPTION_KEY. Validate at startup so the server cannot pass
-// health checks yet 500 on the first 2FA setup/verify (or silently lock out
-// every 2FA-enabled account after a key omission).
-if (FEATURES.twoFactorAuth && process.env.NODE_ENV === 'production' && !process.env.TOTP_ENCRYPTION_KEY) {
-  throw new Error('TOTP_ENCRYPTION_KEY must be set when FEATURES.twoFactorAuth is enabled in production')
+// Fail-fast: when 2FA is enabled, TOTP secrets are encrypted with
+// TOTP_ENCRYPTION_KEY. The framework bootstraps this key into .env before
+// every supported flow (scripts/env-bootstrap.mjs predev/presetup,
+// ensure_framework_env in scripts/lib/deploy-env.sh), so a missing key is a
+// broken bootstrap in ANY environment — validate at startup so the server
+// cannot pass health checks yet 500 on the first 2FA setup/verify (or
+// silently lock out every 2FA-enabled account after a key omission).
+if (FEATURES.twoFactorAuth && !process.env.TOTP_ENCRYPTION_KEY) {
+  throw new Error(
+    'TOTP_ENCRYPTION_KEY must be set when FEATURES.twoFactorAuth is enabled. Run `npm run dev` once to bootstrap .env (or `npm run setup`), or add a key generated with `openssl rand -hex 32` to .env.'
+  )
 }
 
 // ── Session Handle ──────────────────────────────────────────────────────────
@@ -64,7 +75,11 @@ const sessionHandle: Handle = async ({ event, resolve }) => {
         // Effective role identity: the stored role's slug when the user is
         // linked to a roles row (custom roles), else the legacy enum. This is
         // the same slug getStoredRolePermissions() resolves against.
-        event.locals.user = { ...user, role: roleSlug ?? user.role, mustChangePassword: user.mustChangePassword ?? false }
+        event.locals.user = {
+          ...user,
+          role: roleSlug ?? user.role,
+          mustChangePassword: user.mustChangePassword ?? false
+        }
       }
     }
   }
@@ -123,10 +138,16 @@ const csrfHandle: Handle = async ({ event, resolve }) => {
     }
 
     if (!validateCsrfToken(cookieToken, requestToken)) {
-      return new Response(JSON.stringify({ success: false, error: { code: 'csrf.invalid', message: 'Invalid CSRF token' } }), {
-        status: 403,
-        headers: { 'content-type': 'application/json' }
-      })
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: { code: 'csrf.invalid', message: 'Invalid CSRF token' }
+        }),
+        {
+          status: 403,
+          headers: { 'content-type': 'application/json' }
+        }
+      )
     }
   }
 
@@ -136,7 +157,10 @@ const csrfHandle: Handle = async ({ event, resolve }) => {
 /** True for urlencoded/multipart bodies — the only shapes that can carry the field. */
 function isFormRequest(request: Request): boolean {
   const contentType = request.headers.get('content-type') ?? ''
-  return contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data')
+  return (
+    contentType.includes('application/x-www-form-urlencoded') ||
+    contentType.includes('multipart/form-data')
+  )
 }
 
 /** Read the `_csrf` field from a form body without consuming the request stream. */
@@ -181,13 +205,16 @@ const rateLimitHandle: Handle = async ({ event, resolve }) => {
   if (url.pathname === '/api/auth/login') {
     const ip = getClientIp(event)
     if (!loginRateLimiter.check(ip)) {
-      return new Response(JSON.stringify({
-        success: false,
-        error: { code: 'rateLimit.exceeded', message: 'Too many requests. Try again later.' }
-      }), {
-        status: 429,
-        headers: { 'content-type': 'application/json' }
-      })
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: { code: 'rateLimit.exceeded', message: 'Too many requests. Try again later.' }
+        }),
+        {
+          status: 429,
+          headers: { 'content-type': 'application/json' }
+        }
+      )
     }
   }
 
@@ -201,18 +228,20 @@ const logHandle: Handle = async ({ event, resolve }) => {
   const ms = Date.now() - start
 
   if (event.url.pathname.startsWith('/api/')) {
-    logger.info({ method: event.request.method, path: event.url.pathname, status: response.status, ms }, 'API request')
+    logger.info(
+      { method: event.request.method, path: event.url.pathname, status: response.status, ms },
+      'API request'
+    )
   }
 
   return response
 }
 
-
 // ── API Error Format (rule 11) ─────────────────────────────────────────────
 // Transforms all API route errors into { success: false, error: { code, message } }
 const errorFormatHandle: Handle = async ({ event, resolve }) => {
   const response = await resolve(event)
-  
+
   // Only transform API routes that return error status codes
   if (event.url.pathname.startsWith('/api/') && response.status >= 400) {
     let body = { message: 'Unknown error' }
@@ -223,40 +252,47 @@ const errorFormatHandle: Handle = async ({ event, resolve }) => {
       // Non-JSON response — keep as-is (e.g. HTML error page)
       return response
     }
-    
+
     // If already in contract format, pass through
     if (body && typeof body === 'object' && 'success' in body && body.success === false) {
       return response
     }
-    
+
     // Transform to contract format
-    return new Response(JSON.stringify({
-      success: false,
-      error: {
-        code: `http.${response.status}`,
-        message: typeof body === 'string' ? (body as string) : (body && 'message' in body ? ((body as {message: string}).message) : 'Request failed')
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: {
+          code: `http.${response.status}`,
+          message:
+            typeof body === 'string'
+              ? (body as string)
+              : body && 'message' in body
+                ? (body as { message: string }).message
+                : 'Request failed'
+        }
+      }),
+      {
+        status: response.status,
+        headers: { 'content-type': 'application/json' }
       }
-    }), {
-      status: response.status,
-      headers: { 'content-type': 'application/json' }
-    })
+    )
   }
-  
+
   return response
 }
-
 
 // ── Locale Normalize Handle ─────────────────────────────────────────────
 // Redirects double-locale paths like /fr/en → /fr before Paraglide
 // tries to parse them.
 const localeNormalizeHandle: Handle = async ({ event, resolve }) => {
-  const segments = event.url.pathname.split("/").filter(Boolean)
+  const segments = event.url.pathname.split('/').filter(Boolean)
 
   const s0 = segments[0]
   const s1 = segments[1]
   if (s0 && s1 && LOCALE_STRINGS.includes(s0) && LOCALE_STRINGS.includes(s1)) {
-    const rest = segments.length > 2 ? "/" + segments.slice(2).join("/") : ""
-    const target = "/" + s0 + rest
+    const rest = segments.length > 2 ? '/' + segments.slice(2).join('/') : ''
+    const target = '/' + s0 + rest
     return new Response(null, { status: 308, headers: { location: target } })
   }
 
@@ -279,10 +315,15 @@ const i18nHandle = i18n.handle()
 
 const adminLocaleHandle: Handle = ({ event, resolve }) => {
   const pathname = event.url.pathname
-  if (pathname !== '/admin' && !pathname.startsWith('/admin/')) return i18nHandle({ event, resolve })
+  if (pathname !== '/admin' && !pathname.startsWith('/admin/'))
+    return i18nHandle({ event, resolve })
 
   const preferred = event.cookies.get(PREFERRED_LOCALE_COOKIE)
-  if (!preferred || preferred === DEFAULT_LOCALE || !(LOCALES as readonly string[]).includes(preferred)) {
+  if (
+    !preferred ||
+    preferred === DEFAULT_LOCALE ||
+    !(LOCALES as readonly string[]).includes(preferred)
+  ) {
     return i18nHandle({ event, resolve })
   }
 
@@ -314,19 +355,26 @@ const baseHandle = sequence(
   errorFormatHandle
 )
 
-export const handle: Handle = isSentryEnabled()
-  ? sequence(sentryHandle(), baseHandle)
-  : baseHandle
+export const handle: Handle = isSentryEnabled() ? sequence(sentryHandle(), baseHandle) : baseHandle
 
 // ── Error contract (rule 11) ───────────────────────────────────────────────
 // Formats all API errors into { success: false, error: { code, message } }.
 // Never leaks stack traces. Sentry (when enabled) records the error server-side.
-const formatServerError: import('@sveltejs/kit').HandleServerError = async ({ error: err, event }) => {
+const formatServerError: import('@sveltejs/kit').HandleServerError = async ({
+  error: err,
+  event
+}) => {
   const isApi = event.url.pathname.startsWith('/api/')
 
   if (isApi) {
-    const status = 'status' in (err as object) ? Number((err as { status?: number }).status) || 500 : 500
-    const message = status >= 500 ? 'Internal server error' : err instanceof Error ? err.message : 'Internal server error'
+    const status =
+      'status' in (err as object) ? Number((err as { status?: number }).status) || 500 : 500
+    const message =
+      status >= 500
+        ? 'Internal server error'
+        : err instanceof Error
+          ? err.message
+          : 'Internal server error'
     return {
       message,
       // Shape consumed by SvelteKit to render the JSON response

@@ -1,0 +1,283 @@
+# Admin Panel — PM2 Parity Plan (Revised)
+
+## Implementation note
+
+PM2 class names and DOM shapes in this document are **reference inputs for
+comparison** — they capture the visual layout, spacing, interaction states, and
+mobile behavior to replicate. Implementation in PM3 follows the **component and
+token rules in `AGENTS.md`**: design tokens (`--width-key-column`,
+`--grid-admin-form`, etc.) in `src/app.css`, Svelte components, and Tailwind
+utilities referencing those tokens. PM2 BEM class names (`.data-table`,
+`.page-header`) are never recreated verbatim.
+
+---
+
+## Current PM3 baseline (audit against live implementation)
+
+Each requirement is marked **Matched**, **Partial**, or **Missing** against the
+present PM3 code in `src/routes/admin/`.
+
+### Admin layout (`src/routes/admin/+layout.svelte`)
+| Requirement | Status | Notes |
+|---|---|---|
+| 3-mode responsive layout (vertical sidebar / horizontal header / mobile bottom nav) | Matched | Vertical+horizontal+phone modes present; icons + tooltips |
+| Menu driven by `ADMIN_PAGE_DEFS` + `MODULES` | Matched | `getAuthorizedAdminPages()` drives both nav and auth |
+| Mobile bottom nav | Matched | `<nav class="...lg:hidden fixed bottom-0...">` at line 244 |
+| `mustChangePassword` redirect | Matched | Layout server redirects to `/admin/change-password` |
+| Content area max-width 62.5rem (1000px) | Matched | `max-w-[var(--max-w-content)]` (line 285) |
+| PM2 padding scale (p-10 desktop, p-6 px-4 phone) | Partial | Uses `px-4 py-6 sm:px-5 sm:py-8 lg:px-0 lg:py-10` — close but differs slightly from PM2's `space-10`/`space-6`/`space-4` |
+| Unread count badge on contacts icon | Matched | `unreadCount` via `getCachedUnreadCount` → badge dot |
+| CSRF token delivered via layout | Matched | `csrfToken` in layout data (line 73) |
+
+### Translations page (`src/routes/admin/translations/+page.svelte`)
+| Requirement | Status | Notes |
+|---|---|---|
+| Page header with title + subtitle + Add button | Matched | `PageHeader` with `actions` snippet |
+| Section toggle pills (Content/System) with counts | Matched | `section-toggle` buttons with per-section counts |
+| System warning alert bar | Matched | `alert--warning` div when system section active |
+| Locale tabs with per-locale counts | Matched | Border-bottom tabs with tab-badge counts |
+| Search bar with icon | Matched | Search input with `IconSearch` |
+| Namespace-grouped accordion cards | Matched | Grouped by first key segment with chevron toggle |
+| Key column (35% width, `<code>` chip) | Matched | `w-[var(--width-key-column)]` with `<code>` |
+| Click-to-edit → opens modal | Matched | `openEdit()` shows modal with key + per-locale fields |
+| Add translation modal (key + all locales) | Matched | Batch endpoint `/api/admin/translations/batch` |
+| Delete translation with confirm | Matched | `overlays.confirm()` + `DELETE` API |
+| Server-side system-key authorization | Matched | `isSystemKey()` guard in all 4 API files (master/admin only) |
+| UI convenience lock for editors on system rows | Matched | Lock icon + disabled edit/delete on system keys for editor |
+| legalDocuments namespace hidden from content | Matched | `hiddenContentNamespaces` filter |
+
+### Settings page (`src/routes/admin/settings/+page.svelte`)
+| Requirement | Status | Notes |
+|---|---|---|
+| Page header with title | Matched | `PageHeader` |
+| Bulk save form (one submit button) | Matched | Single `CtaButton type="submit"` at bottom |
+| Grouped cards with card-header/card-body | Matched | Section cards with separated header + 2-col grid body |
+| 2-column form grid (auto-fit, minmax 280px) | Matched | `grid-cols-[var(--grid-admin-form)]` |
+| Boolean → checkbox, string → input, json → textarea | Matched | Type-aware rendering |
+| Contact header quick picker | Matched | Pill-style toggle buttons with brand icons for `headerQuickItems` |
+| Contact page items picker | Matched | Second picker block for `contactPageItems` |
+| Has-changes dirty guard on save | Matched | `hasChanges` derived + disabled button |
+| settings.{key} i18n labels | Matched | `t(group.label)` for group titles, `t(item.label)` for fields |
+
+### Legal page (`src/routes/admin/legal/+page.svelte`)
+| Requirement | Status | Notes |
+|---|---|---|
+| Page header with title + subtitle | Matched | `PageHeader` |
+| Company details card (legal fields) | Matched | `legal.companyLegalName` … `legal.email` in form-grid |
+| Contact form gate checkbox | Matched | `forceShowFormWithoutLegalDocuments` toggle |
+| Status grid (one card per locale) | Matched | `grid-cols-[var(--grid-admin-status)]` per-locale cards |
+| Locale tabs with warning indicators | Matched | Border-bottom tabs with warning dot for missing docs |
+| Active locale status badges | Matched | Documents complete + contact form ready badges |
+| Placeholder tokens display | Matched | Token chips for `{companyLegalName}` etc. |
+| Per-document markdown editor | Matched | Textarea + preview toggle with `renderLegalMarkdown` |
+| Combined settings + documents in one page | Matched | PM2 structure (single `/admin/legal` page) |
+| Bulk save (settings + per-doc legal API) | Matched | Single save button bulk-PUTs settings + per-locale doc API |
+
+### Users page (`src/routes/admin/users/+page.svelte`)
+| Requirement | Status | Notes |
+|---|---|---|
+| Page header with Add User button | Matched | `PageHeader` with `actions` snippet |
+| Card wrapper with data table | Matched | `bg-pm-bg-elevated rounded-xl` card |
+| Name / Email / Role badge / Created columns | Matched | `AdminDataTable` with 4 columns |
+| Role badges (master=warning, admin=primary, editor=secondary) | Matched | PM2 `roleBadgeClass` colors |
+| Date formatting (UTC, locale-aware) | Matched | `toLocaleDateString` with UTC timezone |
+| Add user modal (email/password/name/role) | Matched | Modal with `formEmail`/`formPassword`/`formName`/`formRole` |
+| Edit user modal (password optional, name editable) | Matched | `leaveBlankToKeep` placeholder |
+| Delete with confirm | Matched | `overlays.confirm()` + `DELETE` API |
+| Self-delete guard | Matched | Delete disabled for current user |
+| Master-only guard for other masters | Matched | `canEdit(user)` check |
+
+---
+
+## Non-visual contracts that the rewrite must preserve
+
+These behaviors are enforced by server code and must remain unchanged unless a
+separate architecture decision (ADR) explicitly says otherwise. The rewrite
+targets visual structure and interactive behavior, not the security surface.
+
+### Menu visibility — `src/lib/server/utils/admin-pages.ts`
+- `ADMIN_PAGE_DEFS` is the single source of truth for every admin page.
+- `getAuthorizedAdminPages(user)` (line 135 of `admin-rbac.ts`) resolves menu
+  visibility from `ADMIN_CONFIG` + `MODULES` + stored role permissions.
+- A page disabled in `ADMIN_CONFIG` or with its module `MODULES[module].enabled
+  === false` is excluded from both the menu AND the page gate (404).
+
+### Page access — `src/lib/server/utils/admin-rbac.ts`
+- `requireAdminPage(event, pageId)` (line 114) gates every admin route:
+  1. authentication required (401)
+  2. page enabled in config (404)
+  3. user's role in the page's configured role list (403)
+  4. stored role permissions (`roles.permissions` JSON) must not deny (403)
+- Custom roles (not in the config role lists) are authorized ONLY when their
+  stored permissions explicitly allow the page.
+
+### Page enablement — `src/project/site-config.ts`
+- `ADMIN_CONFIG.system[pageId].enabled` / `ADMIN_CONFIG.websiteModules[key].enabled`
+  control whether a page exists. A disabled page returns 404 from
+  `requireAdminPage` and never appears in the menu.
+- `MODULES[key].enabled` controls website-content modules independently from admin.
+
+### Forced password change — `src/routes/admin/+layout.server.ts`
+- `event.locals.user.mustChangePassword` (line 65) redirects every
+  authenticated admin request to `/admin/change-password` until the bootstrap
+  credential is replaced. The `/admin/change-password` page itself is exempt
+  (line 56). `requireAdminPage` also enforces this (line 102 of admin-rbac.ts).
+
+### Layout-provided CSRF token — `src/routes/admin/+layout.server.ts`
+- `event.cookies.get(CSRF_COOKIE_NAME)` (line 73) renders the CSRF token into
+  page data so plain form submissions (no JS, or before hydration) carry a
+  valid `_csrf` value. The rewrite must not remove this.
+
+### Unread contact count — `src/routes/admin/+layout.server.ts`
+- `getCachedUnreadCount()` (line 43) with a 10-second TTL serves the unread
+  badge. The rewrite must preserve the existing badge on the contacts icon.
+
+### Verification table
+
+| Role | Menu visibility | Route access | Mutation access (system keys) |
+|---|---|---|---|
+| master | All enabled pages | All enabled pages | Allowed (system + content) |
+| admin | All enabled pages | All enabled pages | Allowed (system + content) |
+| editor | Content-module pages (blog, faq, features, testimonials); dashboard; translations (content only toggle) | Content-module pages + dashboard + translations | Content keys only; system keys rejected (403) |
+| Disabled modules | Page hidden from menu | 404 from `requireAdminPage` | N/A |
+| `mustChangePassword=1` | Menu hidden (redirected) | Redirect to `/admin/change-password` | Mutations blocked (`requireAdminPage` → 403 via `assertPasswordChanged`) |
+
+---
+
+## Server-side system-translation authorization
+
+### ✅ Implemented: `src/lib/server/services/translations.ts`
+
+The shared guard `isSystemKey(key)` classifies keys by prefix using the same
+`SYSTEM_PREFIXES` (`admin.`, `nav.`, `common.`, `auth.`, `validation.`,
+`footer.`, `error.`, `apiErrors.`) that `classifyTranslationType` uses. One
+source of truth for classification.
+
+Every translation mutation endpoint now enforces the guard:
+
+| Endpoint | Guard applied |
+|---|---|
+| `POST /api/admin/translations` | `isSystemKey(key)` → 403 unless master/admin |
+| `POST /api/admin/translations/batch` | `isSystemKey(key)` → 403 unless master/admin |
+| `PUT /api/admin/translations/[locale]` | `isSystemKey(key)` → skip (not 403, so bulk updates still save content keys) |
+| `DELETE /api/admin/translations/[locale]` | `isSystemKey(key)` → 403 unless master/admin |
+| `PUT /api/admin/translations/[locale]/[key]` | `isSystemKey(key)` → 403 unless master/admin |
+| `DELETE /api/admin/translations/[locale]/[key]` | `isSystemKey(key)` → 403 unless master/admin |
+
+The UI restrictions in `src/routes/admin/translations/+page.svelte` (lock icon,
+disabled edit/delete for editor role on system keys) are a **convenience
+layer** — the real security boundary is the API guard above. The UI and API
+both classify keys via the same `isSystemKey` / `classifyTranslationType`
+function, exported from `src/lib/server/services/translations.ts`.
+
+---
+
+## Full admin surface inventory
+
+Sourced from `src/lib/server/utils/admin-pages.ts` (ADMIN_PAGE_DEFS) and the
+actual route tree under `src/routes/admin`.
+
+### System pages (framework-owned, not tied to a MODULES key)
+
+| Route | Current PM3 file | PM2 reference / expected behavior | Rewrite acceptance criteria |
+|---|---|---|---|
+| Dashboard | `admin/+page.svelte` | Stat cards grid (users/portfolios/blog/contacts counts) | Uses `PageHeader`; stats cards in responsive grid |
+| Users | `admin/users/+page.svelte` | Table with role badges, add/edit modal, delete with confirm | ✅ Matched (see baseline audit) |
+| Roles | `admin/roles/+page.svelte` | Role table with name/slug/level/color badges | Uses `PageHeader` + `AdminDataTable` with `Badge` |
+| Translations | `admin/translations/+page.svelte` | Section toggle, locale tabs + counts, namespace accordion groups, add/edit modal, batch endpoint | ✅ Matched (see baseline audit) |
+| Settings | `admin/settings/+page.svelte` | Bulk form with grouped cards, 2-col grid, contact quick picker | ✅ Matched (see baseline audit) |
+| Legal | `admin/legal/+page.svelte` | Combined company details + contact gate + status grid + document editor | ✅ Matched (see baseline audit) |
+| Audit | `admin/audit/+page.svelte` | Table of log entries (action/user/date) | Uses `PageHeader` + `AdminDataTable` |
+| Health | `admin/health/+page.svelte` | System health check table with OK/error badges | Uses `PageHeader` + `AdminDataTable` + `Badge` |
+| Security | `admin/security/+page.svelte` | Password change form + 2FA settings | Uses `PageHeader` |
+
+### Auth and account flows
+
+| Route | Current PM3 file | PM2 reference / expected behavior | Rewrite acceptance criteria |
+|---|---|---|---|
+| Login | `admin/login/+page.svelte` | Auth form with email/password + optional 2FA verify | Unchanged (not in rewrite scope) |
+| Change password | `admin/change-password/+page.svelte` | Forced password change page (bootstrap hardening) | Unchanged (not in rewrite scope) |
+
+### Website module list pages
+
+| Route | Current PM3 file | PM2 reference / expected behavior | Rewrite acceptance criteria |
+|---|---|---|---|
+| Blog | `admin/blog/+page.svelte` | Card list with cover image, title, categories, tags, locale indicators | Uses `PageHeader` + card grid; `Badge` for published/draft; `EmptyState` |
+| Portfolios | `admin/portfolios/+page.svelte` | Table with name/type/status + edit/delete actions | Uses `PageHeader` (w/ actions) + `AdminDataTable` |
+| FAQ | `admin/faq/+page.svelte` | List with question/answer/category | Uses `PageHeader` + card list; `Badge` for published/draft |
+| Features | `admin/features/+page.svelte` | Grid with title/description/icon | Uses `PageHeader` + card grid; `Badge` for published/draft |
+| Pricing | `admin/pricing/+page.svelte` | List of pricing plans | Uses `PageHeader` + card list |
+| Team | `admin/team/+page.svelte` | Grid with photo/name/position/social | Uses `PageHeader` + card grid; `Badge` for published/draft |
+| Testimonials | `admin/testimonials/+page.svelte` | Grid with quote/author/rating | Uses `PageHeader` + card grid |
+| Clients | `admin/clients/+page.svelte` | Grid with logo/name/URL | Uses `PageHeader` + card grid |
+| Contacts | `admin/contacts/+page.svelte` | Contact submissions inbox — name/email/date table (module: `contact`, group: `website`) | Uses `PageHeader` + `AdminDataTable` |
+
+### Website module create/edit pages
+
+| Route | Current PM3 file | API backing | Rewrite acceptance criteria |
+|---|---|---|---|
+| Blog create | `admin/blog/create/+page.svelte` | `POST /api/admin/blog` | Uses `PageHeader` + `FormField`; SvelteKit form actions |
+| Blog edit | `admin/blog/[id]/edit/+page.svelte` | `PUT /api/admin/blog/[id]` | `FormField` with pre-filled values; `EmptyState` for 404 |
+| Portfolio create | `admin/portfolios/create/+page.svelte` | `POST /api/admin/portfolios` | `PageHeader` + `FormField` |
+| Portfolio edit | `admin/portfolios/[id]/edit/+page.svelte` | `PUT /api/admin/portfolios/[id]` | `PageHeader` + `FormField` |
+| FAQ create | `admin/faq/create/+page.svelte` | `POST /api/admin/faq` | `PageHeader` + `FormField` |
+| FAQ edit | `admin/faq/[id]/edit/+page.svelte` | `PUT /api/admin/faq/[id]` | `FormField` with pre-filled values |
+| Features create | `admin/features/create/+page.svelte` | `POST /api/admin/features` | `PageHeader` + `FormField` |
+| Features edit | `admin/features/[id]/edit/+page.svelte` | `PUT /api/admin/features/[id]` | `FormField` with pre-filled values |
+| Pricing create | `admin/pricing/create/+page.svelte` | `POST /api/admin/pricing` | `PageHeader` + `FormField` |
+| Pricing edit | `admin/pricing/[id]/edit/+page.svelte` | `PUT /api/admin/pricing/[id]` | `FormField` with pre-filled values |
+
+Team, Testimonials, and Clients have **no create/edit routes** — they are list-only pages
+(entities are seeded from content.json and not editable through the admin).
+
+---
+
+## Implementation phases
+
+### Phase 1: AdminDataTable — visual parity with PM2 `.data-table` ✅ Matched
+
+Implemented via `src/lib/components/admin/AdminDataTable.svelte` using PM3
+design tokens and Tailwind. Column definitions accept `dataLabel`/`widthClass`.
+
+### Phase 2: PageHeader — visual parity with PM2 `.page-header` ✅ Matched
+
+`src/lib/components/atoms/PageHeader.svelte`: `text-3xl font-bold`, `mb-8`
+bottom margin, subtitle and actions support.
+
+### Phase 3: Translations page ✅ Matched (see baseline audit)
+
+### Phase 4: Settings page ✅ Matched (see baseline audit)
+
+### Phase 5: Legal page ✅ Matched (see baseline audit)
+
+### Phase 6: Users page ✅ Matched (see baseline audit)
+
+### Phase 7: Remaining CRUD pages — partial, only system pages completed
+
+The system pages (dashboard, roles, audit, health, security) and the
+list-level entity pages (portfolios, blog, faq, features, pricing, team,
+testimonials, clients) have been retrofitted with `PageHeader` + shared
+components. The create/edit form pages still use the pre-existing form patterns
+(SvelteKit form actions) which are functionally correct — a full form-component
+unification (canonical `FormField` atom) is future work.
+
+### Phase 8: Admin layout content area ✅ Matched
+
+### Phase 9: Mobile bottom nav — present in layout (line 244) ✅ Matched
+
+Mobile bottom nav already exists in `src/routes/admin/+layout.svelte` with
+`sm:hidden` responsive visibility and unread badge.
+
+---
+
+## Implementation order (completed phases marked)
+
+1. ✅ Phase 1: AdminDataTable visual parity
+2. ✅ Phase 2: PageHeader visual parity
+3. ✅ Phase 3: Translations page (namespace groups, section toggle, modal, server-side guard)
+4. ✅ Phase 4: Settings page (bulk save, contact picker)
+5. ✅ Phase 5: Legal page (combined settings + docs)
+6. ✅ Phase 6: Users page (role badges, modal)
+7. ✅ Phase 7: System CRUD pages normalization
+8. ✅ Phase 8: Layout content area
+9. ✅ Phase 9: Mobile bottom nav (pre-existing)

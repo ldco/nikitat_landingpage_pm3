@@ -210,6 +210,11 @@
   --drawer-width: min(280px, 85vw);
   --dialog-max-height: calc(100dvh - 2rem);
 
+  /* --- Admin Component Tokens (PM v2 data-table.css parity) --- */
+  --width-key-column: 35%;
+  --grid-admin-form: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  --grid-admin-status: repeat(auto-fit, minmax(14rem, 1fr));
+
   /* --- Component-level Tokens --- */
   --hero-min-height: 80vh;
   --pt-hero: calc(var(--h-header) + var(--space-8));

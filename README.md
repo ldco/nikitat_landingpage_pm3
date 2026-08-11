@@ -6,14 +6,15 @@
 
 ```bash
 npm install
-cp .env.example .env
-npm run db:reset   # создаёт БД + посев
-npm run dev        # dev-сервер (порт 5173)
+npm run db:reset   # создаёт БД + посев; первый запуск сам создаёт .env, админ-пароли берутся из .env
+npm run dev        # dev-сервер
 ```
 
 - Public site: `http://localhost:5173`
 - Admin panel: `http://localhost:5173/admin`
 - Health endpoint: `http://localhost:5173/api/health`
+
+**Контракт `.env` — три фазы:** *runtime* (узкий app-контракт, валидируется `src/lib/server/utils/env.ts` — без `.env` сервер падает с явной ошибкой, тихих dev-фолбэков нет), *bootstrap* (first-time запуск создаёт `.env` из `.env.example` и генерирует long-lived секреты: `npm run db:seed`/`db:reset` и `npm run dev` через predb:*/predev, `setup`/`deploy` через `ensure_framework_env`; seed читает тот же `.env` через `--env-file` — админ-пароли из одного источника) и *steady-state* (на инициализированной среде `setup`/`deploy` валидируют `.env` и **не перегенерируют** — при пропаже падают с явной ошибкой; намеренная переинициализация — `PM_ENV_INIT=1`). От оператора нужны только site facts: `SITE_DOMAIN`, `SERVER_IP`, `ACME_EMAIL` (+ `SERVER_ROOT_PASSWORD` для первого парольного bootstrap) — `npm run setup` спросит их интерактивно на TTY, префлайт иначе укажет точный список недостающих.
 
 ## Commands
 
@@ -32,6 +33,7 @@ npm run dev        # dev-сервер (порт 5173)
 | `npm run db:studio` | Drizzle Studio |
 | `npm run setup` | Server provisioning (Ansible) |
 | `npm run deploy` | Deploy (build + Ansible rollout) |
+| `npm run deploy:secrets` | Auto-generate/fill deploy secrets in `.env` |
 | `npm run rollback` | Roll back to previous image |
 | `npm run deploy:logs` | Deploy/log helper |
 
@@ -70,18 +72,37 @@ ADMIN_CONFIG                     // RBAC по ролям (master/admin/editor)
 
 ## Environment
 
-`.env` — runtime/deploy secrets (gitignored). Ключевые переменные:
+`.env` — локальный конфиг (gitignored). **Жизненный цикл — три отдельных контракта, не один смешанный workspace** (PM2-стиль узкий runtime-контракт + PM3-автобутстрап):
+
+| Контракт | Значения | Кто заполняет |
+|----------|----------|---------------|
+| 1. **Runtime app config** | `NODE_ENV`, `PORT`, `DATABASE_URL`, `LOG_LEVEL`, `TOTP_ENCRYPTION_KEY`, `PM_TRUST_PROXY`, `SMTP_*`, `CLAMAV_*`, `SENTRY_*`, `PM_FEATURES_HIBP` | валидируется `src/lib/server/utils/env.ts`; без `.env` runtime падает с явной ошибкой — тихих dev-фолбэков нет |
+| 2. **Long-lived deploy secrets** | `PM_SETTINGS_ENCRYPTION_KEY`, `PM_ADMIN_*_PASSWORD`, `DEPLOY_USER_PASSWORD`, `DEPLOY_SSH_KEY` | генерируются только при first-time bootstrap (`ensure_framework_env` в `scripts/lib/deploy-env.sh`); steady-state `setup`/`deploy` валидируют и НЕ перегенерируют — при пропаже падают с ошибкой (восстановить из бэкапа или `PM_ENV_INIT=1`) |
+| 3. **First-run operator inputs** | site facts: `SITE_DOMAIN`, `SERVER_IP`, `ACME_EMAIL` (+ `SERVER_ROOT_PASSWORD` для первого парольного bootstrap); deploy transport: `SSH_KEY`, `DEPLOY_USER`, `PM_DOCKER_*`, `TRAEFIK_IMAGE` и т.п.; опциональные project settings: `S3_*`, `API_*`, `REDIS_*` | оператор — `npm run setup` спросит на TTY; транспорт дефолтится фреймворком |
+
+**Жизненный цикл:** первый запуск (`npm run dev`, `db:seed`/`db:reset`, `setup`, `deploy` при отсутствии setup-state) создаёт `.env` из `.env.example` и авто-генерирует long-lived секреты; seed читает тот же `.env` (`--env-file`) — seeded админ-пароли и `.env` из одного источника. Steady-state `setup`/`deploy` (setup-state существует) валидируют инициализированный `.env` и при пропаже `.env`/ключей **падают, а не перегенерируют**. Намеренная переинициализация — `PM_ENV_INIT=1`.
+
+Ключевые переменные runtime-контракта:
 
 | Key | Purpose |
 |-----|---------|
-| `PM_SETTINGS_ENCRYPTION_KEY` | 64-hex; резерв для encrypted settings (пока не используется приложением) |
-| `TOTP_ENCRYPTION_KEY` | 64-hex; **обязателен в prod при `FEATURES.twoFactorAuth`** — сервер падает на старте без него |
-| `SITE_DOMAIN` | основной домен для деплоя |
 | `DATABASE_URL` | путь к SQLite (по умолчанию `./data/sqlite.db`) |
-| `SMTP_*` | email-уведомления |
-| `S3_*` | S3-совместимое хранилище |
-| `SENTRY_DSN` | опциональный error tracking (hardening) |
-| `PM_TRUST_PROXY` | только за trusted reverse proxy (rate limiting) |
+| `TOTP_ENCRYPTION_KEY` | 64-hex; обязателен при `FEATURES.twoFactorAuth` — генерируется при bootstrap, держать стабильным между деплоями |
+| `PM_TRUST_PROXY` | только за trusted reverse proxy (⚙️) |
+| `SMTP_*` | email-уведомления (⚙️ опционально) |
+| `SENTRY_DSN` | опциональный error tracking (⚙️) |
+
+Long-lived deploy secrets (контракт 2):
+
+| Key | Purpose |
+|-----|---------|
+| `PM_SETTINGS_ENCRYPTION_KEY` | 64-hex; шифрование settings в БД (app не читает — deploy/rotation) — генерируется |
+| `PM_ADMIN_PASSWORD_ROTATION_ENABLED` | дефолт `true` — ротация master/admin/editor обязательна |
+| `PM_ADMIN_MASTER_PASSWORD` | пароль master-аккаунта (bootstrap/ротация) — генерируется |
+| `PM_ADMIN_ADMIN_PASSWORD` | пароль admin-аккаунта (bootstrap/ротация) — генерируется |
+| `PM_ADMIN_USER_PASSWORD` | пароль editor-аккаунта (bootstrap/ротация) — генерируется |
+
+Эти значения — одноразовые bootstrap/rotation inputs: нужны деплой-пайплайну и передаются только в одноразовый контейнер ротации (`node scripts/rotate-admin-passwords.mjs --apply`). Они НЕ сохраняются в долгоживущем runtime-окружении приложения (`.env.runtime` на сервере их не содержит). Чтобы задать явные значения вместо автогенерации, впишите их в `.env` (фреймворк их сохранит) или сгенерируйте: `node scripts/rotate-admin-passwords.mjs --generate --write-env`.
 
 ## Security
 
@@ -98,13 +119,15 @@ Pre-commit (husky + lint-staged) запускает `scripts/pm3-validator.mjs` 
 ## Deployment
 
 ```bash
-npm run setup         # первичная подготовка сервера (Ansible)
+npm run setup         # сам бутстрапит .env + генерирует секреты, спрашивает site facts, затем Ansible
 npm run deploy        # build + Ansible rollout + health check
 npm run rollback      # откат на предыдущий образ
 npm run deploy:logs   # логи деплоя
 ```
 
-SQLite в mounted volume `/app/data`. Keep `PM_SETTINGS_ENCRYPTION_KEY` и `TOTP_ENCRYPTION_KEY` стабильными между деплоями.
+Никакой ручной подготовки `.env` перед первым `npm run setup` не требуется: на first-time запуске `presetup` + `load_env` создадут `.env` из `.env.example` и сгенерируют long-lived секреты (см. контракт в разделе Environment); на TTY setup интерактивно спросит `SITE_DOMAIN`, `SERVER_IP`, `ACME_EMAIL`. На уже инициализированной среде (setup-state существует) `setup`/`deploy` ничего не перегенерируют — при пропаже `.env` или стабильных ключей падают с явной ошибкой (восстановить из бэкапа или `PM_ENV_INIT=1`).
+
+SQLite в mounted volume `/app/data`. Keep `PM_SETTINGS_ENCRYPTION_KEY` и `TOTP_ENCRYPTION_KEY` стабильными между деплоями (восстановить из бэкапа при переустановке).
 
 Полный workflow: [docs/operations/deployment.md](docs/operations/deployment.md).
 

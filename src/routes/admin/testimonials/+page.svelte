@@ -3,8 +3,10 @@
    * Admin Testimonials — Manage testimonials
    */
   import { page } from '$app/stores'
-import { t } from '$lib/stores/content.svelte'
+  import { t } from '$lib/stores/content.svelte'
   import { getAdminT } from '$lib/utils/admin-translations'
+  import PageHeader from '$lib/components/atoms/PageHeader.svelte'
+  import EmptyState from '$lib/components/atoms/EmptyState.svelte'
   import type { PageData } from './$types'
   let { data }: { data: PageData } = $props()
   const items = $derived(data.items)
@@ -12,10 +14,7 @@ import { t } from '$lib/stores/content.svelte'
 </script>
 
 <div class="max-w-[var(--max-w-content)] mx-auto">
-  <div class="flex items-center justify-between gap-4 py-4 mb-6 border-b border-pm-border">
-    <h1 class="text-2xl font-bold text-pm-text">{adminT['admin.testimonials'] || 'Testimonials'}</h1>
-    <span class="text-sm text-pm-text-muted">{items.length} {adminT['admin.total'] || 'total'}</span>
-  </div>
+  <PageHeader title={adminT['admin.testimonials'] ?? t('admin.testimonials')} itemCount={items.length} />
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     {#each items as item (item.id)}
@@ -29,7 +28,7 @@ import { t } from '$lib/stores/content.svelte'
         </div>
       </div>
     {:else}
-      <p class="text-center text-pm-text-muted py-16 col-span-full">{adminT['admin.noItems'] || t('common.noResults')}</p>
+      <EmptyState type="empty-box" size="compact" title={adminT['admin.noItems'] ?? t('common.noResults')} />
     {/each}
   </div>
 </div>

@@ -69,7 +69,21 @@ require_command() {
 }
 
 load_env() {
-  [[ -f "$ENV_FILE" ]] || fail ".env is missing."
+  # Env lifecycle split (three contracts, see scripts/lib/deploy-env.sh):
+  #   - runtime app config — validated by src/lib/server/utils/env.ts (no soft
+  #     dev fallbacks).
+  #   - long-lived deploy secrets — generated ONLY during first-time bootstrap
+  #     (no setup state file yet, or explicit PM_ENV_INIT=1).
+  #   - steady state (setup state exists) — NEVER regenerate secrets; fail
+  #     clearly when .env or the stable keys are missing/placeholder, so an
+  #     existing deployment can never be silently orphaned.
+  local state_file
+  state_file="$(resolved_pm_deploy_state_file "$ROOT_DIR")"
+  if env_bootstrap_allowed "$state_file"; then
+    ensure_framework_env "$ENV_FILE" "$ROOT_DIR/.env.example"
+  else
+    validate_initialized_env "$ENV_FILE" || exit 1
+  fi
   load_dotenv_file "$ENV_FILE"
 }
 
@@ -259,6 +273,12 @@ print_recovery_guidance() {
 DEPLOY_STARTED_AT="$(date +%s)"
 
 start_deploy_stage "load environment"
+# Framework-level env contract: first-time runs bootstrap .env and
+# auto-generate the framework-managed secrets (load_env → env_bootstrap_allowed);
+# steady-state runs validate the existing secrets instead of regenerating.
+# Only site facts cannot be generated: SITE_DOMAIN, SERVER_IP, ACME_EMAIL.
+log "Resolving the framework env contract (.env bootstrap or steady-state validation)."
+require_command "openssl" "sudo apt-get update && sudo apt-get install -y openssl"
 load_env
 require_completed_setup_state "$ROOT_DIR"
 finish_deploy_stage "load environment"
@@ -280,11 +300,11 @@ validate_deploy_user || exit 1
 validate_pm_settings_encryption_key || fail "PM_SETTINGS_ENCRYPTION_KEY or SETTINGS_ENCRYPTION_KEY must be a real 64+ character hexadecimal secret before deploy."
 normalize_settings_encryption_key
 # TOTP_ENCRYPTION_KEY is required at runtime when FEATURES.twoFactorAuth is
-# enabled (src/hooks.server.ts fail-fast). deploy-secrets.sh generates it, so
-# requiring it here catches misconfiguration BEFORE the container crash-loops.
+# enabled (src/hooks.server.ts fail-fast). ensure_framework_env generates it,
+# so requiring it here catches misconfiguration BEFORE the container crash-loops.
 validate_pm_totp_encryption_key || fail "TOTP_ENCRYPTION_KEY must be a real 64+ character hexadecimal secret before deploy (required when FEATURES.twoFactorAuth is enabled)."
 normalize_totp_encryption_key
-validate_admin_rotation_contract || fail "Admin password rotation is mandatory for production: PM_ADMIN_PASSWORD_ROTATION_ENABLED cannot be false and PM_ADMIN_MASTER_PASSWORD + PM_ADMIN_ADMIN_PASSWORD must be set (generate with: node scripts/rotate-admin-passwords.mjs --generate --write-env)."
+validate_admin_rotation_contract || fail "Admin password rotation is mandatory for production: PM_ADMIN_PASSWORD_ROTATION_ENABLED cannot be false and PM_ADMIN_MASTER_PASSWORD + PM_ADMIN_ADMIN_PASSWORD + PM_ADMIN_USER_PASSWORD must be set (generate with: node scripts/rotate-admin-passwords.mjs --generate --write-env)."
 validate_deploy_database_url || fail "PM_DEPLOY_DATABASE_URL must be inside /app/data for deploy schema sync."
 validate_schema_mode || fail "Schema rollout mode is invalid. Use PM_DEPLOY_SCHEMA_MODE=compatible or PM_DEPLOY_SCHEMA_MODE=maintenance with PM_DEPLOY_MAINTENANCE_ACK=1."
 
