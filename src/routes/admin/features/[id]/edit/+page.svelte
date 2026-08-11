@@ -5,13 +5,12 @@ import { t } from '$lib/stores/content.svelte'
   import { page } from '$app/stores'
   import { getAdminT } from '$lib/utils/admin-translations'
   import { createFormDirty } from '$lib/utils/form-dirty.svelte'
+  import FormField from '$lib/components/atoms/FormField.svelte'
   let { data }: { data: PageData } = $props()
   const item = $derived(data.item)
-  // data is server-loaded, does not change during edit — init is intentional
   let slug = $state(item.slug)
-  let order = $state(item.order ?? 0)
+  let order = $state(String(item.order ?? 0))
   const { isDirty, markClean, guardNavigation } = createFormDirty(() => ({ slug: slug, order: order }))
-  // Init clean after server-loaded data populates the form
   markClean()
   guardNavigation()
 
@@ -26,16 +25,20 @@ import { t } from '$lib/stores/content.svelte'
   </div>
   <form method="POST" class="max-w-lg space-y-4">
     <input type="hidden" name="_csrf" value={$page.data.csrfToken} />
-    <div>
-      <label for="field-slug" class="block text-sm font-medium text-pm-text mb-1">{adminT['admin.slug']}</label>
-      <input type="text" name="slug" id="field-slug" bind:value={slug} required class="w-full px-3 py-2 border border-pm-border rounded-lg bg-pm-bg text-pm-text" />
-      {#if errors.slug?.[0]}<p class="text-xs text-pm-danger mt-1">{errors.slug[0]}</p>{/if}
-    </div>
-    <div>
-      <label for="field-order" class="block text-sm font-medium text-pm-text mb-1">{adminT['admin.order']}</label>
-      <input type="number" name="order" id="field-order" bind:value={order} class="w-full px-3 py-2 border border-pm-border rounded-lg bg-pm-bg text-pm-text" />
-      {#if errors.order?.[0]}<p class="text-xs text-pm-danger mt-1">{errors.order[0]}</p>{/if}
-    </div>
+    <FormField
+      name="slug"
+      label={adminT['admin.slug'] ?? ''}
+      bind:value={slug}
+      error={errors.slug?.[0] ?? ''}
+      required
+    />
+    <FormField
+      name="order"
+      type="number"
+      label={adminT['admin.order'] ?? ''}
+      bind:value={order}
+      error={errors.order?.[0] ?? ''}
+    />
     <button type="submit" disabled={!isDirty} class="px-4 py-2 bg-pm-brand text-white rounded-lg hover:bg-pm-brand-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors">{t('common.save')}</button>
   </form>
 </div>

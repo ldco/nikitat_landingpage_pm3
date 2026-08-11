@@ -11,8 +11,10 @@ import { t } from '$lib/stores/content.svelte'
   import { fetch2faStatus, disable2fa, type TwoFactorStatusData } from '$lib/api/client'
   import { getOverlaysState } from '$lib/stores/overlays.svelte'
   import type { PageData } from './$types'
+  import PageHeader from '$lib/components/atoms/PageHeader.svelte'
   import ChangePasswordModal from '$lib/components/molecules/ChangePasswordModal.svelte'
   import TwoFactorSetup from '$lib/components/molecules/TwoFactorSetup.svelte'
+  import FormField from '$lib/components/atoms/FormField.svelte'
   import IconShieldLock from '@tabler/icons-svelte/icons/shield-lock'
   import IconAlertTriangle from '@tabler/icons-svelte/icons/alert-triangle'
   import IconCheck from '@tabler/icons-svelte/icons/check'
@@ -74,11 +76,9 @@ import { t } from '$lib/stores/content.svelte'
 </script>
 
 <div class="max-w-[var(--max-w-content)] mx-auto">
-  <div class="flex items-center justify-between gap-4 py-4 mb-6 border-b border-pm-border">
-    <h1 class="text-2xl font-bold text-pm-text">{adminT['admin.security'] || t('auth.changePassword')}</h1>
-  </div>
+  <PageHeader title={adminT['admin.security'] ?? t('auth.changePassword')} />
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Change Password -->
     <section class="bg-pm-bg-elevated border border-pm-border rounded-xl p-6 flex flex-col gap-4">
       <div class="flex items-center gap-3">
@@ -128,20 +128,14 @@ import { t } from '$lib/stores/content.svelte'
         </p>
       {:else if status?.enabled}
         <form onsubmit={(e) => { e.preventDefault(); handleDisable() }} class="flex flex-col gap-3">
-          <div class="flex flex-col gap-1.5">
-            <label for="2fa-disable-password" class="text-sm font-medium text-pm-text">{t('auth.currentPassword')}</label>
-            <input
-              id="2fa-disable-password"
-              bind:value={disablePassword}
-              type="password"
-              autocomplete="current-password"
-              required
-              class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-pm-text text-sm focus:outline-none focus:ring-2 focus:ring-pm-focus-ring"
-            />
-          </div>
-          {#if disableError}
-            <p class="text-sm text-pm-danger">{disableError}</p>
-          {/if}
+          <FormField
+            name="2fa-disable-password"
+            type="password"
+            label={t('auth.currentPassword')}
+            bind:value={disablePassword}
+            error={disableError}
+            required
+          />
           <button
             type="submit"
             disabled={disabling || !disablePassword}

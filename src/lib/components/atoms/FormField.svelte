@@ -11,14 +11,14 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
 
-  type InputType = 'text' | 'email' | 'password' | 'tel' | 'url' | 'number' | 'textarea'
+  type InputType = 'text' | 'email' | 'password' | 'tel' | 'url' | 'number' | 'textarea' | 'checkbox'
 
   let {
     name,
     label,
     type = 'text',
     placeholder = '',
-    value = '',
+    value = $bindable(''),
     error = '',
     required = false,
     disabled = false,
@@ -29,7 +29,7 @@
     label: string
     type?: InputType
     placeholder?: string
-    value?: string
+    value?: string | boolean
     error?: string
     required?: boolean
     disabled?: boolean
@@ -46,7 +46,7 @@
 </script>
 
 <div class={twMerge(clsx(base, className))}>
-  {#if label}
+  {#if label && type !== 'checkbox'}
     <label for={name} class={labelClass}>
       {label}
       {#if required}<span class="text-pm-danger">*</span>{/if}
@@ -57,25 +57,52 @@
     <textarea
       {name}
       id={name}
-      bind:value
+      value={typeof value === 'string' ? value : ''}
       {placeholder}
       {required}
       {disabled}
       class={twMerge(clsx(inputBase, error ? inputError : inputNormal))}
       rows={4}
-      oninput={oninput}
+      oninput={(e) => {
+        value = (e.currentTarget as HTMLTextAreaElement).value
+        oninput?.(e)
+      }}
     ></textarea>
+  {:else if type === 'checkbox'}
+    <label class="flex items-center gap-2 cursor-pointer">
+      <input
+        {name}
+        {type}
+        id={name}
+        checked={Boolean(value)}
+        {disabled}
+        class="size-4 rounded border-pm-border text-pm-brand focus:ring-pm-brand"
+        onchange={(e) => {
+          value = (e.currentTarget as HTMLInputElement).checked
+          oninput?.(e)
+        }}
+      />
+      {#if label}
+        <span class="text-sm text-pm-text">
+          {label}
+          {#if required}<span class="text-pm-danger">*</span>{/if}
+        </span>
+      {/if}
+    </label>
   {:else}
     <input
       {name}
       {type}
       id={name}
-      bind:value
+      value={typeof value === 'string' ? value : ''}
       {placeholder}
       {required}
       {disabled}
       class={twMerge(clsx(inputBase, error ? inputError : inputNormal))}
-      oninput={oninput}
+      oninput={(e) => {
+        value = (e.currentTarget as HTMLInputElement).value
+        oninput?.(e)
+      }}
     />
   {/if}
 
