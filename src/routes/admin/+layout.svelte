@@ -17,11 +17,14 @@
 
   import { getAdminT } from '$lib/utils/admin-translations'
   import {
-    IconHome, IconUsers, IconSettings, IconLanguage, IconPhoto,
+    IconUsers, IconSettings, IconLanguage, IconPhoto,
     IconArticle, IconUsersGroup, IconQuote, IconHelpCircle, IconBuilding,
-    IconCreditCard, IconSparkles, IconMail, IconClipboardList, IconActivity,
-    IconShieldCheck, IconQuestionMark, IconScale
+    IconCreditCard, IconSparkles, IconMail, IconHeartbeat,
+    IconShieldCheck, IconFileCertificate
   } from '@tabler/icons-svelte'
+  import Logo from '$lib/components/atoms/Logo.svelte'
+  import ThemeToggle from '$lib/components/atoms/ThemeToggle.svelte'
+  import LangSwitcher from '$lib/components/atoms/LangSwitcher.svelte'
   import { FEATURES, isRtlLocale } from '$lib/config/site'
   import { t as contentT } from '$lib/stores/content.svelte'
   import { API_ROUTES } from '$lib/utils/api-paths'
@@ -52,23 +55,34 @@
     legal: 'admin.legal'
   }
 
+  // Original PM2 header nav (10 items): the system pages + website modules
+  // present in the PM2 project config. dashboard/blog/pricing/audit/security
+  // are PM3 additions that were not in the original header — they stay
+  // reachable by URL but are filtered out of the navigation.
+  const HEADER_NAV_IDS = new Set([
+    'users', 'roles', 'translations', 'settings', 'legal', 'health',
+    'portfolios', 'faq', 'features', 'contacts'
+  ])
+
   const adminSections = $derived(
-    (data.menuPages ?? []).map(id => {
-      const labelKey = PAGE_LABEL_KEYS[id] ?? `admin.${id}`
-      // DB admin translations first, then the unified t() (which falls back to
-      // the Paraglide catalog, e.g. admin.auditLog → admin_auditLog), then id.
-      return { id, label: t[labelKey] ?? contentT(labelKey) ?? id }
-    })
+    (data.menuPages ?? [])
+      .filter(id => HEADER_NAV_IDS.has(id))
+      .map(id => {
+        const labelKey = PAGE_LABEL_KEYS[id] ?? `admin.${id}`
+        // DB admin translations first, then the unified t() (which falls back to
+        // the Paraglide catalog, e.g. admin.auditLog → admin_auditLog), then id.
+        return { id, label: t[labelKey] ?? contentT(labelKey) ?? id }
+      })
   )
 
-  const iconComponentMap: Record<string, typeof IconHome> = {
-    dashboard: IconHome, users: IconUsers, roles: IconShieldCheck,
+  const iconComponentMap: Record<string, typeof IconSettings> = {
+    users: IconUsers, roles: IconShieldCheck,
     translations: IconLanguage, settings: IconSettings,
     portfolios: IconPhoto, blog: IconArticle, team: IconUsersGroup,
     testimonials: IconQuote, faq: IconHelpCircle, clients: IconBuilding,
     pricing: IconCreditCard, features: IconSparkles, contacts: IconMail,
-    audit: IconClipboardList, health: IconActivity, security: IconShieldCheck,
-    legal: IconScale
+    audit: IconHeartbeat, health: IconHeartbeat, security: IconShieldCheck,
+    legal: IconFileCertificate
   }
 
   const currentPath = $derived($page.url.pathname)
@@ -78,9 +92,15 @@
   const isActive = (id: string) =>
     currentPath === sectionHref(id) || (id === 'dashboard' && currentPath === ADMIN_ROUTES.dashboard)
 
+  // Resolve titles from ALL authorized pages (not just the filtered nav) so
+  // the mobile header still shows the correct label for pages reachable by
+  // URL but absent from the original PM2 nav (e.g. /admin/blog).
   const currentPageTitle = $derived(() => {
-    for (const s of adminSections) {
-      if (isActive(s.id)) return s.label
+    for (const id of data.menuPages ?? []) {
+      if (isActive(id)) {
+        const labelKey = PAGE_LABEL_KEYS[id] ?? `admin.${id}`
+        return t[labelKey] ?? contentT(labelKey) ?? id
+      }
     }
     return t['admin.dashboard'] ?? 'admin.dashboard'
   })
@@ -116,19 +136,24 @@
     <!-- VERTICAL MODE: Desktop Sidebar (PM v2: admin.vue lines 286-364) -->
     <aside class="fixed top-0 start-0 z-[var(--z-sticky)] hidden lg:flex flex-col w-16 h-full bg-pm-bg-elevated border-e border-pm-border">
       <div class="flex items-center justify-center h-16 border-b border-pm-border">
-        <a href={ADMIN_ROUTES.dashboard} class="text-lg font-bold text-pm-text">P</a>
+        <a href={ADMIN_ROUTES.dashboard} class="flex items-center justify-center" aria-label={contentT('common.logo')}>
+          <Logo shape="circle" class="h-[var(--logo-mobile-height)] w-auto" />
+        </a>
       </div>
       <nav class="flex-1 flex flex-col items-center gap-1 py-3 px-1">
         {#each adminSections as section}
           {@const SideIcon = iconComponentMap[section.id] || IconSettings}
           <a href={sectionHref(section.id)}
-            class="relative flex items-center justify-center size-10 rounded-md transition-colors group"
-            class:bg-pm-brand-subtle:text-pm-brand={isActive(section.id)}
-            class:text-pm-text-secondary:hover:text-pm-text:hover:bg-pm-bg-sunken={!isActive(section.id)}
+            class={clsx(
+              'relative flex items-center justify-center size-10 rounded-[var(--radius-md)] transition-colors group',
+              isActive(section.id)
+                ? 'bg-pm-brand-subtle text-pm-brand'
+                : 'text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken'
+            )}
           >
             <SideIcon class="size-5" />
             {#if section.id === 'contacts' && unreadCount > 0}
-              <span class="absolute -top-0.5 -end-0.5 flex items-center justify-center min-w-3.5 h-3.5 px-1 rounded-full bg-pm-danger text-2xs font-bold text-white leading-none">{unreadCount > 9 ? '9+' : unreadCount}</span>
+              <span class="absolute -top-0.5 -end-0.5 flex items-center justify-center min-w-3.5 h-3.5 px-1 rounded-full bg-pm-danger text-[var(--text-2xs)] font-bold text-white leading-none">{unreadCount > 9 ? '9+' : unreadCount}</span>
             {/if}
             <!-- Tooltip -->
             <span class="absolute start-full ms-2 px-2 py-1 rounded-md bg-pm-bg-elevated border border-pm-border text-xs text-pm-text shadow-md whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-[var(--z-tooltip)]">
@@ -142,17 +167,23 @@
       </div>
     </aside>
   {:else}
-    <!-- HORIZONTAL MODE: Desktop Header (PM v2: admin.vue lines 198-281) -->
+    <!-- HORIZONTAL MODE: Desktop Header (PM2: admin.vue lines 199-281 + admin-header.css) -->
     <header class="sticky top-0 z-[var(--z-sticky)] bg-pm-bg-elevated border-b border-pm-border">
-      <div class="flex items-center justify-between gap-4 px-4 py-2">
-        <a href={ADMIN_ROUTES.dashboard} class="text-lg font-bold text-pm-text shrink-0">{t['admin.title']}</a>
+      <div class="flex items-center justify-between gap-4 px-4 h-[var(--h-header)]">
+        <!-- Logo (short/circle version, same as PM2 shortLogo) -->
+        <a href={ADMIN_ROUTES.dashboard} class="flex items-center shrink-0 text-pm-text" aria-label={contentT('common.logo')}>
+          <Logo shape="circle" class="h-[var(--logo-mobile-height)] w-auto" />
+        </a>
         <nav class="flex items-center gap-1 flex-1 justify-center">
           {#each adminSections as section}
             {@const SideIcon = iconComponentMap[section.id] || IconSettings}
             <a href={sectionHref(section.id)}
-              class="relative flex items-center justify-center size-10 rounded-md transition-colors group"
-              class:bg-pm-brand-subtle:text-pm-brand={isActive(section.id)}
-              class:text-pm-text-secondary:hover:text-pm-text:hover:bg-pm-bg-sunken={!isActive(section.id)}
+              class={clsx(
+                'relative flex items-center justify-center size-11 rounded-[var(--radius-md)] transition-colors group',
+                isActive(section.id)
+                  ? 'bg-pm-brand-subtle text-pm-brand'
+                  : 'text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken'
+              )}
             >
               <SideIcon class="size-5" />
               <span class="absolute top-full mt-2 px-2 py-1 rounded-md bg-pm-bg-elevated border border-pm-border text-xs text-pm-text shadow-md whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-[var(--z-tooltip)]">
@@ -162,6 +193,8 @@
           {/each}
         </nav>
         <div class="flex items-center gap-2">
+          <ThemeToggle />
+          <LangSwitcher mode="down" />
           <UserMenu {user} />
         </div>
       </div>
@@ -172,17 +205,22 @@
   {#if useVerticalNav}
     <aside class="hidden md:flex lg:hidden fixed top-0 start-0 z-[var(--z-sticky)] flex-col w-20 h-full bg-pm-bg-elevated border-e border-pm-border">
       <div class="flex items-center justify-center h-16 border-b border-pm-border">
-        <a href={ADMIN_ROUTES.dashboard} class="text-lg font-bold text-pm-text">P</a>
+        <a href={ADMIN_ROUTES.dashboard} class="flex items-center justify-center" aria-label={contentT('common.logo')}>
+          <Logo shape="circle" class="h-[var(--logo-mobile-height)] w-auto" />
+        </a>
       </div>
       <nav class="flex-1 flex flex-col items-center gap-1 py-3 px-1 overflow-y-auto">
         {#each adminSections as section}
           {@const SideIcon = iconComponentMap[section.id] || IconSettings}
           <a href={sectionHref(section.id)}
-            class="relative flex flex-col items-center justify-center gap-0.5 size-16 rounded-md transition-colors group"
-            class:bg-pm-brand-subtle:text-pm-brand={isActive(section.id)}
-            class:text-pm-text-secondary:hover:text-pm-text:hover:bg-pm-bg-sunken={!isActive(section.id)}>
+            class={clsx(
+              'relative flex flex-col items-center justify-center gap-0.5 size-16 rounded-md transition-colors group',
+              isActive(section.id)
+                ? 'bg-pm-brand-subtle text-pm-brand'
+                : 'text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken'
+            )}>
             <SideIcon class="size-5" />
-            <span class="text-[var(--text-2xs)] text-pm-text-muted group-hover:text-pm-text truncate max-w-16 px-1 text-center">
+            <span class={clsx('text-[var(--text-2xs)] truncate max-w-16 px-1 text-center', isActive(section.id) ? 'text-pm-brand' : 'text-pm-text-muted group-hover:text-pm-text')}>
               {section.label}
             </span>
             {#if section.id === 'contacts' && unreadCount > 0}

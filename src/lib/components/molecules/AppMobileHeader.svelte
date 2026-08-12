@@ -14,6 +14,8 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import ThemeToggle from '$lib/components/atoms/ThemeToggle.svelte'
+  import LangSwitcher from '$lib/components/atoms/LangSwitcher.svelte'
   import UserMenu from './UserMenu.svelte'
 
   interface MobileHeaderUser {
@@ -39,5 +41,9 @@
   className
 ))}>
   <span class="text-sm font-medium text-pm-text truncate">{pageTitle}</span>
-  <UserMenu {user} />
+  <div class="flex items-center gap-1">
+    <ThemeToggle />
+    <LangSwitcher mode="down" />
+    <UserMenu {user} />
+  </div>
 </header>

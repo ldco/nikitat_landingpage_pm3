@@ -16,8 +16,10 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import IconLogout from '@tabler/icons-svelte/icons/logout'
+  import IconKey from '@tabler/icons-svelte/icons/key'
   import { t as contentT } from '$lib/stores/content.svelte'
   import { API_ROUTES } from '$lib/utils/api-paths'
+  import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
 
   interface UserMenuUser {
     name?: string | null
@@ -56,7 +58,8 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class={twMerge(clsx('relative', className))} data-menu="user" role="presentation">
     <button type="button" onclick={toggle}
-      class="size-9 rounded-full bg-pm-brand-subtle text-pm-brand text-sm font-bold flex items-center justify-center hover:scale-105 transition-transform">
+      class="size-9 rounded-full bg-pm-brand text-pm-white text-sm font-bold flex items-center justify-center hover:scale-105 transition-transform"
+      aria-label={contentT('admin.userMenu')}>
       {initials}
     </button>
 
@@ -67,6 +70,12 @@
           <span class="text-xs text-pm-text-muted">{user.email}</span>
           <span class="text-xs text-pm-text-muted capitalize">{user.role}</span>
         </div>
+        <a href={ADMIN_ROUTES.changePassword}
+          class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-text transition-colors rounded-md hover:bg-pm-bg-sunken">
+          <IconKey class="size-4" />
+          {contentT('auth.changePassword')}
+        </a>
+        <div class="my-1 border-t border-pm-border"></div>
         <a href={API_ROUTES.auth.logout}
           class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken">
           <IconLogout class="size-4" />
