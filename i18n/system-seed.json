@@ -17408,5 +17408,245 @@
     "locale": "he",
     "key": "admin.legalContactFormBypassEnabled",
     "value": "טופס יצירת קשר מוצג ללא טקסט משפטי"
+  },
+  {
+    "locale": "en",
+    "key": "admin.imageUrl",
+    "value": "Image URL"
+  },
+  {
+    "locale": "en",
+    "key": "admin.hoverImageUrl",
+    "value": "Hover Image URL"
+  },
+  {
+    "locale": "en",
+    "key": "admin.coverImageUrl",
+    "value": "Cover Image URL"
+  },
+  {
+    "locale": "en",
+    "key": "admin.coverImageAlt",
+    "value": "Cover Image Alt Text"
+  },
+  {
+    "locale": "en",
+    "key": "admin.periodMonth",
+    "value": "Monthly"
+  },
+  {
+    "locale": "en",
+    "key": "admin.periodYear",
+    "value": "Yearly"
+  },
+  {
+    "locale": "en",
+    "key": "admin.periodOneTime",
+    "value": "One-time"
+  },
+  {
+    "locale": "en",
+    "key": "admin.manageItems",
+    "value": "Manage Items"
+  },
+  {
+    "locale": "en",
+    "key": "admin.basicInfo",
+    "value": "Basic Info"
+  },
+  {
+    "locale": "en",
+    "key": "admin.createPost",
+    "value": "Create Post"
+  },
+  {
+    "locale": "en",
+    "key": "admin.featuresList",
+    "value": "Features List"
+  },
+  {
+    "locale": "en",
+    "key": "admin.untitled",
+    "value": "Untitled"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.imageUrl",
+    "value": "URL изображения"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.hoverImageUrl",
+    "value": "URL изображения при наведении"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.coverImageUrl",
+    "value": "URL обложки"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.coverImageAlt",
+    "value": "Альтернативный текст обложки"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.periodMonth",
+    "value": "В месяц"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.periodYear",
+    "value": "В год"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.periodOneTime",
+    "value": "Единоразово"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.manageItems",
+    "value": "Управление элементами"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.basicInfo",
+    "value": "Основная информация"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.createPost",
+    "value": "Создать запись"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.featuresList",
+    "value": "Список характеристик"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.untitled",
+    "value": "Без названия"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.imageUrl",
+    "value": "URL de l'image"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.hoverImageUrl",
+    "value": "URL de l'image au survol"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.coverImageUrl",
+    "value": "URL de couverture"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.coverImageAlt",
+    "value": "Texte alternatif de couverture"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.periodMonth",
+    "value": "Mensuel"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.periodYear",
+    "value": "Annuel"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.periodOneTime",
+    "value": "Ponctuel"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.manageItems",
+    "value": "Gérer les éléments"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.basicInfo",
+    "value": "Informations de base"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.createPost",
+    "value": "Créer un article"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.featuresList",
+    "value": "Liste des fonctionnalités"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.untitled",
+    "value": "Sans titre"
+  },
+  {
+    "locale": "he",
+    "key": "admin.imageUrl",
+    "value": "כתובת תמונה"
+  },
+  {
+    "locale": "he",
+    "key": "admin.hoverImageUrl",
+    "value": "כתובת תמונה בריחוף"
+  },
+  {
+    "locale": "he",
+    "key": "admin.coverImageUrl",
+    "value": "כתובת תמונת שער"
+  },
+  {
+    "locale": "he",
+    "key": "admin.coverImageAlt",
+    "value": "טקסט חלופי לתמונת שער"
+  },
+  {
+    "locale": "he",
+    "key": "admin.periodMonth",
+    "value": "חודשי"
+  },
+  {
+    "locale": "he",
+    "key": "admin.periodYear",
+    "value": "שנתי"
+  },
+  {
+    "locale": "he",
+    "key": "admin.periodOneTime",
+    "value": "חד-פעמי"
+  },
+  {
+    "locale": "he",
+    "key": "admin.manageItems",
+    "value": "ניהול פריטים"
+  },
+  {
+    "locale": "he",
+    "key": "admin.basicInfo",
+    "value": "מידע בסיסי"
+  },
+  {
+    "locale": "he",
+    "key": "admin.createPost",
+    "value": "יצירת פוסט"
+  },
+  {
+    "locale": "he",
+    "key": "admin.featuresList",
+    "value": "רשימת מאפיינים"
+  },
+  {
+    "locale": "he",
+    "key": "admin.untitled",
+    "value": "ללא שם"
   }
 ]
