@@ -1,6 +1,9 @@
 {
+  "apiErrors_admin_roleNameExists": "תפקיד עם שם זה כבר קיים.",
+  "apiErrors_admin_roleSlugExists": "תפקיד עם slug זה כבר קיים.",
   "apiErrors_admin_settings_invalidBody": "בקשת הגדרות לא תקינה.",
   "apiErrors_admin_settings_invalidKeys": "מפתח הגדרה אחד או יותר אינו תקין.",
+  "apiErrors_admin_slugExists": "רשומה עם slug זה כבר קיימת.",
   "apiErrors_admin_users_accessDenied": "You do not have permission to manage users.",
   "apiErrors_admin_users_cannotDeleteSelf": "You cannot delete your own account.",
   "apiErrors_admin_users_emailExists": "A user with this email already exists.",

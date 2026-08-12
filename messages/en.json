@@ -1,6 +1,9 @@
 {
+  "apiErrors_admin_roleNameExists": "A role with this name already exists.",
+  "apiErrors_admin_roleSlugExists": "A role with this slug already exists.",
   "apiErrors_admin_settings_invalidBody": "Invalid settings request.",
   "apiErrors_admin_settings_invalidKeys": "One or more settings keys are invalid.",
+  "apiErrors_admin_slugExists": "A record with this slug already exists.",
   "apiErrors_admin_users_accessDenied": "You do not have permission to manage users.",
   "apiErrors_admin_users_cannotDeleteSelf": "You cannot delete your own account.",
   "apiErrors_admin_users_emailExists": "A user with this email already exists.",

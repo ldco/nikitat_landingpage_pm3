@@ -40,6 +40,13 @@
     }
   }
 
+  const featuresByLocale = $state<Record<string, string>>({})
+  {
+    for (const loc of locales) {
+      featuresByLocale[loc] = ''
+    }
+  }
+
   function localeName(loc: string): string {
     return LOCALE_CONFIG[loc as keyof typeof LOCALE_CONFIG]?.name ?? loc
   }
@@ -60,14 +67,14 @@
         name="slug"
         label={adminT['admin.slug'] ?? t('admin.slug')}
         bind:value={slug}
-        error={errors.slug?.[0] ?? ''}
+        error={t(errors.slug?.[0] ?? '')}
         required
       />
       <FormField
         name="name"
         label={adminT['admin.name'] ?? t('admin.name')}
         bind:value={name}
-        error={errors.name?.[0] ?? ''}
+        error={t(errors.name?.[0] ?? '')}
         required
       />
       <FormField
@@ -81,7 +88,7 @@
         type="number"
         label={adminT['admin.price'] ?? t('admin.price')}
         bind:value={price}
-        error={errors.price?.[0] ?? ''}
+        error={t(errors.price?.[0] ?? '')}
       />
       <div class="flex flex-col gap-1">
         <label for="field-currency" class="text-sm font-medium text-pm-text">{adminT['admin.currency'] ?? t('admin.currency')}</label>
@@ -123,7 +130,7 @@
         type="number"
         label={adminT['admin.order'] ?? t('admin.order')}
         bind:value={order}
-        error={errors.order?.[0] ?? ''}
+        error={t(errors.order?.[0] ?? '')}
       />
       <FormField
         name="published"
@@ -136,7 +143,7 @@
         type="textarea"
         label={adminT['admin.features'] ?? t('admin.features')}
         bind:value={features}
-        error={errors.features?.[0] ?? ''}
+        error={t(errors.features?.[0] ?? '')}
       />
     </div>
   </AdminFormSection>
@@ -163,6 +170,13 @@
           label={adminT['admin.ctaText'] ?? t('admin.ctaText')}
           value={translations[loc]?.ctaText ?? ''}
           oninput={(e) => { translations[loc] = translations[loc] ?? { name: '', description: '', ctaText: '' }; translations[loc].ctaText = (e.currentTarget as HTMLInputElement).value }}
+        />
+        <FormField
+          name={`features_${loc}`}
+          type="textarea"
+          label={adminT['admin.features'] ?? t('admin.features')}
+          value={featuresByLocale[loc] ?? ''}
+          oninput={(e) => { featuresByLocale[loc] = (e.currentTarget as HTMLTextAreaElement).value }}
         />
       </div>
     </AdminFormSection>

@@ -42,7 +42,15 @@
     }
   }
 
-  const { isDirty, markClean, guardNavigation } = createFormDirty(() => ({ slug: slug }))
+  const { isDirty, markClean, guardNavigation } = createFormDirty(() => ({
+    slug,
+    imageUrl,
+    hoverImageUrl,
+    category,
+    order,
+    published,
+    translations
+  }))
   markClean()
   guardNavigation()
 
@@ -66,7 +74,7 @@
         name="slug"
         label={adminT['admin.slug'] ?? t('admin.slug')}
         bind:value={slug}
-        error={errors.slug?.[0] ?? ''}
+        error={t(errors.slug?.[0] ?? '')}
         required
       />
       <FormField
@@ -91,7 +99,7 @@
         type="number"
         label={adminT['admin.order'] ?? t('admin.order')}
         bind:value={order}
-        error={errors.order?.[0] ?? ''}
+        error={t(errors.order?.[0] ?? '')}
       />
       <FormField
         name="published"

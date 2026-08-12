@@ -1,6 +1,6 @@
 import type { RequestEvent } from '@sveltejs/kit'
 import { error, json } from '@sveltejs/kit'
-import { eq } from 'drizzle-orm'
+import { eq, desc } from 'drizzle-orm'
 import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
@@ -38,6 +38,21 @@ export async function POST(event: RequestEvent) {
   const db = useDatabase()
   const portfolio = db.select().from(schema.portfolios).where(eq(schema.portfolios.id, portfolioId)).get()
   if (!portfolio) throw error(404)
-  const result = db.insert(schema.portfolioItems).values({ ...parsed.data, portfolioId }).returning().get()
+
+  // Compute the next order from persisted data (never trust the client).
+  // Duplicate/overlapping orders would break the item ordering invariant, so
+  // the new item is appended after the current maximum order.
+  const maxOrder = db.select({ order: schema.portfolioItems.order })
+    .from(schema.portfolioItems)
+    .where(eq(schema.portfolioItems.portfolioId, portfolioId))
+    .orderBy(desc(schema.portfolioItems.order))
+    .limit(1)
+    .get()
+
+  const result = db.insert(schema.portfolioItems).values({
+    ...parsed.data,
+    order: parsed.data.order ?? (maxOrder?.order != null ? maxOrder.order + 1 : 0),
+    portfolioId
+  }).returning().get()
   return json(jsonSuccess(result))
 }

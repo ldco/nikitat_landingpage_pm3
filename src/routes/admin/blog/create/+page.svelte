@@ -55,7 +55,7 @@
         name="slug"
         label={adminT['admin.slug'] ?? t('admin.slug')}
         bind:value={slug}
-        error={errors.slug?.[0] ?? ''}
+        error={t(errors.slug?.[0] ?? '')}
         required
       />
       <div class="flex flex-col gap-1">

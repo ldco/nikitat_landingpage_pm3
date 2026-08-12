@@ -1,6 +1,9 @@
 {
+  "apiErrors_admin_roleNameExists": "Роль с таким именем уже существует.",
+  "apiErrors_admin_roleSlugExists": "Роль с таким slug уже существует.",
   "apiErrors_admin_settings_invalidBody": "Некорректный запрос настроек.",
   "apiErrors_admin_settings_invalidKeys": "Один или несколько ключей настроек некорректны.",
+  "apiErrors_admin_slugExists": "Запись с таким slug уже существует.",
   "apiErrors_admin_users_accessDenied": "У вас нет прав на управление пользователями.",
   "apiErrors_admin_users_cannotDeleteSelf": "Нельзя удалить собственный аккаунт.",
   "apiErrors_admin_users_emailExists": "Пользователь с таким email уже существует.",

@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
 import { requireAdminPage, invalidateRolePermissionsCache } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
+import { uniqueConstraintFieldErrors } from '$lib/server/utils/db-errors'
 import { getClientIp } from '$lib/server/security/rateLimit'
 import { audit } from '$lib/server/audit'
 
@@ -35,12 +36,25 @@ export async function PUT(event: RequestEvent) {
   const db = useDatabase()
   const existing = db.select().from(schema.roles).where(eq(schema.roles.id, id)).get()
   if (!existing) error(404)
-  const result = db.update(schema.roles).set(parsed.data).where(eq(schema.roles.id, id)).returning().get()
-  invalidateRolePermissionsCache(existing.slug)
-  const ip = getClientIp(event)
-  const ua = event.request.headers.get('user-agent')
-  audit.roleUpdate(ip, ua, actor.id, id, existing.name, parsed.data)
-  return json(jsonSuccess(result))
+  try {
+    const result = db.update(schema.roles).set(parsed.data).where(eq(schema.roles.id, id)).returning().get()
+    invalidateRolePermissionsCache(existing.slug)
+    const ip = getClientIp(event)
+    const ua = event.request.headers.get('user-agent')
+    audit.roleUpdate(ip, ua, actor.id, id, existing.name, parsed.data)
+    return json(jsonSuccess(result))
+  } catch (e: unknown) {
+    const fieldErrors = uniqueConstraintFieldErrors(e, [
+      { column: 'name', label: 'apiErrors.admin.roleNameExists' },
+      { column: 'slug', label: 'apiErrors.admin.roleSlugExists' }
+    ])
+    if (fieldErrors) {
+      const field = Object.keys(fieldErrors)[0] ?? ''
+      const message = fieldErrors[field]?.[0] ?? 'apiErrors.admin.roleSlugExists'
+      return json({ success: false, error: { code: 'duplicate', message } }, { status: 400 })
+    }
+    throw e
+  }
 }
 
 export async function DELETE(event: RequestEvent) {

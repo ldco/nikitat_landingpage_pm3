@@ -96,6 +96,8 @@
     if (saving) return
     saving = true
     try {
+      // Order is computed server-side (max persisted order + 1) — never
+      // derived from the client's list length.
       const body = {
         itemType: formItemType,
         mediaUrl: formMediaUrl || null,
@@ -103,8 +105,7 @@
         title: formTitle || null,
         description: formDescription || null,
         content: formContent || null,
-        published: formPublished,
-        ...(editingItem ? {} : { order: items.length })
+        published: formPublished
       }
       const url = editingItem
         ? API_ROUTES.admin.portfolios.item(portfolio.id, editingItem.id)
@@ -150,17 +151,19 @@
 
   async function moveItem(item: PortfolioItem, dir: -1 | 1): Promise<void> {
     const idx = items.findIndex(i => i.id === item.id)
+    if (idx < 0) return
     const swapIdx = idx + dir
-    const other = idx >= 0 ? items[swapIdx] : undefined
-    if (!other || swapIdx < 0 || swapIdx >= items.length) return
+    if (swapIdx < 0 || swapIdx >= items.length) return
     try {
-      for (const [i, newOrder] of [[item.id, other.order], [other.id, item.order]] as const) {
-        await fetch(API_ROUTES.admin.portfolios.item(portfolio.id, i), {
-          method: 'PUT',
-          headers: { 'content-type': 'application/json', 'x-csrf-token': getCsrfToken() },
-          body: JSON.stringify({ order: newOrder })
-        })
-      }
+      // Single transactional reorder call: the API swaps this item with its
+      // sibling atomically (order delta -1/+1). No client-derived orders.
+      const res = await fetch(API_ROUTES.admin.portfolios.item(portfolio.id, item.id), {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', 'x-csrf-token': getCsrfToken() },
+        body: JSON.stringify({ order: dir })
+      })
+      const b = await res.json().catch(() => null)
+      if (!res.ok || b?.success === false) throw new Error()
       window.location.reload()
     } catch {
       overlays.showToast(t('admin.failedUpdateMessage'), 'error')

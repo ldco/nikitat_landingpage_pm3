@@ -17748,5 +17748,65 @@
     "locale": "he",
     "key": "admin.check",
     "value": "בדיקה"
+  },
+  {
+    "locale": "en",
+    "key": "apiErrors.admin.slugExists",
+    "value": "A record with this slug already exists."
+  },
+  {
+    "locale": "en",
+    "key": "apiErrors.admin.roleNameExists",
+    "value": "A role with this name already exists."
+  },
+  {
+    "locale": "en",
+    "key": "apiErrors.admin.roleSlugExists",
+    "value": "A role with this slug already exists."
+  },
+  {
+    "locale": "ru",
+    "key": "apiErrors.admin.slugExists",
+    "value": "Запись с таким slug уже существует."
+  },
+  {
+    "locale": "ru",
+    "key": "apiErrors.admin.roleNameExists",
+    "value": "Роль с таким именем уже существует."
+  },
+  {
+    "locale": "ru",
+    "key": "apiErrors.admin.roleSlugExists",
+    "value": "Роль с таким slug уже существует."
+  },
+  {
+    "locale": "fr",
+    "key": "apiErrors.admin.slugExists",
+    "value": "Un enregistrement avec ce slug existe déjà."
+  },
+  {
+    "locale": "fr",
+    "key": "apiErrors.admin.roleNameExists",
+    "value": "Un rôle avec ce nom existe déjà."
+  },
+  {
+    "locale": "fr",
+    "key": "apiErrors.admin.roleSlugExists",
+    "value": "Un rôle avec ce slug existe déjà."
+  },
+  {
+    "locale": "he",
+    "key": "apiErrors.admin.slugExists",
+    "value": "רשומה עם slug זה כבר קיימת."
+  },
+  {
+    "locale": "he",
+    "key": "apiErrors.admin.roleNameExists",
+    "value": "תפקיד עם שם זה כבר קיים."
+  },
+  {
+    "locale": "he",
+    "key": "apiErrors.admin.roleSlugExists",
+    "value": "תפקיד עם slug זה כבר קיים."
   }
 ]

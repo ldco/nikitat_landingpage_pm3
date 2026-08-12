@@ -6,6 +6,7 @@ import { LOCALE_STRINGS } from '$lib/config/site'
 import type { RequestEvent } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
+import { uniqueConstraintFieldErrors } from '$lib/server/utils/db-errors'
 
 const createSchema = z.object({
   slug: z.string().trim().min(1).max(100).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with hyphens'),
@@ -36,6 +37,7 @@ export const actions = {
     const db = useDatabase()
     const published = parsed.data.published === 'on'
 
+    try {
     db.transaction(() => {
       const item = db.insert(schema.faqItems).values({
         slug: parsed.data.slug,
@@ -59,6 +61,11 @@ export const actions = {
         }).run()
       }
     })
+    } catch (e: unknown) {
+      const fieldErrors = uniqueConstraintFieldErrors(e, [{ column: 'slug', label: 'apiErrors.admin.slugExists' }])
+      if (fieldErrors) return fail(400, { fieldErrors })
+      throw e
+    }
 
     redirect(303, ADMIN_ROUTES.faq)
   }

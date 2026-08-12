@@ -45,7 +45,15 @@
     }
   }
 
-  const { isDirty, markClean, guardNavigation } = createFormDirty(() => ({ slug: slug }))
+  const { isDirty, markClean, guardNavigation } = createFormDirty(() => ({
+    slug,
+    categoryId,
+    coverImageUrl,
+    coverImageAlt,
+    published,
+    readingTimeMinutes,
+    translations
+  }))
   markClean()
   guardNavigation()
 
@@ -69,7 +77,7 @@
         name="slug"
         label={adminT['admin.slug'] ?? t('admin.slug')}
         bind:value={slug}
-        error={errors.slug?.[0] ?? ''}
+        error={t(errors.slug?.[0] ?? '')}
         required
       />
       <div class="flex flex-col gap-1">

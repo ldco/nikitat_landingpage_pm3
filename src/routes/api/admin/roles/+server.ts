@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
 import { requireAdminPage, invalidateRolePermissionsCache } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
+import { uniqueConstraintFieldErrors } from '$lib/server/utils/db-errors'
 import { getClientIp } from '$lib/server/security/rateLimit'
 import { audit } from '$lib/server/audit'
 
@@ -30,13 +31,26 @@ export async function POST(event: RequestEvent) {
   const parsed = createRoleSchema.safeParse(body)
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
   const db = useDatabase()
-  const result = db.insert(schema.roles).values({
-    ...parsed.data,
-    isBuiltIn: false
-  }).returning().get()
-  invalidateRolePermissionsCache(result.slug)
-  const ip = getClientIp(event)
-  const ua = event.request.headers.get('user-agent')
-  audit.roleCreate(ip, ua, actor.id, result.id, parsed.data.name, parsed.data.slug)
-  return json(jsonSuccess(result))
+  try {
+    const result = db.insert(schema.roles).values({
+      ...parsed.data,
+      isBuiltIn: false
+    }).returning().get()
+    invalidateRolePermissionsCache(result.slug)
+    const ip = getClientIp(event)
+    const ua = event.request.headers.get('user-agent')
+    audit.roleCreate(ip, ua, actor.id, result.id, parsed.data.name, parsed.data.slug)
+    return json(jsonSuccess(result))
+  } catch (e: unknown) {
+    const fieldErrors = uniqueConstraintFieldErrors(e, [
+      { column: 'name', label: 'apiErrors.admin.roleNameExists' },
+      { column: 'slug', label: 'apiErrors.admin.roleSlugExists' }
+    ])
+    if (fieldErrors) {
+      const field = Object.keys(fieldErrors)[0] ?? ''
+      const message = fieldErrors[field]?.[0] ?? 'apiErrors.admin.roleSlugExists'
+      return json({ success: false, error: { code: 'duplicate', message } }, { status: 400 })
+    }
+    throw e
+  }
 }
