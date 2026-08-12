@@ -10,6 +10,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import { useMediaQuery } from '$lib/actions/useMediaQuery.svelte'
 
   type Size = 'default' | 'sm'
 
@@ -36,6 +37,12 @@
     sm: 'text-xl font-bold leading-tight'
   }
 
+  // The APP-MODE mobile header (AppMobileHeader) already shows the page title,
+  // so the h1 is conditionally rendered only on desktop (lg = 64rem = 1024px,
+  // the same breakpoint that switches to the desktop header). SSR default true
+  // keeps hydration consistent; on phones the h1 never enters the DOM.
+  const isDesktop = useMediaQuery('(min-width: 1024px)', true)
+
   const merged = $derived(twMerge(clsx(
     'flex items-start justify-between gap-4 flex-wrap mb-8',
     className
@@ -43,18 +50,17 @@
 </script>
 
 <div class={merged}>
-  <!-- The mobile APP-MODE header (AppMobileHeader) already shows the page
-       title, so the h1 is hidden below lg to avoid duplicate headings.
-       The actions row (Add/Edit buttons) stays visible on all breakpoints. -->
-  <div class="min-w-0 max-lg:hidden">
-    <h1 class={titleSize[size]}>{title ?? ''}</h1>
-    {#if subtitle}
-      <p class="mt-1 text-base text-pm-text-secondary">{subtitle}</p>
-    {/if}
-    {#if children}
-      {@render children()}
-    {/if}
-  </div>
+  {#if isDesktop.matches}
+    <div class="min-w-0">
+      <h1 class={titleSize[size]}>{title ?? ''}</h1>
+      {#if subtitle}
+        <p class="mt-1 text-base text-pm-text-secondary">{subtitle}</p>
+      {/if}
+      {#if children}
+        {@render children()}
+      {/if}
+    </div>
+  {/if}
   {#if actions || itemCount !== undefined}
     <div class="flex gap-2 items-center flex-shrink-0">
       {#if itemCount !== undefined}
