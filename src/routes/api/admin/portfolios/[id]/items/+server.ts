@@ -13,7 +13,7 @@ const createSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
   content: z.string().optional(),
-  order: z.number().int().optional().default(0),
+  order: z.number().int().optional(),
   published: z.boolean().optional().default(true)
 })
 
@@ -49,6 +49,9 @@ export async function POST(event: RequestEvent) {
     .limit(1)
     .get()
 
+  // An explicit order (client-provided) is honored; an omitted order appends
+  // after the persisted max. Zod no longer defaults the field, so omitted
+  // stays undefined and this fallback is the only source of next-order.
   const result = db.insert(schema.portfolioItems).values({
     ...parsed.data,
     order: parsed.data.order ?? (maxOrder?.order != null ? maxOrder.order + 1 : 0),

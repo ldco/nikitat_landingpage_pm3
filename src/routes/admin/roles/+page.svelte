@@ -38,6 +38,7 @@
   let saving = $state(false)
   let deletePending = $state<number | null>(null)
   let deleteError = $state<string | null>(null)
+  let saveError = $state<string | null>(null)
   let currentPage = $state(data.pagination?.page ?? 1)
 
   type EditingRole = {
@@ -72,6 +73,7 @@
     editingRole = null
     form = { name: '', slug: '', description: '', level: '0', color: 'secondary' }
     permissions = {}
+    saveError = null
     showModal = true
   }
 
@@ -86,12 +88,14 @@
       color: role.color
     }
     loadPermissions(role.permissions)
+    saveError = null
     showModal = true
   }
 
   function closeModal() {
     showModal = false
     editingRole = null
+    saveError = null
   }
 
   async function handleSubmit() {
@@ -125,13 +129,16 @@
 
       if (!res.ok) {
         const err = await res.json().catch(() => null)
-        throw new Error(err?.message ?? String(res.status))
+        // Structured envelope: { success: false, error: { code, message } }.
+        // The message is an i18n key (resolved below via t()).
+        throw new Error((err as { error?: { message?: string } } | null)?.error?.message ?? String(res.status))
       }
 
       closeModal()
       goto(ADMIN_ROUTES.roles)
     } catch (e: unknown) {
       console.error('[admin] role save failed:', e instanceof Error ? e.message : e)
+      saveError = e instanceof Error ? e.message : null
     } finally {
       saving = false
     }
@@ -280,5 +287,11 @@
         {/each}
       </div>
     </fieldset>
+
+    {#if saveError}
+      <p class="text-sm text-pm-danger bg-pm-danger-bg border border-pm-danger rounded-md px-3 py-2" role="alert">
+        {t(saveError)}
+      </p>
+    {/if}
   </div>
 </AdminModal>
