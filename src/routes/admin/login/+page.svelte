@@ -22,6 +22,7 @@
    */
   import { t } from '$lib/stores/content.svelte'
   import { API_ROUTES } from '$lib/utils/api-paths'
+  import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
   import { clsx } from 'clsx'
   import { goto } from '$app/navigation'
   import { i18n } from '$lib/i18n'
@@ -89,7 +90,7 @@
       } else if (data.success) {
         // First-login hardening: bootstrap credentials are forced to change
         // on the dedicated page before any admin surface is reachable.
-        goto(data.data?.mustChangePassword ? '/admin/change-password' : '/admin')
+        goto(data.data?.mustChangePassword ? ADMIN_ROUTES.changePassword : ADMIN_ROUTES.dashboard)
       } else {
         const code: string | undefined = data.error?.code
         formError = code === 'http.401'

@@ -7,6 +7,7 @@ import { API_ROUTES } from '$lib/utils/api-paths'
 export const ADMIN_ROUTES = {
   dashboard: '/admin',
   login: '/admin/login',
+  changePassword: '/admin/change-password',
   logout: API_ROUTES.auth.logout,
   portfolios: '/admin/portfolios',
   portfolioCreate: '/admin/portfolios/create',

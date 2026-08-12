@@ -5,6 +5,7 @@ import { error, redirect, fail } from '@sveltejs/kit'
 import { z } from 'zod'
 import type { RequestEvent } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
+import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
 
 const updateSchema = z.object({
   name: z.string().min(1),
@@ -41,6 +42,6 @@ export const actions = {
       .where(eq(schema.portfolios.id, Number(event.params.id)))
       .run()
 
-    redirect(303, '/admin/portfolios')
+    redirect(303, ADMIN_ROUTES.portfolios)
   }
 }

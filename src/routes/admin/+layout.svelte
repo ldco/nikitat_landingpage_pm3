@@ -25,6 +25,7 @@
   import { FEATURES, isRtlLocale } from '$lib/config/site'
   import { t as contentT } from '$lib/stores/content.svelte'
   import { API_ROUTES } from '$lib/utils/api-paths'
+  import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
   import UserMenu from '$lib/components/molecules/UserMenu.svelte'
   import AppBottomNav from '$lib/components/molecules/AppBottomNav.svelte'
   import AppMobileHeader from '$lib/components/molecules/AppMobileHeader.svelte'
@@ -71,8 +72,11 @@
   }
 
   const currentPath = $derived($page.url.pathname)
+  const sectionHref = (id: string) =>
+    id === 'dashboard' ? ADMIN_ROUTES.dashboard : `${ADMIN_ROUTES.dashboard}/${id}`
+
   const isActive = (id: string) =>
-    currentPath === `/admin/${id}` || (id === 'dashboard' && currentPath === '/admin')
+    currentPath === sectionHref(id) || (id === 'dashboard' && currentPath === ADMIN_ROUTES.dashboard)
 
   const currentPageTitle = $derived(() => {
     for (const s of adminSections) {
@@ -87,7 +91,7 @@
     // Only the authenticated admin shell polls the unread count — the login
     // and change-password pages (data.user is null there) must not fire an
     // unauthorized /api/admin/contacts/unread request.
-    const isAuthPage = $page.url.pathname.startsWith('/admin/login') || $page.url.pathname.startsWith('/admin/change-password')
+    const isAuthPage = $page.url.pathname.startsWith(ADMIN_ROUTES.login) || $page.url.pathname.startsWith(ADMIN_ROUTES.changePassword)
     if (!user || isAuthPage) return
     async function fetchCount() {
       try {
@@ -101,7 +105,7 @@
     return () => clearInterval(interval)
   })
 </script>
-{#if $page.url.pathname.startsWith('/admin/login') || $page.url.pathname.startsWith('/admin/change-password')}
+{#if $page.url.pathname.startsWith(ADMIN_ROUTES.login) || $page.url.pathname.startsWith(ADMIN_ROUTES.changePassword)}
   <main class="bg-pm-bg">
     {@render children?.()}
   </main>
@@ -112,12 +116,12 @@
     <!-- VERTICAL MODE: Desktop Sidebar (PM v2: admin.vue lines 286-364) -->
     <aside class="fixed top-0 start-0 z-[var(--z-sticky)] hidden lg:flex flex-col w-16 h-full bg-pm-bg-elevated border-e border-pm-border">
       <div class="flex items-center justify-center h-16 border-b border-pm-border">
-        <a href="/admin" class="text-lg font-bold text-pm-text">P</a>
+        <a href={ADMIN_ROUTES.dashboard} class="text-lg font-bold text-pm-text">P</a>
       </div>
       <nav class="flex-1 flex flex-col items-center gap-1 py-3 px-1">
         {#each adminSections as section}
           {@const SideIcon = iconComponentMap[section.id] || IconSettings}
-          <a href={section.id === 'dashboard' ? '/admin' : `/admin/${section.id}`}
+          <a href={sectionHref(section.id)}
             class="relative flex items-center justify-center size-10 rounded-md transition-colors group"
             class:bg-pm-brand-subtle:text-pm-brand={isActive(section.id)}
             class:text-pm-text-secondary:hover:text-pm-text:hover:bg-pm-bg-sunken={!isActive(section.id)}
@@ -141,11 +145,11 @@
     <!-- HORIZONTAL MODE: Desktop Header (PM v2: admin.vue lines 198-281) -->
     <header class="sticky top-0 z-[var(--z-sticky)] bg-pm-bg-elevated border-b border-pm-border">
       <div class="flex items-center justify-between gap-4 px-4 py-2">
-        <a href="/admin" class="text-lg font-bold text-pm-text shrink-0">{t['admin.title']}</a>
+        <a href={ADMIN_ROUTES.dashboard} class="text-lg font-bold text-pm-text shrink-0">{t['admin.title']}</a>
         <nav class="flex items-center gap-1 flex-1 justify-center">
           {#each adminSections as section}
             {@const SideIcon = iconComponentMap[section.id] || IconSettings}
-            <a href={section.id === 'dashboard' ? '/admin' : `/admin/${section.id}`}
+            <a href={sectionHref(section.id)}
               class="relative flex items-center justify-center size-10 rounded-md transition-colors group"
               class:bg-pm-brand-subtle:text-pm-brand={isActive(section.id)}
               class:text-pm-text-secondary:hover:text-pm-text:hover:bg-pm-bg-sunken={!isActive(section.id)}
@@ -168,12 +172,12 @@
   {#if useVerticalNav}
     <aside class="hidden md:flex lg:hidden fixed top-0 start-0 z-[var(--z-sticky)] flex-col w-20 h-full bg-pm-bg-elevated border-e border-pm-border">
       <div class="flex items-center justify-center h-16 border-b border-pm-border">
-        <a href="/admin" class="text-lg font-bold text-pm-text">P</a>
+        <a href={ADMIN_ROUTES.dashboard} class="text-lg font-bold text-pm-text">P</a>
       </div>
       <nav class="flex-1 flex flex-col items-center gap-1 py-3 px-1 overflow-y-auto">
         {#each adminSections as section}
           {@const SideIcon = iconComponentMap[section.id] || IconSettings}
-          <a href={section.id === 'dashboard' ? '/admin' : `/admin/${section.id}`}
+          <a href={sectionHref(section.id)}
             class="relative flex flex-col items-center justify-center gap-0.5 size-16 rounded-md transition-colors group"
             class:bg-pm-brand-subtle:text-pm-brand={isActive(section.id)}
             class:text-pm-text-secondary:hover:text-pm-text:hover:bg-pm-bg-sunken={!isActive(section.id)}>

@@ -17,6 +17,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import type { Component } from 'svelte'
+  import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
 
   let {
     sections,
@@ -30,8 +31,11 @@
     class?: string
   } = $props()
 
+  const sectionHref = (id: string) =>
+    id === 'dashboard' ? ADMIN_ROUTES.dashboard : `${ADMIN_ROUTES.dashboard}/${id}`
+
   const isActive = (id: string) =>
-    currentPath === `/admin/${id}` || (id === 'dashboard' && currentPath === '/admin')
+    currentPath === sectionHref(id) || (id === 'dashboard' && currentPath === ADMIN_ROUTES.dashboard)
 </script>
 
 <nav class={twMerge(clsx(
@@ -40,7 +44,7 @@
 ))}>
   <div class="flex overflow-x-auto snap-x snap-mandatory scrollbar-none h-14">
     {#each sections as section (section.id)}
-      <a href={section.id === 'dashboard' ? '/admin' : `/admin/${section.id}`}
+      <a href={sectionHref(section.id)}
         class={clsx(
           'flex flex-col items-center justify-center gap-0.5 px-3 py-1 text-xs snap-start shrink-0 min-w-16 transition-colors',
           isActive(section.id)

@@ -6,6 +6,7 @@ import { error, redirect, fail } from '@sveltejs/kit'
 import { LOCALE_STRINGS } from '$lib/config/site'
 import type { RequestEvent } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
+import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
 
 const updateSchema = z.object({
   slug: z.string().trim().min(1).max(100).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with hyphens'),
@@ -90,6 +91,6 @@ export const actions = {
       }
     })
 
-    redirect(303, '/admin/features')
+    redirect(303, ADMIN_ROUTES.features)
   }
 }

@@ -4,6 +4,7 @@ import { redirect, fail } from '@sveltejs/kit'
 import { z } from 'zod'
 import type { RequestEvent } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
+import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
 
 const insertSchema = z.object({
   name: z.string().min(1),
@@ -37,6 +38,6 @@ export const actions = {
       createdAt: new Date(), updatedAt: new Date()
     }).run()
 
-    redirect(303, '/admin/portfolios')
+    redirect(303, ADMIN_ROUTES.portfolios)
   }
 }

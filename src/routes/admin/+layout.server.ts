@@ -5,6 +5,7 @@ import { getUnreadCount } from '$lib/server/services/contact'
 import { getAuthorizedAdminPages } from '$lib/server/utils/admin-rbac'
 import { CSRF_COOKIE_NAME } from '$lib/server/security/csrf'
 import { detectAdminLocale } from '$lib/server/utils/locales'
+import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
 
 const LAYOUT_KEYS = [
   'admin.dashboard', 'admin.portfolios', 'admin.blog', 'admin.faq',
@@ -43,15 +44,15 @@ function getCachedUnreadCount(): number {
 }
 
 export const load: LayoutServerLoad = (event) => {
-  if (event.url.pathname === '/admin/login') return { unreadCount: 0 }
-  if (event.url.pathname === '/admin/change-password') return { unreadCount: 0 }
+  if (event.url.pathname === ADMIN_ROUTES.login) return { unreadCount: 0 }
+  if (event.url.pathname === ADMIN_ROUTES.changePassword) return { unreadCount: 0 }
 
   if (!event.locals.user) {
-    redirect(302, '/admin/login')
+    redirect(302, ADMIN_ROUTES.login)
   }
 
   if (event.locals.user.mustChangePassword) {
-    redirect(302, '/admin/change-password')
+    redirect(302, ADMIN_ROUTES.changePassword)
   }
 
   const csrfToken = event.cookies.get(CSRF_COOKIE_NAME) ?? ''
