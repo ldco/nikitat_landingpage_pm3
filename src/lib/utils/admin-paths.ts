@@ -9,6 +9,7 @@ export const ADMIN_ROUTES = {
   portfolios: '/admin/portfolios',
   portfolioCreate: '/admin/portfolios/create',
   portfolioEdit: (id: number) => `/admin/portfolios/${id}/edit`,
+  portfolioItems: (id: number) => `/admin/portfolios/${id}/items`,
   blog: '/admin/blog',
   blogCreate: '/admin/blog/create',
   blogEdit: (id: number) => `/admin/blog/${id}/edit`,

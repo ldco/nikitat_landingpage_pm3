@@ -9,6 +9,7 @@ import { t } from '$lib/stores/content.svelte'
   import { getAdminT } from '$lib/utils/admin-translations'
   import { createFormDirty } from '$lib/utils/form-dirty.svelte'
   import FormField from '$lib/components/atoms/FormField.svelte'
+  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   let { data }: { data: PageData } = $props()
   const p = $derived(data.portfolio)
   let name = $state(p.name), slug = $state(p.slug), type = $state(p.type), description = $state(p.description ?? '')
@@ -32,6 +33,9 @@ import { t } from '$lib/stores/content.svelte'
   <div class="flex items-center gap-4 py-4 mb-6 border-b border-pm-border">
     <a href={ADMIN_ROUTES.portfolios} class="text-pm-text-muted hover:text-pm-brand text-sm">&larr; {t('common.back')}</a>
     <h1 class="text-2xl font-bold text-pm-text">{t('common.edit')}: {p.name}</h1>
+    <CtaButton variant="secondary" size="compact" href={ADMIN_ROUTES.portfolioItems(p.id)}>
+      {adminT['admin.manageItems'] ?? t('admin.manageItems')}
+    </CtaButton>
   </div>
   <form method="POST" class="max-w-lg space-y-4">
     <input type="hidden" name="_csrf" value={$page.data.csrfToken} />
