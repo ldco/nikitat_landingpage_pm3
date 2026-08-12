@@ -17648,5 +17648,65 @@
     "locale": "he",
     "key": "admin.untitled",
     "value": "ללא שם"
+  },
+  {
+    "locale": "en",
+    "key": "admin.dropzoneLabel",
+    "value": "Drag & drop or click to browse"
+  },
+  {
+    "locale": "en",
+    "key": "admin.fileTooLarge",
+    "value": "File too large (max {size}MB)"
+  },
+  {
+    "locale": "en",
+    "key": "admin.uploadFailed",
+    "value": "Upload failed"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.dropzoneLabel",
+    "value": "Перетащите файл или нажмите для выбора"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.fileTooLarge",
+    "value": "Файл слишком большой (макс. {size}МБ)"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.uploadFailed",
+    "value": "Ошибка загрузки"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.dropzoneLabel",
+    "value": "Glissez-déposez ou cliquez pour parcourir"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.fileTooLarge",
+    "value": "Fichier trop volumineux (max {size} Mo)"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.uploadFailed",
+    "value": "Échec du téléversement"
+  },
+  {
+    "locale": "he",
+    "key": "admin.dropzoneLabel",
+    "value": "גרור ושחרר או לחץ לבחירה"
+  },
+  {
+    "locale": "he",
+    "key": "admin.fileTooLarge",
+    "value": "הקובץ גדול מדי (מקסימום {size}MB)"
+  },
+  {
+    "locale": "he",
+    "key": "admin.uploadFailed",
+    "value": "ההעלאה נכשלה"
   }
 ]

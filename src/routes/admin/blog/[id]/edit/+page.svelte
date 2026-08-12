@@ -12,6 +12,7 @@
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import FormField from '$lib/components/atoms/FormField.svelte'
   import AdminFormSection from '$lib/components/molecules/AdminFormSection.svelte'
+  import FileUpload from '$lib/components/molecules/FileUpload.svelte'
   import type { PageData } from './$types'
 
   let { data }: { data: PageData } = $props()
@@ -81,12 +82,17 @@
           {/each}
         </select>
       </div>
-      <FormField
-        name="coverImageUrl"
-        label={adminT['admin.coverImageUrl'] ?? t('admin.coverImageUrl')}
-        bind:value={coverImageUrl}
-        placeholder="https://..."
-      />
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-medium text-pm-text">{adminT['admin.coverImageUrl'] ?? t('admin.coverImageUrl')}</label>
+        <FileUpload
+          bind:value={coverImageUrl}
+          dropzoneLabel={t('admin.dropzoneLabel')}
+          uploadingLabel={t('common.uploading')}
+          tooLargeLabel={t('admin.fileTooLarge')}
+          uploadFailedLabel={t('admin.uploadFailed')}
+          removeLabel={t('common.remove')}
+        />
+      </div>
       <FormField
         name="coverImageAlt"
         label={adminT['admin.coverImageAlt'] ?? t('admin.coverImageAlt')}
