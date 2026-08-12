@@ -8,6 +8,7 @@
  * (double-submit cookie pattern enforced in hooks.server.ts).
  */
 import { getCsrfToken } from '$lib/utils/auth'
+import { API_ROUTES } from '$lib/utils/api-paths'
 
 export interface ApiEnvelope<T> {
   success: true
@@ -45,7 +46,7 @@ export interface ContactSubmitInput {
 }
 
 export function submitContact(input: ContactSubmitInput) {
-  return request<{ message: string }>('/api/contact/submit', {
+  return request<{ message: string }>(API_ROUTES.contact.submit, {
     method: 'POST',
     body: JSON.stringify(input)
   })
@@ -53,14 +54,14 @@ export function submitContact(input: ContactSubmitInput) {
 
 /** Public site settings (sensitive keys already filtered server-side). */
 export function fetchSettings() {
-  return request<Record<string, string | null>>('/api/settings')
+  return request<Record<string, string | null>>(API_ROUTES.settings)
 }
 
 /** Admin cascade delete via the central /admin/api endpoint. */
 export type AdminDeleteModule = 'portfolios' | 'blog' | 'features' | 'faq' | 'pricing' | 'contacts' | 'users'
 
 export function adminDelete(module: AdminDeleteModule, id: number) {
-  return request<{ success: true }>('/admin/api', {
+  return request<{ success: true }>(API_ROUTES.admin.delete, {
     method: 'POST',
     body: JSON.stringify({ module, id })
   })
@@ -86,22 +87,22 @@ export interface TwoFactorVerifyResult {
 }
 
 export function fetch2faStatus() {
-  return request<TwoFactorStatusData>('/api/user/2fa/status')
+  return request<TwoFactorStatusData>(API_ROUTES.user.twoFactor.status)
 }
 
 export function start2faSetup() {
-  return request<TwoFactorSetupData>('/api/user/2fa/setup', { method: 'POST' })
+  return request<TwoFactorSetupData>(API_ROUTES.user.twoFactor.setup, { method: 'POST' })
 }
 
 export function enable2fa(code: string) {
-  return request<{ message: string }>('/api/user/2fa/enable', {
+  return request<{ message: string }>(API_ROUTES.user.twoFactor.enable, {
     method: 'POST',
     body: JSON.stringify({ code })
   })
 }
 
 export function disable2fa(password: string) {
-  return request<{ message: string }>('/api/user/2fa/disable', {
+  return request<{ message: string }>(API_ROUTES.user.twoFactor.disable, {
     method: 'POST',
     body: JSON.stringify({ password })
   })
@@ -109,7 +110,7 @@ export function disable2fa(password: string) {
 
 /** Verify a 2FA code during login (after password check). */
 export function verify2fa(code: string) {
-  return request<TwoFactorVerifyResult>('/api/user/2fa/verify', {
+  return request<TwoFactorVerifyResult>(API_ROUTES.user.twoFactor.verify, {
     method: 'POST',
     body: JSON.stringify({ code })
   })
@@ -118,7 +119,7 @@ export function verify2fa(code: string) {
 // ── Password ────────────────────────────────────────────────────────────────
 
 export function changePassword(currentPassword: string, newPassword: string) {
-  return request<{ message: string }>('/api/user/change-password', {
+  return request<{ message: string }>(API_ROUTES.user.changePassword, {
     method: 'PUT',
     body: JSON.stringify({ currentPassword, newPassword })
   })

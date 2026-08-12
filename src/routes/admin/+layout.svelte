@@ -22,8 +22,9 @@
     IconCreditCard, IconSparkles, IconMail, IconClipboardList, IconActivity,
     IconShieldCheck, IconQuestionMark, IconScale
   } from '@tabler/icons-svelte'
-  import { FEATURES } from '$lib/config/site'
+  import { FEATURES, isRtlLocale } from '$lib/config/site'
   import { t as contentT } from '$lib/stores/content.svelte'
+  import { API_ROUTES } from '$lib/utils/api-paths'
   import UserMenu from '$lib/components/molecules/UserMenu.svelte'
   import AppBottomNav from '$lib/components/molecules/AppBottomNav.svelte'
   import AppMobileHeader from '$lib/components/molecules/AppMobileHeader.svelte'
@@ -35,6 +36,7 @@
   const t = $derived(getAdminT($page.data))
 
   const useVerticalNav = $derived(FEATURES.appVerticalNav)
+  const isRtl = $derived(isRtlLocale(data.locale ?? 'en'))
 
   // Admin navigation is derived from data.menuPages — computed server-side from
   // ADMIN_CONFIG + MODULES + stored role permissions (see admin-pages.ts), so
@@ -89,7 +91,7 @@
     if (!user || isAuthPage) return
     async function fetchCount() {
       try {
-        const res = await fetch('/api/admin/contacts/unread')
+        const res = await fetch(API_ROUTES.admin.contacts.unread)
         const json = await res.json()
         if (json.success) unreadCount = json.data ?? 0
       } catch (e) { console.warn('[admin] unread count fetch failed:', e instanceof Error ? e.message : e) }
@@ -105,7 +107,7 @@
   </main>
 {:else}
 
-<div class="min-h-screen bg-pm-bg">
+<div class="min-h-screen bg-pm-bg" dir={isRtl ? "rtl" : "ltr"}>
   {#if useVerticalNav}
     <!-- VERTICAL MODE: Desktop Sidebar (PM v2: admin.vue lines 286-364) -->
     <aside class="fixed top-0 start-0 z-[var(--z-sticky)] hidden lg:flex flex-col w-16 h-full bg-pm-bg-elevated border-e border-pm-border">

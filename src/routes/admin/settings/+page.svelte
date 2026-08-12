@@ -18,6 +18,7 @@
   import { clsx } from 'clsx'
   import { t } from '$lib/stores/content.svelte'
   import { getCsrfToken } from '$lib/utils/auth'
+  import { API_ROUTES } from '$lib/utils/api-paths'
   import { getOverlaysState } from '$lib/stores/overlays.svelte'
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
@@ -165,7 +166,7 @@
           payload[item.key] = form[item.key] ?? ''
         }
       }
-      const res = await fetch('/api/admin/settings', {
+      const res = await fetch(API_ROUTES.admin.settings, {
         method: 'PUT',
         headers: { 'content-type': 'application/json', 'x-csrf-token': getCsrfToken() },
         body: JSON.stringify(payload)

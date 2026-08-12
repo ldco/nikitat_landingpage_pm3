@@ -5,6 +5,7 @@
   import { page } from '$app/stores'
   import { t } from '$lib/stores/content.svelte'
   import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
+  import { API_ROUTES } from '$lib/utils/api-paths'
   import { getAdminT } from '$lib/utils/admin-translations'
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
   import EmptyState from '$lib/components/atoms/EmptyState.svelte'
@@ -109,8 +110,8 @@
       }
 
       const url = editingRole
-        ? '/api/admin/roles/' + editingRole.id
-        : '/api/admin/roles'
+        ? API_ROUTES.admin.roles.byId(editingRole.id)
+        : API_ROUTES.admin.roles.list
       const method = editingRole ? 'PUT' : 'POST'
 
       const res = await fetch(url, {
@@ -142,7 +143,7 @@
     deletePending = id
     deleteError = null
     try {
-      const res = await fetch('/api/admin/roles/' + id, {
+      const res = await fetch(API_ROUTES.admin.roles.byId(id), {
         method: 'DELETE',
         headers: { 'x-csrf-token': $page.data.csrfToken }
       })

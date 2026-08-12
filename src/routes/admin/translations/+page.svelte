@@ -18,6 +18,7 @@
   import { clsx } from 'clsx'
   import { t } from '$lib/stores/content.svelte'
   import { getCsrfToken } from '$lib/utils/auth'
+  import { API_ROUTES } from '$lib/utils/api-paths'
   import { getOverlaysState } from '$lib/stores/overlays.svelte'
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
@@ -151,7 +152,7 @@
     saving = true
     try {
       if (editingKey && editingLocale) {
-        const res = await fetch('/api/admin/translations', {
+        const res = await fetch(API_ROUTES.admin.translations.list, {
           method: 'POST',
           headers: { 'content-type': 'application/json', 'x-csrf-token': getCsrfToken() },
           body: JSON.stringify({ locale: editingLocale, key: formKey, value: formValues[editingLocale] ?? '' })
@@ -160,7 +161,7 @@
         if (!res.ok || body?.success === false) throw new Error()
       } else {
         // Batch: all locales at once (PM2 /api/admin/translations/batch)
-        const res = await fetch('/api/admin/translations/batch', {
+        const res = await fetch(API_ROUTES.admin.translations.batch, {
           method: 'POST',
           headers: { 'content-type': 'application/json', 'x-csrf-token': getCsrfToken() },
           body: JSON.stringify({ key: formKey, values: formValues })
@@ -188,7 +189,7 @@
     })
     if (!confirmed) return
     try {
-      const res = await fetch(`/api/admin/translations/${activeLocale}/${encodeURIComponent(item.key)}`, {
+      const res = await fetch(API_ROUTES.admin.translations.item(activeLocale, item.key), {
         method: 'DELETE',
         headers: { 'x-csrf-token': getCsrfToken() }
       })
@@ -203,7 +204,7 @@
 
   async function refreshFromServer(): Promise<void> {
     try {
-      const res = await fetch(`/api/admin/translations?locale=${activeLocale}`, { headers: { 'x-csrf-token': getCsrfToken() } })
+      const res = await fetch(API_ROUTES.admin.translations.byLocale(activeLocale), { headers: { 'x-csrf-token': getCsrfToken() } })
       const body = await res.json().catch(() => null)
       if (res.ok && body) {
         // GET returns { key: value } map — rebuild the locale rows in place

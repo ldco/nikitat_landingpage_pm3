@@ -2,10 +2,12 @@
  * Admin Route Paths — single source of truth for admin URLs.
  * Never hardcode `/admin/...` paths in components.
  */
+import { API_ROUTES } from '$lib/utils/api-paths'
+
 export const ADMIN_ROUTES = {
   dashboard: '/admin',
   login: '/admin/login',
-  logout: '/api/auth/logout',
+  logout: API_ROUTES.auth.logout,
   portfolios: '/admin/portfolios',
   portfolioCreate: '/admin/portfolios/create',
   portfolioEdit: (id: number) => `/admin/portfolios/${id}/edit`,

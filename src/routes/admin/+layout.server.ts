@@ -68,6 +68,7 @@ export const load: LayoutServerLoad = (event) => {
     menuPages: getAuthorizedAdminPages(event.locals.user),
     t,
     unreadCount: getCachedUnreadCount(),
-    csrfToken
+    csrfToken,
+    locale
   }
 }

@@ -19,6 +19,8 @@ export interface LoginResult {
 }
 
 /** Read CSRF token from cookie */
+import { API_ROUTES } from '$lib/utils/api-paths'
+
 export function getCsrfToken(): string {
   if (typeof document === 'undefined') return ''
   const match = document.cookie.match(/(?:^|;\s*)pm-csrf=([^;]+)/)
@@ -28,7 +30,7 @@ export function getCsrfToken(): string {
 
 export async function login(email: string, password: string): Promise<LoginResult> {
   try {
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch(API_ROUTES.auth.login, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
@@ -48,7 +50,7 @@ export async function login(email: string, password: string): Promise<LoginResul
 
 export async function logout(): Promise<boolean> {
   try {
-    const res = await fetch('/api/auth/logout', {
+    const res = await fetch(API_ROUTES.auth.logout, {
       method: 'POST',
       headers: { 'x-csrf-token': getCsrfToken() }
     })
@@ -60,7 +62,7 @@ export async function logout(): Promise<boolean> {
 
 export async function getSession(): Promise<AuthUser | null> {
   try {
-    const res = await fetch('/api/auth/session')
+    const res = await fetch(API_ROUTES.auth.session)
     if (!res.ok) return null
     const body = (await res.json()) as { success?: boolean; data?: { user?: AuthUser } }
     return body.data?.user ?? null

@@ -1,3 +1,4 @@
+import { API_ROUTES } from '$lib/utils/api-paths'
 /**
  * Performance — Core Web Vitals + navigation timing monitoring
  *
@@ -129,9 +130,9 @@ export function sendPerformanceReport(): void {
   try {
     const payload = JSON.stringify(buildPerformancePayload())
     if ('sendBeacon' in navigator) {
-      navigator.sendBeacon('/api/analytics/performance', new Blob([payload], { type: 'application/json' }))
+      navigator.sendBeacon(API_ROUTES.analytics.performance, new Blob([payload], { type: 'application/json' }))
     } else {
-      void fetch('/api/analytics/performance', {
+      void fetch(API_ROUTES.analytics.performance, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: payload,

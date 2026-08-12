@@ -9,7 +9,7 @@
    * @props {string} [accept='image/*'] — accepted file types
    * @props {number} [maxSize=10485760] — max file size in bytes (default 10MB)
    * @props {string} value — current file URL (two-way bindable)
-   * @props {string} [endpoint='/api/upload/image'] — upload endpoint
+   * @props {string} [endpoint=API_ROUTES.upload.image] — upload endpoint
    * @props {string} [dropzoneLabel=''] — drop zone prompt text
    * @props {string} [uploadingLabel=''] — uploading state text
    * @props {string} [tooLargeLabel=''] — "file too large" message with {size} placeholder
@@ -31,12 +31,13 @@
   import IconX from '@tabler/icons-svelte/icons/x'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import { getCsrfToken } from '$lib/utils/auth'
+  import { API_ROUTES } from '$lib/utils/api-paths'
 
   let {
     accept = 'image/*',
     maxSize = 10 * 1024 * 1024,
     value = $bindable(''),
-    endpoint = '/api/upload/image',
+    endpoint = API_ROUTES.upload.image,
     dropzoneLabel = '',
     uploadingLabel = '',
     tooLargeLabel = '',

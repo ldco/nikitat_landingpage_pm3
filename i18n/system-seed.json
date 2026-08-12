@@ -17708,5 +17708,45 @@
     "locale": "he",
     "key": "admin.uploadFailed",
     "value": "ההעלאה נכשלה"
+  },
+  {
+    "locale": "en",
+    "key": "admin.healthPage.value",
+    "value": "Value"
+  },
+  {
+    "locale": "en",
+    "key": "admin.check",
+    "value": "Check"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.healthPage.value",
+    "value": "Значение"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.check",
+    "value": "Проверка"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.healthPage.value",
+    "value": "Valeur"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.check",
+    "value": "Vérification"
+  },
+  {
+    "locale": "he",
+    "key": "admin.healthPage.value",
+    "value": "ערך"
+  },
+  {
+    "locale": "he",
+    "key": "admin.check",
+    "value": "בדיקה"
   }
 ]

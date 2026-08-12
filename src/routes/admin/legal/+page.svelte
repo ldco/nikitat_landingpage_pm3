@@ -21,6 +21,7 @@
   import { clsx } from 'clsx'
   import { t } from '$lib/stores/content.svelte'
   import { getCsrfToken } from '$lib/utils/auth'
+  import { API_ROUTES } from '$lib/utils/api-paths'
   import { getOverlaysState } from '$lib/stores/overlays.svelte'
   import { renderLegalMarkdown } from '$lib/utils/legal-markdown'
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
@@ -213,7 +214,7 @@
       // 1. Save legal settings (bulk)
       const settingsPayload: Record<string, string> = {}
       for (const key of LEGAL_SETTING_KEYS) settingsPayload[key] = legalSettingsForm[key] ?? ''
-      const sRes = await fetch('/api/admin/settings', {
+      const sRes = await fetch(API_ROUTES.admin.settings, {
         method: 'PUT',
         headers: { 'content-type': 'application/json', 'x-csrf-token': getCsrfToken() },
         body: JSON.stringify(settingsPayload)
@@ -226,7 +227,7 @@
         for (const loc of locales) {
           const content = docsForm[slug]?.[loc] ?? ''
           if (content.trim().length === 0) continue // skip untouched empties
-          const dRes = await fetch(`/api/admin/legal/${encodeURIComponent(slug)}`, {
+          const dRes = await fetch(API_ROUTES.admin.legal.bySlug(slug), {
             method: 'PUT',
             headers: { 'content-type': 'application/json', 'x-csrf-token': getCsrfToken() },
             body: JSON.stringify({ locale: loc, content })

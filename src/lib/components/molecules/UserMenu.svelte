@@ -17,6 +17,7 @@
   import { twMerge } from 'tailwind-merge'
   import IconLogout from '@tabler/icons-svelte/icons/logout'
   import { t as contentT } from '$lib/stores/content.svelte'
+  import { API_ROUTES } from '$lib/utils/api-paths'
 
   interface UserMenuUser {
     name?: string | null
@@ -66,7 +67,7 @@
           <span class="text-xs text-pm-text-muted">{user.email}</span>
           <span class="text-xs text-pm-text-muted capitalize">{user.role}</span>
         </div>
-        <a href="/api/auth/logout"
+        <a href={API_ROUTES.auth.logout}
           class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken">
           <IconLogout class="size-4" />
           {contentT('auth.logout')}

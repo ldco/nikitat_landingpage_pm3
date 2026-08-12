@@ -1,3 +1,4 @@
+import { API_ROUTES } from '$lib/utils/api-paths'
 /**
  * usePerformance — client performance tracking (audit N-16 framework gap)
  *
@@ -17,7 +18,7 @@ export function usePerformance(): () => void {
   const observers: PerformanceObserver[] = []
   const beacon = (data: Record<string, unknown>) => {
     try {
-      fetch('/api/analytics/performance', {
+      fetch(API_ROUTES.analytics.performance, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ metrics: data }),

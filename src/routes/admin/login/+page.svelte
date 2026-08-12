@@ -21,6 +21,7 @@
    * verification token so the final session (created at verify) uses it too.
    */
   import { t } from '$lib/stores/content.svelte'
+  import { API_ROUTES } from '$lib/utils/api-paths'
   import { clsx } from 'clsx'
   import { goto } from '$app/navigation'
   import { i18n } from '$lib/i18n'
@@ -77,7 +78,7 @@
     formError = ''
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(API_ROUTES.auth.login, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ email: email.trim(), password, rememberMe })

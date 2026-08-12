@@ -10,6 +10,7 @@
   import { page } from '$app/stores'
   import { getAdminT } from '$lib/utils/admin-translations'
   import { getCsrfToken } from '$lib/utils/auth'
+  import { API_ROUTES } from '$lib/utils/api-paths'
   import { getOverlaysState } from '$lib/stores/overlays.svelte'
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
@@ -106,8 +107,8 @@
         ...(editingItem ? {} : { order: items.length })
       }
       const url = editingItem
-        ? `/api/admin/portfolios/${portfolio.id}/items/${editingItem.id}`
-        : `/api/admin/portfolios/${portfolio.id}/items`
+        ? API_ROUTES.admin.portfolios.item(portfolio.id, editingItem.id)
+        : API_ROUTES.admin.portfolios.items(portfolio.id)
       const res = await fetch(url, {
         method: editingItem ? 'PUT' : 'POST',
         headers: { 'content-type': 'application/json', 'x-csrf-token': getCsrfToken() },
@@ -134,7 +135,7 @@
     })
     if (!confirmed) return
     try {
-      const res = await fetch(`/api/admin/portfolios/${portfolio.id}/items/${item.id}`, {
+      const res = await fetch(API_ROUTES.admin.portfolios.item(portfolio.id, item.id), {
         method: 'DELETE',
         headers: { 'x-csrf-token': getCsrfToken() }
       })
@@ -154,7 +155,7 @@
     if (!other || swapIdx < 0 || swapIdx >= items.length) return
     try {
       for (const [i, newOrder] of [[item.id, other.order], [other.id, item.order]] as const) {
-        await fetch(`/api/admin/portfolios/${portfolio.id}/items/${i}`, {
+        await fetch(API_ROUTES.admin.portfolios.item(portfolio.id, i), {
           method: 'PUT',
           headers: { 'content-type': 'application/json', 'x-csrf-token': getCsrfToken() },
           body: JSON.stringify({ order: newOrder })
@@ -256,7 +257,7 @@
     <FileUpload
       bind:value={formMediaUrl}
       accept={formItemType === 'video' ? 'video/*' : 'image/*'}
-      endpoint={formItemType === 'video' ? '/api/upload/video' : '/api/upload/image'}
+      endpoint={formItemType === 'video' ? API_ROUTES.upload.video : API_ROUTES.upload.image}
       dropzoneLabel={t('admin.dropzoneLabel')}
       uploadingLabel={t('common.uploading')}
       tooLargeLabel={t('admin.fileTooLarge')}

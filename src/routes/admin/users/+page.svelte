@@ -16,6 +16,7 @@
   import { clsx } from 'clsx'
   import { t } from '$lib/stores/content.svelte'
   import { getCsrfToken } from '$lib/utils/auth'
+  import { API_ROUTES } from '$lib/utils/api-paths'
   import { getOverlaysState } from '$lib/stores/overlays.svelte'
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
@@ -105,7 +106,7 @@
       if (editingUser) {
         const body: Record<string, unknown> = { email: formEmail, name: formName || null, role: formRole }
         if (formPassword) body.password = formPassword
-        const res = await fetch(`/api/admin/users/${editingUser.id}`, {
+        const res = await fetch(API_ROUTES.admin.users.byId(editingUser.id), {
           method: 'PUT',
           headers: { 'content-type': 'application/json', 'x-csrf-token': getCsrfToken() },
           body: JSON.stringify(body)
@@ -113,7 +114,7 @@
         const b = await res.json().catch(() => null)
         if (!res.ok || b?.success === false) throw new Error()
       } else {
-        const res = await fetch('/api/admin/users', {
+        const res = await fetch(API_ROUTES.admin.users.list, {
           method: 'POST',
           headers: { 'content-type': 'application/json', 'x-csrf-token': getCsrfToken() },
           body: JSON.stringify({ email: formEmail, password: formPassword, name: formName || null, role: formRole })
@@ -140,7 +141,7 @@
     })
     if (!confirmed) return
     try {
-      const res = await fetch(`/api/admin/users/${user.id}`, {
+      const res = await fetch(API_ROUTES.admin.users.byId(user.id), {
         method: 'DELETE',
         headers: { 'x-csrf-token': getCsrfToken() }
       })

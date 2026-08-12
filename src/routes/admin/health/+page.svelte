@@ -10,26 +10,29 @@
   import type { PageData } from './$types'
 
   let { data }: { data: PageData } = $props()
-  const items = $derived(data.items)
+  const checks = $derived(data.checks)
   const t = $derived(getAdminT($page.data))
 
   const columns = $derived<AdminTableColumn[]>([
-    { key: 'label', label: t['admin.check'] ?? 'Check' },
-    { key: 'status', label: t['admin.status'] ?? 'Status' }
+    { key: 'name', label: t['admin.check'] ?? '' },
+    { key: 'status', label: t['admin.status'] ?? '' },
+    { key: 'message', label: t['admin.healthPage.value'] ?? '' }
   ])
 </script>
 
 <div class="max-w-[var(--max-w-content)] mx-auto">
-  <PageHeader title={t['admin.health'] ?? 'Health'} />
+  <PageHeader title={t['admin.health'] ?? ''} />
 
   <div class="mt-6">
-    <AdminDataTable {columns} items={items} emptyMessage={t['admin.noItems'] ?? '—'}>
+    <AdminDataTable {columns} items={checks} emptyMessage={t['admin.noItems'] ?? ''}>
       {#snippet cell(column, item)}
-        {@const row = item as [string, string]}
-        {#if column.key === 'label'}
-          <span class="font-medium text-pm-text">{row[0]}</span>
+        {@const row = item as { name: string; status: 'OK' | 'ERROR'; message?: string }}
+        {#if column.key === 'name'}
+          <span class="font-medium text-pm-text">{row.name}</span>
+        {:else if column.key === 'status'}
+          <Badge variant={row.status === 'OK' ? 'success' : 'error'}>{row.status}</Badge>
         {:else}
-          <Badge variant={row[1] === 'OK' ? 'success' : 'error'}>{row[1]}</Badge>
+          <span class="text-pm-text-muted">{row.message ?? ''}</span>
         {/if}
       {/snippet}
     </AdminDataTable>

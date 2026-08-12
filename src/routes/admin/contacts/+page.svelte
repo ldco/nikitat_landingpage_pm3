@@ -7,6 +7,7 @@
   import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
   import { getAdminT } from '$lib/utils/admin-translations'
   import { adminDelete } from '$lib/api/client'
+  import { API_ROUTES } from '$lib/utils/api-paths'
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
   import EmptyState from '$lib/components/atoms/EmptyState.svelte'
   import AdminDataTable, { type AdminTableColumn } from '$lib/components/admin/AdminDataTable.svelte'
@@ -33,7 +34,7 @@
 
   async function handleMarkRead(id: number) {
     try {
-      const res = await fetch('/api/admin/contacts/' + id, {
+      const res = await fetch(API_ROUTES.admin.contacts.byId(id), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
