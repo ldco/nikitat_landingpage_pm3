@@ -21,6 +21,8 @@ export const USERS_SELECT = {
   name: schema.users.name,
   role: schema.users.role,
   roleId: schema.users.roleId,
+  failedLoginAttempts: schema.users.failedLoginAttempts,
+  lockedUntil: schema.users.lockedUntil,
   createdAt: schema.users.createdAt,
   updatedAt: schema.users.updatedAt
 }
@@ -38,10 +40,11 @@ export function resolveEffectiveRole(row: { role: string; roleSlug: string | nul
 /** Admin list: paginated users (no passwordHash) with resolved role slugs. */
 export function getUsers(pageSize: number, offset: number) {
   const db = useDatabase()
-  const rows = db.select({
-    ...USERS_SELECT,
-    roleSlug: schema.roles.slug
-  })
+  const rows = db
+    .select({
+      ...USERS_SELECT,
+      roleSlug: schema.roles.slug
+    })
     .from(schema.users)
     .leftJoin(schema.roles, eq(schema.users.roleId, schema.roles.id))
     .limit(pageSize)
@@ -50,8 +53,15 @@ export function getUsers(pageSize: number, offset: number) {
   const total = db.select({ id: schema.users.id }).from(schema.users).all().length
   return {
     users: rows.map(row => ({
-      id: row.id, email: row.email, name: row.name, roleId: row.roleId,
-      role: resolveEffectiveRole(row), createdAt: row.createdAt, updatedAt: row.updatedAt
+      id: row.id,
+      email: row.email,
+      name: row.name,
+      roleId: row.roleId,
+      role: resolveEffectiveRole(row),
+      failedLoginAttempts: row.failedLoginAttempts,
+      lockedUntil: row.lockedUntil,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt
     })),
     total
   }
@@ -60,18 +70,26 @@ export function getUsers(pageSize: number, offset: number) {
 /** Single user by id (no passwordHash) with resolved role slug. */
 export function getUserById(id: number) {
   const db = useDatabase()
-  const row = db.select({
-    ...USERS_SELECT,
-    roleSlug: schema.roles.slug
-  })
+  const row = db
+    .select({
+      ...USERS_SELECT,
+      roleSlug: schema.roles.slug
+    })
     .from(schema.users)
     .leftJoin(schema.roles, eq(schema.users.roleId, schema.roles.id))
     .where(eq(schema.users.id, id))
     .get()
   if (!row) return null
   return {
-    id: row.id, email: row.email, name: row.name, roleId: row.roleId,
-    role: resolveEffectiveRole(row), createdAt: row.createdAt, updatedAt: row.updatedAt
+    id: row.id,
+    email: row.email,
+    name: row.name,
+    roleId: row.roleId,
+    role: resolveEffectiveRole(row),
+    failedLoginAttempts: row.failedLoginAttempts,
+    lockedUntil: row.lockedUntil,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt
   }
 }
 
@@ -88,10 +106,11 @@ export function getUserByEmail(email: string) {
  */
 export function getEffectiveRole(userId: number): string | null {
   const db = useDatabase()
-  const row = db.select({
-    role: schema.users.role,
-    roleSlug: schema.roles.slug
-  })
+  const row = db
+    .select({
+      role: schema.users.role,
+      roleSlug: schema.roles.slug
+    })
     .from(schema.users)
     .leftJoin(schema.roles, eq(schema.users.roleId, schema.roles.id))
     .where(eq(schema.users.id, userId))
@@ -108,9 +127,16 @@ const LEGACY_ROLES = new Set(['master', 'admin', 'editor'])
  * the legacy column keeps the slug when it fits the enum, else 'editor', and
  * `roleId` links the roles table row (built-in or custom).
  */
-export function resolveRoleToPersist(slug: string, roleId: number | null = null): { role: 'master' | 'admin' | 'editor'; roleId: number | null } {
+export function resolveRoleToPersist(
+  slug: string,
+  roleId: number | null = null
+): { role: 'master' | 'admin' | 'editor'; roleId: number | null } {
   const db = useDatabase()
-  const linkedId = roleId ?? db.select({ id: schema.roles.id }).from(schema.roles).where(eq(schema.roles.slug, slug)).get()?.id ?? null
+  const linkedId =
+    roleId ??
+    db.select({ id: schema.roles.id }).from(schema.roles).where(eq(schema.roles.slug, slug)).get()
+      ?.id ??
+    null
   return {
     role: LEGACY_ROLES.has(slug) ? (slug as 'master' | 'admin' | 'editor') : 'editor',
     roleId: linkedId
@@ -126,5 +152,8 @@ export function getRoleById(id: number) {
 /** All roles for admin assignment dropdowns. */
 export function getAllRoles() {
   const db = useDatabase()
-  return db.select({ id: schema.roles.id, name: schema.roles.name, slug: schema.roles.slug }).from(schema.roles).all()
+  return db
+    .select({ id: schema.roles.id, name: schema.roles.name, slug: schema.roles.slug })
+    .from(schema.roles)
+    .all()
 }

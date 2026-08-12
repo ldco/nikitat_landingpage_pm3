@@ -10,22 +10,24 @@ const insertSchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1),
   type: z.enum(['gallery', 'case_study', 'branding', 'brandbook', 'website']).default('branding'),
-  description: z.string().nullable().optional()
+  description: z.string().nullable().optional(),
+  published: z.string().optional().nullable()
 })
 
-export const load: PageServerLoad = (event) => {
+export const load: PageServerLoad = event => {
   requireAdminPage(event, 'portfolios')
 }
 
 export const actions = {
   default: async (event: RequestEvent) => {
     requireAdminPage(event, 'portfolios')
-    const form = event.locals.csrfForm ?? await event.request.formData()
+    const form = event.locals.csrfForm ?? (await event.request.formData())
     const parsed = insertSchema.safeParse({
       name: form.get('name'),
       slug: form.get('slug'),
       type: form.get('type') || 'branding',
-      description: form.get('description') || null
+      description: form.get('description') || null,
+      published: form.get('published') || null
     })
 
     // audit I-10: use fail() so $page.form is populated and use:enhance can
@@ -33,10 +35,19 @@ export const actions = {
     if (!parsed.success) return fail(400, { fieldErrors: parsed.error.flatten().fieldErrors })
 
     const db = useDatabase()
-    db.insert(schema.portfolios).values({
-      ...parsed.data, order: 0, published: true,
-      createdAt: new Date(), updatedAt: new Date()
-    }).run()
+    const published = parsed.data.published === 'on'
+    db.insert(schema.portfolios)
+      .values({
+        name: parsed.data.name,
+        slug: parsed.data.slug,
+        type: parsed.data.type,
+        description: parsed.data.description || null,
+        order: 0,
+        published,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .run()
 
     redirect(303, ADMIN_ROUTES.portfolios)
   }

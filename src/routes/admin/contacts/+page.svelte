@@ -10,11 +10,14 @@
   import { API_ROUTES } from '$lib/utils/api-paths'
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
   import EmptyState from '$lib/components/atoms/EmptyState.svelte'
-  import AdminDataTable, { type AdminTableColumn } from '$lib/components/admin/AdminDataTable.svelte'
+  import AdminDataTable, {
+    type AdminTableColumn
+  } from '$lib/components/admin/AdminDataTable.svelte'
   import Pagination from '$lib/components/molecules/Pagination.svelte'
   import IconEye from '@tabler/icons-svelte/icons/eye'
+  import IconEyeOff from '@tabler/icons-svelte/icons/eye-off'
   import IconTrash from '@tabler/icons-svelte/icons/trash'
-  import { goto } from '$app/navigation'
+  import { goto, invalidateAll } from '$app/navigation'
   import { clsx } from 'clsx'
   import type { PageData } from './$types'
 
@@ -32,20 +35,23 @@
     { key: 'date', label: adminT['admin.date'] ?? t('common.date') }
   ])
 
-  async function handleMarkRead(id: number) {
+  // Reversible read state (PM2 read/unread workflow): unread → mark read,
+  // read → mark unread. After the toggle, invalidateAll() re-runs the server
+  // loads so the layout badge (unreadCount) reflects the new state immediately.
+  async function handleToggleRead(row: { id: number; read: boolean }) {
     try {
-      const res = await fetch(API_ROUTES.admin.contacts.byId(id), {
+      const res = await fetch(API_ROUTES.admin.contacts.byId(row.id), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'x-csrf-token': $page.data.csrfToken
         },
-        body: JSON.stringify({ read: true })
+        body: JSON.stringify({ read: !row.read })
       })
       if (!res.ok) throw new Error('HTTP ' + res.status)
-      goto(ADMIN_ROUTES.contacts)
+      await invalidateAll()
     } catch (e: unknown) {
-      console.error('[admin] mark read failed:', e instanceof Error ? e.message : e)
+      console.error('[admin] toggle read failed:', e instanceof Error ? e.message : e)
     }
   }
 
@@ -74,22 +80,43 @@
   <PageHeader title={adminT['admin.contacts'] ?? t('admin.contacts')} itemCount={items.length} />
 
   {#if deleteError}
-    <div class="mb-4 p-3 bg-pm-danger-bg border border-pm-danger rounded-[var(--radius-lg)] text-sm text-pm-danger">
+    <div
+      class="mb-4 p-3 bg-pm-danger-bg border border-pm-danger rounded-[var(--radius-lg)] text-sm text-pm-danger"
+    >
       {deleteError}
-      <button onclick={() => deleteError = null} class="ms-2 underline hover:no-underline">{t('common.dismiss')}</button>
+      <button onclick={() => (deleteError = null)} class="ms-2 underline hover:no-underline">
+        {t('common.dismiss')}
+      </button>
     </div>
   {/if}
 
   <div class="mt-6">
     {#if items.length === 0}
-      <EmptyState type="empty-box" size="compact" title={adminT['admin.noItems'] ?? t('common.noResults')} />
+      <EmptyState
+        type="empty-box"
+        size="compact"
+        title={adminT['admin.noItems'] ?? t('common.noResults')}
+      />
     {:else}
-      <AdminDataTable {columns} items={items} emptyMessage={adminT['admin.noItems'] ?? t('common.noResults')}>
+      <AdminDataTable
+        {columns}
+        {items}
+        emptyMessage={adminT['admin.noItems'] ?? t('common.noResults')}
+      >
         {#snippet cell(column, item)}
-          {@const row = item as { id: number; name: string; email: string; read: boolean; createdAt: Date }}
+          {@const row = item as {
+            id: number
+            name: string
+            email: string
+            read: boolean
+            createdAt: Date
+          }}
           {#if column.key === 'read'}
             {#if !row.read}
-              <span class="inline-block size-2 rounded-full bg-pm-brand" title={adminT['admin.markRead'] ?? t('admin.markRead')}></span>
+              <span
+                class="inline-block size-2 rounded-full bg-pm-brand"
+                title={adminT['admin.markRead'] ?? t('admin.markRead')}
+              ></span>
             {/if}
           {:else if column.key === 'name'}
             <span class={clsx('font-medium', !row.read && 'font-bold text-pm-text')}>
@@ -98,24 +125,39 @@
           {:else if column.key === 'email'}
             <span class="text-pm-text-muted">{row.email}</span>
           {:else}
-            <span class="text-pm-text-muted text-sm">{new Date(row.createdAt).toLocaleDateString()}</span>
+            <span class="text-pm-text-muted text-sm">
+              {new Date(row.createdAt).toLocaleDateString()}
+            </span>
           {/if}
         {/snippet}
         {#snippet actions(item)}
           {@const row = item as { id: number; name: string; read: boolean }}
           <div class="flex items-center justify-end gap-1">
-            {#if !row.read}
-              <button onclick={() => handleMarkRead(row.id)}
+            {#if row.read}
+              <button
+                onclick={() => handleToggleRead(row)}
+                class="p-1.5 rounded-md text-pm-text-muted hover:text-pm-brand hover:bg-pm-bg-sunken transition-colors"
+                title={adminT['admin.markUnread'] ?? t('admin.markUnread')}
+                aria-label={adminT['admin.markUnread'] ?? t('admin.markUnread')}
+              >
+                <IconEyeOff class="size-4" />
+              </button>
+            {:else}
+              <button
+                onclick={() => handleToggleRead(row)}
                 class="p-1.5 rounded-md text-pm-text-muted hover:text-pm-brand hover:bg-pm-bg-sunken transition-colors"
                 title={adminT['admin.markRead'] ?? t('admin.markRead')}
-                aria-label={adminT['admin.markRead'] ?? t('admin.markRead')}>
+                aria-label={adminT['admin.markRead'] ?? t('admin.markRead')}
+              >
                 <IconEye class="size-4" />
               </button>
             {/if}
-            <button onclick={() => handleDelete(row.id, row.name)}
+            <button
+              onclick={() => handleDelete(row.id, row.name)}
               disabled={deletePending === row.id}
               class="p-1.5 rounded-md text-pm-text-muted hover:text-pm-danger hover:bg-pm-bg-sunken transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              aria-label={t('common.delete')}>
+              aria-label={t('common.delete')}
+            >
               <IconTrash class="size-4" />
             </button>
           </div>
@@ -129,7 +171,7 @@
       <Pagination
         bind:page={currentPage}
         totalPages={data.pagination.totalPages}
-        onPageChange={(p) => goto('?page=' + p)}
+        onPageChange={p => goto('?page=' + p)}
       />
     </div>
   {/if}

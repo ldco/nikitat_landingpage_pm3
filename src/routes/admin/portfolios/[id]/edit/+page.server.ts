@@ -11,13 +11,18 @@ const updateSchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1),
   type: z.enum(['gallery', 'case_study', 'branding', 'brandbook', 'website']).default('branding'),
-  description: z.string().nullable().optional()
+  description: z.string().nullable().optional(),
+  published: z.string().optional().nullable()
 })
 
-export const load: PageServerLoad = async (event) => {
+export const load: PageServerLoad = async event => {
   requireAdminPage(event, 'portfolios')
   const db = useDatabase()
-  const portfolio = db.select().from(schema.portfolios).where(eq(schema.portfolios.id, Number(event.params.id))).get()
+  const portfolio = db
+    .select()
+    .from(schema.portfolios)
+    .where(eq(schema.portfolios.id, Number(event.params.id)))
+    .get()
   if (!portfolio) error(404)
   return { portfolio }
 }
@@ -25,20 +30,29 @@ export const load: PageServerLoad = async (event) => {
 export const actions = {
   default: async (event: RequestEvent) => {
     requireAdminPage(event, 'portfolios')
-    const form = event.locals.csrfForm ?? await event.request.formData()
+    const form = event.locals.csrfForm ?? (await event.request.formData())
     const parsed = updateSchema.safeParse({
       name: form.get('name'),
       slug: form.get('slug'),
       type: form.get('type') || 'branding',
-      description: form.get('description') || null
+      description: form.get('description') || null,
+      published: form.get('published') || null
     })
 
     // audit I-10: fail() so field errors surface to the UI (matches create).
     if (!parsed.success) return fail(400, { fieldErrors: parsed.error.flatten().fieldErrors })
 
     const db = useDatabase()
+    const published = parsed.data.published === 'on'
     db.update(schema.portfolios)
-      .set({ ...parsed.data, updatedAt: new Date() })
+      .set({
+        name: parsed.data.name,
+        slug: parsed.data.slug,
+        type: parsed.data.type,
+        description: parsed.data.description || null,
+        published,
+        updatedAt: new Date()
+      })
       .where(eq(schema.portfolios.id, Number(event.params.id)))
       .run()
 

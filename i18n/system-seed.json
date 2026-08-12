@@ -17808,5 +17808,125 @@
     "locale": "he",
     "key": "apiErrors.admin.roleSlugExists",
     "value": "תפקיד עם slug זה כבר קיים."
+  },
+  {
+    "locale": "en",
+    "key": "admin.fieldRequired",
+    "value": "This field is required"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.fieldRequired",
+    "value": "Ce champ est requis"
+  },
+  {
+    "locale": "he",
+    "key": "admin.fieldRequired",
+    "value": "שדה זה הוא חובה"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.fieldRequired",
+    "value": "Это поле обязательно"
+  },
+  {
+    "locale": "en",
+    "key": "admin.locked",
+    "value": "Locked"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.locked",
+    "value": "Verrouillé"
+  },
+  {
+    "locale": "he",
+    "key": "admin.locked",
+    "value": "נעול"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.locked",
+    "value": "Заблокирован"
+  },
+  {
+    "locale": "en",
+    "key": "admin.lockedAccount",
+    "value": "Account locked"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.lockedAccount",
+    "value": "Compte verrouillé"
+  },
+  {
+    "locale": "he",
+    "key": "admin.lockedAccount",
+    "value": "החשבון נעול"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.lockedAccount",
+    "value": "Аккаунт заблокирован"
+  },
+  {
+    "locale": "en",
+    "key": "admin.portfolioItemNotFound",
+    "value": "Portfolio item not found"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.portfolioItemNotFound",
+    "value": "Élément de portfolio introuvable"
+  },
+  {
+    "locale": "he",
+    "key": "admin.portfolioItemNotFound",
+    "value": "פריט תיק עבודות לא נמצא"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.portfolioItemNotFound",
+    "value": "Элемент портфолио не найден"
+  },
+  {
+    "locale": "en",
+    "key": "admin.roleNotFound",
+    "value": "Role not found"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.roleNotFound",
+    "value": "Rôle introuvable"
+  },
+  {
+    "locale": "he",
+    "key": "admin.roleNotFound",
+    "value": "תפקיד לא נמצא"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.roleNotFound",
+    "value": "Роль не найдена"
+  },
+  {
+    "locale": "en",
+    "key": "admin.unlock",
+    "value": "Unlock"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.unlock",
+    "value": "Déverrouiller"
+  },
+  {
+    "locale": "he",
+    "key": "admin.unlock",
+    "value": "בטל נעילה"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.unlock",
+    "value": "Разблокировать"
   }
 ]

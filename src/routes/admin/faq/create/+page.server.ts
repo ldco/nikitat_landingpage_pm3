@@ -7,15 +7,31 @@ import type { RequestEvent } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
 import { uniqueConstraintFieldErrors } from '$lib/server/utils/db-errors'
+import {
+  type LocaleFormSpec,
+  localeFieldsSchema,
+  mergeFieldErrors,
+  readLocaleFields,
+  submittedLocaleSections
+} from '$lib/server/utils/locale-form'
+
+// A submitted locale section must contain BOTH the question and the answer —
+// a half-filled translation is rejected instead of silently skipped.
+const localeSpec: LocaleFormSpec = { question: true, answer: true }
 
 const createSchema = z.object({
-  slug: z.string().trim().min(1).max(100).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with hyphens'),
+  slug: z
+    .string()
+    .trim()
+    .min(1)
+    .max(100)
+    .regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with hyphens'),
   category: z.string().trim().max(200).optional().nullable(),
   published: z.string().optional().nullable(),
   order: z.coerce.number().int().min(0).default(0)
 })
 
-export const load: PageServerLoad = (event) => {
+export const load: PageServerLoad = event => {
   requireAdminPage(event, 'faq')
   return { locales: LOCALE_STRINGS }
 }
@@ -23,46 +39,61 @@ export const load: PageServerLoad = (event) => {
 export const actions = {
   default: async (event: RequestEvent) => {
     requireAdminPage(event, 'faq')
-    const form = event.locals.csrfForm ?? await event.request.formData()
+    const form = event.locals.csrfForm ?? (await event.request.formData())
+    // Base fields and the locale block are validated up-front together — an
+    // incomplete locale section fails the same way a bad base field does.
     const parsed = createSchema.safeParse({
       slug: form.get('slug'),
       category: form.get('category') || null,
       published: form.get('published') || null,
       order: form.get('order')
     })
-    if (!parsed.success) {
-      return fail(400, { fieldErrors: parsed.error.flatten().fieldErrors })
+    const localeParsed = localeFieldsSchema(localeSpec).safeParse(
+      readLocaleFields(form, localeSpec)
+    )
+    if (!parsed.success || !localeParsed.success) {
+      return fail(400, {
+        fieldErrors: mergeFieldErrors(
+          parsed.success ? undefined : parsed.error.flatten().fieldErrors,
+          localeParsed.success ? undefined : localeParsed.error.flatten().fieldErrors
+        )
+      })
     }
 
     const db = useDatabase()
     const published = parsed.data.published === 'on'
+    const translations = submittedLocaleSections(localeParsed.data, localeSpec)
 
     try {
-    db.transaction(() => {
-      const item = db.insert(schema.faqItems).values({
-        slug: parsed.data.slug,
-        category: parsed.data.category || null,
-        published,
-        order: parsed.data.order,
-        createdAt: new Date()
-      }).returning({ id: schema.faqItems.id }).get()
+      db.transaction(() => {
+        const item = db
+          .insert(schema.faqItems)
+          .values({
+            slug: parsed.data.slug,
+            category: parsed.data.category || null,
+            published,
+            order: parsed.data.order,
+            createdAt: new Date()
+          })
+          .returning({ id: schema.faqItems.id })
+          .get()
 
-      // Insert per-locale translations (only locales with question AND answer)
-      for (const loc of LOCALE_STRINGS) {
-        const question = form.get(`question_${loc}`)?.toString().trim()
-        const answer = form.get(`answer_${loc}`)?.toString().trim()
-        if (!question || !answer) continue
-        db.insert(schema.faqItemTranslations).values({
-          faqItemId: item.id,
-          locale: loc,
-          question,
-          answer,
-          updatedAt: new Date()
-        }).run()
-      }
-    })
+        for (const [loc, values] of Object.entries(translations)) {
+          db.insert(schema.faqItemTranslations)
+            .values({
+              faqItemId: item.id,
+              locale: loc,
+              question: values.question ?? '',
+              answer: values.answer ?? '',
+              updatedAt: new Date()
+            })
+            .run()
+        }
+      })
     } catch (e: unknown) {
-      const fieldErrors = uniqueConstraintFieldErrors(e, [{ column: 'slug', label: 'apiErrors.admin.slugExists' }])
+      const fieldErrors = uniqueConstraintFieldErrors(e, [
+        { column: 'slug', label: 'apiErrors.admin.slugExists' }
+      ])
       if (fieldErrors) return fail(400, { fieldErrors })
       throw e
     }
