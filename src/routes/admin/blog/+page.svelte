@@ -9,6 +9,7 @@
   import EmptyState from '$lib/components/atoms/EmptyState.svelte'
   import Badge from '$lib/components/atoms/Badge.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import Pagination from '$lib/components/molecules/Pagination.svelte'
   import IconPencil from '@tabler/icons-svelte/icons/pencil'
   import IconTrash from '@tabler/icons-svelte/icons/trash'
   import IconPlus from '@tabler/icons-svelte/icons/plus'
@@ -33,6 +34,7 @@
   const adminT = $derived(getAdminT($page.data))
   let deletePending = $state<number | null>(null)
   let deleteError = $state<string | null>(null)
+  let currentPage = $state(data.pagination?.page ?? 1)
 
   async function handleDelete(id: number, title: string) {
     const msg = adminT['admin.confirmDelete'] ?? t('common.areYouSure')
@@ -133,4 +135,14 @@
       </div>
     {/if}
   </div>
+
+  {#if data.pagination && data.pagination.totalPages > 1}
+    <div class="mt-6">
+      <Pagination
+        bind:page={currentPage}
+        totalPages={data.pagination.totalPages}
+        onPageChange={(p) => goto('?page=' + p)}
+      />
+    </div>
+  {/if}
 </div>

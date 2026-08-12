@@ -12,6 +12,7 @@
    * roleBadgeClass). Only master can manage master accounts.
    */
   import { page } from '$app/stores'
+  import { goto } from '$app/navigation'
   import { clsx } from 'clsx'
   import { t } from '$lib/stores/content.svelte'
   import { getCsrfToken } from '$lib/utils/auth'
@@ -20,6 +21,7 @@
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import AdminModal from '$lib/components/molecules/AdminModal.svelte'
   import AdminDataTable, { type AdminTableColumn } from '$lib/components/admin/AdminDataTable.svelte'
+  import Pagination from '$lib/components/molecules/Pagination.svelte'
   import IconPlus from '@tabler/icons-svelte/icons/plus'
   import IconEdit from '@tabler/icons-svelte/icons/edit'
   import IconTrash from '@tabler/icons-svelte/icons/trash'
@@ -38,6 +40,7 @@
   const roles = $derived((data.roles ?? []) as Array<{ id: number; slug: string }>)
   const currentUser = $derived((data.user ?? null) as { id?: number; role?: string } | null)
   const isMaster = $derived(currentUser?.role === 'master')
+  let currentPage = $state(data.pagination?.page ?? 1)
   const overlays = getOverlaysState()
 
   // ── Role badges (PM2 roleBadgeClass) ─────────────────────────────────────
@@ -210,6 +213,16 @@
       </AdminDataTable>
     {/if}
   </div>
+
+  {#if data.pagination && data.pagination.totalPages > 1}
+    <div class="mt-6">
+      <Pagination
+        bind:page={currentPage}
+        totalPages={data.pagination.totalPages}
+        onPageChange={(p) => goto('?page=' + p)}
+      />
+    </div>
+  {/if}
 
   <!-- Add/Edit user modal (PM2 users.vue modal) -->
   <!-- Add/Edit user modal (using AdminModal molecule) -->

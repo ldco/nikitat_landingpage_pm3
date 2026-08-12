@@ -13,6 +13,7 @@
   import AdminModal from '$lib/components/molecules/AdminModal.svelte'
   import FormField from '$lib/components/atoms/FormField.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import Pagination from '$lib/components/molecules/Pagination.svelte'
   import IconPencil from '@tabler/icons-svelte/icons/pencil'
   import IconTrash from '@tabler/icons-svelte/icons/trash'
   import IconPlus from '@tabler/icons-svelte/icons/plus'
@@ -36,6 +37,7 @@
   let saving = $state(false)
   let deletePending = $state<number | null>(null)
   let deleteError = $state<string | null>(null)
+  let currentPage = $state(data.pagination?.page ?? 1)
 
   type EditingRole = {
     id: number
@@ -221,6 +223,16 @@
       </AdminDataTable>
     {/if}
   </div>
+
+  {#if data.pagination && data.pagination.totalPages > 1}
+    <div class="mt-6">
+      <Pagination
+        bind:page={currentPage}
+        totalPages={data.pagination.totalPages}
+        onPageChange={(p) => goto('?page=' + p)}
+      />
+    </div>
+  {/if}
 </div>
 
 <AdminModal

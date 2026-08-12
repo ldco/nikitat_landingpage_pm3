@@ -3,16 +3,19 @@
    * Admin Audit Logs — View log entries
    */
   import { page } from '$app/stores'
+  import { goto } from '$app/navigation'
   import { t } from '$lib/stores/content.svelte'
   import { getAdminT } from '$lib/utils/admin-translations'
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
   import EmptyState from '$lib/components/atoms/EmptyState.svelte'
   import AdminDataTable, { type AdminTableColumn } from '$lib/components/admin/AdminDataTable.svelte'
+  import Pagination from '$lib/components/molecules/Pagination.svelte'
   import type { PageData } from './$types'
 
   let { data }: { data: PageData } = $props()
   const items = $derived(data.items)
   const adminT = $derived(getAdminT($page.data))
+  let currentPage = $state(data.pagination?.page ?? 1)
 
   const columns = $derived<AdminTableColumn[]>([
     { key: 'action', label: adminT['admin.action'] ?? 'Action' },
@@ -42,4 +45,14 @@
       </AdminDataTable>
     {/if}
   </div>
+
+  {#if data.pagination && data.pagination.totalPages > 1}
+    <div class="mt-6">
+      <Pagination
+        bind:page={currentPage}
+        totalPages={data.pagination.totalPages}
+        onPageChange={(p) => goto('?page=' + p)}
+      />
+    </div>
+  {/if}
 </div>

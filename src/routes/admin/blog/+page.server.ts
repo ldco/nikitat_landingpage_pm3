@@ -1,6 +1,6 @@
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { useDatabase, schema } from '$lib/server/db'
-import { eq, and, desc, inArray } from 'drizzle-orm'
+import { eq, and, desc, inArray, count } from 'drizzle-orm'
 import type { PageServerLoad } from './$types'
 import { detectAdminLocale } from '$lib/server/utils/locales'
 
@@ -8,6 +8,13 @@ export const load: PageServerLoad = (event) => {
   requireAdminPage(event, 'blog')
   const db = useDatabase()
   const locale = detectAdminLocale(event)
+
+  const pageParam = Number(event.url.searchParams.get('page') ?? '1')
+  const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1
+  const limit = 20
+  const offset = (page - 1) * limit
+
+  const total = db.select({ n: count() }).from(schema.blogPosts).get()?.n ?? 0
 
   const posts = db.select({
     id: schema.blogPosts.id,
@@ -24,6 +31,8 @@ export const load: PageServerLoad = (event) => {
       eq(schema.blogPostTranslations.locale, locale)
     ))
     .orderBy(desc(schema.blogPosts.createdAt))
+    .limit(limit)
+    .offset(offset)
     .all()
 
   const categoryIds = [...new Set(posts.map(p => p.categoryId).filter((c): c is number => c !== null))]
@@ -83,6 +92,7 @@ export const load: PageServerLoad = (event) => {
       category: catMap.get(p.categoryId ?? 0) ?? null,
       tags: tagsMap.get(p.id) ?? [],
       locales: localesMap.get(p.id) ?? []
-    }))
+    })),
+    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
   }
 }

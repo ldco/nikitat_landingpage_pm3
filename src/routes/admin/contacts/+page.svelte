@@ -10,6 +10,7 @@
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
   import EmptyState from '$lib/components/atoms/EmptyState.svelte'
   import AdminDataTable, { type AdminTableColumn } from '$lib/components/admin/AdminDataTable.svelte'
+  import Pagination from '$lib/components/molecules/Pagination.svelte'
   import IconEye from '@tabler/icons-svelte/icons/eye'
   import IconTrash from '@tabler/icons-svelte/icons/trash'
   import { goto } from '$app/navigation'
@@ -21,6 +22,7 @@
   const adminT = $derived(getAdminT($page.data))
   let deletePending = $state<number | null>(null)
   let deleteError = $state<string | null>(null)
+  let currentPage = $state(data.pagination?.page ?? 1)
 
   const columns = $derived<AdminTableColumn[]>([
     { key: 'read', label: '' },
@@ -120,4 +122,14 @@
       </AdminDataTable>
     {/if}
   </div>
+
+  {#if data.pagination && data.pagination.totalPages > 1}
+    <div class="mt-6">
+      <Pagination
+        bind:page={currentPage}
+        totalPages={data.pagination.totalPages}
+        onPageChange={(p) => goto('?page=' + p)}
+      />
+    </div>
+  {/if}
 </div>
