@@ -1,11 +1,15 @@
 import { jsonSuccess } from '$lib/server/utils/api'
-import { useDatabase } from '$lib/server/db'
-import { sql } from 'drizzle-orm'
+import { getPublicHealth } from '$lib/server/services/health'
 import type { RequestEvent } from '@sveltejs/kit'
 import { z } from 'zod'
 
 const querySchema = z.object({})
 
+/**
+ * Public uptime health contract. The shared health service runs the database
+ * probe with explicit error handling; the overall status is derived from probe
+ * results (a DB failure reports 503/degraded, never a raw 500 — audit I-14/E-9).
+ */
 export function GET(event: RequestEvent) {
   const parsedQuery = querySchema.safeParse(Object.fromEntries(event.url.searchParams))
   if (!parsedQuery.success) {
@@ -18,33 +22,10 @@ export function GET(event: RequestEvent) {
     })
   }
 
-  // audit I-14 / E-9: verify DB connectivity so the health check reflects
-  // more than "process is up". A DB failure returns 503 (unhealthy).
-  let db: 'ok' | 'error' = 'ok'
-  try {
-    useDatabase().run(sql`SELECT 1 as ok`)
-  } catch {
-    db = 'error'
-  }
-
-  const mem = process.memoryUsage()
-  const build = {
-    version: process.env.APP_BUILD_VERSION || undefined,
-    sha: process.env.APP_BUILD_SHA || undefined,
-    timestamp: process.env.APP_BUILD_TIMESTAMP || undefined
-  }
-
-  const body = jsonSuccess({
-    status: db === 'ok' ? 'ok' : 'degraded',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    db,
-    build,
-    memory: { heapUsed: mem.heapUsed, heapTotal: mem.heapTotal, rss: mem.rss }
-  })
+  const body = jsonSuccess(getPublicHealth())
 
   return new Response(JSON.stringify(body), {
-    status: db === 'ok' ? 200 : 503,
+    status: body.data?.status === 'ok' ? 200 : 503,
     headers: { 'content-type': 'application/json' }
   })
 }

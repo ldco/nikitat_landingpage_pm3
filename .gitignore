@@ -67,7 +67,9 @@ blob-report/
 # ══════════════════════════════════════════════════════════════
 # LOGS & DEBUG
 # ══════════════════════════════════════════════════════════════
-logs/
+# Root log files directory only — an unanchored 'logs/' would also ignore
+# src/routes/api/admin/logs/ (the recent-logs diagnostics route).
+/logs/
 *.log
 npm-debug.log*
 yarn-debug.log*

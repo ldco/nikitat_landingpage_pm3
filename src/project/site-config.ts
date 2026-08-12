@@ -217,6 +217,10 @@ export const ADMIN_CONFIG: AdminConfig = {
     settings: { enabled: true, roles: ['master', 'admin'] },
     legal: { enabled: true, roles: ['master', 'admin'] },
     health: { enabled: true, roles: ['master'] },
+    // There is no standalone logs admin page; recent-log diagnostics are
+    // served to the health screen via GET /api/admin/logs, which is gated by
+    // the health page boundary (requireAdminPage(event, 'health')). Keeping
+    // this page disabled avoids a dead nav entry while the endpoint stays live.
     logs: { enabled: false, roles: ['master'] }
   },
   websiteModules: {

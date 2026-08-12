@@ -11,14 +11,16 @@ describe('admin page access resolution (config-driven)', () => {
     expect(resolveAdminPageAccess('team').enabled).toBe(false)
     expect(resolveAdminPageAccess('testimonials').enabled).toBe(false)
     expect(resolveAdminPageAccess('clients').enabled).toBe(false)
-    // blog: MODULES enabled but ADMIN_CONFIG disables the admin page → hidden
-    expect(resolveAdminPageAccess('blog').enabled).toBe(false)
+    // blog: MODULES + ADMIN_CONFIG both enabled (enabled during the admin
+    // rewrite, Step 09) → visible
+    expect(resolveAdminPageAccess('blog').enabled).toBe(true)
     // portfolios/faq/features: enabled in both → visible
     expect(resolveAdminPageAccess('portfolios').enabled).toBe(true)
     expect(resolveAdminPageAccess('faq').enabled).toBe(true)
     expect(resolveAdminPageAccess('features').enabled).toBe(true)
-    // contacts: MODULES.contact disabled → hidden
-    expect(resolveAdminPageAccess('contacts').enabled).toBe(false)
+    // contacts: MODULES.contact + ADMIN_CONFIG both enabled (enabled during
+    // the admin rewrite, Step 11) → visible
+    expect(resolveAdminPageAccess('contacts').enabled).toBe(true)
   })
 
   it('configured per-role access is exposed', () => {
