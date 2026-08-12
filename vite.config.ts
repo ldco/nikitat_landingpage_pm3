@@ -31,6 +31,14 @@ export default defineConfig(({ mode }) => {
       // to resolve it. The scanner degrades to fail-open when it is absent.
       external: ['clamscan']
     },
+    resolve: {
+      // jsdom component tests must resolve the Svelte CLIENT build (exports
+      // condition "browser"), otherwise `svelte` falls back to the server
+      // entry and @testing-library/svelte's `mount` is unavailable. Vite's
+      // client graph already resolves with these conditions — this only forces
+      // the same set for the vitest run; the SSR build uses ssr.resolve.
+      conditions: ['module', 'browser', 'development|production']
+    },
     build: {
       // audit N-13: production build tuning — modern target and a chunk-size
       // warning threshold so bundle regressions surface during `npm run build`.

@@ -10,7 +10,6 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import { useMediaQuery } from '$lib/actions/useMediaQuery.svelte'
 
   type Size = 'default' | 'sm'
 
@@ -37,30 +36,27 @@
     sm: 'text-xl font-bold leading-tight'
   }
 
-  // The APP-MODE mobile header (AppMobileHeader) already shows the page title,
-  // so the h1 is conditionally rendered only on desktop (lg = 64rem = 1024px,
-  // the same breakpoint that switches to the desktop header). SSR default true
-  // keeps hydration consistent; on phones the h1 never enters the DOM.
-  const isDesktop = useMediaQuery('(min-width: 1024px)', true)
-
-  const merged = $derived(twMerge(clsx(
-    'flex items-start justify-between gap-4 flex-wrap mb-8',
-    className
-  )))
+  // The APP-MODE mobile header (AppMobileHeader, visible below lg) already
+  // shows the page title on phones, so this h1 block is hidden below lg via
+  // Tailwind breakpoint classes (`hidden lg:block`) instead of a JS media
+  // query. SSR has no viewport, so viewport-based DOM gating would render the
+  // wrong variant until hydration (or forever without JS); CSS visibility is
+  // correct in the initial HTML on every viewport and needs no hydration.
+  const merged = $derived(
+    twMerge(clsx('flex items-start justify-between gap-4 flex-wrap mb-8', className))
+  )
 </script>
 
 <div class={merged}>
-  {#if isDesktop.matches}
-    <div class="min-w-0">
-      <h1 class={titleSize[size]}>{title ?? ''}</h1>
-      {#if subtitle}
-        <p class="mt-1 text-base text-pm-text-secondary">{subtitle}</p>
-      {/if}
-      {#if children}
-        {@render children()}
-      {/if}
-    </div>
-  {/if}
+  <div class="hidden lg:block min-w-0">
+    <h1 class={titleSize[size]}>{title ?? ''}</h1>
+    {#if subtitle}
+      <p class="mt-1 text-base text-pm-text-secondary">{subtitle}</p>
+    {/if}
+    {#if children}
+      {@render children()}
+    {/if}
+  </div>
   {#if actions || itemCount !== undefined}
     <div class="flex gap-2 items-center flex-shrink-0">
       {#if itemCount !== undefined}

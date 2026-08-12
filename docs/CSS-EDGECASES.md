@@ -84,6 +84,18 @@
 ```
 → Использовать как `header:hidden header:flex` в компонентах.
 
+### 2.1 SSR-видимые mobile/desktop варианты — только Tailwind брейкпоинт-классы
+
+Контент, который присутствует в server-rendered HTML (SSR-visible), ДОЛЖЕН переключаться
+между мобильной и десктопной версиями через Tailwind-классы видимости по брейкпоинтам
+(`hidden lg:block`, `lg:hidden`) — как в `admin/+layout.svelte`, `AppMobileHeader.svelte`,
+`AppBottomNav.svelte`, `TheHeader.svelte`. НЕЛЬЗЯ гейтить DOM через клиентский
+media-query composable (`useMediaQuery`): у SSR нет вьюпорта, `defaultMatch` — только
+догадка, поэтому до гидрации (или навсегда, если JS отключён) рендерится неверный
+вариант — например, дублирующийся заголовок на телефоне. `useMediaQuery` допустим
+только для контента, который намеренно client-only и корректируется после гидрации
+(позиционирование попапов, анимации по взаимодействию).
+
 ---
 
 ## 3. Вьюпорт / iOS / Mobile
