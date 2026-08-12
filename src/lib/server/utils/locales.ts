@@ -30,11 +30,14 @@ export function detectLocale(preferred: string | null | undefined, acceptLanguag
  * Resolve the admin locale from a request event.
  *
  * Admin routes are excluded from Paraglide's URL-prefix detection, so the
- * locale is resolved from the paraglide-locale preference cookie or the
- * Accept-Language header, falling back to the project default locale.
+ * locale is resolved from the pm-locale preference cookie (written by
+ * LangSwitcher) or the Accept-Language header, falling back to the project
+ * default locale. NOTE: the cookie must be `pm-locale` — it is what the
+ * admin language switcher writes, and what the adminLocaleHandle in
+ * hooks.server.ts reads; `paraglide-locale` is never set by this app.
  */
 export function detectAdminLocale(event: RequestEvent): Locale {
-  const preferred = event.cookies.get('paraglide-locale')
+  const preferred = event.cookies.get('pm-locale')
   const header = event.request.headers.get('accept-language')
   return detectLocale(preferred, header)
 }

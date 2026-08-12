@@ -30,7 +30,13 @@ for (const l of LOCALES) textDir[l] = isRtlLocale(l) ? 'rtl' : 'ltr'
 export const i18n = createI18n(runtime, {
   prefixDefaultLanguage: 'never',
   textDirection: textDir,
-  exclude: ['/api/', '/admin/'], // API and admin routes are not translated
+  // API and admin routes are not translated. IMPORTANT: exclude entries are
+  // matched as REGEX (string entries are exact-path equality in
+  // paraglide-sveltekit), so '/admin/' would only exclude the literal path
+  // '/admin/' — every subpath (/admin/translations, /admin/users, …) would be
+  // locale-prefixed by localizeUrl, breaking the admin shell. Anchored regex
+  // patterns exclude the whole namespace.
+  exclude: [/^\/api\//, /^\/admin\//],
   seo: {
     noAlternateLinks: false
   }

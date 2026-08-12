@@ -6,7 +6,7 @@
   import { clsx } from 'clsx'
   import { page } from '$app/stores'
   import { fade, slide, scale, fly } from 'svelte/transition'
-  import { FEATURES } from '$lib/config/site'
+  import { FEATURES, LOCALES } from '$lib/config/site'
   import { initTheme } from '$lib/stores/theme.svelte'
 import { useSettings } from '$lib/stores/settings.svelte'
   import { initContent } from '$lib/stores/content.svelte'
@@ -65,14 +65,34 @@ if (browser) {
   })
   const transitionType = $derived(!isOnepager ? FEATURES.pageTransitions : '')
   const isVerticalNav = $derived(FEATURES.verticalNav)
+
+  // Admin shell detection. $page.url.pathname is the ADDRESS-BAR URL — during
+  // a locale switch the client navigates to the same rerouted admin route but
+  // with a locale prefix in the URL, so pathname.startsWith('/admin') fails
+  // and the website header would render over the admin page. $page.route.id is
+  // the canonical (rerouted) route id, so it is the reliable source; the
+  // pathname check is kept as a fallback after stripping any locale prefix.
+  // Strip any locale prefix from the pathname before the /admin check.
+  // Built from LOCALES so the pattern never drifts from the configured set.
+  const localePrefixPattern = $derived(
+    new RegExp(`^/(${LOCALES.map(l => l.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})(?=/|$)`)
+  )
+  const isAdminRoute = $derived(
+    ($page.route.id ?? '').startsWith('/admin') ||
+    (() => {
+      const pathname = $page.url.pathname
+      const withoutLocale = pathname.replace(localePrefixPattern, '')
+      return withoutLocale.startsWith('/admin')
+    })()
+  )
 </script>
 
 <OverlayProvider>
-{#if !$page.url.pathname.startsWith('/admin')}
+{#if !isAdminRoute}
   <ProjectAmbient />
   <TheHeader />
 {/if}
-<main id="main-content" class={clsx(!$page.url.pathname.startsWith('/admin') && 'min-h-screen', !$page.url.pathname.startsWith('/admin') && (isVerticalNav ? 'ms-16' : ''))} use:scrollSpy>
+<main id="main-content" class={clsx(!isAdminRoute && 'min-h-screen', !isAdminRoute && (isVerticalNav ? 'ms-16' : ''))} use:scrollSpy>
   {#key $page.url.pathname}
     {#if transitionType === 'fade'}
       <div transition:fade={{ duration: 200 }}>{@render children?.()}</div>
@@ -91,7 +111,7 @@ if (browser) {
     {/if}
   {/key}
 </main>
-{#if !$page.url.pathname.startsWith('/admin')}
+{#if !isAdminRoute}
     <TheFooter legalDocs={data.legalDocuments} />
 {#if FEATURES.backToTop}
 <BackToTop />
