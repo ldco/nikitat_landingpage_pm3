@@ -7,43 +7,28 @@ import { invalidateTranslationCache } from '$lib/server/db/translations-cache'
 import { logger } from '$lib/server/utils/logger'
 import { audit } from '$lib/server/audit'
 import { getClientIp } from '$lib/server/security/rateLimit'
+import {
+  ALLOWED_OPS_ACTIONS,
+  OPS_ACTION_TO_SIDECAR,
+  opsAgentConfig
+} from '$lib/server/services/ops'
+import type { OpsAction } from '$lib/server/services/ops'
 
-type OpsAction = 'restart' | 'flush_cache' | 'rotate_logs' | 'db_backup' | 'db_integrity'
-
-const ALLOWED_OPS_ACTIONS: OpsAction[] = ['restart', 'flush_cache', 'rotate_logs', 'db_backup', 'db_integrity']
-
-const opsSchema = z.object({ action: z.enum(['restart', 'flush_cache', 'rotate_logs', 'db_backup', 'db_integrity']) })
+const opsSchema = z.object({ action: z.enum(ALLOWED_OPS_ACTIONS) })
 
 const querySchema = z.object({
   container: z.enum(['app', 'traefik']).default('app'),
   tail: z.coerce.number().int().min(1).max(500).default(100)
 })
 
-/**
- * Ops agent configuration. The agent is an internal-only sidecar with Docker
- * socket access (scripts/ops-agent.mjs); the app reaches it over the private
- * Docker network. Gating follows .env.example: PM_OPS_AGENT_ENABLED toggles the
- * feature, and the shared token defaults to the settings encryption key.
- */
-function opsAgentConfig() {
-  const enabled = process.env.PM_OPS_AGENT_ENABLED === 'true'
-  const port = process.env.PM_OPS_AGENT_PORT || '3010'
-  const host = process.env.PM_OPS_AGENT_HOST || 'ops-agent'
-  const token = process.env.PM_OPS_AGENT_TOKEN || process.env.PM_SETTINGS_ENCRYPTION_KEY || ''
-  return { enabled, baseUrl: `http://${host}:${port}`, token }
-}
-
-function opsUnavailableResponse(message: string) {
-  return json(
-    { success: false, error: { code: 'ops.unavailable', message } },
-    { status: 503 }
-  )
+function opsUnavailable(message: string) {
+  return json({ success: false, error: { code: 'ops.unavailable', message } }, { status: 503 })
 }
 
 async function proxyOpsGet(event: RequestEvent, path: string): Promise<Response> {
   const cfg = opsAgentConfig()
   if (!cfg.enabled || !cfg.token) {
-    return opsUnavailableResponse('PM_OPS_AGENT_ENABLED / PM_OPS_AGENT_TOKEN not configured')
+    return opsUnavailable('PM_OPS_AGENT_ENABLED / PM_OPS_AGENT_TOKEN not configured')
   }
 
   let res: Response
@@ -54,12 +39,12 @@ async function proxyOpsGet(event: RequestEvent, path: string): Promise<Response>
     })
   } catch (e) {
     logger.warn({ err: e instanceof Error ? e.message : e }, 'ops agent unreachable')
-    return opsUnavailableResponse('Ops agent unreachable')
+    return opsUnavailable('Ops agent unreachable')
   }
 
   if (!res.ok) {
     const body = await res.json().catch(() => null)
-    return opsUnavailableResponse(body?.error ?? `Ops agent error (${res.status})`)
+    return opsUnavailable(body?.error ?? `Ops agent error (${res.status})`)
   }
   return res
 }
@@ -97,7 +82,7 @@ export async function GET(event: RequestEvent) {
 /**
  * POST — run a safe ops action. Local actions (flush_cache, rotate_logs) run
  * in-process; container actions (db_backup, db_integrity, restart) proxy to
- * the ops agent.
+ * the ops agent using the sidecar's hyphenated action ids.
  */
 export async function POST(event: RequestEvent) {
   const actor = requireMaster(event)
@@ -122,10 +107,12 @@ export async function POST(event: RequestEvent) {
     case 'restart':
     case 'db_backup':
     case 'db_integrity': {
-      // Container-level actions proxy to the ops agent.
+      // Container-level actions proxy to the ops agent. The sidecar expects
+      // hyphenated ids (db-backup, db-integrity, restart-app) — translate
+      // before posting so the backup/integrity actions are recognized.
       const cfg = opsAgentConfig()
       if (!cfg.enabled || !cfg.token) {
-        return opsUnavailableResponse('PM_OPS_AGENT_ENABLED / PM_OPS_AGENT_TOKEN not configured')
+        return opsUnavailable('PM_OPS_AGENT_ENABLED / PM_OPS_AGENT_TOKEN not configured')
       }
       try {
         const res = await fetch(`${cfg.baseUrl}/actions`, {
@@ -134,17 +121,17 @@ export async function POST(event: RequestEvent) {
             'content-type': 'application/json',
             authorization: `Bearer ${cfg.token}`
           },
-          body: JSON.stringify({ action: parsed.data.action === 'restart' ? 'restart-app' : parsed.data.action }),
+          body: JSON.stringify({ action: OPS_ACTION_TO_SIDECAR[parsed.data.action as OpsAction] }),
           signal: AbortSignal.timeout(15000)
         })
         const data = await res.json().catch(() => null)
-        if (!res.ok) return opsUnavailableResponse(data?.error ?? `Ops agent error (${res.status})`)
+        if (!res.ok) return opsUnavailable(data?.error ?? `Ops agent error (${res.status})`)
         audit.opsAction(ip, ua, actor.id, parsed.data.action, true)
         logger.info({ action: parsed.data.action }, 'Ops action completed via agent')
         return json(jsonSuccess(data.data ?? { action: parsed.data.action, status: 'completed' }))
       } catch (e) {
         logger.warn({ err: e instanceof Error ? e.message : e }, 'ops agent unreachable')
-        return opsUnavailableResponse('Ops agent unreachable')
+        return opsUnavailable('Ops agent unreachable')
       }
     }
   }

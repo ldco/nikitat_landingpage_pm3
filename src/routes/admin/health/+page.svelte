@@ -94,7 +94,7 @@
               {#if check.latencyMs !== undefined}
                 <span class="text-xs text-pm-text-muted">{check.latencyMs}ms</span>
               {/if}
-              <Badge variant={check.status === 'ok' ? 'success' : check.status === 'degraded' ? 'warning' : 'error'}>
+              <Badge variant={check.status === 'ok' ? 'success' : check.status === 'error' ? 'error' : 'warning'}>
                 {t[`admin.healthPage.status.${check.status}`] ?? ''}
               </Badge>
             </div>

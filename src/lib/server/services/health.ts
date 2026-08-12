@@ -14,8 +14,9 @@ import { sql } from 'drizzle-orm'
 import { useDatabase, schema } from '$lib/server/db'
 import { count } from 'drizzle-orm'
 import { getLogBufferSize } from '$lib/server/utils/logger'
+import { statfsSync } from 'node:fs'
 
-export type ProbeStatus = 'ok' | 'degraded' | 'error'
+export type ProbeStatus = 'ok' | 'degraded' | 'error' | 'unavailable'
 
 export interface ProbeResult {
   /** Stable probe id (used for i18n keys: admin.healthPage.check.<id>) */
@@ -126,18 +127,43 @@ function getVersionProbe(): ProbeResult {
 }
 
 function getCpuProbe(): ProbeResult {
-  return {
-    id: 'cpu',
-    status: 'ok',
-    value: 'n/a'
+  // Real probe: process.cpuUsage() returns [user, system] microseconds.
+  try {
+    const usage = process.cpuUsage()
+    const totalUs = usage.user + usage.system
+    return {
+      id: 'cpu',
+      status: 'ok',
+      value: `${Math.round(totalUs / 1000)}ms cpu`
+    }
+  } catch (e) {
+    return {
+      id: 'cpu',
+      status: 'unavailable',
+      error: e instanceof Error ? e.message : 'CPU data unavailable'
+    }
   }
 }
 
 function getDiskProbe(): ProbeResult {
-  return {
-    id: 'disk',
-    status: 'ok',
-    value: 'n/a'
+  // Real probe: statfs on the DB directory (works on Linux/macOS; an honest
+  // unavailable state is reported if statfs is not available).
+  try {
+    const dbPath = process.env.DATABASE_URL || './data/sqlite.db'
+    const dir = dbPath.includes('/') ? dbPath.slice(0, dbPath.lastIndexOf('/')) || '/' : '.'
+    const s = statfsSync(dir)
+    const freeBytes = Number(s.bavail) * Number(s.bsize)
+    return {
+      id: 'disk',
+      status: 'ok',
+      value: `${formatBytes(freeBytes)} free`
+    }
+  } catch (e) {
+    return {
+      id: 'disk',
+      status: 'unavailable',
+      error: e instanceof Error ? e.message : 'Disk data unavailable'
+    }
   }
 }
 
@@ -200,9 +226,12 @@ export function runHealthProbes(): HealthReport {
     getLogBufferProbe()
   ]
 
+  // Overall status is derived from probe results. 'error' → unhealthy,
+  // 'degraded' or 'unavailable' → degraded (unimplemented probes must never
+  // report the system as fully healthy).
   const status: ProbeStatus = probes.some(p => p.status === 'error')
     ? 'error'
-    : probes.some(p => p.status === 'degraded')
+    : probes.some(p => p.status === 'degraded' || p.status === 'unavailable')
       ? 'degraded'
       : 'ok'
 

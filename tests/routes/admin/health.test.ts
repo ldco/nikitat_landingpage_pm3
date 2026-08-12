@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { getLogBufferSize, getRecentLogs, LOG_BUFFER_SIZE } from '$lib/server/utils/logger'
+import { getLogBufferSize, getRecentLogs, getLogBufferEntries, LOG_BUFFER_SIZE, logger } from '$lib/server/utils/logger'
 import { getPublicHealth } from '$lib/server/services/health'
 
 /**
@@ -62,6 +62,80 @@ describe('Public health contract (GET /api/health)', () => {
     const health = getPublicHealth()
     expect(health.build).toHaveProperty('version')
     expect(health.build).toHaveProperty('node')
+  })
+})
+
+describe('CPU/disk probes are honest (Comment 3)', () => {
+  // The health service opens the dev SQLite DB (data/sqlite.db exists in CI
+  // and dev), so runHealthProbes is fully exercisable in tests.
+  async function loadReport() {
+    const { runHealthProbes } = await import('$lib/server/services/health')
+    return runHealthProbes()
+  }
+
+  it('never reports cpu/disk as ok with an n/a placeholder', async () => {
+    const report = await loadReport()
+    const cpu = report.checks.find(c => c.id === 'cpu')
+    const disk = report.checks.find(c => c.id === 'disk')
+    // A probe is either ok with a real value, or honestly unavailable/degraded.
+    if (cpu?.status === 'ok') expect(cpu.value).not.toBe('n/a')
+    if (disk?.status === 'ok') expect(disk.value).not.toBe('n/a')
+    // It must not report fake health: unavailable counts as degraded, never ok.
+    if (cpu?.value === 'n/a' || disk?.value === 'n/a') {
+      expect(cpu?.status === 'unavailable' || disk?.status === 'unavailable').toBe(true)
+    }
+  })
+
+  it('exposes unavailable as a distinct probe status', async () => {
+    const report = await loadReport()
+    for (const check of report.checks) {
+      expect(['ok', 'degraded', 'error', 'unavailable']).toContain(check.status)
+    }
+  })
+
+  it('derives an honest overall status when probes are unavailable', async () => {
+    const report = await loadReport()
+    const hasUnavailable = report.checks.some(c => c.status === 'unavailable')
+    if (hasUnavailable) {
+      // 'unavailable' must never contribute to a fully-ok overall status.
+      expect(report.status).toBe('degraded')
+    }
+  })
+})
+
+describe('Logger ring buffer normalization (Comment 2)', () => {
+  it('captures time/level/msg for string-only calls', () => {
+    const sizeBefore = getLogBufferSize()
+    logger.info('ring-buffer-string-test')
+    const entries = getLogBufferEntries()
+    const last = entries[entries.length - 1]
+    expect(entries.length).toBeGreaterThan(sizeBefore)
+    expect(typeof last.time).toBe('number')
+    expect(last.level).toBe(30) // pino info level
+    expect(last.msg).toBe('ring-buffer-string-test')
+  })
+
+  it('captures the rendered message + numeric level for object-plus-message calls', () => {
+    const sizeBefore = getLogBufferSize()
+    logger.error({ context: 'ring-buffer-ctx' }, 'ring-buffer-message')
+    const entries = getLogBufferEntries()
+    const last = entries[entries.length - 1]
+    expect(entries.length).toBeGreaterThan(sizeBefore)
+    expect(typeof last.time).toBe('number')
+    expect(last.level).toBe(50) // pino error level
+    expect(last.msg).toBe('ring-buffer-message')
+    // Context fields are preserved alongside the message.
+    expect(last.context).toBe('ring-buffer-ctx')
+  })
+
+  it('preserves the message even when the object carries a msg field', () => {
+    const sizeBefore = getLogBufferSize()
+    logger.warn({ msg: 'inner-msg' }, 'outer-msg')
+    const entries = getLogBufferEntries()
+    const last = entries[entries.length - 1]
+    expect(entries.length).toBeGreaterThan(sizeBefore)
+    expect(last.msg).toBe('outer-msg')
+    expect(last.level).toBe(40) // pino warn level
   })
 })
 

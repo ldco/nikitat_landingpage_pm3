@@ -1,6 +1,7 @@
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { runHealthProbes } from '$lib/server/services/health'
 import { getRecentLogs } from '$lib/server/utils/logger'
+import { opsAgentConfig } from '$lib/server/services/ops'
 import type { PageServerLoad } from './$types'
 
 /**
@@ -30,28 +31,24 @@ export const load: PageServerLoad = async (event) => {
   // Ops agent availability + summary (best-effort; proxy endpoint is
   // master-only and agent is an optional sidecar).
   let ops: { available: boolean; summary?: unknown; error?: string } = { available: false }
-  if (event.locals.user?.role === 'master' && process.env.PM_OPS_AGENT_ENABLED === 'true') {
-    const token = process.env.PM_OPS_AGENT_TOKEN || process.env.PM_SETTINGS_ENCRYPTION_KEY || ''
-    const port = process.env.PM_OPS_AGENT_PORT || '3010'
-    const host = process.env.PM_OPS_AGENT_HOST || 'ops-agent'
-    if (token) {
-      try {
-        const res = await fetch(`http://${host}:${port}/summary`, {
-          headers: { authorization: `Bearer ${token}` },
-          signal: AbortSignal.timeout(4000)
-        })
-        if (res.ok) {
-          const body = await res.json().catch(() => null)
-          ops = { available: true, summary: body?.data ?? body }
-        } else {
-          ops = { available: false, error: `Ops agent error (${res.status})` }
-        }
-      } catch (e) {
-        ops = { available: false, error: e instanceof Error ? e.message : 'Ops agent unreachable' }
+  const opsCfg = opsAgentConfig()
+  if (event.locals.user?.role === 'master' && opsCfg.enabled && opsCfg.token) {
+    try {
+      const res = await fetch(`${opsCfg.baseUrl}/summary`, {
+        headers: { authorization: `Bearer ${opsCfg.token}` },
+        signal: AbortSignal.timeout(4000)
+      })
+      if (res.ok) {
+        const body = await res.json().catch(() => null)
+        ops = { available: true, summary: body?.data ?? body }
+      } else {
+        ops = { available: false, error: `Ops agent error (${res.status})` }
       }
-    } else {
-      ops = { available: false, error: 'PM_OPS_AGENT_TOKEN not configured' }
+    } catch (e) {
+      ops = { available: false, error: e instanceof Error ? e.message : 'Ops agent unreachable' }
     }
+  } else if (event.locals.user?.role === 'master') {
+    ops = { available: false, error: 'PM_OPS_AGENT_ENABLED / PM_OPS_AGENT_TOKEN not configured' }
   }
 
   const monitoring = {

@@ -17,7 +17,9 @@ export function GET(event: RequestEvent) {
 
   return json(jsonSuccess({
     // ── public contract (parity with GET /api/health) ──
-    status: report.status === 'ok' ? 'ok' : 'degraded',
+    // Preserve the richer derived status: 'error' (unhealthy), 'degraded',
+    // or 'ok' — never flatten non-ok to a single degraded bucket.
+    status: report.status === 'error' ? 'error' : report.status === 'ok' ? 'ok' : 'degraded',
     timestamp: report.timestamp,
     uptime: report.uptime,
     db: report.checks.find(c => c.id === 'database')?.status ?? 'error',
@@ -28,6 +30,6 @@ export function GET(event: RequestEvent) {
     audit: report.audit,
     node: process.version
   }), {
-    status: report.status === 'ok' ? 200 : report.status === 'error' ? 503 : 200
+    status: report.status === 'error' ? 503 : 200
   })
 }
