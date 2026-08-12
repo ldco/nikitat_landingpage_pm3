@@ -168,7 +168,7 @@
     </aside>
   {:else}
     <!-- HORIZONTAL MODE: Desktop Header (PM2: admin.vue lines 199-281 + admin-header.css) -->
-    <header class="sticky top-0 z-[var(--z-sticky)] bg-pm-bg-elevated border-b border-pm-border">
+    <header class="hidden lg:block sticky top-0 z-[var(--z-sticky)] bg-pm-bg border-b border-pm-border">
       <div class="flex items-center justify-between gap-4 px-4 h-[var(--h-header)]">
         <!-- Logo (short/circle version, same as PM2 shortLogo) -->
         <a href={ADMIN_ROUTES.dashboard} class="flex items-center shrink-0 text-pm-text" aria-label={contentT('common.logo')}>

@@ -18,7 +18,7 @@
   import IconLogout from '@tabler/icons-svelte/icons/logout'
   import IconKey from '@tabler/icons-svelte/icons/key'
   import { t as contentT } from '$lib/stores/content.svelte'
-  import { API_ROUTES } from '$lib/utils/api-paths'
+  import { logout } from '$lib/utils/auth'
   import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
 
   interface UserMenuUser {
@@ -76,11 +76,12 @@
           {contentT('auth.changePassword')}
         </a>
         <div class="my-1 border-t border-pm-border"></div>
-        <a href={API_ROUTES.auth.logout}
-          class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken">
+        <button type="button"
+          class="flex w-full items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken"
+          onclick={() => void logout().then(ok => { if (ok) window.location.href = ADMIN_ROUTES.login }) }>
           <IconLogout class="size-4" />
           {contentT('auth.logout')}
-        </a>
+        </button>
       </div>
     {/if}
   </div>
