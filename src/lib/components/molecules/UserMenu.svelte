@@ -62,38 +62,65 @@
 {#if user}
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class={twMerge(clsx('relative', className))} data-menu="user" role="presentation">
-    <button type="button" onclick={toggle}
+    <button
+      type="button"
+      onclick={toggle}
       class="size-9 rounded-full bg-pm-brand text-pm-white text-sm font-bold flex items-center justify-center hover:scale-105 transition-transform"
-      aria-label={contentT('admin.userMenu')}>
+      aria-label={contentT('admin.userMenu')}
+    >
       {initials}
     </button>
 
     {#if open}
-      <div class="absolute end-0 top-full mt-2 w-56 bg-pm-bg-elevated border border-pm-border rounded-[var(--radius-xl)] shadow-[var(--shadow-xl)] z-[var(--z-popover)] p-3">
-        <div class="flex flex-col gap-1 mb-3 pb-3 border-b border-pm-border">
-          <span class="text-sm font-medium text-pm-text">{user.name ?? user.email}</span>
-          <span class="text-xs text-pm-text-muted">{user.email}</span>
-          <span class="text-xs text-pm-text-muted capitalize">{user.role}</span>
+      <!-- Roomier panel (PM2 mobile-user-menu parity): w-64 + p-4 give the
+           settings row 224px of content — enough for the compact theme button
+           plus the 4-code inline switcher, so the row stays INSIDE the panel
+           in both directions. In RTL justify-between overflows on the inline
+           trailing edge (left), pushing the last chip (HE) out of a tighter
+           w-56/p-3 panel; the larger content area + p-1 theme button prevent it. -->
+      <div
+        class="absolute end-0 top-full mt-2 w-64 bg-pm-bg-elevated border border-pm-border rounded-[var(--radius-xl)] shadow-[var(--shadow-xl)] z-[var(--z-popover)] p-4"
+      >
+        <!-- Info block (PM2 mobile-user-menu parity: name large+bold, email/role
+             larger than the compact desktop sizes) -->
+        <div class="flex flex-col gap-1.5 mb-4 pb-4 border-b border-pm-border">
+          <span
+            class={clsx('text-pm-text', mobile ? 'text-base font-bold' : 'text-sm font-medium')}
+          >
+            {user.name ?? user.email}
+          </span>
+          <span class={clsx('text-pm-text-muted', mobile ? 'text-sm' : 'text-xs')}>
+            {user.email}
+          </span>
+          <span class={clsx('text-pm-text-muted capitalize', mobile ? 'text-sm' : 'text-xs')}>
+            {user.role}
+          </span>
         </div>
         {#if mobile}
-          <div class="flex items-center justify-between gap-2 mb-2 pb-3 border-b border-pm-border">
-            <span class="text-sm text-pm-text-muted">{contentT('common.language')}</span>
+          <!-- Settings row — ONE compact row: sun icon left, language codes
+               right (selected code on a solid accent square). Exactly one
+               divider above (info block) and one below (this row). -->
+          <div class="flex items-center justify-between gap-2 mb-4 pb-4 border-b border-pm-border">
+            <ThemeToggle class="p-1" />
             <LangSwitcher mode="inline" />
           </div>
-          <div class="flex items-center justify-between gap-2 mb-3 pb-3 border-b border-pm-border">
-            <span class="text-sm text-pm-text-muted">{contentT('common.theme')}</span>
-            <ThemeToggle />
-          </div>
         {/if}
-        <a href={ADMIN_ROUTES.changePassword}
-          class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-text transition-colors rounded-md hover:bg-pm-bg-sunken">
+        <a
+          href={ADMIN_ROUTES.changePassword}
+          class="flex items-center gap-2 px-2 py-2 text-sm text-pm-text hover:text-pm-brand transition-colors rounded-md hover:bg-pm-bg-sunken"
+        >
           <IconKey class="size-4" />
           {contentT('auth.changePassword')}
         </a>
-        <div class="my-1 border-t border-pm-border"></div>
-        <button type="button"
-          class="flex w-full items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-danger transition-colors rounded-md hover:bg-pm-bg-sunken"
-          onclick={() => void logout().then(ok => { if (ok) window.location.href = ADMIN_ROUTES.login }) }>
+        <div class="my-2 border-t border-pm-border"></div>
+        <button
+          type="button"
+          class="flex w-full items-center gap-2 px-2 py-2 text-sm text-pm-danger hover:text-pm-danger transition-colors rounded-md hover:bg-pm-danger/10"
+          onclick={() =>
+            void logout().then(ok => {
+              if (ok) window.location.href = ADMIN_ROUTES.login
+            })}
+        >
           <IconLogout class="size-4" />
           {contentT('auth.logout')}
         </button>
