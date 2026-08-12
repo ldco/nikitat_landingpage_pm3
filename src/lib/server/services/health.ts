@@ -129,47 +129,61 @@ function getVersionProbe(): ProbeResult {
 }
 
 /**
- * Sample current CPU load across a short interval (PM2 devops-system.md §5.1:
- * "Takes ~100ms sample for real CPU measurement in containers"; falls back to
- * the 1-min load average). process.cpuUsage() is only meaningful as a DELTA
- * between two samples — a one-shot total reports cumulative runtime, which is
- * not a health signal.
+ * Passive current-load CPU probe (PM2 devops-system.md §5.1: "cgroup quota or
+ * 1-min loadavg"). NEVER busy-waits: process.cpuUsage() is only meaningful as
+ * a DELTA between two observations, so we retain the previous sample + wall
+ * timestamp and compute utilization from the real elapsed time since the last
+ * health check. This measures the load the PROCESS actually experienced
+ * between checks — observational, not self-generated.
+ *
+ * The first call has no baseline, so it seeds one and reports the 1-min load
+ * average (also the fallback in environments where cpuUsage is unavailable).
  */
+interface CpuBaseline {
+  user: number
+  system: number
+  at: number
+}
+
+let cpuBaseline: CpuBaseline | null = null
+
+/** Minimum elapsed wall time (ms) for a meaningful utilization delta. */
+const CPU_MIN_INTERVAL_MS = 250
+
 function getCpuProbe(): ProbeResult {
   try {
-    const startUsage = process.cpuUsage()
-    const started = Date.now()
-    // ~100ms busy-wait sample window (matches the PM2 sampling approach).
-    const sampleMs = 100
-    const until = Date.now() + sampleMs
-    // Burn CPU to measure present utilization, not idle time between ticks.
-    // eslint-disable-next-line no-empty
-    while (Date.now() < until) {}
-    const delta = process.cpuUsage(startUsage)
-    const elapsedMs = Date.now() - started
-    const activeUs = delta.user + delta.system
-    const pct = Math.min(100, (activeUs / 1000 / elapsedMs) * 100)
-    return {
-      id: 'cpu',
-      status: 'ok',
-      value: `${Math.round(pct)}%`
-    }
-  } catch {
-    // Fallback: 1-min load average (os.loadavg()) when the interval sample is
-    // unavailable — still a current-load signal, never cumulative runtime.
-    try {
-      const oneMin = loadavg()[0] ?? 0
+    const now = Date.now()
+    const usage = process.cpuUsage() // [user, system] µs, cumulative since process start
+    const prev = cpuBaseline
+
+    if (prev && now - prev.at >= CPU_MIN_INTERVAL_MS) {
+      const elapsedMs = now - prev.at
+      const activeUs = (usage.user - prev.user) + (usage.system - prev.system)
+      // activeUs is µs of CPU time across `elapsedMs` of wall time; convert to
+      // a percentage of one core, capped at 100%.
+      const pct = Math.min(100, Math.max(0, (activeUs / 1000 / elapsedMs) * 100))
+      cpuBaseline = { user: usage.user, system: usage.system, at: now }
       return {
         id: 'cpu',
         status: 'ok',
-        value: `load ${oneMin.toFixed(2)}`
+        value: `${Math.round(pct)}%`
       }
-    } catch (e) {
-      return {
-        id: 'cpu',
-        status: 'unavailable',
-        error: e instanceof Error ? e.message : 'CPU data unavailable'
-      }
+    }
+
+    // No baseline yet (first call) or too-short interval: seed the baseline and
+    // report the 1-min load average as an observational fallback signal.
+    cpuBaseline = { user: usage.user, system: usage.system, at: now }
+    const oneMin = loadavg()[0] ?? 0
+    return {
+      id: 'cpu',
+      status: 'ok',
+      value: `load ${oneMin.toFixed(2)}`
+    }
+  } catch (e) {
+    return {
+      id: 'cpu',
+      status: 'unavailable',
+      error: e instanceof Error ? e.message : 'CPU data unavailable'
     }
   }
 }

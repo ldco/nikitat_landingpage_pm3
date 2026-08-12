@@ -98,7 +98,21 @@ describe('CPU/disk probes are honest (Comment 3)', () => {
     expect(value.endsWith('%') || value.startsWith('load ')).toBe(true)
   })
 
+  it('does not busy-wait or spin the event loop to sample CPU', async () => {
+    // The passive probe samples counters across real elapsed time; a busy-wait
+    // implementation would block for its sample window (~100ms+). Assert the
+    // full probe run is far below that, proving no self-generated work.
+    const started = performance.now()
+    await loadReport()
+    const elapsedMs = performance.now() - started
+    expect(elapsedMs).toBeLessThan(60)
+  })
+
   it('cpu load stays within a plausible utilization range when percent-based', async () => {
+    // First call seeds the baseline; the second call, after a real interval,
+    // reports a delta percentage. Run twice with a small real delay.
+    await loadReport()
+    await new Promise(r => setTimeout(r, 300))
     const report = await loadReport()
     const cpu = report.checks.find(c => c.id === 'cpu')
     if (cpu?.value?.endsWith('%')) {
