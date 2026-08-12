@@ -57,7 +57,13 @@
 
   function formatDate(date: string | Date | null | undefined): string {
     if (!date) return ''
-    return new Date(date).toLocaleDateString('en', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' })
+    // PM2 users.vue formatDate: locale-aware via the active admin locale
+    return new Date(date).toLocaleDateString(data.locale ?? 'ru', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'UTC'
+    })
   }
 
   const columns: AdminTableColumn[] = [
@@ -162,8 +168,8 @@
 <div class="admin-users">
   <PageHeader title={t('admin.users')}>
     {#snippet actions()}
-      <CtaButton variant="primary" size="md" onclick={openCreateModal}>
-        <IconPlus class="size-4" />
+      <CtaButton variant="primary" size="lg" onclick={openCreateModal}>
+        <IconPlus class="size-5" />
         {t('admin.addUser')}
       </CtaButton>
     {/snippet}
@@ -179,7 +185,7 @@
           {#if column.key === 'name'}
             <span class="text-pm-text">{row.name ?? '—'}</span>
           {:else if column.key === 'email'}
-            <span class="text-pm-text-muted">{row.email}</span>
+            <span class="text-pm-text">{row.email}</span>
           {:else if column.key === 'role'}
             <span class={clsx('inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium', roleBadgeClass(row.role))}>
               {roleLabel(row.role)}

@@ -71,7 +71,12 @@
         const labelKey = PAGE_LABEL_KEYS[id] ?? `admin.${id}`
         // DB admin translations first, then the unified t() (which falls back to
         // the Paraglide catalog, e.g. admin.auditLog → admin_auditLog), then id.
-        return { id, label: t[labelKey] ?? contentT(labelKey) ?? id }
+        return {
+          id,
+          label: t[labelKey] ?? contentT(labelKey) ?? id,
+          // Real icon for the bottom nav (fallback rendered when absent)
+          icon: iconComponentMap[id] ?? undefined
+        }
       })
   )
 

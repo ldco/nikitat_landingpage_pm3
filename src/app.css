@@ -213,6 +213,11 @@
   /* --- Admin Component Tokens (PM v2 data-table.css parity) --- */
   --width-key-column: 35%;
   --grid-admin-form: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+
+  /* --- Admin Bottom Nav Tokens (PM v2 bottom-nav.css parity) --- */
+  --app-bottom-nav-height: 3.5rem;
+  --app-bottom-nav-safe: env(safe-area-inset-bottom, 0px);
+  --bottom-nav-sheet-offset: calc(var(--app-bottom-nav-height) + var(--app-bottom-nav-safe));
   --grid-admin-status: repeat(auto-fit, minmax(14rem, 1fr));
 
   /* --- Component-level Tokens --- */

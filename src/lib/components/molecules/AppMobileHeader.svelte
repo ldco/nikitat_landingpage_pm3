@@ -14,8 +14,6 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import ThemeToggle from '$lib/components/atoms/ThemeToggle.svelte'
-  import LangSwitcher from '$lib/components/atoms/LangSwitcher.svelte'
   import UserMenu from './UserMenu.svelte'
 
   interface MobileHeaderUser {
@@ -37,13 +35,9 @@
 </script>
 
 <header class={twMerge(clsx(
-  'sticky top-0 z-[var(--z-sticky)] lg:hidden flex items-center justify-between gap-3 px-4 py-2.5 bg-pm-bg border-b border-pm-border',
+  'sticky top-0 z-[var(--z-sticky)] lg:hidden flex items-center justify-between gap-3 px-4 py-3 bg-pm-bg border-b border-pm-border',
   className
 ))}>
-  <span class="text-sm font-medium text-pm-text truncate">{pageTitle}</span>
-  <div class="flex items-center gap-1">
-    <ThemeToggle />
-    <LangSwitcher mode="down" />
-    <UserMenu {user} />
-  </div>
+  <span class="text-base font-semibold text-pm-text truncate">{pageTitle}</span>
+  <UserMenu {user} mobile />
 </header>

@@ -99,7 +99,13 @@
         </tr>
       {:else}
         {#each items as item, i (String((item as { id?: unknown })?.id ?? i))}
-          <tr class="border-b border-pm-border last:border-b-0 hover:bg-pm-bg-sunken transition-colors max-sm:flex max-sm:flex-col max-sm:gap-2 max-sm:p-4 max-sm:bg-pm-bg max-sm:border max-sm:border-pm-border max-sm:rounded-md max-sm:hover:bg-pm-bg">
+          <tr class="border-b border-pm-border last:border-b-0 hover:bg-pm-bg-sunken transition-colors max-sm:flex max-sm:flex-col max-sm:gap-3 max-sm:p-5 max-sm:bg-pm-bg max-sm:border max-sm:border-pm-border max-sm:rounded-lg max-sm:hover:bg-pm-bg">
+            {#if actions}
+              <!-- Mobile: actions row pinned to the TOP-RIGHT of the card (PM2 parity) -->
+              <td class="hidden max-sm:flex max-sm:justify-end max-sm:items-center max-sm:px-0 max-sm:py-0 max-sm:border-0 max-sm:-mb-1">
+                {@render actions(item)}
+              </td>
+            {/if}
             {#each columns as column (column.key)}
               <td
                 data-label={column.dataLabel ?? column.label}
@@ -108,17 +114,14 @@
                   column.widthClass
                 )}
               >
-                <span class="hidden max-sm:block text-sm font-medium text-pm-text-muted">{column.dataLabel ?? column.label}</span>
-                {#if cell}
-                  {@render cell(column, item)}
-                {/if}
+                <span class="hidden max-sm:block text-xs font-medium uppercase tracking-wide text-pm-text-muted">{column.dataLabel ?? column.label}</span>
+                <div class="max-sm:text-base max-sm:text-pm-text">
+                  {#if cell}
+                    {@render cell(column, item)}
+                  {/if}
+                </div>
               </td>
             {/each}
-            {#if actions}
-              <td class="px-5 py-3 text-end whitespace-nowrap align-middle max-sm:flex max-sm:justify-end max-sm:items-center max-sm:px-0 max-sm:pt-2 max-sm:border-t max-sm:border-pm-border max-sm:mt-1">
-                {@render actions(item)}
-              </td>
-            {/if}
           </tr>
         {/each}
       {/if}

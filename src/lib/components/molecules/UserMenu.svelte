@@ -20,6 +20,8 @@
   import { t as contentT } from '$lib/stores/content.svelte'
   import { logout } from '$lib/utils/auth'
   import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
+  import ThemeToggle from '$lib/components/atoms/ThemeToggle.svelte'
+  import LangSwitcher from '$lib/components/atoms/LangSwitcher.svelte'
 
   interface UserMenuUser {
     name?: string | null
@@ -30,9 +32,12 @@
 
   let {
     user,
+    mobile = false,
     class: className = ''
   }: {
     user: UserMenuUser | null | undefined
+    /** Mobile APP MODE variant: theme + language toggles inside the dropdown (PM2 mobile-user-menu parity) */
+    mobile?: boolean
     class?: string
   } = $props()
 
@@ -70,6 +75,16 @@
           <span class="text-xs text-pm-text-muted">{user.email}</span>
           <span class="text-xs text-pm-text-muted capitalize">{user.role}</span>
         </div>
+        {#if mobile}
+          <div class="flex items-center justify-between gap-2 mb-2 pb-3 border-b border-pm-border">
+            <span class="text-sm text-pm-text-muted">{contentT('common.language')}</span>
+            <LangSwitcher mode="inline" />
+          </div>
+          <div class="flex items-center justify-between gap-2 mb-3 pb-3 border-b border-pm-border">
+            <span class="text-sm text-pm-text-muted">{contentT('common.theme')}</span>
+            <ThemeToggle />
+          </div>
+        {/if}
         <a href={ADMIN_ROUTES.changePassword}
           class="flex items-center gap-2 px-2 py-1.5 text-sm text-pm-text-muted hover:text-pm-text transition-colors rounded-md hover:bg-pm-bg-sunken">
           <IconKey class="size-4" />
