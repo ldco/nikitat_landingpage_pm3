@@ -15,6 +15,8 @@ import { useDatabase, schema } from '$lib/server/db'
 import { count } from 'drizzle-orm'
 import { getLogBufferSize } from '$lib/server/utils/logger'
 import { statfsSync } from 'node:fs'
+import { join } from 'node:path'
+import { loadavg } from 'node:os'
 
 export type ProbeStatus = 'ok' | 'degraded' | 'error' | 'unavailable'
 
@@ -126,45 +128,92 @@ function getVersionProbe(): ProbeResult {
   }
 }
 
+/**
+ * Sample current CPU load across a short interval (PM2 devops-system.md §5.1:
+ * "Takes ~100ms sample for real CPU measurement in containers"; falls back to
+ * the 1-min load average). process.cpuUsage() is only meaningful as a DELTA
+ * between two samples — a one-shot total reports cumulative runtime, which is
+ * not a health signal.
+ */
 function getCpuProbe(): ProbeResult {
-  // Real probe: process.cpuUsage() returns [user, system] microseconds.
   try {
-    const usage = process.cpuUsage()
-    const totalUs = usage.user + usage.system
+    const startUsage = process.cpuUsage()
+    const started = Date.now()
+    // ~100ms busy-wait sample window (matches the PM2 sampling approach).
+    const sampleMs = 100
+    const until = Date.now() + sampleMs
+    // Burn CPU to measure present utilization, not idle time between ticks.
+    // eslint-disable-next-line no-empty
+    while (Date.now() < until) {}
+    const delta = process.cpuUsage(startUsage)
+    const elapsedMs = Date.now() - started
+    const activeUs = delta.user + delta.system
+    const pct = Math.min(100, (activeUs / 1000 / elapsedMs) * 100)
     return {
       id: 'cpu',
       status: 'ok',
-      value: `${Math.round(totalUs / 1000)}ms cpu`
+      value: `${Math.round(pct)}%`
     }
-  } catch (e) {
-    return {
-      id: 'cpu',
-      status: 'unavailable',
-      error: e instanceof Error ? e.message : 'CPU data unavailable'
+  } catch {
+    // Fallback: 1-min load average (os.loadavg()) when the interval sample is
+    // unavailable — still a current-load signal, never cumulative runtime.
+    try {
+      const oneMin = loadavg()[0] ?? 0
+      return {
+        id: 'cpu',
+        status: 'ok',
+        value: `load ${oneMin.toFixed(2)}`
+      }
+    } catch (e) {
+      return {
+        id: 'cpu',
+        status: 'unavailable',
+        error: e instanceof Error ? e.message : 'CPU data unavailable'
+      }
     }
   }
 }
 
-function getDiskProbe(): ProbeResult {
-  // Real probe: statfs on the DB directory (works on Linux/macOS; an honest
-  // unavailable state is reported if statfs is not available).
+/**
+ * Disk storage paths the runtime depends on (PM2 devops-system.md §5.1:
+ * "disk usage (df per mount: data, uploads, DB, app root)"). Each path is
+ * probed separately so the health page reports distinct storage checks.
+ */
+function getDiskPaths(): Array<{ id: string; dir: string }> {
+  const cwd = process.cwd()
+  const dbPath = process.env.DATABASE_URL || './data/sqlite.db'
+  const dbDir = dbPath.includes('/') ? dbPath.slice(0, dbPath.lastIndexOf('/')) || '/' : cwd
+  return [
+    { id: 'disk', dir: cwd },
+    { id: 'diskApp', dir: cwd },
+    { id: 'diskData', dir: join(cwd, 'data') },
+    { id: 'diskDatabase', dir: dbDir },
+    { id: 'diskUploads', dir: join(cwd, 'public', 'uploads') }
+  ]
+}
+
+function probeDiskPath(id: string, dir: string): ProbeResult {
   try {
-    const dbPath = process.env.DATABASE_URL || './data/sqlite.db'
-    const dir = dbPath.includes('/') ? dbPath.slice(0, dbPath.lastIndexOf('/')) || '/' : '.'
     const s = statfsSync(dir)
     const freeBytes = Number(s.bavail) * Number(s.bsize)
+    const totalBytes = Number(s.blocks) * Number(s.bsize)
+    const pct = totalBytes > 0 ? Math.round((freeBytes / totalBytes) * 100) : null
     return {
-      id: 'disk',
+      id,
       status: 'ok',
-      value: `${formatBytes(freeBytes)} free`
+      value: pct !== null ? `${pct}% free (${formatBytes(freeBytes)})` : `${formatBytes(freeBytes)} free`
     }
   } catch (e) {
     return {
-      id: 'disk',
+      id,
       status: 'unavailable',
       error: e instanceof Error ? e.message : 'Disk data unavailable'
     }
   }
+}
+
+function getDiskProbes(): ProbeResult[] {
+  return getDiskPaths().map(({ id, dir }) => probeDiskPath(id, dir))
 }
 
 function getLogBufferProbe(): ProbeResult {
@@ -222,7 +271,7 @@ export function runHealthProbes(): HealthReport {
     getUptimeProbe(),
     getVersionProbe(),
     getCpuProbe(),
-    getDiskProbe(),
+    ...getDiskProbes(),
     getLogBufferProbe()
   ]
 

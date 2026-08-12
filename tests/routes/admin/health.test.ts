@@ -86,6 +86,51 @@ describe('CPU/disk probes are honest (Comment 3)', () => {
     }
   })
 
+  it('cpu reports a current-load measurement, not cumulative runtime totals', async () => {
+    const report = await loadReport()
+    const cpu = report.checks.find(c => c.id === 'cpu')
+    // Either a live percentage ('42%') or a load-average fallback ('load 0.50'),
+    // or an honest unavailable — never a cumulative 'NNNNms cpu' total.
+    expect(cpu?.status).toBe('ok')
+    expect(cpu?.value).toBeDefined()
+    expect(cpu!.value!).not.toMatch(/ms cpu$/)
+    const value = cpu!.value!
+    expect(value.endsWith('%') || value.startsWith('load ')).toBe(true)
+  })
+
+  it('cpu load stays within a plausible utilization range when percent-based', async () => {
+    const report = await loadReport()
+    const cpu = report.checks.find(c => c.id === 'cpu')
+    if (cpu?.value?.endsWith('%')) {
+      const pct = Number.parseFloat(cpu.value)
+      expect(pct).toBeGreaterThanOrEqual(0)
+      expect(pct).toBeLessThanOrEqual(100)
+    }
+  })
+
+  it('reports the PM2 storage paths as distinct disk checks', async () => {
+    const report = await loadReport()
+    const diskIds = report.checks.filter(c => c.id.startsWith('disk')).map(c => c.id)
+    // PM2 devops-system.md §5.1: df per mount — data, uploads, DB, app root.
+    expect(diskIds).toContain('disk')        // app root
+    expect(diskIds).toContain('diskApp')
+    expect(diskIds).toContain('diskData')
+    expect(diskIds).toContain('diskDatabase')
+    expect(diskIds).toContain('diskUploads')
+  })
+
+  it('each disk check carries a value or an honest unavailable state', async () => {
+    const report = await loadReport()
+    for (const check of report.checks.filter(c => c.id.startsWith('disk'))) {
+      if (check.status === 'ok') {
+        expect(check.value).toBeDefined()
+        expect(check.value).not.toBe('n/a')
+      } else {
+        expect(['unavailable', 'error']).toContain(check.status)
+      }
+    }
+  })
+
   it('exposes unavailable as a distinct probe status', async () => {
     const report = await loadReport()
     for (const check of report.checks) {
