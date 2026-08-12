@@ -43,7 +43,10 @@
 </script>
 
 <div class={merged}>
-  <div class="min-w-0">
+  <!-- The mobile APP-MODE header (AppMobileHeader) already shows the page
+       title, so the h1 is hidden below lg to avoid duplicate headings.
+       The actions row (Add/Edit buttons) stays visible on all breakpoints. -->
+  <div class="min-w-0 max-lg:hidden">
     <h1 class={titleSize[size]}>{title ?? ''}</h1>
     {#if subtitle}
       <p class="mt-1 text-base text-pm-text-secondary">{subtitle}</p>
