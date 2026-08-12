@@ -1,42 +1,175 @@
 <script lang="ts">
+  /**
+   * Admin Pricing Tier Create — Full form with per-locale overrides and features list
+   */
   import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
-import { t } from '$lib/stores/content.svelte'
+  import { t } from '$lib/stores/content.svelte'
   import { page } from '$app/stores'
   import { getAdminT } from '$lib/utils/admin-translations'
+  import { LOCALE_CONFIG } from '$lib/config/site'
+  import PageHeader from '$lib/components/atoms/PageHeader.svelte'
+  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import FormField from '$lib/components/atoms/FormField.svelte'
+  import AdminFormSection from '$lib/components/molecules/AdminFormSection.svelte'
+  import type { PageData } from './$types'
+
+  let { data }: { data: PageData } = $props()
+
   const adminT = $derived(getAdminT($page.data))
-  let slug = $state(''), name = $state(''), price = $state('')
   const form = $derived($page.form)
   const errors = $derived((form as { fieldErrors?: Record<string, string[]> } | null)?.fieldErrors ?? {})
+  const locales = $derived(data.locales ?? [])
+
+  let slug = $state('')
+  let name = $state('')
+  let description = $state('')
+  let price = $state('')
+  let currency = $state('USD')
+  let period = $state('month')
+  let featured = $state(false)
+  let ctaText = $state('')
+  let ctaUrl = $state('/contact')
+  let order = $state('0')
+  let published = $state(true)
+  let features = $state('')
+  const currencies = $state(['USD', 'EUR', 'RUB'])
+  const translations = $state<Record<string, { name: string; description: string; ctaText: string }>>({})
+  {
+    for (const loc of locales) {
+      translations[loc] = { name: '', description: '', ctaText: '' }
+    }
+  }
+
+  function localeName(loc: string): string {
+    return LOCALE_CONFIG[loc as keyof typeof LOCALE_CONFIG]?.name ?? loc
+  }
 </script>
-<div class="max-w-[var(--max-w-content)] mx-auto">
-  <div class="flex items-center gap-4 py-4 mb-6 border-b border-pm-border">
+
+<PageHeader title={t('common.create')}>
+  {#snippet actions()}
     <a href={ADMIN_ROUTES.pricing} class="text-pm-text-muted hover:text-pm-brand text-sm">&larr; {t('common.back')}</a>
-    <h1 class="text-2xl font-bold text-pm-text">{t('common.create')}</h1>
+  {/snippet}
+</PageHeader>
+
+<form method="POST" class="flex flex-col gap-6">
+  <input type="hidden" name="_csrf" value={$page.data.csrfToken} />
+
+  <AdminFormSection title={adminT['admin.basicInfo'] ?? t('admin.basicInfo')}>
+    <div class="grid gap-4 grid-cols-[var(--grid-admin-form)]">
+      <FormField
+        name="slug"
+        label={adminT['admin.slug'] ?? t('admin.slug')}
+        bind:value={slug}
+        error={errors.slug?.[0] ?? ''}
+        required
+      />
+      <FormField
+        name="name"
+        label={adminT['admin.name'] ?? t('admin.name')}
+        bind:value={name}
+        error={errors.name?.[0] ?? ''}
+        required
+      />
+      <FormField
+        name="description"
+        type="textarea"
+        label={adminT['admin.description'] ?? t('admin.description')}
+        bind:value={description}
+      />
+      <FormField
+        name="price"
+        type="number"
+        label={adminT['admin.price'] ?? t('admin.price')}
+        bind:value={price}
+        error={errors.price?.[0] ?? ''}
+      />
+      <div class="flex flex-col gap-1">
+        <label for="field-currency" class="text-sm font-medium text-pm-text">{adminT['admin.currency'] ?? t('admin.currency')}</label>
+        <select id="field-currency" name="currency" bind:value={currency}
+          class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring">
+          {#each currencies as code (code)}
+            <option value={code}>{code}</option>
+          {/each}
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="field-period" class="text-sm font-medium text-pm-text">{adminT['admin.period'] ?? t('admin.period')}</label>
+        <select id="field-period" name="period" bind:value={period}
+          class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring">
+          <option value="month">{adminT['admin.periodMonth'] ?? t('admin.periodMonth')}</option>
+          <option value="year">{adminT['admin.periodYear'] ?? t('admin.periodYear')}</option>
+          <option value="one-time">{adminT['admin.periodOneTime'] ?? t('admin.periodOneTime')}</option>
+        </select>
+      </div>
+      <FormField
+        name="featured"
+        type="checkbox"
+        label={adminT['admin.featured'] ?? t('admin.featured')}
+        bind:value={featured}
+      />
+      <FormField
+        name="ctaText"
+        label={adminT['admin.ctaText'] ?? t('admin.ctaText')}
+        bind:value={ctaText}
+      />
+      <FormField
+        name="ctaUrl"
+        label={adminT['admin.ctaUrl'] ?? t('admin.ctaUrl')}
+        bind:value={ctaUrl}
+        placeholder="/contact"
+      />
+      <FormField
+        name="order"
+        type="number"
+        label={adminT['admin.order'] ?? t('admin.order')}
+        bind:value={order}
+        error={errors.order?.[0] ?? ''}
+      />
+      <FormField
+        name="published"
+        type="checkbox"
+        label={adminT['admin.published'] ?? t('admin.published')}
+        bind:value={published}
+      />
+      <FormField
+        name="features"
+        type="textarea"
+        label={adminT['admin.features'] ?? t('admin.features')}
+        bind:value={features}
+        error={errors.features?.[0] ?? ''}
+      />
+    </div>
+  </AdminFormSection>
+
+  {#each locales as loc (loc)}
+    <AdminFormSection title={localeName(loc) + ' (' + loc + ')'}>
+      <div class="flex flex-col gap-4">
+        <FormField
+          name={`name_${loc}`}
+          label={adminT['admin.name'] ?? t('admin.name')}
+          value={translations[loc]?.name ?? ''}
+          oninput={(e) => { translations[loc] = translations[loc] ?? { name: '', description: '', ctaText: '' }; translations[loc].name = (e.currentTarget as HTMLInputElement).value }}
+          error={errors[`name_${loc}`]?.[0] ?? ''}
+        />
+        <FormField
+          name={`description_${loc}`}
+          type="textarea"
+          label={adminT['admin.description'] ?? t('admin.description')}
+          value={translations[loc]?.description ?? ''}
+          oninput={(e) => { translations[loc] = translations[loc] ?? { name: '', description: '', ctaText: '' }; translations[loc].description = (e.currentTarget as HTMLTextAreaElement).value }}
+        />
+        <FormField
+          name={`ctaText_${loc}`}
+          label={adminT['admin.ctaText'] ?? t('admin.ctaText')}
+          value={translations[loc]?.ctaText ?? ''}
+          oninput={(e) => { translations[loc] = translations[loc] ?? { name: '', description: '', ctaText: '' }; translations[loc].ctaText = (e.currentTarget as HTMLInputElement).value }}
+        />
+      </div>
+    </AdminFormSection>
+  {/each}
+
+  <div class="flex justify-end gap-3">
+    <CtaButton variant="ghost" href={ADMIN_ROUTES.pricing}>{t('common.cancel')}</CtaButton>
+    <CtaButton type="submit" variant="primary">{t('common.save')}</CtaButton>
   </div>
-  <form method="POST" class="max-w-lg space-y-4">
-    <input type="hidden" name="_csrf" value={$page.data.csrfToken} />
-    <FormField
-      name="name"
-      label={adminT['admin.name'] ?? ''}
-      bind:value={name}
-      error={errors.name?.[0] ?? ''}
-      required
-    />
-    <FormField
-      name="slug"
-      label={adminT['admin.slug'] ?? ''}
-      bind:value={slug}
-      error={errors.slug?.[0] ?? ''}
-      required
-    />
-    <FormField
-      name="price"
-      type="number"
-      label={adminT['admin.price'] ?? ''}
-      bind:value={price}
-      error={errors.price?.[0] ?? ''}
-    />
-    <button type="submit" class="px-4 py-2 bg-pm-brand text-white rounded-lg hover:bg-pm-brand-dark transition-colors">{t('common.save')}</button>
-  </form>
-</div>
+</form>
