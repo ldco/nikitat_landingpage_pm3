@@ -13,6 +13,12 @@
    * └───────────────────────────────────────────────────┘
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {Array<{slug: string; file: string}>} [legalDocs=[]] — legal documents rendered in the legal bar
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <TheFooter legalDocs={legalDocs} />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

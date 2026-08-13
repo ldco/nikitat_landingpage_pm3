@@ -24,6 +24,9 @@ jobs:
       - name: PM3 framework validator (full repo)
         run: npm run validate:pm3
 
+      - name: i18n catalog validation (missing keys / blanks / raw keys / untranslated copies)
+        run: npm run i18n:validate
+
       - name: TypeScript check
         run: npm run check
 

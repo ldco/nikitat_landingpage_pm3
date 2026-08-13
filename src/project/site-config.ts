@@ -29,6 +29,15 @@ export const LOCALE_CONFIG: Record<Locale, { iso: string; name: string }> = Obje
 
 export const DEFAULT_LOCALE: Locale = PM_LOCALE_DATA[0].code
 
+// ── Locale policy (seed-catalog validator secondary comparison) ────────────
+// The catalog validator (scripts/validate-system-seed.ts) flags a non-default
+// value identical to the default locale's value as an untranslated copy. This
+// entry adds a SECOND copy-source locale (typically the project's lingua
+// franca, e.g. English): a value identical to IT, while differing from the
+// default, is flagged as a carry-over the default comparison alone would miss.
+// Set to null to disable the secondary comparison.
+export const SECONDARY_LOCALE: Locale | null = 'en'
+
 // ── Hero title ──────────────────────────────────────────────────────────────
 
 // Per-locale mobile hero-title token overrides (framework-agnostic: SectionHero
@@ -144,8 +153,12 @@ export const MODULES: Record<string, ModuleConfig> = {
     enabled: true,
     config: { layout: 'accordion', showCategories: false, expandFirst: true, allowMultipleOpen: false }
   },
+  // The features/functions surface is NOT part of this project: HOMEPAGE_SECTIONS
+  // has no features section and the nav never links to one, so the entity has no
+  // public rendering. Disabled here so the admin page drops out of the editorial
+  // surface (module gate) and section-content.ts stops loading feature rows.
   features: {
-    enabled: true,
+    enabled: false,
     config: { layout: 'grid', cardStyle: 'icon-top', showCategory: false, columnsDesktop: 3, columnsMobile: 1 }
   },
   team: {
@@ -211,7 +224,7 @@ export const FEATURES: Features = {
 export const ADMIN_CONFIG: AdminConfig = {
   enabled: true,
   system: {
-    users: { enabled: true, roles: ['master'] },
+    users: { enabled: true, roles: ['master', 'admin'] },
     roles: { enabled: true, roles: ['master'] },
     translations: { enabled: true, roles: ['master', 'admin', 'editor'] },
     settings: { enabled: true, roles: ['master', 'admin'] },
@@ -232,7 +245,9 @@ export const ADMIN_CONFIG: AdminConfig = {
     faq: { enabled: true, roles: ['master', 'admin', 'editor'] },
     clients: { enabled: false, roles: ['master', 'admin'] },
     pricing: { enabled: true, roles: ['master', 'admin'] },
-    features: { enabled: true, roles: ['master', 'admin', 'editor'] },
+    // features/functions module is not part of this project (see MODULES) —
+    // the admin page is disabled with it.
+    features: { enabled: false, roles: ['master', 'admin', 'editor'] },
     contacts: { enabled: true, roles: ['master', 'admin'] }
   }
 }

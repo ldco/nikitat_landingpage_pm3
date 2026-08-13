@@ -4,6 +4,12 @@
    * Replaces dynamic <svelte:component> with component-to-id mapping.
    *
    * Rule #1: class prop + twMerge — wraps icon component with class
+   *
+   * @props {string} [id='dashboard'] — admin section id selecting the icon
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <AdminIcon id="users" class="size-5" />
    */
   import IconHome from '@tabler/icons-svelte/icons/home'
   import IconUsers from '@tabler/icons-svelte/icons/users'

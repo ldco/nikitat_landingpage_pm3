@@ -11,6 +11,11 @@
    * stores/overlays.svelte.ts. Mounted by <OverlayProvider>.
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <ToastContainer />
    */
   import IconX from '@tabler/icons-svelte/icons/x'
   import IconCircleCheck from '@tabler/icons-svelte/icons/circle-check'

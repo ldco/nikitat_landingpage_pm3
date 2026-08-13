@@ -9,6 +9,11 @@
    * - Icon transition (sun <-> moon) via Svelte transition
    * - SSR-safe: renders placeholder until hydrated
    * - Cookie consent integration for preference persistence
+   *
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <ThemeToggle />
    */
   import { browser } from '$app/environment'
   import { getTheme } from '$lib/stores/theme.svelte'

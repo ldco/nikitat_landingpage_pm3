@@ -14,6 +14,7 @@
    */
 import { t } from '$lib/stores/content.svelte'
   import Logo from '$lib/components/atoms/Logo.svelte'
+  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import { DEFAULT_LOCALE } from '$lib/config/site'
   import { page } from '$app/stores'
   import { enhance } from '$app/forms'
@@ -78,12 +79,14 @@ import { t } from '$lib/stores/content.svelte'
           </select>
         </div>
 
-        <button
+        <CtaButton
           type="submit"
-          class="w-full rounded-md bg-pm-brand px-4 py-2 text-sm font-semibold text-pm-white hover:bg-pm-brand-dark focus:outline-none focus:ring-2 focus:ring-pm-brand"
+          variant="primary"
+          fullWidth
+          class="py-2 text-sm font-semibold hover:bg-pm-brand-dark"
         >
           {t('init.submit')}
-        </button>
+        </CtaButton>
       </form>
     </div>
   </div>

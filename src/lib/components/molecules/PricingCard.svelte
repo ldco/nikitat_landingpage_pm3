@@ -3,6 +3,19 @@
    * PricingCard — Pricing tier card (PM v2 tokens)
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {string} name — plan name
+   * @props {string} [description=''] — plan description
+   * @props {number|null} price — price value (null renders "custom")
+   * @props {string} [currency='USD'] — currency code
+   * @props {string} [period='month'] — billing period label
+   * @props {Array<{text: string; included: boolean}>} [features=[]] — feature list
+   * @props {{text: string; url: string}} [cta] — CTA button config
+   * @props {boolean} [featured=false] — highlight as the most popular plan
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <PricingCard name="Pro" price={990} features={features} featured />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

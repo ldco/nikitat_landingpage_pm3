@@ -10,6 +10,17 @@
    * Contextual backgrounds for error/success types
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {'empty-box'|'search'|'error'|'success'} [type='empty-box'] — illustration variant
+   * @props {'compact'|'default'|'large'} [size='default'] — placeholder size
+   * @props {string} [title=''] — heading text
+   * @props {string} [description=''] — supporting text
+   * @props {{label: string; href: string}} [action] — CTA button config
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   * @props {Snippet} [children] — extra custom content
+   *
+   * @example
+   * <EmptyState type="search" title={t('common.noResults')} />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

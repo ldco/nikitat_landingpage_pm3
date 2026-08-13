@@ -9,6 +9,7 @@ import { jsonSuccess } from '$lib/server/utils/api'
 const updateSchema = z.object({
   itemType: z.enum(['image', 'video', 'link', 'case_study']).optional(),
   mediaUrl: z.string().nullable().optional(),
+  thumbnailUrl: z.string().nullable().optional(),
   caption: z.string().nullable().optional(),
   title: z.string().nullable().optional(),
   description: z.string().nullable().optional(),

@@ -10,6 +10,9 @@
    * @props vertical?: boolean — column layout (mobile drawer)
    * @props activeId?: string — currently scrolled section id
    * @props onClick?: () => void — mobile drawer close handler
+   *
+   * @example
+   * <NavLinks vertical activeId={activeSection} onClick={() => drawer.close()} />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

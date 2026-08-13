@@ -107,3 +107,31 @@ export function submittedLocaleSections(
   }
   return sections
 }
+
+/**
+ * Iterate the per-locale translation writes of an entity edit form with the
+ * EXPLICIT removal semantics: a checked `remove_<locale>` field deletes that
+ * locale's row; a locale section left entirely empty without the flag is
+ * preserved — it is never silently skipped and never deleted by accident.
+ * Shared by the faq and features edit actions so the removal semantics can
+ * never drift between entity editors.
+ *
+ * @param form          the submitted form (reads `remove_<locale>` flags)
+ * @param translations  submitted per-locale sections (from `submittedLocaleSections`)
+ * @param onWrite       per-locale write callback: `(locale, values, remove)`
+ */
+export function forEachLocaleTranslationWrite(
+  form: FormData,
+  translations: Record<string, Record<string, string>>,
+  onWrite: (locale: string, values: Record<string, string>, remove: boolean) => void
+): void {
+  for (const loc of LOCALE_STRINGS) {
+    if (form.get(`remove_${loc}`) === 'on') {
+      onWrite(loc, {}, true)
+      continue
+    }
+    const values = translations[loc]
+    if (!values) continue
+    onWrite(loc, values, false)
+  }
+}

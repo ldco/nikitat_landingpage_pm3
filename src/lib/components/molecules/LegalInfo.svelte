@@ -6,6 +6,11 @@
    * Only shows items that have values in database.
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <LegalInfo />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

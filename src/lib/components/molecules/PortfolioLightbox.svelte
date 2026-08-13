@@ -5,6 +5,14 @@
    *
    * IMPORTANT: This isolates keyboard/scroll event handling.
    * Cleanup in $effect return prevents memory leaks (Rule #4).
+   *
+   * @props {Array<{src: string; alt?: string; caption?: string}>} [images=[]] — lightbox image list
+   * @props {number} [index=0] — active image index (bindable)
+   * @props {boolean} [open=false] — lightbox visibility (bindable)
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <PortfolioLightbox images={images} bind:index bind:open />
    */
   import IconX from '@tabler/icons-svelte/icons/x'
   import IconChevronLeft from '@tabler/icons-svelte/icons/chevron-left'

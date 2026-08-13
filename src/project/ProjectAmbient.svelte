@@ -6,6 +6,7 @@
    * effects). This file lives in src/project/ so each PM3 site can customize
    * its ambient visual identity without editing framework files.
    *
+   * @props
    * @example <ProjectAmbient />
    */
   import { FEATURES } from '$lib/config/site'

@@ -8,8 +8,7 @@
   import { getAdminT } from '$lib/utils/admin-translations'
   import { LOCALE_CONFIG } from '$lib/config/site'
   import { createFormDirty } from '$lib/utils/form-dirty.svelte'
-  import PageHeader from '$lib/components/atoms/PageHeader.svelte'
-  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import AdminEditorPage from '$lib/components/molecules/AdminEditorPage.svelte'
   import FormField from '$lib/components/atoms/FormField.svelte'
   import AdminFormSection from '$lib/components/molecules/AdminFormSection.svelte'
   import FileUpload from '$lib/components/molecules/FileUpload.svelte'
@@ -20,6 +19,10 @@
   const p = $derived(data.post)
   const locales = $derived(data.locales ?? [])
   const categories = $derived(data.categories ?? [])
+  const categoryOptions = $derived([
+    { value: '', label: t('common.none') },
+    ...categories.map(c => ({ value: String(c.id), label: c.slug }))
+  ])
   const postTranslations = $derived(data.translations ?? [])
 
   const adminT = $derived(getAdminT($page.data))
@@ -34,6 +37,10 @@
   let readingTimeMinutes = $state(p.readingTimeMinutes ? String(p.readingTimeMinutes) : '')
 
   const translations = $state<Record<string, { title: string; excerpt: string; content: string }>>({})
+  // Per-locale explicit-removal intent (the `remove_<loc>` checkboxes below).
+  // Part of the dirty source so a removal-only edit enables Save — toggling
+  // the checkbox must count as a change even when no field text is edited.
+  const removals = $state<Record<string, boolean>>({})
   {
     for (const loc of locales) {
       const row = postTranslations.find(r => r.locale === loc)
@@ -42,6 +49,7 @@
         excerpt: row?.excerpt ?? '',
         content: row?.content ?? ''
       }
+      removals[loc] = false
     }
   }
 
@@ -52,25 +60,27 @@
     coverImageAlt,
     published,
     readingTimeMinutes,
-    translations
+    translations,
+    removals
   }))
   markClean()
-  guardNavigation()
+  // The form element arms the submit bypass — an intentional Save must not be
+  // blocked by the unsaved-changes guard (nor its post-save redirect).
+  let formEl = $state<HTMLFormElement | null>(null)
+  guardNavigation(() => formEl)
 
   function localeName(loc: string): string {
     return LOCALE_CONFIG[loc as keyof typeof LOCALE_CONFIG]?.name ?? loc
   }
 </script>
 
-<PageHeader title={adminT['common.edit'] ?? t('common.edit')}>
-  {#snippet actions()}
-    <a href={ADMIN_ROUTES.blog} class="text-pm-text-muted hover:text-pm-brand text-sm">&larr; {t('common.back')}</a>
-  {/snippet}
-</PageHeader>
-
-<form method="POST" class="flex flex-col gap-6">
-  <input type="hidden" name="_csrf" value={$page.data.csrfToken} />
-
+<AdminEditorPage
+  title={t('common.edit')}
+  backHref={ADMIN_ROUTES.blog}
+  csrfToken={$page.data.csrfToken}
+  bind:formEl={formEl}
+  saveDisabled={!isDirty}
+>
   <AdminFormSection title={adminT['admin.basicInfo'] ?? t('admin.basicInfo')}>
     <div class="grid gap-4 grid-cols-[var(--grid-admin-form)]">
       <FormField
@@ -80,24 +90,21 @@
         error={t(errors.slug?.[0] ?? '')}
         required
       />
-      <div class="flex flex-col gap-1">
-        <label for="field-category" class="text-sm font-medium text-pm-text">{adminT['admin.category'] ?? t('admin.category')}</label>
-        <select id="field-category" name="categoryId" bind:value={categoryId}
-          class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring">
-          <option value="">{t('common.none')}</option>
-          {#each categories as cat}
-            <option value={cat.id}>{cat.slug}</option>
-          {/each}
-        </select>
-      </div>
+      <FormField
+        name="categoryId"
+        type="select"
+        label={adminT['admin.category'] ?? t('admin.category')}
+        options={categoryOptions}
+        bind:value={categoryId}
+      />
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium text-pm-text">{adminT['admin.coverImageUrl'] ?? t('admin.coverImageUrl')}</label>
         <FileUpload
           bind:value={coverImageUrl}
-          dropzoneLabel={t('admin.dropzoneLabel')}
+          dropzoneLabel={adminT['admin.dropzoneLabel'] ?? t('admin.dropzoneLabel')}
           uploadingLabel={t('common.uploading')}
-          tooLargeLabel={t('admin.fileTooLarge')}
-          uploadFailedLabel={t('admin.uploadFailed')}
+          tooLargeLabel={adminT['admin.fileTooLarge'] ?? t('admin.fileTooLarge')}
+          uploadFailedLabel={adminT['admin.uploadFailed'] ?? t('admin.uploadFailed')}
           removeLabel={t('common.remove')}
         />
       </div>
@@ -145,12 +152,11 @@
           value={translations[loc]?.content ?? ''}
           oninput={(e) => { translations[loc] = translations[loc] ?? { title: '', excerpt: '', content: '' }; translations[loc].content = (e.currentTarget as HTMLTextAreaElement).value }}
         />
+        <label class="flex items-center gap-2 text-sm text-pm-text-muted">
+          <input type="checkbox" name={`remove_${loc}`} value="on" bind:checked={removals[loc]} />
+          {adminT['admin.removeTranslation'] ?? t('admin.removeTranslation')}
+        </label>
       </div>
     </AdminFormSection>
   {/each}
-
-  <div class="flex justify-end gap-3">
-    <CtaButton variant="ghost" href={ADMIN_ROUTES.blog}>{t('common.cancel')}</CtaButton>
-    <CtaButton type="submit" variant="primary" disabled={!isDirty}>{t('common.save')}</CtaButton>
-  </div>
-</form>
+</AdminEditorPage>

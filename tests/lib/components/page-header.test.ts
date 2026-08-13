@@ -118,12 +118,11 @@ describe('PageHeader — SSR-visible title (no viewport-based DOM gating)', () =
     expect(h1.className).toContain('text-xl font-bold')
   })
 
-  it('keeps itemCount and actions visible on every viewport (not part of the hidden title block)', () => {
+  it('keeps actions visible on every viewport (not part of the hidden title block)', () => {
     installMatchMedia(false)
     const actions = createRawSnippet(() => ({ render: () => '<button type="button">Add</button>' }))
-    render(PageHeader, { props: { title: 'Users', itemCount: 3, actions } })
+    render(PageHeader, { props: { title: 'Users', actions } })
 
-    expect(screen.getByText('3').textContent).toBe('3')
     expect(screen.getByRole('button', { name: 'Add' })).toBeTruthy()
   })
 })

@@ -7,10 +7,11 @@
    * and only then is normal admin access allowed (/api/user/change-password
    * clears the flag server-side). Non-dismissible by design.
    */
-import { t } from '$lib/stores/content.svelte'
+  import { t } from '$lib/stores/content.svelte'
   import { goto, invalidateAll } from '$app/navigation'
   import { changePassword } from '$lib/api/client'
   import Logo from '$lib/components/atoms/Logo.svelte'
+  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import IconLock from '@tabler/icons-svelte/icons/lock'
   import IconEye from '@tabler/icons-svelte/icons/eye'
   import IconEyeOff from '@tabler/icons-svelte/icons/eye-off'
@@ -161,13 +162,15 @@ import { t } from '$lib/stores/content.svelte'
           {/if}
         </div>
 
-        <button
+        <CtaButton
           type="submit"
+          variant="primary"
+          fullWidth
           disabled={!isValid || isSubmitting}
-          class="w-full py-2.5 px-4 text-sm font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-pm-brand text-pm-white hover:bg-pm-brand-light"
+          class="py-2.5 text-sm font-medium"
         >
           {isSubmitting ? t('common.saving') : t('common.save')}
-        </button>
+        </CtaButton>
       </form>
     </div>
   </div>

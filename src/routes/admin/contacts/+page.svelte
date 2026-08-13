@@ -4,15 +4,20 @@
    */
   import { page } from '$app/stores'
   import { t } from '$lib/stores/content.svelte'
-  import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
+  import { getOverlaysState } from '$lib/stores/overlays.svelte'
+  import { confirmDeleteAction } from '$lib/utils/admin-confirm'
   import { getAdminT } from '$lib/utils/admin-translations'
   import { adminDelete } from '$lib/api/client'
   import { API_ROUTES } from '$lib/utils/api-paths'
+  import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
   import EmptyState from '$lib/components/atoms/EmptyState.svelte'
   import AdminDataTable, {
     type AdminTableColumn
   } from '$lib/components/admin/AdminDataTable.svelte'
+  import IconButton from '$lib/components/atoms/IconButton.svelte'
+  import AdminRowActions from '$lib/components/atoms/AdminRowActions.svelte'
+  import InlineBannerAction from '$lib/components/atoms/InlineBannerAction.svelte'
   import Pagination from '$lib/components/molecules/Pagination.svelte'
   import IconEye from '@tabler/icons-svelte/icons/eye'
   import IconEyeOff from '@tabler/icons-svelte/icons/eye-off'
@@ -24,6 +29,7 @@
   let { data }: { data: PageData } = $props()
   const items = $derived(data.items)
   const adminT = $derived(getAdminT($page.data))
+  const overlays = getOverlaysState()
   let deletePending = $state<number | null>(null)
   let deleteError = $state<string | null>(null)
   let currentPage = $state(data.pagination?.page ?? 1)
@@ -57,7 +63,8 @@
 
   async function handleDelete(id: number, name: string) {
     const msg = adminT['admin.confirmDelete'] ?? t('common.areYouSure')
-    if (!confirm(msg + ' "' + name + '"?')) return
+    const confirmed = await confirmDeleteAction(overlays, `${msg} "${name}"?`)
+    if (!confirmed) return
     deletePending = id
     deleteError = null
     try {
@@ -77,16 +84,16 @@
 </script>
 
 <div class="max-w-[var(--max-w-content)] mx-auto">
-  <PageHeader title={adminT['admin.contacts'] ?? t('admin.contacts')} itemCount={items.length} />
+  <PageHeader title={adminT['admin.contacts'] ?? t('admin.contacts')} />
 
   {#if deleteError}
     <div
       class="mb-4 p-3 bg-pm-danger-bg border border-pm-danger rounded-[var(--radius-lg)] text-sm text-pm-danger"
     >
       {deleteError}
-      <button onclick={() => (deleteError = null)} class="ms-2 underline hover:no-underline">
+      <InlineBannerAction onclick={() => (deleteError = null)}>
         {t('common.dismiss')}
-      </button>
+      </InlineBannerAction>
     </div>
   {/if}
 
@@ -132,35 +139,33 @@
         {/snippet}
         {#snippet actions(item)}
           {@const row = item as { id: number; name: string; read: boolean }}
-          <div class="flex items-center justify-end gap-1">
+          <AdminRowActions>
             {#if row.read}
-              <button
+              <IconButton
                 onclick={() => handleToggleRead(row)}
-                class="p-1.5 rounded-md text-pm-text-muted hover:text-pm-brand hover:bg-pm-bg-sunken transition-colors"
                 title={adminT['admin.markUnread'] ?? t('admin.markUnread')}
-                aria-label={adminT['admin.markUnread'] ?? t('admin.markUnread')}
+                ariaLabel={adminT['admin.markUnread'] ?? t('admin.markUnread')}
               >
                 <IconEyeOff class="size-4" />
-              </button>
+              </IconButton>
             {:else}
-              <button
+              <IconButton
                 onclick={() => handleToggleRead(row)}
-                class="p-1.5 rounded-md text-pm-text-muted hover:text-pm-brand hover:bg-pm-bg-sunken transition-colors"
                 title={adminT['admin.markRead'] ?? t('admin.markRead')}
-                aria-label={adminT['admin.markRead'] ?? t('admin.markRead')}
+                ariaLabel={adminT['admin.markRead'] ?? t('admin.markRead')}
               >
                 <IconEye class="size-4" />
-              </button>
+              </IconButton>
             {/if}
-            <button
-              onclick={() => handleDelete(row.id, row.name)}
+            <IconButton
+              variant="danger"
+              ariaLabel={t('common.delete')}
               disabled={deletePending === row.id}
-              class="p-1.5 rounded-md text-pm-text-muted hover:text-pm-danger hover:bg-pm-bg-sunken transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              aria-label={t('common.delete')}
+              onclick={() => handleDelete(row.id, row.name)}
             >
               <IconTrash class="size-4" />
-            </button>
-          </div>
+            </IconButton>
+          </AdminRowActions>
         {/snippet}
       </AdminDataTable>
     {/if}

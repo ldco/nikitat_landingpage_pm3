@@ -10,6 +10,19 @@
    *
    * Rule #1: class prop + twMerge
    * Rule #3: strict union types
+   *
+   * @props {'primary'|'secondary'|'outline'|'ghost'|'danger'|'ghost-danger'} [variant='primary'] — button variant
+   * @props {'sm'|'md'|'lg'|'compact'} [size='md'] — button size
+   * @props {string} [href] — render an anchor instead of a button
+   * @props {'button'|'submit'|'reset'} [type='button'] — button type
+   * @props {boolean} [disabled=false] — disabled state (button only)
+   * @props {boolean} [fullWidth=false] — stretch to full container width
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   * @props {(e: MouseEvent) => void} [onclick] — click handler
+   * @props {Snippet} children — button label/content
+   *
+   * @example
+   * <CtaButton href="#contact" variant="primary" size="lg">{t('cta.primaryButton')}</CtaButton>
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

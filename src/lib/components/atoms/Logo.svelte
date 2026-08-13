@@ -11,6 +11,15 @@
    * a hardcoded language)
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {'horizontal'|'circle'} [shape='horizontal'] — logo shape variant
+   * @props {string} [locale] — override the active locale (defaults to current locale)
+   * @props {'light'|'dark'} [theme] — override the active theme (defaults to theme store)
+   * @props {string} [alt=''] — image alt text
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <Logo shape="circle" alt={t('common.logoAlt')} />
    */
   import { browser } from '$app/environment'
   import { onMount } from 'svelte'

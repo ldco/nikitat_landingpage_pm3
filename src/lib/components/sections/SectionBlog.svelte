@@ -2,6 +2,9 @@
   /**
   * SectionBlog — Blog posts grid (PM3 rule 6)
  *
+ * @props {Array<{slug: string; title: string; excerpt?: string; coverImageUrl?: string; publishedAt?: string}>} [posts=[]] — blog posts to display in the grid
+ * @props {string} [class] — additional CSS classes merged via twMerge
+ *
  * @example <SectionBlog />
   */
   import { t } from '$lib/stores/content.svelte'

@@ -9,7 +9,7 @@ const BUILT_IN_ROLES = [
       sections: true, blog: true, portfolios: true, team: true, testimonials: true,
       faq: true, clients: true, pricing: true, features: true, contacts: true } },
   { name: 'Admin', slug: 'admin', level: 50, color: 'primary' as const,
-    permissions: { users: false, roles: false, translations: true, settings: true, health: false,
+    permissions: { users: true, roles: false, translations: true, settings: true, health: false,
       sections: true, blog: true, portfolios: true, team: true, testimonials: true,
       faq: true, clients: true, pricing: true, features: true, contacts: true } },
   { name: 'Editor', slug: 'editor', level: 25, color: 'secondary' as const,

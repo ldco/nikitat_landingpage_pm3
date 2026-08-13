@@ -9,6 +9,9 @@
    * @props {string} [accept='image/*'] — accepted file types
    * @props {number} [maxSize=10485760] — max file size in bytes (default 10MB)
    * @props {string} value — current file URL (two-way bindable)
+   * @props {string} [thumbnailUrl=''] — thumbnail URL returned by the upload
+   *   endpoint (two-way bindable; image uploads only — video endpoints do not
+   *   generate thumbnails)
    * @props {string} [endpoint=API_ROUTES.upload.image] — upload endpoint
    * @props {string} [dropzoneLabel=''] — drop zone prompt text
    * @props {string} [uploadingLabel=''] — uploading state text
@@ -37,6 +40,7 @@
     accept = 'image/*',
     maxSize = 10 * 1024 * 1024,
     value = $bindable(''),
+    thumbnailUrl = $bindable(''),
     endpoint = API_ROUTES.upload.image,
     dropzoneLabel = '',
     uploadingLabel = '',
@@ -48,6 +52,7 @@
     accept?: string
     maxSize?: number
     value?: string
+    thumbnailUrl?: string
     endpoint?: string
     dropzoneLabel?: string
     uploadingLabel?: string
@@ -91,6 +96,7 @@
         throw new Error()
       }
       value = (json.data?.url as string) ?? ''
+      thumbnailUrl = (json.data?.thumbnailUrl as string) ?? ''
     } catch {
       uploadError = uploadFailedLabel
     } finally {
@@ -112,6 +118,7 @@
 
   function clearValue(): void {
     value = ''
+    thumbnailUrl = ''
     uploadError = ''
   }
 </script>

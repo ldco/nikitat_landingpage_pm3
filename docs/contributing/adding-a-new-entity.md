@@ -132,6 +132,37 @@ Admin form contract (rule C9):
 - Page renders `$page.form.fieldErrors`
 - Plain `<form method="POST">` — SvelteKit form actions, NOT fetch
 
+Admin editor shell (shared pattern — do NOT hand-assemble):
+- Wrap the create/edit form in `<AdminEditorPage>` (`src/lib/components/molecules/AdminEditorPage.svelte`)
+  — it produces back navigation, the page title, the `<form method="POST">` element,
+  the `_csrf` hidden input and the footer Cancel/Save row from one pattern.
+- Back navigation: `backHref` (the entity list route) — never a raw `<a>&larr; Back</a>`.
+- Page titles follow ONE convention: create pages pass `t('common.create')`, edit pages
+  pass `t('common.edit')`. Never mix generic and entity-specific wording.
+- Edit pages pass `bind:formEl` and `saveDisabled={!isDirty}` (dirty-guard bypass);
+  create pages omit them.
+- List pages use `AdminCreateButton` for the primary action, `AdminRowActions` for the
+  table row actions (canonical edit icon: `IconPencil`), and `InlineBannerAction` for
+  dismiss/retry links in banner alerts.
+
+## Admin editing-surface contract (modal vs page)
+
+There are exactly two allowed editing surfaces in the admin. Choose by the form's
+shape — never arbitrarily (see `src/routes/admin/users`, `roles` for modal examples
+and `blog`, `pricing`, `faq`, `features`, `portfolios` for page examples).
+
+| Editing surface | Use when | Examples |
+|---|---|---|
+| Dedicated edit page (`AdminEditorPage`) | The form has multiple sections (per-locale panels, repeatable sub-records, file uploads) OR more than ~8 fields, needs deep-linkable URLs, or full-page SSR validation (`fail(400, { fieldErrors })`) | blog, pricing, faq, features, portfolios |
+| Modal editor (`AdminModal`) | A single-record form with a handful of fields (< ~8) that stays in the list context (quick inline edit, the list must remain visible) | users, roles, translation keys, portfolio items |
+
+If a new entity's form grows past the modal criteria (multiple sections or ~8+
+fields), move it to a dedicated page — do not stretch the modal. If it fits the
+modal criteria, keep it in the list context. The shared abstractions for both
+surfaces are `AdminEditorPage` (page) and `AdminModal` (modal); row/header actions
+use the admin action primitives (`AdminBackButton`, `AdminCreateButton`,
+`AdminRowActions`, `InlineBannerAction`).
+
 ---
 
 ## 6. Delete Routing — `src/routes/admin/api/+server.ts`

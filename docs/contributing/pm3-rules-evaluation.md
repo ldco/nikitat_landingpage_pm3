@@ -181,6 +181,8 @@
 **Recommendation:** ✨ **ADD**
 > Every exported component has a JSDoc comment: (1) one-line description, (2) `@props` listing all props with types and defaults, (3) `@example` showing minimal usage. AI uses this to generate correct component composition.
 
+**✅ Now ENFORCED:** `scripts/pm3-validator.mjs` check #13 fails on any exported component under `src/lib/components/**` or `src/project/**` missing a description, `@props` or `@example` (AGENTS.md rule 7).
+
 ---
 
 ## Summary
@@ -199,7 +201,7 @@
 | 10 | Route Contract — Server Load Type | ✨ ADD |
 | 11 | Zod on ALL Public Endpoints | ✨ ADD |
 | 12 | Error Response Contract | ✨ ADD |
-| 13 | Component Documentation Contract | ✨ ADD |
+| 13 | Component Documentation Contract | ✨ ADD → ✅ ENFORCED (validator check #13) |
 
 **Current rules: 5 (all need at least scoping refinement)**
 **Missing rules: 8**

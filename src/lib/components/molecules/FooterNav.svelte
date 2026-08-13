@@ -7,6 +7,11 @@
    * Uses NAV_ITEMS from site config.
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <FooterNav />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

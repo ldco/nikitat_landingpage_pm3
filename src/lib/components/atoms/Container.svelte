@@ -8,6 +8,15 @@
    * Fluid padding: clamp(1rem, 3vw, 3rem) — applied to all widths except bleed
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {'default'|'narrow'|'wide'|'prose'|'content'|'full'|'bleed'} [width='default'] — content width
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   * @props {Snippet} children — container content
+   *
+   * @example
+   * <Container width="narrow">
+   *   <p>Content</p>
+   * </Container>
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

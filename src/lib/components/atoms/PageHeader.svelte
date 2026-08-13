@@ -7,6 +7,16 @@
    * actions right, wraps on mobile, mb-8 (32px) bottom spacing like PM2.
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {string} [title] — page heading
+   * @props {string} [subtitle] — supporting text under the heading
+   * @props {'default'|'sm'} [size='default'] — heading size
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   * @props {Snippet} [actions] — action buttons row
+   * @props {Snippet} [children] — extra content under the subtitle
+   *
+   * @example
+   * <PageHeader title={t('admin.items')} />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
@@ -17,7 +27,6 @@
     title,
     subtitle,
     size = 'default',
-    itemCount,
     class: className = '',
     actions,
     children
@@ -25,7 +34,6 @@
     title?: string
     subtitle?: string
     size?: Size
-    itemCount?: number
     class?: string
     actions?: import('svelte').Snippet
     children?: import('svelte').Snippet
@@ -57,14 +65,9 @@
       {@render children()}
     {/if}
   </div>
-  {#if actions || itemCount !== undefined}
+  {#if actions}
     <div class="flex gap-2 items-center flex-shrink-0">
-      {#if itemCount !== undefined}
-        <span class="text-sm text-pm-text-muted">{itemCount}</span>
-      {/if}
-      {#if actions}
-        {@render actions()}
-      {/if}
+      {@render actions()}
     </div>
   {/if}
 </div>

@@ -2,6 +2,9 @@
   /**
   * SectionFaq — FAQ accordion (PM3 rule 6)
  *
+ * @props {Array<{id: number; question: string; answer: string}>} [items=[]] — FAQ items to render in the accordion
+ * @props {string} [class] — additional CSS classes merged via twMerge
+ *
  * @example <SectionFaq />
   */
   import { clsx } from 'clsx'

@@ -105,6 +105,18 @@ export type PortfolioItemSubtype = (typeof PORTFOLIO_ITEM_SUBTYPES)[number]
 export const PORTFOLIO_ITEM_TYPES = ['image', 'video', 'link', 'case_study'] as const
 export type PortfolioItemType = (typeof PORTFOLIO_ITEM_TYPES)[number]
 
+// Canonical per-type payload for portfolio_items.metadata (PM v2 parity):
+// branding / brandbook / website declare their own JSON shape; gallery and
+// case_study keep the legacy flat columns. The Zod schemas + parse helper live
+// in $lib/portfolio-metadata — the single source used by the admin forms,
+// page/API validation, and the public viewers.
+export type {
+  BrandingItemMetadata,
+  BrandbookItemMetadata,
+  WebsiteItemMetadata,
+  PortfolioItemMetadata
+} from '$lib/portfolio-metadata'
+
 export const portfolios = sqliteTable('portfolios', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   slug: text('slug').notNull().unique(),
@@ -445,6 +457,11 @@ export const translations = sqliteTable('translations', {
   key: text('key').notNull(),
   value: text('value').notNull(),
   type: text('type', { enum: ['system', 'content'] }).default('content').notNull(),
+  // Set when a row is written through the admin translations editor
+  // (setTranslation). The deploy/boot catalog sync (forceSystemSync) skips
+  // customized rows, so an admin-edited system string survives restarts while
+  // untouched rows still receive catalog corrections.
+  customized: integer('customized', { mode: 'boolean' }).notNull().default(false),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
 }, table => [unique().on(table.locale, table.key)])
 

@@ -5,6 +5,11 @@
    * Matches original PM2 header: fixed top, z-[var(--z-fixed)], border-bottom,
    * inner content constrained to container-max, nav links with
    * header-column-gap spacing. Logo via Logo component.
+   *
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <TheHeader />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

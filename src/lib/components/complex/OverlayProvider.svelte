@@ -11,6 +11,11 @@
    *
    * Replaces the previous pattern where ToastContainer held its own local
    * state (PM v2 useToast/useConfirm parity — see stores/overlays.svelte.ts).
+   *
+   * @props {Snippet} children — page content rendered inside the provider
+   *
+   * @example
+   * <OverlayProvider><App /></OverlayProvider>
    */
   import { setOverlaysContext } from '$lib/stores/overlays.svelte'
   import ToastContainer from './ToastContainer.svelte'

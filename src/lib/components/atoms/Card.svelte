@@ -23,6 +23,12 @@
    * @props children/header/footer/image/actions — content snippets
    *
    * Rule #1: class prop + twMerge
+   *
+   * @example
+   * <Card hover>
+   *   <h3>Title</h3>
+   *   <p>Body content</p>
+   * </Card>
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

@@ -7,8 +7,7 @@
   import { page } from '$app/stores'
   import { getAdminT } from '$lib/utils/admin-translations'
   import { LOCALE_CONFIG } from '$lib/config/site'
-  import PageHeader from '$lib/components/atoms/PageHeader.svelte'
-  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import AdminEditorPage from '$lib/components/molecules/AdminEditorPage.svelte'
   import FormField from '$lib/components/atoms/FormField.svelte'
   import AdminFormSection from '$lib/components/molecules/AdminFormSection.svelte'
   import type { PageData } from './$types'
@@ -36,15 +35,11 @@
   }
 </script>
 
-<PageHeader title={t('common.create')}>
-  {#snippet actions()}
-    <a href={ADMIN_ROUTES.faq} class="text-pm-text-muted hover:text-pm-brand text-sm">&larr; {t('common.back')}</a>
-  {/snippet}
-</PageHeader>
-
-<form method="POST" class="flex flex-col gap-6">
-  <input type="hidden" name="_csrf" value={$page.data.csrfToken} />
-
+<AdminEditorPage
+  title={t('common.create')}
+  backHref={ADMIN_ROUTES.faq}
+  csrfToken={$page.data.csrfToken}
+>
   <AdminFormSection title={adminT['admin.basicInfo'] ?? t('admin.basicInfo')}>
     <div class="grid gap-4 grid-cols-[var(--grid-admin-form)]">
       <FormField
@@ -96,9 +91,4 @@
       </div>
     </AdminFormSection>
   {/each}
-
-  <div class="flex justify-end gap-3">
-    <CtaButton variant="ghost" href={ADMIN_ROUTES.faq}>{t('common.cancel')}</CtaButton>
-    <CtaButton type="submit" variant="primary">{t('common.save')}</CtaButton>
-  </div>
-</form>
+</AdminEditorPage>

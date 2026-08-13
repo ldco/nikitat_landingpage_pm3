@@ -10,14 +10,16 @@
   import { twMerge } from 'tailwind-merge'
   import AppImage from '$lib/components/atoms/AppImage.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
-import { t } from '$lib/stores/content.svelte'
+  import { t } from '$lib/stores/content.svelte'
   let {
     title = '',
     pages = [] as Array<{ url: string; caption?: string }>,
+    pdfUrl = '',
     class: className = ''
   }: {
     title?: string
     pages?: Array<{ url: string; caption?: string }>
+    pdfUrl?: string
     class?: string
   } = $props()
 
@@ -54,6 +56,14 @@ import { t } from '$lib/stores/content.svelte'
       </CtaButton>
       <CtaButton variant="ghost" size="sm" onclick={next} disabled={currentPage >= total - 1}>
         {t('common.next')}
+      </CtaButton>
+    </div>
+  {/if}
+
+  {#if pdfUrl}
+    <div class="flex justify-center">
+      <CtaButton variant="secondary" size="sm" href={pdfUrl}>
+        {t('portfolio.pdfDownload')}
       </CtaButton>
     </div>
   {/if}

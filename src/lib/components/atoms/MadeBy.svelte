@@ -13,6 +13,14 @@
    * locale has no URL prefix.
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {string} [text=t('footer.madeBy')] — attribution label
+   * @props {string} [url='https://fabrica22.pro'] — developer link target
+   * @props {string} [basePath='/madebylogos'] — made-by logo asset base path
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <MadeBy />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

@@ -99,6 +99,26 @@ export function getUserByEmail(email: string) {
   return db.select().from(schema.users).where(eq(schema.users.email, email)).get() ?? null
 }
 
+/** Reason a user-deletion request is rejected, or null when it may proceed. */
+export type UserDeleteViolation = 'self_delete' | 'not_found' | 'master_protected'
+
+/**
+ * Single guard for EVERY user-deletion surface (the users page `?/delete`
+ * form action AND the `/admin/api` cascade delete) so the two paths can never
+ * drift: an actor may not delete their own account, a non-master may not
+ * delete a master account, and the target must exist.
+ */
+export function resolveUserDeleteViolation(
+  actor: { id: number; role: string },
+  targetId: number
+): UserDeleteViolation | null {
+  if (targetId === actor.id) return 'self_delete'
+  const target = getUserById(targetId)
+  if (!target) return 'not_found'
+  if (target.role === 'master' && actor.role !== 'master') return 'master_protected'
+  return null
+}
+
 /**
  * Resolve the effective role slug for a user id — the stored role's slug when
  * roleId is set, else the legacy enum. Used by the login response so the
@@ -141,6 +161,27 @@ export function resolveRoleToPersist(
     role: LEGACY_ROLES.has(slug) ? (slug as 'master' | 'admin' | 'editor') : 'editor',
     roleId: linkedId
   }
+}
+
+/**
+ * True when a resolved-to-persist role identity matches the target user's
+ * CURRENT role identity — the self-edit guard's "role unchanged" check.
+ *
+ * The legacy `role` field alone cannot identify a role: a custom role's slug
+ * resolves to the legacy fallback 'editor', so comparing slugs would reject an
+ * unchanged custom-role resubmit. Compare the roles-table id when BOTH sides
+ * carry one (the exact identity that survives custom slugs); fall back to the
+ * effective slug only when either side has no roles-table row (legacy enum
+ * users, or a slug with no roles-table match).
+ */
+export function isSameRoleIdentity(
+  existing: { role: string; roleId: number | null },
+  persist: { role: string; roleId: number | null }
+): boolean {
+  if (existing.roleId !== null && persist.roleId !== null) {
+    return existing.roleId === persist.roleId
+  }
+  return existing.role === persist.role
 }
 
 /** Fetch a roles row by id (used by the users API to resolve roleId input). */

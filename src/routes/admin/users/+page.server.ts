@@ -8,7 +8,9 @@ import {
   getUserByEmail,
   getUsers,
   getAllRoles,
-  resolveRoleToPersist
+  isSameRoleIdentity,
+  resolveRoleToPersist,
+  resolveUserDeleteViolation
 } from '$lib/server/services'
 import { hashPassword, validatePassword, DEFAULT_PASSWORD_POLICY } from '$lib/server/auth/password'
 import { resetFailedAttempts } from '$lib/server/auth/lockout'
@@ -106,7 +108,15 @@ export const actions: Actions = {
     redirect(303, ADMIN_ROUTES.users)
   },
 
-  /** Update email/name/role and optionally reset the password (policy-checked). */
+  /**
+   * Update email/name/role and optionally reset the password (policy-checked).
+   *
+   * The currently logged-in account may edit ITSELF for non-privilege fields
+   * (email/name/password) — the client keeps the edit action enabled for the
+   * actor's own row. A self-edit may never change the actor's own role (a
+   * self-role change or self-demotion would let an account grant or revoke its
+   * own privileges), so that is rejected with a field error.
+   */
   update: async event => {
     const actor = requireAdminPage(event, 'users')
     const form = event.locals.csrfForm ?? (await event.request.formData())
@@ -122,13 +132,20 @@ export const actions: Actions = {
     }
 
     const id = parsed.data.id
-    if (id === actor.id)
-      return fail(400, { fieldErrors: { id: ['apiErrors.admin.users.invalidId'] } })
     const db = useDatabase()
     const existing = getUserById(id)
     if (!existing) return fail(404, { fieldErrors: { id: ['apiErrors.admin.users.notFound'] } })
     if (existing.role === 'master' && actor.role !== 'master') {
       return fail(403, { fieldErrors: { role: ['apiErrors.admin.users.accessDenied'] } })
+    }
+
+    // Duplicate-email guard (create-action parity): another account holding
+    // the submitted email would trip the users.email UNIQUE constraint inside
+    // the unguarded write below (a 500). Excluding the edited id makes a
+    // no-op resubmit (same email) pass.
+    const emailOwner = getUserByEmail(parsed.data.email)
+    if (emailOwner && emailOwner.id !== id) {
+      return fail(409, { fieldErrors: { email: ['apiErrors.admin.users.emailExists'] } })
     }
 
     const passwordErrors = parsed.data.password ? passwordPolicyErrors(parsed.data.password) : []
@@ -137,6 +154,22 @@ export const actions: Actions = {
     }
 
     const persist = resolveRoleToPersist(parsed.data.role)
+    const isSelf = id === actor.id
+    if (isSelf) {
+      // Self-edit: role must be unchanged — no self-role changes, no
+      // self-demotion. Non-privilege fields (email/name/password) are allowed.
+      // The identity comparison (roles-table id, slug fallback) accepts an
+      // unchanged CUSTOM role resubmit — its legacy fallback role is always
+      // 'editor', so comparing the legacy field alone would reject it.
+      if (!isSameRoleIdentity({ role: existing.role, roleId: existing.roleId }, persist)) {
+        return fail(400, { fieldErrors: { role: ['apiErrors.admin.users.selfRoleChange'] } })
+      }
+    } else if (persist.role === 'master' && actor.role !== 'master') {
+      // Only master can create or promote to master (create-action parity): the
+      // target's CURRENT role check above is not enough — an admin must not be
+      // able to promote any non-master account to master through an update.
+      return fail(403, { fieldErrors: { role: ['apiErrors.admin.users.accessDenied'] } })
+    }
     const updateValues: Record<string, unknown> = {
       email: parsed.data.email,
       name: parsed.data.name || null,
@@ -171,19 +204,21 @@ export const actions: Actions = {
     if (!parsed.success) return fail(400, { fieldErrors: parsed.error.flatten().fieldErrors })
 
     const id = parsed.data.id
-    if (id === actor.id)
+    // Shared with the /admin/api cascade delete — the two surfaces can never drift.
+    const violation = resolveUserDeleteViolation(actor, id)
+    if (violation === 'self_delete')
       return fail(400, { fieldErrors: { id: ['apiErrors.admin.users.invalidId'] } })
+    if (violation === 'not_found')
+      return fail(404, { fieldErrors: { id: ['apiErrors.admin.users.notFound'] } })
+    if (violation === 'master_protected')
+      return fail(403, { fieldErrors: { id: ['apiErrors.admin.users.accessDenied'] } })
+
     const db = useDatabase()
     const existing = getUserById(id)
-    if (!existing) return fail(404, { fieldErrors: { id: ['apiErrors.admin.users.notFound'] } })
-    if (existing.role === 'master' && actor.role !== 'master') {
-      return fail(403, { fieldErrors: { id: ['apiErrors.admin.users.accessDenied'] } })
-    }
-
     db.delete(schema.users).where(eq(schema.users.id, id)).run()
     const ip = getClientIp(event)
     const ua = event.request.headers.get('user-agent')
-    audit.userDelete(ip, ua, actor.id, id, existing.email)
+    audit.userDelete(ip, ua, actor.id, id, existing?.email ?? '')
 
     redirect(303, ADMIN_ROUTES.users)
   },

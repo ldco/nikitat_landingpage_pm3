@@ -12,6 +12,7 @@ import { t } from '$lib/stores/content.svelte'
   import { getOverlaysState } from '$lib/stores/overlays.svelte'
   import type { PageData } from './$types'
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
+  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import ChangePasswordModal from '$lib/components/molecules/ChangePasswordModal.svelte'
   import TwoFactorSetup from '$lib/components/molecules/TwoFactorSetup.svelte'
   import FormField from '$lib/components/atoms/FormField.svelte'
@@ -90,13 +91,13 @@ import { t } from '$lib/stores/content.svelte'
           <p class="text-sm text-pm-text-muted">{data.user?.email}</p>
         </div>
       </div>
-      <button
-        type="button"
+      <CtaButton
+        variant="primary"
         onclick={() => changePasswordOpen = true}
-        class="w-fit px-4 py-2 rounded-md bg-pm-brand text-pm-white text-sm font-medium hover:bg-pm-brand-light transition-colors"
+        class="w-fit text-sm font-medium"
       >
         {t('auth.changePassword')}
-      </button>
+      </CtaButton>
     </section>
 
     <!-- Two-Factor Authentication -->
@@ -136,25 +137,26 @@ import { t } from '$lib/stores/content.svelte'
             error={disableError}
             required
           />
-          <button
+          <CtaButton
             type="submit"
+            variant="ghost-danger"
             disabled={disabling || !disablePassword}
-            class="w-fit px-4 py-2 rounded-md border border-pm-danger text-pm-danger text-sm font-medium hover:bg-pm-danger hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            class="w-fit text-sm font-medium border border-pm-danger text-pm-danger hover:bg-pm-danger hover:text-white"
           >
             {disabling ? t('common.loading') : t('auth.twoFactor.disable')}
-          </button>
+          </CtaButton>
         </form>
       {:else}
         {#if twoFactorSetupOpen}
           <TwoFactorSetup onEnabled={on2faEnabled} onCancelled={() => twoFactorSetupOpen = false} />
         {:else}
-          <button
-            type="button"
+          <CtaButton
+            variant="primary"
             onclick={() => { setupDone = false; twoFactorSetupOpen = true }}
-            class="w-fit px-4 py-2 rounded-md bg-pm-brand text-pm-white text-sm font-medium hover:bg-pm-brand-light transition-colors"
+            class="w-fit text-sm font-medium"
           >
             {t('auth.twoFactor.setupTitle')}
-          </button>
+          </CtaButton>
         {/if}
         {#if setupDone}
           <p class="flex items-center gap-2 text-sm text-pm-success">

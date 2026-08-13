@@ -53,6 +53,11 @@ COPY . .
 # SvelteKit adapter-node outputs to .output/
 RUN npm run build
 
+# Bundle the boot-time translation sync (plain-node ESM artifact shipped in the
+# runtime image — no tsx/source needed at boot; runs after migrations to apply
+# the canonical i18n catalog to the DB, gated by PM_SYNC_TRANSLATIONS_ON_BOOT).
+RUN npm run build:sync-translations
+
 # ============================================
 # Stage 3: Production
 # ============================================
@@ -83,6 +88,10 @@ RUN chmod +x /app/scripts/docker-entrypoint.sh
 
 # Create runtime directories
 RUN mkdir -p /app/data /app/i18n && chown -R sveltekit:nodejs /app/data /app/i18n
+
+# Project content catalog — read at boot by the translation sync
+# (scripts/sync-translations.ts → src/project/content.json) for content backfill.
+COPY --from=builder --chown=sveltekit:nodejs /app/src/project/content.json ./src/project/content.json
 
 # Copy Drizzle migrations and seed data — /app/drizzle is the single shipped
 # migration directory (docker-migrate.mjs resolves it relative to process.cwd()).

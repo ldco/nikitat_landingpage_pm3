@@ -1,34 +1,12 @@
 import type { LayoutServerLoad } from './$types'
 import { redirect } from '@sveltejs/kit'
 import { getAdminTranslations } from '$lib/server/db/translations-cache'
+import { getAdminKeysForRoute } from '$lib/server/admin-route-keys'
 import { getUnreadCount } from '$lib/server/services/contact'
 import { getAuthorizedAdminPages } from '$lib/server/utils/admin-rbac'
 import { CSRF_COOKIE_NAME } from '$lib/server/security/csrf'
 import { detectAdminLocale } from '$lib/server/utils/locales'
 import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
-
-const LAYOUT_KEYS = [
-  'admin.dashboard', 'admin.portfolios', 'admin.blog', 'admin.faq',
-  'admin.features', 'admin.pricing', 'admin.team', 'admin.testimonials',
-  'admin.clients', 'admin.contacts', 'admin.users', 'admin.roles',
-  'admin.settings', 'admin.translations', 'admin.health', 'admin.legal',
-  'admin.sections', 'admin.navPortfolio', 'admin.navBlog', 'admin.navFaq',
-  'admin.navFeatures', 'admin.navPricing', 'admin.navTeam', 'admin.navTestimonials',
-  'admin.navClients', 'admin.navContacts', 'admin.navUsers', 'admin.navRoles',
-  'admin.navSettings', 'admin.navTranslations', 'admin.navHealth', 'admin.navLegal',
-  'admin.navSections', 'admin.title', 'admin.titleSuffix', 'admin.welcome',
-  'admin.userMenu', 'admin.role', 'admin.email', 'admin.password',
-  'admin.confirmDelete', 'admin.published', 'admin.draft', 'admin.actions',
-  'admin.name', 'admin.slug', 'admin.status', 'admin.date',
-  'admin.noItems', 'admin.total', 'admin.portfolioType', 'admin.description',
-  'admin.create', 'admin.edit', 'admin.save', 'admin.back',
-  'admin.deleteItem', 'admin.editItem', 'admin.price', 'admin.customPrice',
-  'admin.portfolio', 'admin.portfolioName', 'admin.category', 'admin.tags',
-  'admin.managePortfolio', 'admin.noPortfolios', 'admin.order', 'admin.description',
-  'admin.security', 'admin.auditLog'
-]
-
-const EXTRA_KEYS = ['validation.required', 'common.error']
 
 let _unreadCache: { count: number; at: number } | null = null
 const UNREAD_TTL_MS = 10_000
@@ -44,8 +22,12 @@ function getCachedUnreadCount(): number {
 }
 
 export const load: LayoutServerLoad = (event) => {
-  if (event.url.pathname === ADMIN_ROUTES.login) return { unreadCount: 0 }
-  if (event.url.pathname === ADMIN_ROUTES.changePassword) return { unreadCount: 0 }
+  // Resolve the admin locale on EVERY layout path so the field is guaranteed
+  // for the whole admin shell (pages rely on data.locale, e.g. RTL direction
+  // and date formatting — no client-side language-code fallbacks).
+  const locale = detectAdminLocale(event)
+  if (event.url.pathname === ADMIN_ROUTES.login) return { unreadCount: 0, locale }
+  if (event.url.pathname === ADMIN_ROUTES.changePassword) return { unreadCount: 0, locale }
 
   if (!event.locals.user) {
     redirect(302, ADMIN_ROUTES.login)
@@ -57,12 +39,19 @@ export const load: LayoutServerLoad = (event) => {
 
   const csrfToken = event.cookies.get(CSRF_COOKIE_NAME) ?? ''
 
-  const locale = detectAdminLocale(event)
+  // Route-scoped admin translation map (per-key merged over the default locale
+  // by getAdminTranslations). Every admin page resolves its labels from this
+  // map via getAdminT($page.data) — a page key missing from the map would fall
+  // back to raw keys or a different language mix, so only keys the current
+  // route actually uses are dropped from the payload (see
+  // $lib/server/admin-route-keys — drift-guarded by a test). An unregistered
+  // route keeps the full map: labels stay correct while the registry is
+  // updated.
   const all = getAdminTranslations(locale)
-  const t: Record<string, string> = {}
-  for (const key of [...LAYOUT_KEYS, ...EXTRA_KEYS]) {
-    if (all[key]) t[key] = all[key]
-  }
+  const routeKeys = getAdminKeysForRoute(event.route?.id ?? '')
+  const t = routeKeys
+    ? Object.fromEntries(Object.entries(all).filter(([key]) => routeKeys.has(key)))
+    : all
 
   return {
     user: event.locals.user,

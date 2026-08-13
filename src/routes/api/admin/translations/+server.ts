@@ -1,16 +1,25 @@
 import { error, json } from '@sveltejs/kit'
 import { z } from 'zod'
-import { getAdminTranslations } from '$lib/server/db/translations-cache'
+import { getAdminTranslations, getRawLocaleTranslations } from '$lib/server/db/translations-cache'
 import { invalidateContentCache } from '$lib/server/db/content-cache'
 import { invalidateTranslationCache } from '$lib/server/db/translations-cache'
-import { setTranslation, isSystemKey } from '$lib/server/services'
+import { setTranslation, assertCanEditSystemKey } from '$lib/server/services'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { localeSchema } from '$lib/server/utils/validation'
 import { DEFAULT_LOCALE } from '$lib/config/site'
 import type { RequestEvent } from '@sveltejs/kit'
 
 const querySchema = z.object({
-  locale: localeSchema.default(DEFAULT_LOCALE)
+  locale: localeSchema.default(DEFAULT_LOCALE),
+  // raw=true returns the locale's ACTUAL rows (no per-key fallback merge) —
+  // the translations editor must see missing rows as missing, not masked by
+  // the display fallback. Parsed strictly so ?raw=false means "merged display
+  // map" (Boolean coercion would treat 'false' as raw mode).
+  raw: z
+    .string()
+    .optional()
+    .default('false')
+    .transform(v => v === 'true')
 })
 
 const createSchema = z.object({
@@ -23,7 +32,10 @@ export function GET(event: RequestEvent) {
   requireAdminPage(event, 'translations')
   const parsed = querySchema.safeParse(Object.fromEntries(event.url.searchParams))
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
-  const t = getAdminTranslations(parsed.data.locale)
+  // Display reader for the admin shell (merged) vs the editor's raw rows.
+  const t = parsed.data.raw
+    ? getRawLocaleTranslations(parsed.data.locale)
+    : getAdminTranslations(parsed.data.locale)
   return json(t)
 }
 
@@ -39,14 +51,16 @@ export async function POST(event: RequestEvent) {
   if (!body) throw error(400)
   const parsed = createSchema.safeParse(body)
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
-  // System-key guard: lower roles (editor) cannot create system translations
-  // even if they have page access. The UI convenience lock relies on this.
-  if (isSystemKey(parsed.data.key) && actor.role !== 'master' && actor.role !== 'admin') {
-    throw error(403, 'Only master or admin can edit system translations')
-  }
+  // System-key guard: only the master role may create system translations
+  // (PM v2 parity — the admin guide reserves system keys for masters). The
+  // UI convenience lock relies on this.
+  assertCanEditSystemKey(actor, parsed.data.key)
 
   setTranslation(parsed.data.locale, parsed.data.key, parsed.data.value)
   invalidateContentCache(parsed.data.locale)
   invalidateTranslationCache(parsed.data.locale)
-  return json({ success: true, data: { locale: parsed.data.locale, key: parsed.data.key, value: parsed.data.value } })
+  return json({
+    success: true,
+    data: { locale: parsed.data.locale, key: parsed.data.key, value: parsed.data.value }
+  })
 }

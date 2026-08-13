@@ -11,6 +11,12 @@
    * Respects prefers-reduced-motion (renders static ordered state).
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {boolean} [enabled=true] — enable the physics animation
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <FallingLetters />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

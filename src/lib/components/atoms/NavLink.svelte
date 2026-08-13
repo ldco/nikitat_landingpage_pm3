@@ -3,6 +3,14 @@
    * NavLink — Navigation link with active state from URL
    * Uses PM v2 tokens for colors
    * Rule #1: class prop + twMerge
+   *
+   * @props {string} href — target href
+   * @props {string} [label] — link text (children rendered when omitted)
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   * @props {Snippet} [children] — fallback content when label is omitted
+   *
+   * @example
+   * <NavLink href="/blog" label={t('nav.blog')} />
    */
   import { page } from '$app/stores'
   import { clsx } from 'clsx'

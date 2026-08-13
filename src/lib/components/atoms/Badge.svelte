@@ -7,6 +7,15 @@
    * Optional: positioned (absolute top-right), dot (notification dot)
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {'default'|'primary'|'success'|'error'|'warning'|'info'} [variant='default'] — color variant
+   * @props {boolean} [dot=false] — render as a notification dot
+   * @props {boolean} [positioned=false] — absolute top-right positioning
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   * @props {Snippet} children — badge content
+   *
+   * @example
+   * <Badge variant="success">{t('common.active')}</Badge>
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

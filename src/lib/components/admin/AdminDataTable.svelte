@@ -20,6 +20,13 @@
    * @props loadingRows — number of skeleton rows while loading
    * @props cell — snippet(column, row) rendered for every cell
    * @props actions — snippet(row) rendered in the trailing actions column
+   *
+   * @example
+   * <AdminDataTable columns={columns} items={rows} emptyMessage={t('admin.empty')}>
+   *   {#snippet cell(column, row)}
+   *     {row[column.key]}
+   *   {/snippet}
+   * </AdminDataTable>
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
@@ -122,6 +129,14 @@
                 </div>
               </td>
             {/each}
+            {#if actions}
+              <!-- Desktop: real trailing actions cell (the mobile-only slot above
+                   kept row actions hidden ≥sm — edit/delete were unreachable on
+                   desktop). Mirrors the empty header cell rendered in thead. -->
+              <td class="hidden sm:table-cell px-5 py-3 text-end align-middle whitespace-nowrap">
+                {@render actions(item)}
+              </td>
+            {/if}
           </tr>
         {/each}
       {/if}

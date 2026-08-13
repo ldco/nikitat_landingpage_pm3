@@ -2,11 +2,11 @@
   /**
    * Admin Users — PM v2 users.vue parity
    *
-   * Structure (exact PM2 DOM):
-   *   page-header (title + Add User button in page-actions)
-   *   card → data-table.users-table
-   *     name | email | role badge | created | actions (edit/unlock/delete)
-   *   modal (add/edit user: email, password, name, role select)
+   * Orchestration shell: renders the users table, role badges, row actions
+   * (unlock/edit/delete) and pagination. The add/edit modal (form state +
+   * create/update form-action submission) lives in `UserFormModal`; delete and
+   * unlock submit through SvelteKit form actions (?/delete, ?/unlock) with the
+   * shared overlays.confirm confirmation flow.
    *
    * All mutations go through SvelteKit form actions (?/create, ?/update,
    * ?/delete, ?/unlock) with Zod + fail(400, { fieldErrors }) — the standard
@@ -15,46 +15,44 @@
    *
    * Role badges: master=warning, admin=primary, editor=secondary (PM2
    * roleBadgeClass). Only master can manage master accounts.
+   *
+   * Self-edits (the current account's own row) are supported: the update
+   * action allows non-privilege fields (email/name/password) for the actor's
+   * own account while rejecting self-role changes — the modal locks the role
+   * field for the self-edit case so the client and server contracts agree.
+   * Deleting your own account stays blocked (disabled row action).
    */
   import { page } from '$app/stores'
   import { goto } from '$app/navigation'
   import { clsx } from 'clsx'
   import { t } from '$lib/stores/content.svelte'
   import { getOverlaysState } from '$lib/stores/overlays.svelte'
+  import { confirmDeleteAction } from '$lib/utils/admin-confirm'
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
-  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
-  import AdminModal from '$lib/components/molecules/AdminModal.svelte'
+  import EmptyState from '$lib/components/atoms/EmptyState.svelte'
+  import AdminCreateButton from '$lib/components/atoms/AdminCreateButton.svelte'
+  import IconButton from '$lib/components/atoms/IconButton.svelte'
+  import AdminRowActions from '$lib/components/atoms/AdminRowActions.svelte'
   import AdminDataTable, {
     type AdminTableColumn
   } from '$lib/components/admin/AdminDataTable.svelte'
   import Pagination from '$lib/components/molecules/Pagination.svelte'
-  import IconPlus from '@tabler/icons-svelte/icons/plus'
-  import IconEdit from '@tabler/icons-svelte/icons/edit'
+  import UserFormModal from '$lib/components/admin/users/UserFormModal.svelte'
+  import IconPencil from '@tabler/icons-svelte/icons/pencil'
   import IconTrash from '@tabler/icons-svelte/icons/trash'
   import IconLockOpen from '@tabler/icons-svelte/icons/lock-open'
   import type { PageData } from './$types'
-
-  interface AdminUser {
-    id: number
-    email: string
-    name?: string | null
-    role: string
-    lockedUntil?: string | Date | null
-    createdAt?: string | Date | null
-  }
+  import type { AdminUser } from '$lib/admin-users'
+  import { getAdminT } from '$lib/utils/admin-translations'
 
   let { data }: { data: PageData } = $props()
+  const adminT = $derived(getAdminT($page.data))
   const items = $derived((data.items ?? []) as AdminUser[])
-  const roles = $derived((data.roles ?? []) as Array<{ id: number; slug: string }>)
+  const roles = $derived((data.roles ?? []) as Array<{ id: number; slug: string; name: string }>)
   const currentUser = $derived((data.user ?? null) as { id?: number; role?: string } | null)
   const isMaster = $derived(currentUser?.role === 'master')
   let currentPage = $state(data.pagination?.page ?? 1)
   const overlays = getOverlaysState()
-
-  const form = $derived($page.form)
-  const errors = $derived(
-    (form as { fieldErrors?: Record<string, string[]> } | null)?.fieldErrors ?? {}
-  )
 
   // ── Role badges (PM2 roleBadgeClass) ─────────────────────────────────────
   function roleBadgeClass(role: string): string {
@@ -69,8 +67,9 @@
 
   function formatDate(date: string | Date | null | undefined): string {
     if (!date) return ''
-    // PM2 users.vue formatDate: locale-aware via the active admin locale
-    return new Date(date).toLocaleDateString(data.locale ?? 'ru', {
+    // PM2 users.vue formatDate: locale-aware via the admin locale resolved
+    // server-side by the admin layout load (never undefined on this page).
+    return new Date(date).toLocaleDateString(data.locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -84,35 +83,23 @@
   }
 
   const columns: AdminTableColumn[] = [
-    { key: 'name', label: t('admin.name') },
-    { key: 'email', label: t('admin.email') },
-    { key: 'role', label: t('admin.roleColumn') },
-    { key: 'created', label: t('admin.created') }
+    { key: 'name', label: adminT['admin.name'] ?? t('admin.name') },
+    { key: 'email', label: adminT['admin.email'] ?? t('admin.email') },
+    { key: 'role', label: adminT['admin.roleColumn'] ?? t('admin.roleColumn') },
+    { key: 'created', label: adminT['admin.created'] ?? t('admin.created') }
   ]
 
-  // ── Modal state (PM2 users.vue) ─────────────────────────────────────────
+  // ── Modal orchestration ─────────────────────────────────────────────────
   let showModal = $state(false)
   let editingUser = $state<AdminUser | null>(null)
-  let formEmail = $state('')
-  let formPassword = $state('')
-  let formName = $state('')
-  let formRole = $state('editor')
 
   function openCreateModal(): void {
     editingUser = null
-    formEmail = ''
-    formPassword = ''
-    formName = ''
-    formRole = 'editor'
     showModal = true
   }
 
   function openEditModal(user: AdminUser): void {
     editingUser = user
-    formEmail = user.email
-    formPassword = ''
-    formName = user.name ?? ''
-    formRole = user.role
     showModal = true
   }
 
@@ -124,12 +111,10 @@
   async function confirmThenSubmit(e: MouseEvent): Promise<void> {
     e.preventDefault()
     const button = e.currentTarget as HTMLButtonElement
-    const confirmed = await overlays.confirm({
-      title: t('common.delete'),
-      message: t('admin.confirmDelete'),
-      confirmText: t('common.delete'),
-      variant: 'danger'
-    })
+    const confirmed = await confirmDeleteAction(
+      overlays,
+      adminT['admin.confirmDelete'] ?? t('admin.confirmDelete')
+    )
     if (confirmed) button.form?.requestSubmit()
   }
 
@@ -138,21 +123,25 @@
   }
 </script>
 
-<div class="admin-users">
-  <PageHeader title={t('admin.users')}>
+<div class="max-w-[var(--max-w-content)] mx-auto">
+  <PageHeader title={adminT['admin.users'] ?? t('admin.users')}>
     {#snippet actions()}
-      <CtaButton variant="primary" size="lg" onclick={openCreateModal}>
-        <IconPlus class="size-5" />
-        {t('admin.addUser')}
-      </CtaButton>
+      <AdminCreateButton
+        onclick={openCreateModal}
+        label={adminT['admin.addUser'] ?? t('admin.addUser')}
+      />
     {/snippet}
   </PageHeader>
 
-  <div class="bg-pm-bg-elevated border border-pm-border rounded-xl overflow-hidden">
+  <div class="mt-6">
     {#if items.length === 0}
-      <p class="py-16 text-center text-pm-text-muted">{t('admin.noItems')}</p>
+      <EmptyState
+        type="empty-box"
+        size="compact"
+        title={adminT['admin.noItems'] ?? t('admin.noItems')}
+      />
     {:else}
-      <AdminDataTable {columns} {items} emptyMessage={t('admin.noItems')}>
+      <AdminDataTable {columns} {items} emptyMessage={adminT['admin.noItems'] ?? t('admin.noItems')}>
         {#snippet cell(column, item)}
           {@const row = item as AdminUser}
           {#if column.key === 'name'}
@@ -170,9 +159,9 @@
               {#if isLocked(row)}
                 <span
                   class="ms-1 text-[var(--text-2xs)] uppercase"
-                  title={t('admin.lockedAccount')}
+                  title={adminT['admin.lockedAccount'] ?? t('admin.lockedAccount')}
                 >
-                  {t('admin.locked')}
+                  {adminT['admin.locked'] ?? t('admin.locked')}
                 </span>
               {/if}
             </span>
@@ -182,43 +171,46 @@
         {/snippet}
         {#snippet actions(item)}
           {@const row = item as AdminUser}
-          <div class="inline-flex items-center gap-2">
+          <AdminRowActions>
             {#if isLocked(row) && canEdit(row)}
               <form method="POST" action="?/unlock" class="inline-flex">
                 <input type="hidden" name="_csrf" value={$page.data.csrfToken} />
                 <input type="hidden" name="id" value={row.id} />
-                <button
+                <IconButton
                   type="submit"
-                  class="inline-flex items-center justify-center size-9 rounded-md text-pm-text-muted hover:bg-pm-warning-bg hover:text-pm-warning transition-colors"
-                  title={t('admin.unlock')}
+                  title={adminT['admin.unlock'] ?? t('admin.unlock')}
+                  ariaLabel={adminT['admin.unlock'] ?? t('admin.unlock')}
+                  class="hover:bg-pm-warning-bg hover:text-pm-warning"
                 >
                   <IconLockOpen class="size-4" />
-                </button>
+                </IconButton>
               </form>
             {/if}
-            <button
-              type="button"
-              class="inline-flex items-center justify-center size-9 rounded-md text-pm-text-muted hover:bg-pm-bg-sunken hover:text-pm-text transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            <IconButton
               title={t('common.edit')}
+              ariaLabel={t('common.edit')}
               disabled={!canEdit(row)}
               onclick={() => openEditModal(row)}
+              class="hover:text-pm-text"
             >
-              <IconEdit class="size-4" />
-            </button>
+              <IconPencil class="size-4" />
+            </IconButton>
             <form method="POST" action="?/delete" class="inline-flex">
               <input type="hidden" name="_csrf" value={$page.data.csrfToken} />
               <input type="hidden" name="id" value={row.id} />
-              <button
+              <IconButton
                 type="submit"
-                class="inline-flex items-center justify-center size-9 rounded-md text-pm-text-muted hover:bg-pm-danger/10 hover:text-pm-danger transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                variant="danger"
                 title={t('common.delete')}
+                ariaLabel={t('common.delete')}
                 disabled={!canEdit(row) || row.id === currentUser?.id}
                 onclick={confirmThenSubmit}
+                class="hover:bg-pm-danger/10"
               >
                 <IconTrash class="size-4" />
-              </button>
+              </IconButton>
             </form>
-          </div>
+          </AdminRowActions>
         {/snippet}
       </AdminDataTable>
     {/if}
@@ -235,77 +227,11 @@
   {/if}
 
   <!-- Add/Edit user modal (PM2 users.vue modal) — posts to the form action -->
-  <AdminModal
+  <UserFormModal
     open={showModal}
-    title={editingUser ? t('admin.editUser') : t('admin.addUser')}
-    formAction={editingUser ? '?/update' : '?/create'}
-    cancelLabel={t('common.cancel')}
-    submitLabel={t('common.save')}
-    submitDisabled={!formEmail.trim() || (editingUser === null && !formPassword)}
-    onclose={closeModal}
-  >
-    <input type="hidden" name="_csrf" value={$page.data.csrfToken} />
-    {#if editingUser}
-      <input type="hidden" name="id" value={editingUser.id} />
-    {/if}
-
-    <div class="flex flex-col gap-1.5">
-      <label for="user-email" class="text-sm font-medium text-pm-text">{t('admin.email')} *</label>
-      <input
-        id="user-email"
-        name="email"
-        bind:value={formEmail}
-        type="email"
-        required
-        class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring"
-      />
-      {#if errors.email?.[0]}<p class="text-xs text-pm-danger">{t(errors.email[0])}</p>{/if}
-    </div>
-
-    <div class="flex flex-col gap-1.5">
-      <label for="user-password" class="text-sm font-medium text-pm-text">
-        {t('admin.password')}{editingUser ? '' : ' *'}
-      </label>
-      <input
-        id="user-password"
-        name="password"
-        bind:value={formPassword}
-        type="password"
-        required={!editingUser}
-        placeholder={editingUser ? t('admin.leaveBlankToKeep') : ''}
-        autocomplete="new-password"
-        class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring"
-      />
-      {#if errors.password?.[0]}<p class="text-xs text-pm-danger">{t(errors.password[0])}</p>{/if}
-    </div>
-
-    <div class="flex flex-col gap-1.5">
-      <label for="user-name" class="text-sm font-medium text-pm-text">{t('admin.name')}</label>
-      <input
-        id="user-name"
-        name="name"
-        bind:value={formName}
-        type="text"
-        class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring"
-      />
-    </div>
-
-    <div class="flex flex-col gap-1.5">
-      <label for="user-role" class="text-sm font-medium text-pm-text">
-        {t('admin.roleColumn')} *
-      </label>
-      <select
-        id="user-role"
-        name="role"
-        bind:value={formRole}
-        required
-        class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring"
-      >
-        {#each roles as role}
-          <option value={role.slug}>{roleLabel(role.slug)}</option>
-        {/each}
-      </select>
-      {#if errors.role?.[0]}<p class="text-xs text-pm-danger">{t(errors.role[0])}</p>{/if}
-    </div>
-  </AdminModal>
+    editingUser={editingUser}
+    selfEdit={editingUser?.id === currentUser?.id}
+    {roles}
+    onClose={closeModal}
+  />
 </div>

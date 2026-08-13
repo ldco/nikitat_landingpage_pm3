@@ -10,6 +10,18 @@
    * the bottom of equal-height grid cards.
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {string} slug — post slug for the link
+   * @props {string} title — post title
+   * @props {string} [excerpt=''] — short excerpt text
+   * @props {string} [coverImageUrl=''] — cover image source
+   * @props {string} [publishedAt] — ISO date for the meta row
+   * @props {string} [category=''] — category label
+   * @props {string} [authorName=''] — author display name
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <BlogPostCard slug={post.slug} title={post.title} excerpt={post.excerpt} />
    */
   import { twMerge } from 'tailwind-merge'
   import AppImage from '$lib/components/atoms/AppImage.svelte'

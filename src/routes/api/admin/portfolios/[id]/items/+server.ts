@@ -5,17 +5,33 @@ import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
+import { normalizeItemMetadata } from '$lib/portfolio-metadata'
 
 const createSchema = z.object({
   itemType: z.enum(['image', 'video', 'link', 'case_study']),
-  mediaUrl: z.string().optional(),
-  caption: z.string().optional(),
-  title: z.string().optional(),
-  description: z.string().optional(),
-  content: z.string().optional(),
+  mediaUrl: z.string().nullable().optional(),
+  thumbnailUrl: z.string().nullable().optional(),
+  caption: z.string().nullable().optional(),
+  title: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
+  content: z.string().nullable().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   order: z.number().int().optional(),
   published: z.boolean().optional().default(true)
 })
+
+/** Validate per-type metadata (shared adapter, PM v2 parity) and serialize. */
+function serializeMetadata(
+  metadata: Record<string, unknown> | undefined,
+  portfolioType: string
+): string | null {
+  if (!metadata) return null
+  const normalized = normalizeItemMetadata(metadata, portfolioType)
+  if (normalized === null) {
+    throw error(400, 'Invalid portfolio item metadata for this portfolio type')
+  }
+  return normalized
+}
 
 export function GET(event: RequestEvent) {
   requireAdminPage(event, 'portfolios')
@@ -52,8 +68,11 @@ export async function POST(event: RequestEvent) {
   // An explicit order (client-provided) is honored; an omitted order appends
   // after the persisted max. Zod no longer defaults the field, so omitted
   // stays undefined and this fallback is the only source of next-order.
+  const { metadata: rawMetadata, ...base } = parsed.data
+  const metadata = serializeMetadata(rawMetadata, portfolio.type)
   const result = db.insert(schema.portfolioItems).values({
-    ...parsed.data,
+    ...base,
+    metadata,
     order: parsed.data.order ?? (maxOrder?.order != null ? maxOrder.order + 1 : 0),
     portfolioId
   }).returning().get()

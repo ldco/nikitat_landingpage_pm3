@@ -11,12 +11,14 @@
   import IconExternalLink from '@tabler/icons-svelte/icons/external-link'
   import AppImage from '$lib/components/atoms/AppImage.svelte'
   import Badge from '$lib/components/atoms/Badge.svelte'
+  import { t } from '$lib/stores/content.svelte'
 
   let {
     title = '',
     url = '',
     description = '',
     screenshots = [] as Array<{ url: string; caption?: string }>,
+    technologies = [] as string[],
     tags = [] as string[],
     class: className = ''
   }: {
@@ -24,6 +26,7 @@
     url?: string
     description?: string
     screenshots?: Array<{ url: string; caption?: string }>
+    technologies?: string[]
     tags?: string[]
     class?: string
   } = $props()
@@ -54,6 +57,19 @@
           {/if}
         </div>
       {/each}
+    </div>
+  {/if}
+
+  {#if technologies.length > 0}
+    <div>
+      <h3 class="text-sm font-semibold text-pm-text-muted uppercase tracking-wide mb-2">
+        {t('portfolio.technologies')}
+      </h3>
+      <div class="flex flex-wrap gap-2">
+        {#each technologies as tech}
+          <Badge variant="default">{tech}</Badge>
+        {/each}
+      </div>
     </div>
   {/if}
 

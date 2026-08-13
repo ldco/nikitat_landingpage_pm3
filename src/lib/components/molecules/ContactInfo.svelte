@@ -8,6 +8,15 @@
    * - .contact-info-item:hover: brand background, white text
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {string} [email=''] — contact email (mailto link)
+   * @props {string} [phone=''] — contact phone (tel link)
+   * @props {string} [address=''] — physical address
+   * @props {string} [workingHours=''] — working hours text
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <ContactInfo email="info@example.com" phone="+71234567890" />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

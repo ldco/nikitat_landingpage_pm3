@@ -8,16 +8,16 @@ import type { PageServerLoad } from './$types'
 import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
 import { uniqueConstraintFieldErrors } from '$lib/server/utils/db-errors'
 import {
-  type LocaleFormSpec,
   localeFieldsSchema,
   mergeFieldErrors,
   readLocaleFields,
   submittedLocaleSections
 } from '$lib/server/utils/locale-form'
+import { BLOG_LOCALE_SPEC as localeSpec } from '$lib/server/utils/entity-locale-specs'
 
 // A submitted locale section must contain the title — a translation with only
-// an excerpt/content is rejected instead of silently skipped.
-const localeSpec: LocaleFormSpec = { title: true, excerpt: false, content: false }
+// an excerpt/content is rejected instead of silently skipped (shared spec
+// with the edit action: entity-locale-specs).
 
 const createSchema = z.object({
   slug: z

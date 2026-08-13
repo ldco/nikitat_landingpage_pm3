@@ -7,6 +7,15 @@
    *
    * Rule #1: class prop + twMerge
    * Rule #3: strict union types
+   *
+   * @props {boolean} [active=false] — expanded/active animation state
+   * @props {'spin'|'elastic'|'slider'|'spring'|'squeeze'|'arrow'|'arrow-right'|'collapse'|'minus'|'turn'|'cross'} [type='spin'] — animation style
+   * @props {string} [ariaLabel=t('nav.openMenu')] — aria-label for the button
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   * @props {(e: MouseEvent) => void} [onclick] — click handler
+   *
+   * @example
+   * <HamburgerIcon active={open} onclick={() => (open = !open)} />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

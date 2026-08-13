@@ -4,6 +4,7 @@
  *
  * Content from content store: focus.card1-6.title/.desc
  *
+ * @props {string} [class] — additional CSS classes merged via twMerge
  * @example <SectionFocus />
   */
   import { clsx } from 'clsx'
@@ -18,6 +19,12 @@
   import IconPalette from '@tabler/icons-svelte/icons/palette'
   import IconComponents from '@tabler/icons-svelte/icons/components'
   import IconTemplate from '@tabler/icons-svelte/icons/template'
+
+  let {
+    class: className = ''
+  }: {
+    class?: string
+  } = $props()
 
   const title = $derived(t('focus.title', t('sections.services')))
   const devLabel = $derived(t('focus.dev', t('sections.services')))
@@ -35,7 +42,7 @@
   })
 </script>
 
-<Section id="focus">
+<Section id="focus" class={className}>
   <SectionContent>
     <SectionHeading title={title} align="center" />
     {#if cards.length > 0}

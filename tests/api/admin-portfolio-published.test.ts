@@ -93,4 +93,24 @@ describe('portfolio published control round-trips through the page actions', () 
     expect(body.status).toBe(303)
     expect(readPublished(portfolioId)).toBe(true)
   })
+
+  it('create with a duplicate slug fails with a field error instead of a 500', async () => {
+    const res = await client.postForm('/admin/portfolios/create', {
+      name: 'Duplicate Slug',
+      slug, // already taken by the first test's portfolio
+      type: 'branding'
+    })
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as {
+      type?: string
+      status?: number
+      data?: unknown
+    }
+    expect(body.type).toBe('failure')
+    expect(body.status).toBe(400)
+    // The fail payload is devalue-serialized — the slug field must reference
+    // the duplicate-slug key (review: the uncaught UNIQUE constraint used to
+    // surface as a 500).
+    expect(String(body.data ?? '')).toContain('apiErrors.admin.slugExists')
+  })
 })

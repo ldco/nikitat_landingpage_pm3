@@ -21,10 +21,12 @@
  *  6. No canonical-primitive bypass — hand-rolled button/container/section
  *     heading/card class bundles are rejected when a canonical primitive exists.
  *     Detects: canonical section-heading bundles repo-wide + legacy fluid
- *     section-title bundles in section files, elevated card-shell bundles and
- *     branded action-button bundles in framework-owned components
- *     (src/lib/components/**), plus container bundles repo-wide. Primitive
- *     definition files are exempt.
+ *     section-title bundles in section files, elevated card-shell bundles,
+ *     branded action-button bundles and icon-only row-action bundles in ALL
+ *     UI-owned layers — framework components (src/lib/components/**), route
+ *     pages (src/routes/**) and the project layer (src/project/**) — plus
+ *     container bundles repo-wide. Primitive definition files and the explicit
+ *     PRIMITIVE_BYPASS_ALLOWLIST (truly unique interaction patterns) are exempt.
  *  7. No type suppressions (`@ts-ignore`, `@ts-expect-error`, `@ts-nocheck`)
  *     and no non-null assertions (`!`) in source files (Rule D.12).
  *  8. No empty catch blocks — every catch must log, re-throw, or return a typed
@@ -37,6 +39,11 @@
  *     the i18n layer (`t()`/`m.*()`). The current literal inventory is frozen
  *     in `scripts/i18n-literal-baseline.json`; any literal NOT already in the
  *     baseline fails the build (Rule: no untranslated regressions).
+ * 13. Exported Svelte components (src/lib/components/** and src/project/**)
+ *     must carry a JSDoc block with a one-line description, @props listing all
+ *     props with types/defaults, and @example minimal usage (AGENTS.md rule 7).
+ *     Components that declare $props() must list at least one documented prop
+ *     entry — a bare `@props` tag is only accepted for prop-less components.
  *
  * Allowed exceptions (documented in docs/contributing/i18n-literals-policy.md):
  *   - strings with no letters (numbers/punctuation only): '9+', '?', '×'
@@ -94,8 +101,28 @@ const PRIMITIVE_FILES = {
   sectionHeading: 'src/lib/components/molecules/SectionHeading.svelte',
   card: 'src/lib/components/atoms/Card.svelte',
   loadingCard: 'src/lib/components/atoms/LoadingCard.svelte',
-  button: 'src/lib/components/atoms/CtaButton.svelte'
+  button: 'src/lib/components/atoms/CtaButton.svelte',
+  iconButton: 'src/lib/components/atoms/IconButton.svelte',
+  segmentedControl: 'src/lib/components/atoms/SegmentedControl.svelte',
+  addRowButton: 'src/lib/components/atoms/AddRowButton.svelte',
+  formField: 'src/lib/components/atoms/FormField.svelte',
+  adminBackButton: 'src/lib/components/atoms/AdminBackButton.svelte',
+  adminCreateButton: 'src/lib/components/atoms/AdminCreateButton.svelte',
+  adminRowActions: 'src/lib/components/atoms/AdminRowActions.svelte',
+  inlineBannerAction: 'src/lib/components/atoms/InlineBannerAction.svelte',
+  editorPage: 'src/lib/components/molecules/AdminEditorPage.svelte'
 }
+
+/**
+ * Explicit allowlist for canonical-primitive bypasses that are TRULY unique
+ * interaction patterns (relative file paths). Adding a file here means the
+ * pattern deliberately does NOT use the canonical primitive — allowed ONLY for
+ * interactions no primitive should own (keep this list minimal and commented).
+ */
+const PRIMITIVE_BYPASS_ALLOWLIST = new Set([
+  // (none currently — every flagged pattern maps to a canonical primitive;
+  //  add a file ONLY for unique interactions with no primitive match)
+])
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Helpers
@@ -319,20 +346,32 @@ function checkLiteralDuplication(file) {
 // Check 6: canonical-primitive bypass (linear token checks per class value)
 // ═══════════════════════════════════════════════════════════════════════════
 //
-// Scoping: the NEW primitive rules introduced here — legacy fluid section
-// titles (section files), elevated card-shell bundles, branded action-button
-// bundles — apply to FRAMEWORK-OWNED components (src/lib/components/**), where
-// the reusable-visual-pattern rules are enforced. Admin/project route pages are
-// a separate, explicitly-scoped workstream (admin surface primitives) and are
-// not scanned by those three rules. The canonical section-heading and container
-// checks remain repo-wide (pre-existing scope, unchanged).
+// Scoping: card-shell, branded action-button and icon-only row-action checks
+// apply to ALL UI-owned layers — framework components (src/lib/components/**),
+// route pages (src/routes/**) and the project layer (src/project/**) — so
+// admin/project code can no longer silently reintroduce duplicate buttons.
+// The canonical section-heading, fluid section-title and container checks stay
+// repo-wide. PRIMITIVE_FILES define the canonical primitives and are exempt;
+// anything else matching a guarded bundle must use the primitive or justify
+// itself in PRIMITIVE_BYPASS_ALLOWLIST (truly unique interaction patterns only).
 
 function checkPrimitiveBypass(file) {
   const issues = []
   const content = readFile(file)
   const rel = relative(ROOT, file)
   const isSection = rel.startsWith('src/lib/components/sections/')
-  const isFrameworkComponent = rel.startsWith('src/lib/components/')
+  const isUISurface =
+    rel.startsWith('src/lib/components/') ||
+    rel.startsWith('src/routes/') ||
+    rel.startsWith('src/project/')
+  // Admin UI files: admin route pages + admin components. The admin action
+  // primitives (AdminBackButton, AdminCreateButton, AdminRowActions,
+  // InlineBannerAction), the AdminEditorPage shell and FormField selects are
+  // the admin dashboard contract — enforced HERE, not on public surfaces (a
+  // public "back to list" link legitimately uses the same muted-link styling).
+  const isAdminUi =
+    rel.startsWith('src/routes/admin/') || rel.startsWith('src/lib/components/admin/')
+  if (PRIMITIVE_BYPASS_ALLOWLIST.has(rel)) return issues
 
   for (const { value, index } of extractClassValues(content)) {
     const tokens = value.split(/\s+/)
@@ -367,14 +406,14 @@ function checkPrimitiveBypass(file) {
       })
     }
 
-    // ── Card shell (elevated card bundle in framework components) ──────────
+    // ── Card shell (elevated card bundle in UI surfaces) ───────────────────
     // The repeated elevated card shell
     // `bg-pm-bg-elevated border border-pm-border rounded-xl overflow-hidden`
     // (with or without a hover shadow) is the Card primitive's own bundle.
     const isCardShell =
       exact('bg-pm-bg-elevated') && exact('border') && exact('border-pm-border') &&
       has('rounded-xl') && (has('overflow-hidden') || has('hover:shadow-lg'))
-    if (isCardShell && isFrameworkComponent && rel !== PRIMITIVE_FILES.card && rel !== PRIMITIVE_FILES.loadingCard) {
+    if (isCardShell && isUISurface && rel !== PRIMITIVE_FILES.card && rel !== PRIMITIVE_FILES.loadingCard) {
       issues.push({
         file: rel,
         line: lineAt(content, index),
@@ -382,18 +421,31 @@ function checkPrimitiveBypass(file) {
       })
     }
 
-    // ── Branded action button (framework components) ───────────────────────
+    // ── Branded action button (UI surfaces) ────────────────────────────────
     // A brand/danger-filled button hand-rolled as
     // `px-... py-... rounded-md bg-pm-brand ...` bypasses the button system.
     const isActionButton =
       (exact('bg-pm-brand') || exact('bg-pm-danger')) &&
       (has('rounded-md') || has('rounded-lg')) &&
       has('px-') && has('py-')
-    if (isActionButton && isFrameworkComponent && rel !== PRIMITIVE_FILES.button) {
+    if (isActionButton && isUISurface && rel !== PRIMITIVE_FILES.button && rel !== PRIMITIVE_FILES.segmentedControl) {
       issues.push({
         file: rel,
         line: lineAt(content, index),
         message: 'Canonical-primitive bypass: hand-rolled action button — use <CtaButton> (extend it if a variant is missing)'
+      })
+    }
+
+    // ── Icon-only row action (UI surfaces) ─────────────────────────────────
+    // The IconButton sm bundle `p-1.5 rounded-md text-pm-text-muted` was
+    // hand-rolled in every admin list page before the primitive existed.
+    const isIconAction =
+      has('p-1.5') && has('rounded-md') && has('text-pm-text-muted')
+    if (isIconAction && isUISurface && rel !== PRIMITIVE_FILES.iconButton) {
+      issues.push({
+        file: rel,
+        line: lineAt(content, index),
+        message: 'Canonical-primitive bypass: hand-rolled icon row action — use <IconButton>'
       })
     }
 
@@ -405,6 +457,109 @@ function checkPrimitiveBypass(file) {
         line: lineAt(content, index),
         message: 'Canonical-primitive bypass: hand-rolled container classes — use <Container> or <SectionContent>'
       })
+    }
+
+    // ── Admin back/navigation action (admin UI only) ────────────────────────
+    // The raw `<a class="text-pm-text-muted hover:text-pm-brand text-sm">&larr; …</a>`
+    // back links previously hand-rolled in admin PageHeader actions.
+    const isAdminBackLink =
+      has('text-pm-text-muted') && has('hover:text-pm-brand') && has('text-sm')
+    if (isAdminBackLink && isAdminUi && rel !== PRIMITIVE_FILES.adminBackButton) {
+      issues.push({
+        file: rel,
+        line: lineAt(content, index),
+        message: 'Canonical-primitive bypass: hand-rolled admin back link — use <AdminBackButton>'
+      })
+    }
+
+    // ── Admin table row-action row (admin UI only) ──────────────────────────
+    // The `flex items-center justify-end gap-1` action wrapper hand-rolled in
+    // every admin list page before AdminRowActions existed.
+    const isRowActionRow =
+      exact('flex') && exact('items-center') && exact('justify-end') && exact('gap-1')
+    if (isRowActionRow && isAdminUi && rel !== PRIMITIVE_FILES.adminRowActions) {
+      issues.push({
+        file: rel,
+        line: lineAt(content, index),
+        message: 'Canonical-primitive bypass: hand-rolled row-action row — use <AdminRowActions>'
+      })
+    }
+
+    // ── Inline banner action (admin UI only) ────────────────────────────────
+    // The `ms-2 underline hover:no-underline` dismiss/retry button hand-rolled
+    // inside admin banner alerts.
+    const isInlineBannerAction =
+      has('ms-2') && has('underline') && has('hover:no-underline')
+    if (isInlineBannerAction && isAdminUi && rel !== PRIMITIVE_FILES.inlineBannerAction) {
+      issues.push({
+        file: rel,
+        line: lineAt(content, index),
+        message: 'Canonical-primitive bypass: hand-rolled inline banner action — use <InlineBannerAction>'
+      })
+    }
+  }
+
+  // ── Markup-level admin primitive bypasses (need tag context) ──────────────
+  // These patterns are only meaningful in admin UI files.
+  if (isAdminUi) {
+    const masked = maskComments(content)
+
+    // ── Admin list primary action (AdminCreateButton bypass) ────────────────
+    // A primary CtaButton wrapping an IconPlus was the raw list-page create
+    // action before AdminCreateButton existed. The IconPlus marker keeps
+    // legitimate primary CTAs (e.g. portfolios "Edit content" with IconPencil)
+    // legal.
+    if (rel !== PRIMITIVE_FILES.adminCreateButton) {
+      const createButtonRe = /<CtaButton\b[^>]*\bvariant="primary"[^>]*>[\s\S]*?<IconPlus[\s\S]*?<\/CtaButton>/g
+      let cb
+      while ((cb = createButtonRe.exec(masked)) !== null) {
+        issues.push({
+          file: rel,
+          line: lineAt(content, cb.index),
+          message: 'Canonical-primitive bypass: hand-rolled list-page create button — use <AdminCreateButton>'
+        })
+      }
+    }
+
+    // ── Hand-assembled admin editor page shell (AdminEditorPage bypass) ─────
+    // A bare `<form method="POST">` (no SvelteKit action=) in an admin file is
+    // the <form> element AdminEditorPage owns — hand-assembling it per module
+    // bypasses the shell. Row-action forms carry `action="?/…"` and are legal.
+    if (rel !== PRIMITIVE_FILES.editorPage) {
+      const editorFormRe = /<form\s+method="POST"(?!\s+action=)/g
+      let ef
+      while ((ef = editorFormRe.exec(masked)) !== null) {
+        issues.push({
+          file: rel,
+          line: lineAt(content, ef.index),
+          message: 'Canonical-primitive bypass: hand-assembled editor form — use <AdminEditorPage>'
+        })
+      }
+    }
+
+    // ── Raw labeled select (FormField bypass) ───────────────────────────────
+    // A native <select> hand-rolled with the FormField control bundle
+    // (`w-full … rounded-md border border-pm-border bg-pm-bg … text-sm`) in an
+    // admin UI file bypasses the canonical form control primitive.
+    if (rel !== PRIMITIVE_FILES.formField) {
+      const selectRe = /<select\b[^>]*>/g
+      let sel
+      while ((sel = selectRe.exec(masked)) !== null) {
+        const classMatch = sel[0].match(/class\s*=\s*"([^"]*)"/)
+        if (!classMatch) continue
+        const tokens = classMatch[1].split(/\s+/)
+        const shas = (s) => tokens.some((t) => t.includes(s))
+        const isControlBundle =
+          shas('w-full') && shas('rounded-md') && shas('border-pm-border') &&
+          shas('bg-pm-bg') && shas('text-sm')
+        if (isControlBundle) {
+          issues.push({
+            file: rel,
+            line: lineAt(content, sel.index),
+            message: 'Canonical-primitive bypass: hand-rolled labeled select — use <FormField type="select">'
+          })
+        }
+      }
     }
   }
   return issues
@@ -778,6 +933,69 @@ function checkParaglideDirectImports(file) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Check 13: component documentation contract (AGENTS.md rule 7)
+// ═══════════════════════════════════════════════════════════════════════════
+// Every exported Svelte component (src/lib/components/** and src/project/**)
+// must carry a JSDoc block with: (1) a one-line description, (2) @props
+// listing all props with types/defaults, (3) @example minimal usage. A bare
+// `@props` tag is accepted ONLY for components that declare no props — a
+// component with a public prop interface must list at least one documented
+// prop entry, or the agent-facing prop contract stays undocumented.
+
+const COMPONENT_DOC_DIRS = ['src/lib/components', 'src/project']
+
+function checkComponentDocs(file) {
+  const rel = relative(ROOT, file)
+  if (!file.endsWith('.svelte')) return []
+  if (!COMPONENT_DOC_DIRS.some((dir) => rel.startsWith(dir))) return []
+  const content = readFile(file)
+  const issues = []
+  const jsdocRe = /\/\*\*[\s\S]*?\*\//g
+  const m = jsdocRe.exec(content)
+  const block = m ? m[0] : null
+  if (!block) {
+    issues.push({
+      file: rel,
+      message: 'Component documentation contract (check #13): missing JSDoc block — every exported component needs a description, @props and @example (AGENTS.md rule 7)'
+    })
+    return issues
+  }
+  const body = block.replace(/^\/\*\*|\*\/$/g, '')
+  const hasDescription = body.split('\n').some((l) => /^\s*\*\s+[^@\s*]/.test(l))
+  if (!hasDescription) {
+    issues.push({
+      file: rel,
+      message: 'Component documentation contract (check #13): JSDoc block has no description line — add a one-line description (AGENTS.md rule 7)'
+    })
+  }
+  if (!/@props\b/.test(block)) {
+    issues.push({
+      file: rel,
+      message: 'Component documentation contract (check #13): missing @props — list all props with types/defaults (AGENTS.md rule 7)'
+    })
+  } else {
+    // A component that declares `$props()` has a public prop interface — a
+    // bare `@props` placeholder documents nothing. Require at least one real
+    // entry (`@props {type} name`, `@props name`, or `@props [name]`).
+    const declaresProps = /\$props\(\)/.test(maskComments(content))
+    const hasPropEntry = /@props\s+(?:\{[^}]+\}|\[[^\]]+\]|[A-Za-z_])/.test(block)
+    if (declaresProps && !hasPropEntry) {
+      issues.push({
+        file: rel,
+        message: 'Component documentation contract (check #13): @props must list at least one documented prop entry — the component declares $props() but documents no props (AGENTS.md rule 7)'
+      })
+    }
+  }
+  if (!/@example\b/.test(block)) {
+    issues.push({
+      file: rel,
+      message: 'Component documentation contract (check #13): missing @example — add minimal usage (AGENTS.md rule 7)'
+    })
+  }
+  return issues
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Main
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -803,6 +1021,7 @@ for (const file of files) {
     allIssues.push(...checkBracketValues(file))
     allIssues.push(...checkLiteralDuplication(file))
     allIssues.push(...checkPrimitiveBypass(file))
+    allIssues.push(...checkComponentDocs(file))
   }
   if (file.endsWith('.svelte') || file.endsWith('.ts')) {
     allIssues.push(...checkTypeSuppressions(file))

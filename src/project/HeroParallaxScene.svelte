@@ -5,6 +5,10 @@
    *
    * Renders parallax layers behind hero content when FEATURES.heroParallax is true.
    * Layers are loaded from /images/hero/layers/ (project-specific assets).
+   *
+   * @props
+   * @example
+   * <HeroParallaxScene />
    */
   let layers: string[] = $state([])
 

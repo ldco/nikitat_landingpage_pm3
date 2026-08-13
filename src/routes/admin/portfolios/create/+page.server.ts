@@ -5,12 +5,14 @@ import { z } from 'zod'
 import type { RequestEvent } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
+import { uniqueConstraintFieldErrors } from '$lib/server/utils/db-errors'
 
 const insertSchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1),
   type: z.enum(['gallery', 'case_study', 'branding', 'brandbook', 'website']).default('branding'),
   description: z.string().nullable().optional(),
+  coverImageUrl: z.string().nullable().optional(),
   published: z.string().optional().nullable()
 })
 
@@ -27,6 +29,7 @@ export const actions = {
       slug: form.get('slug'),
       type: form.get('type') || 'branding',
       description: form.get('description') || null,
+      coverImageUrl: form.get('coverImageUrl') || null,
       published: form.get('published') || null
     })
 
@@ -36,18 +39,30 @@ export const actions = {
 
     const db = useDatabase()
     const published = parsed.data.published === 'on'
-    db.insert(schema.portfolios)
-      .values({
-        name: parsed.data.name,
-        slug: parsed.data.slug,
-        type: parsed.data.type,
-        description: parsed.data.description || null,
-        order: 0,
-        published,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      })
-      .run()
+    try {
+      db.insert(schema.portfolios)
+        .values({
+          name: parsed.data.name,
+          slug: parsed.data.slug,
+          type: parsed.data.type,
+          description: parsed.data.description || null,
+          coverImageUrl: parsed.data.coverImageUrl || null,
+          order: 0,
+          published,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .run()
+    } catch (e: unknown) {
+      // Duplicate slug: the portfolios.slug UNIQUE index would otherwise
+      // surface as a 500 — map it to a field error on the slug input (same
+      // helper contract as blog/faq/features/pricing create actions).
+      const fieldErrors = uniqueConstraintFieldErrors(e, [
+        { column: 'slug', label: 'apiErrors.admin.slugExists' }
+      ])
+      if (fieldErrors) return fail(400, { fieldErrors })
+      throw e
+    }
 
     redirect(303, ADMIN_ROUTES.portfolios)
   }

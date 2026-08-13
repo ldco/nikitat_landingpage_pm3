@@ -9,6 +9,16 @@
    * Rule #1: class prop + twMerge
    *
    * This component replaces the @layer components .grid-*, .grid-auto-* classes.
+   *
+   * @props {1|2|3|4|'auto'} [cols='auto'] — fixed columns or auto-fit
+   * @props {'sm'|'md'|'lg'} [gap='md'] — gutter size
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   * @props {Snippet} children — grid items
+   *
+   * @example
+   * <Grid cols={3} gap="lg">
+   *   <BlogPostCard {post} />
+   * </Grid>
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

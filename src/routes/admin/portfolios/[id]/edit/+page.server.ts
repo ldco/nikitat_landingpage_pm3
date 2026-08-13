@@ -12,6 +12,7 @@ const updateSchema = z.object({
   slug: z.string().min(1),
   type: z.enum(['gallery', 'case_study', 'branding', 'brandbook', 'website']).default('branding'),
   description: z.string().nullable().optional(),
+  coverImageUrl: z.string().nullable().optional(),
   published: z.string().optional().nullable()
 })
 
@@ -36,6 +37,7 @@ export const actions = {
       slug: form.get('slug'),
       type: form.get('type') || 'branding',
       description: form.get('description') || null,
+      coverImageUrl: form.get('coverImageUrl') || null,
       published: form.get('published') || null
     })
 
@@ -50,6 +52,7 @@ export const actions = {
         slug: parsed.data.slug,
         type: parsed.data.type,
         description: parsed.data.description || null,
+        coverImageUrl: parsed.data.coverImageUrl || null,
         published,
         updatedAt: new Date()
       })

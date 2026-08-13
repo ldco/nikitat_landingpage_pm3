@@ -7,17 +7,18 @@ import { resolveAdminPageAccess, ADMIN_PAGE_DEFS } from '$lib/server/utils/admin
  */
 describe('admin page access resolution (config-driven)', () => {
   it('website pages require both MODULES enabled AND ADMIN_CONFIG enabled', () => {
-    // team/testimonials/clients: disabled in both MODULES and ADMIN_CONFIG
+    // team/testimonials/clients/features: not part of this project's public
+    // surface — disabled in both MODULES and ADMIN_CONFIG
     expect(resolveAdminPageAccess('team').enabled).toBe(false)
     expect(resolveAdminPageAccess('testimonials').enabled).toBe(false)
     expect(resolveAdminPageAccess('clients').enabled).toBe(false)
+    expect(resolveAdminPageAccess('features').enabled).toBe(false)
     // blog: MODULES + ADMIN_CONFIG both enabled (enabled during the admin
     // rewrite, Step 09) → visible
     expect(resolveAdminPageAccess('blog').enabled).toBe(true)
-    // portfolios/faq/features: enabled in both → visible
+    // portfolios/faq: enabled in both → visible
     expect(resolveAdminPageAccess('portfolios').enabled).toBe(true)
     expect(resolveAdminPageAccess('faq').enabled).toBe(true)
-    expect(resolveAdminPageAccess('features').enabled).toBe(true)
     // contacts: MODULES.contact + ADMIN_CONFIG both enabled (enabled during
     // the admin rewrite, Step 11) → visible
     expect(resolveAdminPageAccess('contacts').enabled).toBe(true)
@@ -25,7 +26,8 @@ describe('admin page access resolution (config-driven)', () => {
 
   it('configured per-role access is exposed', () => {
     expect(resolveAdminPageAccess('settings').roles).toEqual(['master', 'admin'])
-    expect(resolveAdminPageAccess('users').roles).toEqual(['master'])
+    // PM v2 parity (review): admins manage users, masters alone manage roles.
+    expect(resolveAdminPageAccess('users').roles).toEqual(['master', 'admin'])
     expect(resolveAdminPageAccess('health').roles).toEqual(['master'])
     expect(resolveAdminPageAccess('translations').roles).toContain('editor')
   })

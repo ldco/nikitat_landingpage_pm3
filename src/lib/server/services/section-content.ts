@@ -11,6 +11,7 @@
  * by its service, and every translation join is locale-filtered (AGENTS.md E.4).
  */
 import type { SectionContent, PricingTierCard } from '$lib/components/sections/types'
+import { MODULES } from '$lib/config/site'
 import { getHomepagePosts } from '$lib/server/services/blog'
 import { getHomepageFaq } from '$lib/server/services/faq'
 import { getHomepageFeatures } from '$lib/server/services/features'
@@ -62,7 +63,10 @@ export function loadSectionContent(locale: string, sectionId?: string): SectionC
     portfolioItems: wants('portfolioItems') ? getHomepagePortfolioItems(locale) : [],
     pricing,
     faq: wants('faq') ? getHomepageFaq(locale) : [],
-    features: wants('features') ? getHomepageFeatures(locale) : [],
+    // The features slice only loads when the module is configured for rendering
+    // (MODULES.features.enabled) — a disabled module must not run its query
+    // or ship rows the page never renders.
+    features: wants('features') && (MODULES.features?.enabled ?? false) ? getHomepageFeatures(locale) : [],
     team: wants('team') ? getHomepageTeam(locale) : [],
     testimonials: wants('testimonials') ? getHomepageTestimonials(locale) : [],
     clients: wants('clients') ? getHomepageClients() : [],

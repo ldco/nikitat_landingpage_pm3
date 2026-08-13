@@ -8,6 +8,10 @@
    *
    * Content from content store: f22.title, f22.description
    * Logos from FOOTER_MADE_BY project config.
+   *
+   * @props
+   * @example
+   * <SectionF22 />
    */
   import { t } from '$lib/stores/content.svelte'
   import { FOOTER_MADE_BY, LOCALES } from '$lib/config/site'

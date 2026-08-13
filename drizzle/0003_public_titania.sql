@@ -1,0 +1,1 @@
+ALTER TABLE `translations` ADD `customized` integer DEFAULT false NOT NULL;

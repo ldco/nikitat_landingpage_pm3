@@ -2,6 +2,15 @@
   /**
    * AppImage — Image with loading/error states and fallback
    * Rule #1: class prop + twMerge
+   *
+   * @props {string} src — image source URL
+   * @props {string} [alt=''] — alt text
+   * @props {string} [fallback='/images/placeholder.svg'] — shown on load error
+   * @props {'lazy'|'eager'} [loading='lazy'] — native img loading attribute
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <AppImage src="/images/photo.jpg" alt={t('common.photo')} />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

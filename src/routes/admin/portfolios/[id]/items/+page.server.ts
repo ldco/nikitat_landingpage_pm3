@@ -4,15 +4,42 @@ import { z } from 'zod'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { useDatabase, schema } from '$lib/server/db'
 import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
+import { normalizeItemMetadata } from '$lib/portfolio-metadata'
 import type { PageServerLoad, Actions } from './$types'
+
+/**
+ * Parse + validate the `metadata` form field (a JSON string) against the
+ * portfolio's per-type schema via the shared adapter. Returns the validated
+ * JSON string to store, or a fail() response for invalid payloads. Empty
+ * metadata stores null.
+ */
+function validateItemMetadata(
+  raw: FormDataEntryValue | null,
+  portfolioType: string
+): { ok: true; value: string | null } | { ok: false; response: ReturnType<typeof fail> } {
+  if (!raw) return { ok: true, value: null }
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(String(raw))
+  } catch {
+    return { ok: false, response: fail(400, { fieldErrors: { metadata: ['admin.portfolioMetadataInvalid'] } }) }
+  }
+  const normalized = normalizeItemMetadata(parsed, portfolioType)
+  if (normalized === null) {
+    return { ok: false, response: fail(400, { fieldErrors: { metadata: ['admin.portfolioMetadataInvalid'] } }) }
+  }
+  return { ok: true, value: normalized }
+}
 
 const createItemSchema = z.object({
   itemType: z.enum(['image', 'video', 'link', 'case_study']),
-  mediaUrl: z.string().optional(),
-  caption: z.string().optional(),
-  title: z.string().optional(),
-  description: z.string().optional(),
-  content: z.string().optional(),
+  mediaUrl: z.string().nullable().optional(),
+  thumbnailUrl: z.string().nullable().optional(),
+  caption: z.string().nullable().optional(),
+  title: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
+  content: z.string().nullable().optional(),
+  metadata: z.string().nullable().optional(),
   published: z.string().optional().nullable()
 })
 
@@ -58,11 +85,13 @@ export const actions: Actions = {
     const form = event.locals.csrfForm ?? (await event.request.formData())
     const parsed = createItemSchema.safeParse({
       itemType: form.get('itemType'),
-      mediaUrl: form.get('mediaUrl') || undefined,
-      caption: form.get('caption') || undefined,
-      title: form.get('title') || undefined,
-      description: form.get('description') || undefined,
-      content: form.get('content') || undefined,
+      mediaUrl: form.get('mediaUrl') || null,
+      thumbnailUrl: form.get('thumbnailUrl') || null,
+      caption: form.get('caption') || null,
+      title: form.get('title') || null,
+      description: form.get('description') || null,
+      content: form.get('content') || null,
+      metadata: form.get('metadata') || undefined,
       published: form.get('published') || null
     })
     if (!parsed.success) {
@@ -77,6 +106,10 @@ export const actions: Actions = {
       .get()
     if (!portfolio) error(404)
 
+    const { published, metadata: rawMetadata, ...base } = parsed.data
+    const metadata = validateItemMetadata(rawMetadata ?? null, portfolio.type)
+    if (!metadata.ok) return metadata.response
+
     const maxOrder = db
       .select({ order: schema.portfolioItems.order })
       .from(schema.portfolioItems)
@@ -85,10 +118,10 @@ export const actions: Actions = {
       .limit(1)
       .get()
 
-    const { published, ...base } = parsed.data
     db.insert(schema.portfolioItems)
       .values({
         ...base,
+        metadata: metadata.value,
         published: published === 'on',
         order: maxOrder?.order != null ? maxOrder.order + 1 : 0,
         portfolioId
@@ -106,11 +139,13 @@ export const actions: Actions = {
     const parsed = updateItemSchema.safeParse({
       id: form.get('id'),
       itemType: form.get('itemType'),
-      mediaUrl: form.get('mediaUrl') || undefined,
-      caption: form.get('caption') || undefined,
-      title: form.get('title') || undefined,
-      description: form.get('description') || undefined,
-      content: form.get('content') || undefined,
+      mediaUrl: form.get('mediaUrl') || null,
+      thumbnailUrl: form.get('thumbnailUrl') || null,
+      caption: form.get('caption') || null,
+      title: form.get('title') || null,
+      description: form.get('description') || null,
+      content: form.get('content') || null,
+      metadata: form.get('metadata') || undefined,
       published: form.get('published') || null
     })
     if (!parsed.success) {
@@ -118,6 +153,12 @@ export const actions: Actions = {
     }
 
     const db = useDatabase()
+    const portfolio = db
+      .select()
+      .from(schema.portfolios)
+      .where(eq(schema.portfolios.id, portfolioId))
+      .get()
+    if (!portfolio) error(404)
     const existing = db
       .select()
       .from(schema.portfolioItems)
@@ -130,10 +171,13 @@ export const actions: Actions = {
       .get()
     if (!existing) return fail(404, { fieldErrors: { id: ['admin.portfolioItemNotFound'] } })
 
-    const { id, published, ...base } = parsed.data
+    const { id, published, metadata: rawMetadata, ...base } = parsed.data
+    const metadata = validateItemMetadata(rawMetadata ?? null, portfolio.type)
+    if (!metadata.ok) return metadata.response
     db.update(schema.portfolioItems)
       .set({
         ...base,
+        metadata: metadata.value,
         published: published === 'on'
       })
       .where(

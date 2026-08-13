@@ -15,7 +15,7 @@
 </script>
 
 <div class="max-w-[var(--max-w-content)] mx-auto">
-  <PageHeader title={adminT['admin.team'] ?? t('admin.team')} itemCount={items.length} />
+  <PageHeader title={adminT['admin.team'] ?? t('admin.team')} />
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     {#each items as item (item.id)}

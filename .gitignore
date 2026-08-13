@@ -63,6 +63,8 @@ test-results/
 playwright-report/
 playwright/.cache/
 blob-report/
+# Shared e2e auth state (contains a live session cookie — never commit)
+e2e-playwright/.auth/
 
 # ══════════════════════════════════════════════════════════════
 # LOGS & DEBUG

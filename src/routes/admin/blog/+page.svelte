@@ -2,17 +2,21 @@
   import type { PageData } from './$types'
   import { page } from '$app/stores'
   import { t } from '$lib/stores/content.svelte'
+  import { getOverlaysState } from '$lib/stores/overlays.svelte'
+  import { confirmDeleteAction } from '$lib/utils/admin-confirm'
   import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
   import { getAdminT } from '$lib/utils/admin-translations'
   import { adminDelete } from '$lib/api/client'
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
   import EmptyState from '$lib/components/atoms/EmptyState.svelte'
   import Badge from '$lib/components/atoms/Badge.svelte'
-  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import AdminCreateButton from '$lib/components/atoms/AdminCreateButton.svelte'
+  import IconButton from '$lib/components/atoms/IconButton.svelte'
+  import AdminRowActions from '$lib/components/atoms/AdminRowActions.svelte'
+  import InlineBannerAction from '$lib/components/atoms/InlineBannerAction.svelte'
   import Pagination from '$lib/components/molecules/Pagination.svelte'
   import IconPencil from '@tabler/icons-svelte/icons/pencil'
   import IconTrash from '@tabler/icons-svelte/icons/trash'
-  import IconPlus from '@tabler/icons-svelte/icons/plus'
   import IconPhoto from '@tabler/icons-svelte/icons/photo'
   import { goto } from '$app/navigation'
 
@@ -32,13 +36,15 @@
   let { data }: { data: PageData } = $props()
   const items = $derived(data.items as BlogItem[])
   const adminT = $derived(getAdminT($page.data))
+  const overlays = getOverlaysState()
   let deletePending = $state<number | null>(null)
   let deleteError = $state<string | null>(null)
   let currentPage = $state(data.pagination?.page ?? 1)
 
   async function handleDelete(id: number, title: string) {
     const msg = adminT['admin.confirmDelete'] ?? t('common.areYouSure')
-    if (!confirm(msg + ' "' + title + '"?')) return
+    const confirmed = await confirmDeleteAction(overlays, `${msg} "${title}"?`)
+    if (!confirmed) return
     deletePending = id
     deleteError = null
     try {
@@ -58,18 +64,16 @@
 </script>
 
 <div class="max-w-[var(--max-w-content)] mx-auto">
-  <PageHeader title={adminT['admin.blog'] ?? t('admin.blog')} itemCount={items.length}>
+  <PageHeader title={adminT['admin.blog'] ?? t('admin.blog')}>
     {#snippet actions()}
-      <CtaButton href={ADMIN_ROUTES.blogCreate} variant="primary" size="sm">
-        <IconPlus class="size-4" /> {t('common.create')}
-      </CtaButton>
+      <AdminCreateButton href={ADMIN_ROUTES.blogCreate} />
     {/snippet}
   </PageHeader>
 
   {#if deleteError}
     <div class="mb-4 p-3 bg-pm-danger-bg border border-pm-danger rounded-[var(--radius-lg)] text-sm text-pm-danger">
       {deleteError}
-      <button onclick={() => deleteError = null} class="ms-2 underline hover:no-underline">{t('common.dismiss')}</button>
+      <InlineBannerAction onclick={() => deleteError = null}>{t('common.dismiss')}</InlineBannerAction>
     </div>
   {/if}
 
@@ -116,19 +120,19 @@
                   {/each}
                 </div>
               {/if}
-              <div class="flex items-center justify-end gap-1 pt-2 border-t border-pm-border mt-auto">
-                <a href={ADMIN_ROUTES.blogEdit(post.id)}
-                  class="p-1.5 rounded-md text-pm-text-muted hover:text-pm-brand hover:bg-pm-bg-sunken transition-colors"
-                  aria-label={t('common.edit')}>
+              <AdminRowActions class="pt-2 border-t border-pm-border mt-auto">
+                <IconButton href={ADMIN_ROUTES.blogEdit(post.id)} ariaLabel={t('common.edit')}>
                   <IconPencil class="size-4" />
-                </a>
-                <button onclick={() => handleDelete(post.id, post.title)}
+                </IconButton>
+                <IconButton
+                  variant="danger"
+                  ariaLabel={t('common.delete')}
                   disabled={deletePending === post.id}
-                  class="p-1.5 rounded-md text-pm-text-muted hover:text-pm-danger hover:bg-pm-bg-sunken transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  aria-label={t('common.delete')}>
+                  onclick={() => handleDelete(post.id, post.title)}
+                >
                   <IconTrash class="size-4" />
-                </button>
-              </div>
+                </IconButton>
+              </AdminRowActions>
             </div>
           </div>
         {/each}

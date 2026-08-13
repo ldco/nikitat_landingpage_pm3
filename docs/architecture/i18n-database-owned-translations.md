@@ -46,6 +46,35 @@ src/project/content.json      ──► db:seed ──► translations table (pr
 — hand-editing them has no runtime effect (the DB wins) and the next
 `npm run i18n:export` overwrites them.
 
+### Seed sync semantics (not insert-only)
+
+`seedTranslations()` (in `src/lib/server/db/seed-data/translations.ts`) is the
+bridge from the catalogs to the DB, is **idempotent** and runs all writes in a
+single transaction:
+
+- **SYSTEM rows** (`admin.*`, `nav.*`, `common.*`, …): the catalog is the
+  canonical owner. Missing rows are inserted (backfill); a **routine**
+  `npm run db:seed` **preserves** existing system values, so admin-panel edits
+  to system strings are never silently reverted. Applying corrected canonical
+  values (e.g. a fixed French or Hebrew string) to existing rows is an
+  **explicit sync**: the production container runs
+  `scripts/sync-translations.ts` (bundled as `build/sync-translations.mjs`,
+  gated by `PM_SYNC_TRANSLATIONS_ON_BOOT`, default on) at boot after
+  migrations, which calls `seedTranslations(…, { forceSystemSync: true })`.
+  Rows written through the admin translations editor carry the `customized`
+  flag (set by `setTranslation` in `$lib/server/services/translations`) and
+  are **never** overwritten by the sync — an admin-edited system string
+  survives restarts, while untouched rows still receive catalog corrections.
+  The one-time caveat: system rows edited before this flag existed are
+  indistinguishable from catalog rows and are reverted once on the first
+  synced deploy.
+- **CONTENT rows** (`hero.*`, `about.*`, …): editor-owned. The seed only
+  backfills missing rows and **never overwrites** an existing content value,
+  so admin/editor edits stay authoritative.
+- After any change the seed invalidates `content-cache.ts` and
+  `translations-cache.ts` (the in-process caches); a running server also
+  self-heals via the `MAX(updated_at)` freshness check within the TTL window.
+
 ## 3. Config-driven locales (single source of truth)
 
 - `LOCALES` / `DEFAULT_LOCALE` live in `src/project/site-config.ts` and are
@@ -82,7 +111,8 @@ footer (`MadeBy.svelte`, `SectionF22.svelte`) can never diverge.
 |-------|------------------|
 | Validator #10 / #10b | No NEW user-facing string literals in `.svelte` / `src/app.html` / config surfaces (frozen baseline `scripts/i18n-literal-baseline.json`) |
 | Validator #12 | No direct `import * as m from '$lib/i18n'` in components — text must go through `t()` |
-| `npm run i18n:export` | Regenerates the Paraglide artifacts from the canonical catalog (one-way) |
+| `npm run i18n:validate` | Catalog validation (`scripts/validate-system-seed.ts`): every non-default locale must contain every default-locale key AND every key must exist in the default locale (symmetric coverage), with no blank values, no raw dotted/underscore values, and no untranslated copies of the default/secondary value (identical-to-source is only allowed via the explicit allowlist `scripts/i18n-identical-allowlist.json` for locale-independent terms) |
+| `npm run i18n:export` | Regenerates the Paraglide artifacts from the canonical catalog (one-way) — runs `i18n:validate` first and aborts on violations |
 | DB seed | Reads only `i18n/system-seed.json` + `src/project/content.json` — generated message files can never feed the DB |
 
 Workflow for adding new UI text: `docs/contributing/i18n-literals-policy.md`.

@@ -10,6 +10,7 @@
    *
    * Form contract: Zod → $state bindings → CSRF header → POST /api/contact/submit
    *
+   * @props {string} [class] — additional CSS classes merged via twMerge
    * @example <SectionContact />
    */
   import { fly } from 'svelte/transition'
@@ -25,6 +26,12 @@
   import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
   import ContactInfo from '$lib/components/molecules/ContactInfo.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+
+  let {
+    class: className = ''
+  }: {
+    class?: string
+  } = $props()
 
   const settings = useSettings()
 
@@ -99,7 +106,7 @@
   }
 </script>
 
-<Section id="contact">
+<Section id="contact" class={className}>
   <SectionContent>
     <SectionHeading title={title} align="center" />
     {#if intro}

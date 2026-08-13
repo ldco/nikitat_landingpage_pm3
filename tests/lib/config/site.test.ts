@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  LOCALES, DEFAULT_LOCALE, NAV_ITEMS, HOMEPAGE_SECTIONS,
+  LOCALES, LOCALE_CONFIG, DEFAULT_LOCALE, NAV_ITEMS, HOMEPAGE_SECTIONS,
   FEATURES, MODULES, isOnepager, isMultiLang, resolveSectionHref,
   getEnabledModules, COLORS, DEFAULT_THEME
 } from '$lib/config/site'
@@ -9,7 +9,17 @@ describe('Site config', () => {
   it('exports LOCALES as array', () => {
     expect(Array.isArray(LOCALES)).toBe(true)
     expect(LOCALES.length).toBeGreaterThanOrEqual(1)
-    expect(LOCALES).toContain('ru')
+  })
+
+  it('DEFAULT_LOCALE is a member of LOCALES', () => {
+    expect(LOCALES).toContain(DEFAULT_LOCALE)
+  })
+
+  it('every locale has a label entry in LOCALE_CONFIG', () => {
+    for (const locale of LOCALES) {
+      expect(LOCALE_CONFIG[locale as keyof typeof LOCALE_CONFIG]).toBeDefined()
+      expect(LOCALE_CONFIG[locale as keyof typeof LOCALE_CONFIG].name.length).toBeGreaterThan(0)
+    }
   })
 
   it('exports DEFAULT_LOCALE', () => {
@@ -28,11 +38,12 @@ describe('Site config', () => {
 
   it('NAV_ITEMS store CANONICAL targets — no locale prefix baked in', () => {
     // Config holds locale-less targets ('/portfolio', '/#about'); the rendered
-    // href is derived per active locale at render time (localizedHref).
+    // href is derived per active locale at render time (localizedHref). No
+    // configured locale may be baked into a canonical target.
     for (const item of NAV_ITEMS) {
-      expect(item.href.startsWith('/en/')).toBe(false)
-      expect(item.href.startsWith('/fr/')).toBe(false)
-      expect(item.href.startsWith('/he/')).toBe(false)
+      for (const locale of LOCALES) {
+        expect(item.href.startsWith(`/${locale}/`)).toBe(false)
+      }
       // Anchors keep their hash so onepager sections survive localizing.
       expect(item.href.startsWith('/#') || item.href.startsWith('/')).toBe(true)
     }

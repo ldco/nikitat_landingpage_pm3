@@ -2,6 +2,9 @@
   /**
   * SectionPortfolio — Portfolio items grid (PM3 rule 6)
  *
+ * @props {Array<{id: number; slug: string; name: string; type: string; coverImageUrl?: string}>} [items=[]] — portfolio items to display in the grid
+ * @props {string} [class] — additional CSS classes merged via twMerge
+ *
  * @example <SectionPortfolio />
   */
   import IconPhoto from '@tabler/icons-svelte/icons/photo'

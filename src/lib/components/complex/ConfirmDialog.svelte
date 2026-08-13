@@ -10,6 +10,18 @@
    *  1. Imperative (preferred): mounted by <OverlayProvider> and driven by
    *     getOverlaysState().confirm({ ... }). No props required.
    *  2. Declarative: <ConfirmDialog bind:open title=... onConfirm=... />.
+   *
+   * @props {boolean} [open=false] — bindable open state (declarative mode)
+   * @props {string} [title] — dialog title
+   * @props {string} [message] — confirmation message
+   * @props {string} [confirmText] — confirm button label
+   * @props {string} [cancelText] — cancel button label
+   * @props {'primary'|'danger'} [variant='primary'] — confirm button variant
+   * @props {() => void} [onConfirm] — confirm callback (declarative mode)
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <ConfirmDialog bind:open={open} title="Delete item?" onConfirm={handleDelete} />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

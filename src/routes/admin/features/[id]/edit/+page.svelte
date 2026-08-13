@@ -8,8 +8,7 @@
   import { getAdminT } from '$lib/utils/admin-translations'
   import { LOCALE_CONFIG } from '$lib/config/site'
   import { createFormDirty } from '$lib/utils/form-dirty.svelte'
-  import PageHeader from '$lib/components/atoms/PageHeader.svelte'
-  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import AdminEditorPage from '$lib/components/molecules/AdminEditorPage.svelte'
   import FormField from '$lib/components/atoms/FormField.svelte'
   import AdminFormSection from '$lib/components/molecules/AdminFormSection.svelte'
   import type { PageData } from './$types'
@@ -32,6 +31,10 @@
   let published = $state(p.published === true)
 
   const translations = $state<Record<string, { title: string; description: string }>>({})
+  // Per-locale explicit-removal intent (the `remove_<loc>` checkboxes below).
+  // Part of the dirty source so a removal-only edit enables Save — toggling
+  // the checkbox must count as a change even when no field text is edited.
+  const removals = $state<Record<string, boolean>>({})
   {
     for (const loc of locales) {
       const row = featureTranslations.find(r => r.locale === loc)
@@ -39,6 +42,7 @@
         title: row?.title ?? '',
         description: row?.description ?? ''
       }
+      removals[loc] = false
     }
   }
 
@@ -49,25 +53,27 @@
     category,
     order,
     published,
-    translations
+    translations,
+    removals
   }))
   markClean()
-  guardNavigation()
+  // The form element arms the submit bypass — an intentional Save must not be
+  // blocked by the unsaved-changes guard (nor its post-save redirect).
+  let formEl = $state<HTMLFormElement | null>(null)
+  guardNavigation(() => formEl)
 
   function localeName(loc: string): string {
     return LOCALE_CONFIG[loc as keyof typeof LOCALE_CONFIG]?.name ?? loc
   }
 </script>
 
-<PageHeader title={t('common.edit')}>
-  {#snippet actions()}
-    <a href={ADMIN_ROUTES.features} class="text-pm-text-muted hover:text-pm-brand text-sm">&larr; {t('common.back')}</a>
-  {/snippet}
-</PageHeader>
-
-<form method="POST" class="flex flex-col gap-6">
-  <input type="hidden" name="_csrf" value={$page.data.csrfToken} />
-
+<AdminEditorPage
+  title={t('common.edit')}
+  backHref={ADMIN_ROUTES.features}
+  csrfToken={$page.data.csrfToken}
+  bind:formEl={formEl}
+  saveDisabled={!isDirty}
+>
   <AdminFormSection title={adminT['admin.basicInfo'] ?? t('admin.basicInfo')}>
     <div class="grid gap-4 grid-cols-[var(--grid-admin-form)]">
       <FormField
@@ -127,12 +133,11 @@
           value={translations[loc]?.description ?? ''}
           oninput={(e) => { translations[loc] = translations[loc] ?? { title: '', description: '' }; translations[loc].description = (e.currentTarget as HTMLTextAreaElement).value }}
         />
+        <label class="flex items-center gap-2 text-sm text-pm-text-muted">
+          <input type="checkbox" name={`remove_${loc}`} value="on" bind:checked={removals[loc]} />
+          {adminT['admin.removeTranslation'] ?? t('admin.removeTranslation')}
+        </label>
       </div>
     </AdminFormSection>
   {/each}
-
-  <div class="flex justify-end gap-3">
-    <CtaButton variant="ghost" href={ADMIN_ROUTES.features}>{t('common.cancel')}</CtaButton>
-    <CtaButton type="submit" variant="primary" disabled={!isDirty}>{t('common.save')}</CtaButton>
-  </div>
-</form>
+</AdminEditorPage>

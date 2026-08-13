@@ -7,10 +7,11 @@
   import AppImage from '$lib/components/atoms/AppImage.svelte'
   import Badge from '$lib/components/atoms/Badge.svelte'
   import Seo from '$lib/components/atoms/Seo.svelte'
-import { t } from '$lib/stores/content.svelte'
+  import { t } from '$lib/stores/content.svelte'
   import { localizedHref } from '$lib/utils/navigation'
   import { currentLocale } from '$lib/stores/locale.svelte'
   import { FEATURES } from '$lib/config/site'
+  import IconPhoto from '@tabler/icons-svelte/icons/photo'
   import type { PageData } from './$types'
   let { data }: { data: PageData } = $props()
   const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
@@ -28,6 +29,12 @@ import { t } from '$lib/stores/content.svelte'
         {#if item.coverImageUrl}
           <div class="aspect-video overflow-hidden">
             <AppImage src={item.coverImageUrl} alt={item.name} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          </div>
+        {:else}
+          <!-- Cover fallback: the service resolves the first item thumbnail;
+               a portfolio with no items or no media still gets a placeholder. -->
+          <div class="aspect-video flex items-center justify-center bg-pm-bg-sunken">
+            <IconPhoto class="size-10 text-pm-text-muted" />
           </div>
         {/if}
         <div class="p-5">

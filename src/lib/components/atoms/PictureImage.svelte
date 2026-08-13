@@ -5,6 +5,14 @@
    *
    * Converts src path to use modern formats:
    *   /images/photo.jpg → AVIF preferred, WebP fallback, original as last resort
+   *
+   * @props {string} src — source image path
+   * @props {string} [alt=''] — alt text
+   * @props {number[]} [widths=[400, 800, 1200]] — responsive srcset widths
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <PictureImage src="/images/photo.jpg" alt={t('common.photo')} />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

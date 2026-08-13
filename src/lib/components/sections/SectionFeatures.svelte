@@ -2,6 +2,9 @@
   /**
   * SectionFeatures — Features grid (PM3 rule 6)
  *
+ * @props {Array<{title: string; description: string; icon?: string}>} [features=[]] — feature cards to display in the grid
+ * @props {string} [class] — additional CSS classes merged via twMerge
+ *
  * @example <SectionFeatures />
   */
   import { clsx } from 'clsx'

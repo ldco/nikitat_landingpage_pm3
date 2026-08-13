@@ -7,6 +7,15 @@
    * Changing these in ONE place updates ALL icons.
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {number} [size=20] — icon size in pixels
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   * @props {Snippet} children — SVG path content
+   *
+   * @example
+   * <BaseIcon size={24}>
+   *   <path d="..." />
+   * </BaseIcon>
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

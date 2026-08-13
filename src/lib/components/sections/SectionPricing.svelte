@@ -4,7 +4,9 @@
  *
  * Renders tier cards, then the PricingComparison table when the pricing module
  * config has showComparison enabled (PM v2 parity).
- *
+  * @props {Array<{id: string; name: string; description?: string; price: number | null; currency?: string; period?: string; features?: Array<{text: string; included: boolean}>; cta?: {text: string; url: string}; featured?: boolean}>} [tiers=[]] — pricing tiers to render
+  * @props {string} [class] — additional CSS classes merged via twMerge
+  *
  * @example <SectionPricing />
   */
   import { t } from '$lib/stores/content.svelte'

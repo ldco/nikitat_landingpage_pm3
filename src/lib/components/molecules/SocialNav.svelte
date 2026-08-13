@@ -9,6 +9,13 @@
    * Data: loaded client-side from /api/settings endpoint.
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {'default'|'filled'|'bordered'|'circle'} [variant='default'] — icon style variant
+   * @props {'sm'|'md'|'lg'} [size='md'] — link size
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <SocialNav variant="circle" size="sm" />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

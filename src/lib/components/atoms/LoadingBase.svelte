@@ -6,6 +6,9 @@
    * @props width — CSS width value (default 100%)
    * @props height — CSS height value (default 1em)
    * @props rounded — border-radius class (default rounded)
+   *
+   * @example
+   * <LoadingBase width="100%" height="1.5rem" />
    */
   interface Props {
     class?: string

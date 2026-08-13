@@ -10,7 +10,7 @@
  * viewers consume normalized data and never derive translation keys themselves.
  */
 import { useDatabase, schema } from '$lib/server/db'
-import { eq, and, asc } from 'drizzle-orm'
+import { eq, and, asc, inArray, sql } from 'drizzle-orm'
 import type { PortfolioItemCard } from '$lib/components/sections/types'
 import { getSanitizedContentTranslations } from '$lib/server/db/content-cache'
 
@@ -79,10 +79,18 @@ export function getHomepagePortfolioItems(_locale: string): PortfolioItemCard[] 
   }))
 }
 
-/** Portfolio list page: published portfolios (base fields). */
+/**
+ * Portfolio list page: published portfolios (base fields).
+ *
+ * Cover fallback (review): when a portfolio has no explicit cover image, the
+ * first published item's thumbnail (or image media URL) becomes the card
+ * image — a portfolio that only has items uploaded never looks empty on the
+ * public listing. The fallback is resolved with ONE batched items query (not a
+ * per-row query) for the portfolios that lack a cover.
+ */
 export function getPublishedPortfolios(_locale: string) {
   const db = useDatabase()
-  return db.select({
+  const rows = db.select({
     id: schema.portfolios.id,
     slug: schema.portfolios.slug,
     name: schema.portfolios.name,
@@ -93,6 +101,47 @@ export function getPublishedPortfolios(_locale: string) {
     .where(eq(schema.portfolios.published, true))
     .orderBy(asc(schema.portfolios.order))
     .all()
+
+  const missingCoverIds = rows.filter(row => !row.coverImageUrl).map(row => row.id)
+  if (missingCoverIds.length === 0) {
+    return rows.map(row => ({ ...row, coverImageUrl: row.coverImageUrl ?? null }))
+  }
+
+  // One batched query for every portfolio lacking a cover: first published
+  // item per portfolio by its display order. A correlated subquery picks the
+  // single winning row in SQL (one row returned per portfolio) instead of
+  // materializing every published item into memory and discarding all but the
+  // first in JS — the portfolio_id index bounds the subquery cost.
+  const items = db.select({
+    portfolioId: schema.portfolioItems.portfolioId,
+    thumbnailUrl: schema.portfolioItems.thumbnailUrl,
+    mediaUrl: schema.portfolioItems.mediaUrl,
+    itemType: schema.portfolioItems.itemType
+  })
+    .from(schema.portfolioItems)
+    .where(and(
+      inArray(schema.portfolioItems.portfolioId, missingCoverIds),
+      eq(schema.portfolioItems.published, true),
+      sql`${schema.portfolioItems.id} = (
+        select pi.id from ${schema.portfolioItems} pi
+        where pi.portfolio_id = ${schema.portfolioItems.portfolioId}
+          and pi.published = 1
+        order by pi."order", pi.id
+        limit 1
+      )`
+    ))
+    .all()
+  const firstItems = new Map(items.map(item => [item.portfolioId, item]))
+
+  return rows.map(row => {
+    if (row.coverImageUrl) return { ...row, coverImageUrl: row.coverImageUrl }
+    const item = firstItems.get(row.id)
+    const coverImageUrl =
+      (item?.thumbnailUrl || null) ??
+      (item?.itemType === 'image' ? item?.mediaUrl || null : null) ??
+      null
+    return { ...row, coverImageUrl }
+  })
 }
 
 /** Public API: paginated published portfolios. */

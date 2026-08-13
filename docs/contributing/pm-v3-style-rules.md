@@ -49,6 +49,13 @@ const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
 - doubleTheme, multiLangs, cookies → show/hide buttons
 - interactiveHeader, hideHeaderOnScroll, verticalNav → header behavior
 
+### Rule 6: Admin editing-surface contract (modal vs page)
+Admin CRUD has exactly two editing surfaces; choose by form shape, never arbitrarily:
+- **Dedicated edit page** (`AdminEditorPage` molecule): multi-section forms (per-locale panels, repeatable sub-records, file uploads) or ~8+ fields; deep-linkable URLs; full-page SSR validation. Examples: blog, pricing, faq, features, portfolios.
+- **Modal editor** (`AdminModal` molecule): single-record forms with < ~8 fields that stay in list context. Examples: users, roles, translation keys, portfolio items.
+
+Editor pages MUST use the `AdminEditorPage` shell (back navigation, page titles, top actions, `<form>` framing, Cancel/Save footer) — never hand-assemble a PageHeader + raw back anchor + `<form>` per module. Page titles follow ONE convention: create pages use `t('common.create')`, edit pages use `t('common.edit')`; never mix generic and entity-specific wording. List pages use the admin action primitives: `AdminCreateButton` (primary action), `AdminRowActions` + `IconPencil` (canonical row-action presentation/edit icon), `InlineBannerAction` (banner dismiss/retry), `AdminBackButton` (navigation).
+
 ## PM v2 → PM v3 Changes
 | PM v2 | PM v3 |
 |-------|-------|

@@ -8,6 +8,12 @@
    * - rounded-full with shadow
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {number} [threshold=300] — scrollY threshold before showing button
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <BackToTop />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

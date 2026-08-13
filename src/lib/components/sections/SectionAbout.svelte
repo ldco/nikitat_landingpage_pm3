@@ -9,6 +9,7 @@
    *
    * Content from content store: about.title, about.paragraph1, about.paragraph2
    *
+   * @props {string} [class] — additional CSS classes merged via twMerge
    * @example <SectionAbout />
    */
   import { t } from '$lib/stores/content.svelte'
@@ -17,13 +18,19 @@
   import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
   import BeforeAfterSlider from '$lib/components/molecules/BeforeAfterSlider.svelte'
 
+  let {
+    class: className = ''
+  }: {
+    class?: string
+  } = $props()
+
   const title = $derived(t('about.title', t('sections.about')))
   const paragraph1 = $derived(t('about.paragraph1', ''))
   const paragraph2 = $derived(t('about.paragraph2', ''))
   const hasContent = $derived(paragraph1.length > 0)
 </script>
 
-<Section id="about">
+<Section id="about" class={className}>
   <SectionContent>
     <SectionHeading title={title} align="center" />
 

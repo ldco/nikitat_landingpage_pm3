@@ -67,7 +67,7 @@
 | File | Lines | Status | Notes |
 |------|-------|--------|-------|
 | forms/buttons.css | 235 | ✅ DONE | CtaButton.svelte with Tailwind |
-| forms/inputs.css | 854 | ⚠️ PARTIAL | PM v3 has form styling in admin pages but NOT as reusable component. Missing: checkbox, select styling, date inputs, search |
+| forms/inputs.css | 854 | ✅ DONE | FormField.svelte = reusable canonical control (input/textarea/select/checkbox + label + error). Missing: date inputs, search (translations page has an inline search bar) |
 | forms/action-states.css | 84 | ✅ NOT NEEDED | Tailwind `:disabled:cursor-not-allowed` etc |
 | forms/search.css | 100 | ⚠️ PARTIAL | Search admin functionality not implemented in PM v3 |
 | → **Total** | **1273** | **⚠️ Need FormField reusable component** | 
@@ -221,7 +221,7 @@ All `runtime/*.css` files are section-specific — most are 2 lines (import only
 1. **Overlays**: Modal, toast, lightbox — components exist but missing full PM v2 styling
 2. **Admin paging**: `admin-pages.css` translation groups, permissions grid — not in PM v3
 3. **Admin header**: Mobile user menu, responsive sidebar widths — partial
-4. **Forms**: Search admin, FormField reusable component — not in PM v3
+4. **Forms**: Search admin. FormField is now the reusable canonical form control (input/textarea/select/checkbox + label + error).
 5. **Page transitions**: 303 lines of CSS animations — not implemented
 6. **Before-after slider**: 77 lines — component not created
 7. **Service cards**: 43 lines — section not created

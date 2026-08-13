@@ -1,4 +1,25 @@
 <script lang="ts">
+  /**
+   * SectionHero — Hero section: title, subtitle, CTAs and parallax scene
+   *
+   * Renders the locale-aware hero title (broken into segments for the brand
+   * highlight), subtitle, primary/secondary CTAs and the project's parallax
+   * scene when FEATURES.heroParallax is enabled. The project-specific parallax
+   * is prop-injected by the Onepager orchestrator (never imported here).
+   *
+   * @props {string} [title] — hero title text
+   * @props {string} [subtitle] — hero subtitle text
+   * @props {string} [primaryCta] — primary CTA label
+   * @props {string} [primaryHref='/#focus'] — primary CTA href
+   * @props {string} [secondaryCta] — secondary CTA label
+   * @props {string} [secondaryHref='/#about'] — secondary CTA href
+   * @props {Component} [parallaxComponent] — parallax scene component injected by the orchestrator
+   * @props {((node: HTMLElement) => { destroy(): void } | null | undefined)} [parallaxIntro] — parallax intro action factory
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <SectionHero />
+   */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { t } from '$lib/stores/content.svelte'

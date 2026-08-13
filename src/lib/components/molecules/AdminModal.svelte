@@ -124,8 +124,19 @@
       {#if formAction}
         <!-- use:enhance keeps the modal open across fail(400, { fieldErrors }):
              the submission is fetched and $page.form updates in place instead of
-             a native POST that would remount the page and close the modal. -->
-        <form method="POST" action={formAction} use:enhance class="p-6 flex flex-col gap-4">
+             a native POST that would remount the page and close the modal.
+             Successful saves REDIRECT (303) — the callback closes the modal on
+             the redirect result so the save visibly completes, then revalidates
+             the page (same-page redirect) or follows the navigation. -->
+        <form
+          method="POST"
+          action={formAction}
+          use:enhance={() => async ({ result, update }) => {
+            if (result.type === 'redirect') onclose()
+            await update()
+          }}
+          class="p-6 flex flex-col gap-4"
+        >
           {@render children?.()}
 
           {#if footer}

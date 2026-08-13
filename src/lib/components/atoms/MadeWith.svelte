@@ -11,6 +11,12 @@
    *
    * Theme variants are explicit (PM v2 getLogo): light UI → 'dark' file,
    * dark UI → 'light' file, selected via CSS `dark:` classes.
+   *
+   * @props {string} [url=FOOTER_MADE_WITH.url] — Puppet Master site link target
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <MadeWith />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

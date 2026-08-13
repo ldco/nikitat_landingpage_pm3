@@ -14,6 +14,10 @@ export default defineConfig({
   testDir: './e2e-playwright',
   testIgnore: ['**/example.spec.ts'],
 
+  // One-time admin login (see e2e-playwright/global-setup.ts): runs after the
+  // webServer is up, writes the shared auth state for the admin-journey spec.
+  globalSetup: './e2e-playwright/global-setup.ts',
+
   // Run tests in files in parallel
   fullyParallel: true,
 

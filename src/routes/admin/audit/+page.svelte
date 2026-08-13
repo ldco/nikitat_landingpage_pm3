@@ -25,7 +25,7 @@
 </script>
 
 <div class="max-w-[var(--max-w-content)] mx-auto">
-  <PageHeader title={adminT['admin.auditLog'] ?? t('admin.auditLog')} itemCount={items.length} />
+  <PageHeader title={adminT['admin.auditLog'] ?? t('admin.auditLog')} />
 
   <div class="mt-6">
     {#if items.length === 0}

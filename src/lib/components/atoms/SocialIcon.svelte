@@ -2,6 +2,14 @@
   /**
    * SocialIcon — platform icon using Tabler brand icons
    * PM v2 parity: flexibile platform handling via lookup map
+   *
+   * @props {string} platform — platform key (telegram, github, x, ...)
+   * @props {string} url — link target
+   * @props {number} [size=20] — icon size in pixels
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <SocialIcon platform="telegram" url="https://t.me/example" />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

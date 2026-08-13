@@ -9,6 +9,12 @@
    * HEADER_CONTACT config. Only items with non-empty values are rendered.
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {number} [size=20] — icon size in pixels
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <HeaderContact />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

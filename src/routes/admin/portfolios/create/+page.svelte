@@ -6,10 +6,10 @@
   import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
   import { page } from '$app/stores'
   import { getAdminT } from '$lib/utils/admin-translations'
-  import PageHeader from '$lib/components/atoms/PageHeader.svelte'
-  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import AdminEditorPage from '$lib/components/molecules/AdminEditorPage.svelte'
   import FormField from '$lib/components/atoms/FormField.svelte'
   import AdminFormSection from '$lib/components/molecules/AdminFormSection.svelte'
+  import FileUpload from '$lib/components/molecules/FileUpload.svelte'
   const adminT = $derived(getAdminT($page.data))
 
   const PORTFOLIO_TYPES = [
@@ -19,11 +19,15 @@
     { value: 'website', key: 'admin.portfolioTypeWebsite', fallback: 'Website' },
     { value: 'brandbook', key: 'admin.portfolioTypeBrandbook', fallback: 'Brandbook' }
   ]
+  const typeOptions = $derived(
+    PORTFOLIO_TYPES.map(pt => ({ value: pt.value, label: adminT[pt.key] ?? pt.fallback }))
+  )
 
   let name = $state(''),
     slug = $state(''),
     type = $state('branding'),
     description = $state('')
+  let coverImageUrl = $state('')
   let published = $state(false)
   const form = $derived($page.form)
   const errors = $derived(
@@ -31,17 +35,12 @@
   )
 </script>
 
-<PageHeader title={adminT['admin.addPortfolio'] ?? t('admin.addPortfolio')}>
-  {#snippet actions()}
-    <a href={ADMIN_ROUTES.portfolios} class="text-pm-text-muted hover:text-pm-brand text-sm">
-      &larr; {t('common.back')}
-    </a>
-  {/snippet}
-</PageHeader>
-
-<form method="POST" class="max-w-lg space-y-6">
-  <input type="hidden" name="_csrf" value={$page.data.csrfToken} />
-
+<AdminEditorPage
+  title={t('common.create')}
+  backHref={ADMIN_ROUTES.portfolios}
+  csrfToken={$page.data.csrfToken}
+  formClass="max-w-lg space-y-6"
+>
   <AdminFormSection>
     <div class="flex flex-col gap-4">
       <FormField
@@ -58,22 +57,14 @@
         error={t(errors.slug?.[0] ?? '')}
         required
       />
-      <div class="flex flex-col gap-1.5">
-        <label for="field-type" class="text-sm font-medium text-pm-text">
-          {adminT['admin.portfolioType']}
-        </label>
-        <select
-          name="type"
-          id="field-type"
-          bind:value={type}
-          class="w-full px-3 py-2 border border-pm-border rounded-md bg-pm-bg text-sm text-pm-text focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring"
-        >
-          {#each PORTFOLIO_TYPES as pt}
-            <option value={pt.value}>{adminT[pt.key] || pt.fallback}</option>
-          {/each}
-        </select>
-        {#if errors.type?.[0]}<p class="text-xs text-pm-danger mt-1">{t(errors.type[0])}</p>{/if}
-      </div>
+      <FormField
+        name="type"
+        type="select"
+        label={adminT['admin.portfolioType'] ?? t('admin.portfolioType')}
+        options={typeOptions}
+        bind:value={type}
+        error={errors.type?.[0] ? t(errors.type[0]) : ''}
+      />
       <FormField
         name="description"
         type="textarea"
@@ -81,6 +72,20 @@
         bind:value={description}
         error={t(errors.description?.[0] ?? '')}
       />
+      <input type="hidden" name="coverImageUrl" value={coverImageUrl} />
+      <div class="flex flex-col gap-1.5">
+        <span class="text-sm font-medium text-pm-text">
+          {adminT['admin.coverImage'] ?? t('admin.coverImage')}
+        </span>
+        <FileUpload
+          bind:value={coverImageUrl}
+          dropzoneLabel={adminT['admin.dropzoneLabel'] ?? t('admin.dropzoneLabel')}
+          uploadingLabel={t('common.uploading')}
+          tooLargeLabel={adminT['admin.fileTooLarge'] ?? t('admin.fileTooLarge')}
+          uploadFailedLabel={adminT['admin.uploadFailed'] ?? t('admin.uploadFailed')}
+          removeLabel={t('common.remove')}
+        />
+      </div>
       <FormField
         name="published"
         type="checkbox"
@@ -89,9 +94,4 @@
       />
     </div>
   </AdminFormSection>
-
-  <div class="flex justify-end gap-3">
-    <CtaButton variant="ghost" href={ADMIN_ROUTES.portfolios}>{t('common.cancel')}</CtaButton>
-    <CtaButton type="submit" variant="primary">{t('common.save')}</CtaButton>
-  </div>
-</form>
+</AdminEditorPage>

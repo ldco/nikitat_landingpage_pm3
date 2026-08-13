@@ -1,24 +1,10 @@
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { getAllSettings } from '$lib/server/services'
 import { getSettingsByGroup, SETTINGS_GROUPS, type SettingDefinition } from '$lib/config/settings-schema'
+import type { AdminSettingGroup, AdminSettingRow } from '$lib/admin-settings'
 import type { PageServerLoad } from './$types'
 
-export interface AdminSettingRow {
-  key: string
-  value: string | null
-  type: 'string' | 'number' | 'boolean' | 'json'
-  group: string
-  label: string
-  icon?: string
-  public: boolean
-}
-
-export interface AdminSettingGroup {
-  key: string
-  label: string
-  icon?: string
-  items: AdminSettingRow[]
-}
+export type { AdminSettingGroup, AdminSettingRow } from '$lib/admin-settings'
 
 export const load: PageServerLoad = (event) => {
   requireAdminPage(event, 'settings')

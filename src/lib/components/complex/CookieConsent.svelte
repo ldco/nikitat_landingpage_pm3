@@ -16,6 +16,11 @@
    * to ensure user's privacy preference is respected (app-nuxt behavior).
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <CookieConsent />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

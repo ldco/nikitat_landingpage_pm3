@@ -2,7 +2,12 @@ import { LOCALE_STRINGS } from '$lib/config/site'
 import type { RequestEvent } from '@sveltejs/kit'
 import { error, json } from '@sveltejs/kit'
 import { z } from 'zod'
-import { getRawContentTranslations, setTranslation, deleteTranslation, isSystemKey } from '$lib/server/services'
+import {
+  getRawContentTranslations,
+  setTranslations,
+  deleteTranslation,
+  assertCanEditSystemKey
+} from '$lib/server/services'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
 import { invalidateContentCache } from '$lib/server/db/content-cache'
@@ -25,21 +30,24 @@ export async function PUT(event: RequestEvent) {
   // Store the raw value. Sanitization happens once, at the read boundary
   // (content-cache → sanitizeContentMap), so the admin editor round-trip
   // shows what was typed and the DB never holds double-escaped HTML.
+  // System-key guard (PM v2 parity): a bulk payload that includes a system
+  // key is REJECTED outright for non-masters — silently skipping the key
+  // would let an admin believe their system-key edit landed.
   const existingKeys = getRawContentTranslations(locale)
-  let count = 0
+  const entries: Array<{ key: string; value: string }> = []
   for (const [key, value] of Object.entries(parsed.data)) {
-    if (isSystemKey(key) && actor.role !== 'master' && actor.role !== 'admin') continue
-    if (key in existingKeys) {
-      setTranslation(locale, key, value)
-      count++
-    }
+    assertCanEditSystemKey(actor, key)
+    if (key in existingKeys) entries.push({ key, value })
   }
+  // One bulk upsert transaction — a per-key setTranslation would read/rewrite
+  // the tombstone settings row for every key (N+1 on large payloads).
+  if (entries.length > 0) setTranslations(locale, entries)
   // The payload is an unrestricted key map — it may include both content.*
   // and admin.* keys. Invalidate BOTH caches: public content translations
   // (content-cache) and admin UI strings (translations-cache).
   invalidateContentCache(locale)
   invalidateTranslationCache(locale)
-  return json(jsonSuccess({ updated: count }))
+  return json(jsonSuccess({ updated: entries.length }))
 }
 
 export async function DELETE(event: RequestEvent) {
@@ -50,9 +58,7 @@ export async function DELETE(event: RequestEvent) {
   if (!body) throw error(400)
   const parsed = deleteSchema.safeParse(body)
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
-  if (isSystemKey(parsed.data.key) && actor.role !== 'master' && actor.role !== 'admin') {
-    throw error(403, 'Only master or admin can edit system translations')
-  }
+  assertCanEditSystemKey(actor, parsed.data.key)
   deleteTranslation(locale, parsed.data.key)
   invalidateContentCache(locale)
   invalidateTranslationCache(locale)

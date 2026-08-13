@@ -14,6 +14,12 @@
    *   - Click-outside detection to close panel
    *   - SSR-safe (ClientOnly pattern: renders nothing until mounted)
    *   - Transition for panel open/close (CSS classes from lang-switcher.css)
+   *
+   * @props {'down'|'side'|'inline'} [mode='down'] — switcher layout mode
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example
+   * <LangSwitcher mode="inline" />
    */
   import { availableLanguageTags } from '$lib/paraglide/runtime.js'
   import { goto } from '$app/navigation'

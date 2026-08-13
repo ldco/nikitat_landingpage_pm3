@@ -9,16 +9,17 @@ import type { PageServerLoad } from './$types'
 import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
 import { uniqueConstraintFieldErrors } from '$lib/server/utils/db-errors'
 import {
-  type LocaleFormSpec,
   localeFieldsSchema,
   mergeFieldErrors,
   readLocaleFields,
-  submittedLocaleSections
+  submittedLocaleSections,
+  forEachLocaleTranslationWrite
 } from '$lib/server/utils/locale-form'
+import { BLOG_LOCALE_SPEC as localeSpec } from '$lib/server/utils/entity-locale-specs'
 
 // A submitted locale section must contain the title — a translation with only
-// an excerpt/content is rejected instead of silently skipped.
-const localeSpec: LocaleFormSpec = { title: true, excerpt: false, content: false }
+// an excerpt/content is rejected instead of silently skipped (shared spec
+// with the edit action: entity-locale-specs).
 
 const updateSchema = z.object({
   slug: z
@@ -126,8 +127,23 @@ export const actions = {
           .where(eq(schema.blogPosts.id, postId))
           .run()
 
-        // Upsert per-locale translations (only submitted sections).
-        for (const [loc, values] of Object.entries(translations)) {
+        // Upsert/remove the per-locale translations. Removal is EXPLICIT: a
+        // checked `remove_<loc>` field deletes that locale's row; a locale
+        // section left entirely empty without the flag is preserved — it is
+        // never silently skipped (stale rows must be cleared via the checkbox)
+        // and never deleted by accident. Shared with the faq and features
+        // editors so the three entity editors can never drift.
+        forEachLocaleTranslationWrite(form, translations, (loc, values, remove) => {
+          if (remove) {
+            db.delete(schema.blogPostTranslations)
+              .where(and(
+                eq(schema.blogPostTranslations.postId, postId),
+                eq(schema.blogPostTranslations.locale, loc)
+              ))
+              .run()
+            return
+          }
+
           const existing = db
             .select({ id: schema.blogPostTranslations.id })
             .from(schema.blogPostTranslations)
@@ -142,9 +158,9 @@ export const actions = {
           if (existing) {
             db.update(schema.blogPostTranslations)
               .set({
-                title: values.title || undefined,
-                excerpt: values.excerpt || null,
-                content: values.content || null,
+                title: values.title ?? '',
+                excerpt: values.excerpt ?? '',
+                content: values.content ?? '',
                 updatedAt: new Date()
               })
               .where(eq(schema.blogPostTranslations.id, existing.id))
@@ -154,14 +170,14 @@ export const actions = {
               .values({
                 postId,
                 locale: loc,
-                title: values.title ?? (parsed.data.slug as string),
-                excerpt: values.excerpt || null,
-                content: values.content || null,
+                title: values.title ?? '',
+                excerpt: values.excerpt ?? '',
+                content: values.content ?? '',
                 updatedAt: new Date()
               })
               .run()
           }
-        }
+        })
       })
     } catch (e: unknown) {
       const fieldErrors = uniqueConstraintFieldErrors(e, [

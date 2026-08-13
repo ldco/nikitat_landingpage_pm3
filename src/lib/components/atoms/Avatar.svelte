@@ -6,6 +6,15 @@
    * 5 sizes: xs (24px), sm (32px), md (40px), lg (56px), xl (80px)
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {string} [src] — image URL; fallback initials rendered when absent
+   * @props {string} [alt=''] — image alt text
+   * @props {'xs'|'sm'|'md'|'lg'|'xl'} [size='md'] — avatar size
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   * @props {Snippet} children — fallback content (e.g. initials) when no src
+   *
+   * @example
+   * <Avatar src={user.avatarUrl} alt={user.name} size="lg" />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'

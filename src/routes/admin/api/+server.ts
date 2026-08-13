@@ -1,6 +1,7 @@
 import { error, json } from '@sveltejs/kit'
 import { useDatabase, schema } from '$lib/server/db'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
+import { resolveUserDeleteViolation } from '$lib/server/services'
 import type { AdminPageId } from '$lib/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
@@ -27,7 +28,7 @@ export async function POST(event: RequestEvent) {
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
 
   const { module, id } = parsed.data
-  requireAdminPage(event, module as AdminPageId)
+  const actor = requireAdminPage(event, module as AdminPageId)
   const db = useDatabase()
 
   switch (module) {
@@ -65,10 +66,18 @@ export async function POST(event: RequestEvent) {
     case 'contacts':
       db.delete(schema.contactSubmissions).where(eq(schema.contactSubmissions.id, id)).run()
       break
-    case 'users':
+    case 'users': {
+      // The SAME policy as the users page `?/delete` form action (shared
+      // service guard): no self-delete, masters protected from non-masters,
+      // target must exist. A non-master admin must not be able to delete the
+      // master account through the cascade endpoint.
+      const violation = resolveUserDeleteViolation(actor, id)
+      if (violation === 'self_delete' || violation === 'master_protected') throw error(403)
+      if (violation === 'not_found') throw error(404)
       db.delete(schema.sessions).where(eq(schema.sessions.userId, id)).run()
       db.delete(schema.users).where(eq(schema.users.id, id)).run()
       break
+    }
   }
 
   return json({ success: true })

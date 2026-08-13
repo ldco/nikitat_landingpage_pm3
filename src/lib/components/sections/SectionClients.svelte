@@ -2,6 +2,9 @@
   /**
   * SectionClients — Client logos (PM3 rule 6)
  *
+ * @props {Array<{id: number; name: string; logoUrl?: string; websiteUrl?: string}>} [clients=[]] — client logos to display in the strip
+ * @props {string} [class] — additional CSS classes merged via twMerge
+ *
  * @example <SectionClients />
   */
   import { clsx } from 'clsx'

@@ -8,8 +8,7 @@
   import { getAdminT } from '$lib/utils/admin-translations'
   import { LOCALE_CONFIG } from '$lib/config/site'
   import { createFormDirty } from '$lib/utils/form-dirty.svelte'
-  import PageHeader from '$lib/components/atoms/PageHeader.svelte'
-  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import AdminEditorPage from '$lib/components/molecules/AdminEditorPage.svelte'
   import FormField from '$lib/components/atoms/FormField.svelte'
   import AdminFormSection from '$lib/components/molecules/AdminFormSection.svelte'
   import type { PageData } from './$types'
@@ -39,6 +38,12 @@
   let published = $state(p.published === true)
   let features = $state(tierFeatures.map(f => f.text).join(', '))
   const currencies = $state(['USD', 'EUR', 'RUB'])
+  const currencyOptions = $derived(currencies.map(code => ({ value: code, label: code })))
+  const periodOptions = $derived([
+    { value: 'month', label: adminT['admin.periodMonth'] ?? t('admin.periodMonth') },
+    { value: 'year', label: adminT['admin.periodYear'] ?? t('admin.periodYear') },
+    { value: 'one-time', label: adminT['admin.periodOneTime'] ?? t('admin.periodOneTime') }
+  ])
 
   const translations = $state<Record<string, { name: string; description: string; ctaText: string }>>({})
   const featuresByLocale = $state<Record<string, string>>({})
@@ -77,22 +82,23 @@
     translations
   }))
   markClean()
-  guardNavigation()
+  // The form element arms the submit bypass — an intentional Save must not be
+  // blocked by the unsaved-changes guard (nor its post-save redirect).
+  let formEl = $state<HTMLFormElement | null>(null)
+  guardNavigation(() => formEl)
 
   function localeName(loc: string): string {
     return LOCALE_CONFIG[loc as keyof typeof LOCALE_CONFIG]?.name ?? loc
   }
 </script>
 
-<PageHeader title={t('common.edit')}>
-  {#snippet actions()}
-    <a href={ADMIN_ROUTES.pricing} class="text-pm-text-muted hover:text-pm-brand text-sm">&larr; {t('common.back')}</a>
-  {/snippet}
-</PageHeader>
-
-<form method="POST" class="flex flex-col gap-6">
-  <input type="hidden" name="_csrf" value={$page.data.csrfToken} />
-
+<AdminEditorPage
+  title={t('common.edit')}
+  backHref={ADMIN_ROUTES.pricing}
+  csrfToken={$page.data.csrfToken}
+  bind:formEl={formEl}
+  saveDisabled={!isDirty}
+>
   <AdminFormSection title={adminT['admin.basicInfo'] ?? t('admin.basicInfo')}>
     <div class="grid gap-4 grid-cols-[var(--grid-admin-form)]">
       <FormField
@@ -122,24 +128,20 @@
         bind:value={price}
         error={t(errors.price?.[0] ?? '')}
       />
-      <div class="flex flex-col gap-1">
-        <label for="field-currency" class="text-sm font-medium text-pm-text">{adminT['admin.currency'] ?? t('admin.currency')}</label>
-        <select id="field-currency" name="currency" bind:value={currency}
-          class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring">
-          {#each currencies as code (code)}
-            <option value={code}>{code}</option>
-          {/each}
-        </select>
-      </div>
-      <div class="flex flex-col gap-1">
-        <label for="field-period" class="text-sm font-medium text-pm-text">{adminT['admin.period'] ?? t('admin.period')}</label>
-        <select id="field-period" name="period" bind:value={period}
-          class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring">
-          <option value="month">{adminT['admin.periodMonth'] ?? t('admin.periodMonth')}</option>
-          <option value="year">{adminT['admin.periodYear'] ?? t('admin.periodYear')}</option>
-          <option value="one-time">{adminT['admin.periodOneTime'] ?? t('admin.periodOneTime')}</option>
-        </select>
-      </div>
+      <FormField
+        name="currency"
+        type="select"
+        label={adminT['admin.currency'] ?? t('admin.currency')}
+        options={currencyOptions}
+        bind:value={currency}
+      />
+      <FormField
+        name="period"
+        type="select"
+        label={adminT['admin.period'] ?? t('admin.period')}
+        options={periodOptions}
+        bind:value={period}
+      />
       <FormField
         name="featured"
         type="checkbox"
@@ -213,9 +215,4 @@
       </div>
     </AdminFormSection>
   {/each}
-
-  <div class="flex justify-end gap-3">
-    <CtaButton variant="ghost" href={ADMIN_ROUTES.pricing}>{t('common.cancel')}</CtaButton>
-    <CtaButton type="submit" variant="primary" disabled={!isDirty}>{t('common.save')}</CtaButton>
-  </div>
-</form>
+</AdminEditorPage>

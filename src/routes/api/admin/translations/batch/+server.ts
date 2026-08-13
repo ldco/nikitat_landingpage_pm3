@@ -2,7 +2,7 @@ import { error, json } from '@sveltejs/kit'
 import { z } from 'zod'
 import { invalidateContentCache } from '$lib/server/db/content-cache'
 import { invalidateTranslationCache } from '$lib/server/db/translations-cache'
-import { setTranslation, isSystemKey } from '$lib/server/services'
+import { setTranslations, assertCanEditSystemKey } from '$lib/server/services'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { localeSchema } from '$lib/server/utils/validation'
 import type { RequestEvent } from '@sveltejs/kit'
@@ -23,12 +23,10 @@ export async function POST(event: RequestEvent) {
   if (!body) throw error(400)
   const parsed = batchSchema.safeParse(body)
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
-  if (isSystemKey(parsed.data.key) && actor.role !== 'master' && actor.role !== 'admin') {
-    throw error(403, 'Only master or admin can edit system translations')
-  }
+  assertCanEditSystemKey(actor, parsed.data.key)
 
   for (const [locale, value] of Object.entries(parsed.data.values)) {
-    setTranslation(locale, parsed.data.key, value)
+    setTranslations(locale, [{ key: parsed.data.key, value }])
     invalidateContentCache(locale)
     invalidateTranslationCache(locale)
   }
