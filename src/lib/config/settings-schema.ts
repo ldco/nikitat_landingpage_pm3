@@ -8,6 +8,17 @@
 
 export type SettingType = 'string' | 'number' | 'boolean' | 'json'
 
+/**
+ * Explicit renderer layout hint for the admin settings form — the renderer
+ * consumes this metadata instead of inferring placement from label strings:
+ * - 'standard' — ordinary auto-fit grid cell (default)
+ * - 'full'     — full-width field (col-span-full), for long-form values
+ * - 'toggle'   — deliberate full-width toggle row (booleans; never a grid cell)
+ * - 'picker'   — hidden value backed by a ContactPicker block rendered inline
+ *   next to the control it affects (contact.headerQuickItems, contact.contactPageItems)
+ */
+export type SettingLayout = 'standard' | 'full' | 'toggle' | 'picker'
+
 export interface SettingDefinition {
   key: string
   type: SettingType
@@ -15,6 +26,7 @@ export interface SettingDefinition {
   label: string
   icon?: string
   public?: boolean
+  layout?: SettingLayout
 }
 
 export const SETTINGS_SCHEMA: SettingDefinition[] = [
@@ -27,18 +39,20 @@ export const SETTINGS_SCHEMA: SettingDefinition[] = [
     key: 'contact.forceShowFormWithoutLegalDocuments',
     type: 'boolean',
     group: 'contact',
-    label: 'settings.contact.forceShowFormWithoutLegalDocuments'
+    label: 'settings.contact.forceShowFormWithoutLegalDocuments',
+    layout: 'toggle'
   },
   {
     key: 'contact.contactPageItems',
     type: 'string',
     group: 'contact',
-    label: 'settings.contact.contactPageItems'
+    label: 'settings.contact.contactPageItems',
+    layout: 'picker'
   },
   { key: 'contact.telegramBotToken', type: 'string', group: 'integrations', label: 'settings.contact.telegramBotToken', icon: 'lock', public: false },
   { key: 'contact.telegramChatId', type: 'string', group: 'integrations', label: 'settings.contact.telegramChatId', icon: 'hash', public: false },
-  { key: 'contact.headerQuickEnabled', type: 'boolean', group: 'contact', label: 'settings.contact.headerQuickEnabled' },
-  { key: 'contact.headerQuickItems', type: 'string', group: 'contact', label: 'settings.contact.headerQuickItems' },
+  { key: 'contact.headerQuickEnabled', type: 'boolean', group: 'contact', label: 'settings.contact.headerQuickEnabled', layout: 'toggle' },
+  { key: 'contact.headerQuickItems', type: 'string', group: 'contact', label: 'settings.contact.headerQuickItems', layout: 'picker' },
 
   // ── Social — Messaging ──────────────────────────────────────────────────
   { key: 'social.telegram', type: 'string', group: 'contact', label: 'settings.social.telegram', icon: 'brand-telegram' },
@@ -73,7 +87,7 @@ export const SETTINGS_SCHEMA: SettingDefinition[] = [
   { key: 'legal.inn', type: 'string', group: 'legal', label: 'legal.fields.inn' },
   { key: 'legal.kpp', type: 'string', group: 'legal', label: 'legal.fields.kpp' },
   { key: 'legal.ogrn', type: 'string', group: 'legal', label: 'legal.fields.ogrn' },
-  { key: 'legal.address', type: 'string', group: 'legal', label: 'legal.fields.address' },
+  { key: 'legal.address', type: 'string', group: 'legal', label: 'legal.fields.address', layout: 'full' },
   { key: 'legal.email', type: 'string', group: 'legal', label: 'legal.fields.email' },
 
   // ── Footer ──────────────────────────────────────────────────────────────
@@ -81,7 +95,7 @@ export const SETTINGS_SCHEMA: SettingDefinition[] = [
 
   // ── SEO ─────────────────────────────────────────────────────────────────
   { key: 'seo.title', type: 'string', group: 'seo', label: 'settings.seo.title' },
-  { key: 'seo.description', type: 'string', group: 'seo', label: 'settings.seo.description' },
+  { key: 'seo.description', type: 'string', group: 'seo', label: 'settings.seo.description', layout: 'full' },
   { key: 'seo.keywords', type: 'string', group: 'seo', label: 'settings.seo.keywords' },
 
   // ── Analytics ───────────────────────────────────────────────────────────

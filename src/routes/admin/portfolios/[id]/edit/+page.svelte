@@ -67,7 +67,6 @@
   title={t('common.edit')}
   backHref={ADMIN_ROUTES.portfolios}
   csrfToken={$page.data.csrfToken}
-  formClass="max-w-lg space-y-6"
   bind:formEl={formEl}
   saveDisabled={!isDirty}
 >
@@ -79,8 +78,8 @@
       {adminT['admin.editContent'] ?? t('admin.editContent')}
     </CtaButton>
   {/snippet}
-  <AdminFormSection>
-    <div class="flex flex-col gap-4">
+  <AdminFormSection title={adminT['admin.basicInfo'] ?? t('admin.basicInfo')}>
+    <div class="grid gap-4 grid-cols-[var(--grid-admin-form)]">
       <FormField
         name="name"
         label={adminT['admin.name'] ?? t('admin.name')}
@@ -103,6 +102,11 @@
         bind:value={type}
         error={errors.type?.[0] ? t(errors.type[0]) : ''}
       />
+    </div>
+  </AdminFormSection>
+
+  <AdminFormSection title={adminT['admin.media'] ?? t('admin.media')}>
+    <div class="flex flex-col gap-4">
       <FormField
         name="description"
         type="textarea"
@@ -124,6 +128,11 @@
           removeLabel={t('common.remove')}
         />
       </div>
+    </div>
+  </AdminFormSection>
+
+  <AdminFormSection title={adminT['admin.publicationStatus'] ?? t('admin.publicationStatus')}>
+    <div class="flex flex-col gap-4">
       <FormField
         name="published"
         type="checkbox"

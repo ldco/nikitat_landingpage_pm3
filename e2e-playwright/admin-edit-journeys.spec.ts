@@ -85,6 +85,34 @@ async function waitHydrated(page: Page): Promise<void> {
   await page.waitForLoadState('networkidle', { timeout: 15000 })
 }
 
+/**
+ * The shared AdminEditorPage form region — the SAME element on every editor
+ * route (create and edit, every entity), so layout assertions written against
+ * it stay valid when new AdminEditorPage routes are added.
+ */
+function editorForm(page: Page) {
+  return page.getByTestId('admin-editor-form')
+}
+
+/**
+ * Editor layout contract: the shared editor form must span the admin content
+ * column (`--max-w-content` = 62.5rem) instead of collapsing into a narrow
+ * left-aligned card. Regression: the portfolio editors overrode the shell with
+ * `formClass="max-w-lg space-y-6"` (32rem), which this assertion fails.
+ *
+ * Must run at a desktop viewport — on a mobile viewport even a max-w-lg form
+ * fills the screen, so the narrow-column regression is undetectable there.
+ */
+async function expectEditorFormFullWidth(page: Page): Promise<void> {
+  const form = editorForm(page)
+  await expect(form).toBeVisible()
+  const box = await form.boundingBox()
+  if (!box) throw new Error('editor form has no bounding box')
+  // 768px sits between the narrow max-w-lg (512px) regression and the full
+  // content column (~1000px at desktop), so either extreme fails safely.
+  expect(box.width, 'editor form must span the admin content column').toBeGreaterThan(768)
+}
+
 test.describe('Admin edit journeys', () => {
   test('users: add and delete a user through the modal journey', async ({ page }) => {
     await gotoAdmin(page, '/admin/users')
@@ -212,6 +240,20 @@ test.describe('Admin edit journeys', () => {
     await expect(page).toHaveURL(/\/admin\/portfolios\/?$/)
   })
 
+  test('portfolio: create and edit render the shared full-width editor form', async ({ page }) => {
+    // Layout surfaces, not save flows: the editor form must span the admin
+    // content column on both portfolio routes (regression: they were forced
+    // to a narrow max-w-lg card via a per-route formClass override).
+    await page.setViewportSize({ width: 1280, height: 800 })
+    const portfolioId = firstId('portfolios', 'Portfolio')
+
+    await gotoAdmin(page, '/admin/portfolios/create')
+    await expectEditorFormFullWidth(page)
+
+    await gotoAdmin(page, `/admin/portfolios/${portfolioId}/edit`)
+    await expectEditorFormFullWidth(page)
+  })
+
   test('portfolio: add and delete a content item through the items editor', async ({ page }) => {
     const portfolioId = firstId('portfolios', 'Portfolio')
     await gotoAdmin(page, `/admin/portfolios/${portfolioId}/items`)
@@ -223,7 +265,7 @@ test.describe('Admin edit journeys', () => {
     await page.getByRole('button', { name: ru('admin.addItem') }).click()
     const dialog = page.getByRole('dialog')
     await expect(dialog).toBeVisible()
-    await dialog.locator('#field-item-title').fill(title)
+    await dialog.locator('#title').fill(title)
     await dialog.getByRole('button', { name: ru('common.save') }).click()
     await expect(page.getByRole('dialog')).toHaveCount(0)
     const card = page.locator('div.grid > div', { hasText: title }).first()

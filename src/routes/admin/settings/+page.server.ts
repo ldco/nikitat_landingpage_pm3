@@ -30,7 +30,8 @@ export const load: PageServerLoad = (event) => {
         group: groupKey,
         label: def.label,
         icon: def.icon,
-        public: def.public !== false
+        public: def.public !== false,
+        layout: def.layout ?? 'standard'
       }
     })
     return { key: groupKey, label: groupMeta?.label ?? groupKey, icon: groupMeta?.icon, items }

@@ -108,22 +108,39 @@
   )
 
   // Reactive contact picker arrays (synced with form string values)
-  let selectedHeaderQuick = $state<string[]>([])
-  let selectedContactPage = $state<string[]>([])
+  let pickerSelections = $state<Record<string, string[]>>({
+    'contact.headerQuickItems': [],
+    'contact.contactPageItems': []
+  })
 
   // Init from server data synchronously
   {
-    selectedHeaderQuick = parseItems(form['contact.headerQuickItems'])
-    selectedContactPage = parseItems(form['contact.contactPageItems'])
+    pickerSelections['contact.headerQuickItems'] = parseItems(form['contact.headerQuickItems'])
+    pickerSelections['contact.contactPageItems'] = parseItems(form['contact.contactPageItems'])
   }
 
   // Sync arrays → form string
   $effect(() => {
-    form['contact.headerQuickItems'] = serializeItems(selectedHeaderQuick)
+    form['contact.headerQuickItems'] = serializeItems(pickerSelections['contact.headerQuickItems'] ?? [])
   })
   $effect(() => {
-    form['contact.contactPageItems'] = serializeItems(selectedContactPage)
+    form['contact.contactPageItems'] = serializeItems(pickerSelections['contact.contactPageItems'] ?? [])
   })
+
+  // Picker-backed settings (schema layout: 'picker') → their ContactPicker
+  // block copy. Single source of truth for the i18n keys of each picker block.
+  const PICKER_CONFIGS: Record<string, { titleKey: string; descKey: string; emptyKey: string }> = {
+    'contact.headerQuickItems': {
+      titleKey: 'admin.headerQuickContactIcons',
+      descKey: 'admin.headerQuickContactIconsDesc',
+      emptyKey: 'admin.headerQuickContactIconsEmpty'
+    },
+    'contact.contactPageItems': {
+      titleKey: 'admin.contactPageButtons',
+      descKey: 'admin.contactPageButtonsDesc',
+      emptyKey: 'admin.contactPageButtonsEmpty'
+    }
+  }
 
   // Contact option objects for ContactPicker component
   const contactOptions = $derived(
@@ -188,73 +205,60 @@
     <AdminFormSection title={t(group.label)}>
         <div class={clsx('grid gap-4', "grid-cols-[var(--grid-admin-form)]")}>
           {#each group.items as item (item.key)}
-            <div class={clsx('flex flex-col gap-1', (item.type === 'string' && (item.label.includes('address') || item.label.includes('description') || item.label.includes('headerQuickItems'))) ? 'col-span-full' : '')}>
-              {#if item.type !== 'boolean'}
-                <label for="setting-{item.key}" class="text-sm font-medium text-pm-text">{t(item.label)}</label>
-              {/if}
-
-              {#if item.type === 'boolean'}
-                <label class="flex items-center gap-2 cursor-pointer text-sm text-pm-text-muted">
-                  <input
-                    type="checkbox"
-                    checked={form[item.key] === 'true'}
-                    class="size-4 accent-pm-brand flex-shrink-0"
-                    onchange={(e) => form[item.key] = (e.currentTarget as HTMLInputElement).checked ? 'true' : 'false'}
-                  />
-                  <span>{t(item.label)}</span>
+            {#if item.layout === 'toggle' || item.type === 'boolean'}
+              <!-- Deliberate full-width toggle row — booleans never sit as
+                   ordinary cells in the same auto-fit grid as text fields. -->
+              <div class="col-span-full flex items-center justify-between gap-4 rounded-md border border-pm-border bg-pm-bg px-4 py-3">
+                <label for="setting-{item.key}" class="text-sm font-medium text-pm-text cursor-pointer">
+                  {t(item.label)}
                 </label>
-              {:else if item.type === 'json'}
-                <textarea
-                  id="setting-{item.key}"
-                  bind:value={form[item.key]}
-                  rows={3}
-                  class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text font-mono focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring"
-                ></textarea>
-              {:else if item.key === 'contact.headerQuickItems' || item.key === 'contact.contactPageItems'}
-                <input
-                  type="hidden"
-                  bind:value={form[item.key]}
-                />
-              {:else}
                 <input
                   id="setting-{item.key}"
-                  type={inputType(item)}
-                  bind:value={form[item.key]}
-                  class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring"
+                  type="checkbox"
+                  checked={form[item.key] === 'true'}
+                  class="size-4 accent-pm-brand flex-shrink-0"
+                  onchange={(e) => form[item.key] = (e.currentTarget as HTMLInputElement).checked ? 'true' : 'false'}
                 />
+              </div>
+            {:else if item.layout === 'picker'}
+              {@const pickerConfig = PICKER_CONFIGS[item.key]}
+              <input
+                type="hidden"
+                bind:value={form[item.key]}
+              />
+              {#if pickerConfig}
+                <div class="col-span-full flex flex-col gap-2">
+                  <h3 class="text-sm font-medium text-pm-text m-0">{adminT[pickerConfig.titleKey] ?? t(pickerConfig.titleKey)}</h3>
+                  <p class="text-sm text-pm-text-muted m-0">{adminT[pickerConfig.descKey] ?? t(pickerConfig.descKey)}</p>
+                  {#if contactOptions.length > 0}
+                    <ContactPicker options={contactOptions} bind:selected={pickerSelections[item.key]} />
+                  {:else}
+                    <p class="text-sm text-pm-text-muted">{adminT[pickerConfig.emptyKey] ?? t(pickerConfig.emptyKey)}</p>
+                  {/if}
+                </div>
               {/if}
-            </div>
+            {:else}
+              <div class={clsx('flex flex-col gap-1', item.layout === 'full' ? 'col-span-full' : '')}>
+                <label for="setting-{item.key}" class="text-sm font-medium text-pm-text">{t(item.label)}</label>
+                {#if item.type === 'json'}
+                  <textarea
+                    id="setting-{item.key}"
+                    bind:value={form[item.key]}
+                    rows={3}
+                    class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text font-mono focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring"
+                  ></textarea>
+                {:else}
+                  <input
+                    id="setting-{item.key}"
+                    type={inputType(item)}
+                    bind:value={form[item.key]}
+                    class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring"
+                  />
+                {/if}
+              </div>
+            {/if}
           {/each}
         </div>
-
-        <!-- Contact group quick pickers (PM2 .header-quick-picker) -->
-        {#if group.key === 'contact'}
-          <div class="mt-5 pt-5 border-t border-pm-border">
-            <div class="flex flex-col gap-2 mb-4">
-              <h3 class="text-sm font-medium text-pm-text m-0">{adminT['admin.headerQuickContactIcons'] ?? t('admin.headerQuickContactIcons')}</h3>
-              <p class="text-sm text-pm-text-muted m-0">{adminT['admin.headerQuickContactIconsDesc'] ?? t('admin.headerQuickContactIconsDesc')}</p>
-            </div>
-
-            {#if contactOptions.length > 0}
-              <ContactPicker options={contactOptions} bind:selected={selectedHeaderQuick} />
-            {:else}
-              <p class="text-sm text-pm-text-muted">{adminT['admin.headerQuickContactIconsEmpty'] ?? t('admin.headerQuickContactIconsEmpty')}</p>
-            {/if}
-          </div>
-
-          <div class="mt-5 pt-5 border-t border-pm-border">
-            <div class="flex flex-col gap-2 mb-4">
-              <h3 class="text-sm font-medium text-pm-text m-0">{adminT['admin.contactPageButtons'] ?? t('admin.contactPageButtons')}</h3>
-              <p class="text-sm text-pm-text-muted m-0">{adminT['admin.contactPageButtonsDesc'] ?? t('admin.contactPageButtonsDesc')}</p>
-            </div>
-
-            {#if contactOptions.length > 0}
-              <ContactPicker options={contactOptions} bind:selected={selectedContactPage} />
-            {:else}
-              <p class="text-sm text-pm-text-muted">{adminT['admin.contactPageButtonsEmpty'] ?? t('admin.contactPageButtonsEmpty')}</p>
-            {/if}
-          </div>
-        {/if}
     </AdminFormSection>
   {/each}
 

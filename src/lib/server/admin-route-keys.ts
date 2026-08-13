@@ -244,13 +244,16 @@ const ROUTE_ADMIN_KEYS: Record<string, readonly string[]> = {
     'admin.status'
   ],
   '/admin/portfolios/[id]/edit': [
+    'admin.basicInfo',
     'admin.coverImage',
     'admin.description',
     'admin.dropzoneLabel',
     'admin.editContent',
     'admin.fileTooLarge',
+    'admin.media',
     'admin.name',
     'admin.portfolioType',
+    'admin.publicationStatus',
     'admin.published',
     'admin.slug',
     'admin.uploadFailed',
@@ -291,12 +294,15 @@ const ROUTE_ADMIN_KEYS: Record<string, readonly string[]> = {
     ...ITEM_TYPE_KEYS
   ],
   '/admin/portfolios/create': [
+    'admin.basicInfo',
     'admin.coverImage',
     'admin.description',
     'admin.dropzoneLabel',
     'admin.fileTooLarge',
+    'admin.media',
     'admin.name',
     'admin.portfolioType',
+    'admin.publicationStatus',
     'admin.published',
     'admin.slug',
     'admin.uploadFailed',

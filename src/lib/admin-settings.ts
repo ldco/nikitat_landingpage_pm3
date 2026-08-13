@@ -2,6 +2,7 @@
  * Admin Settings types — shared between the settings route loader
  * (`admin/settings/+page.server.ts`) and the `SettingsForm` component.
  */
+import type { SettingLayout } from '$lib/config/settings-schema'
 
 export interface AdminSettingRow {
   key: string
@@ -11,6 +12,7 @@ export interface AdminSettingRow {
   label: string
   icon?: string
   public: boolean
+  layout: SettingLayout
 }
 
 export interface AdminSettingGroup {

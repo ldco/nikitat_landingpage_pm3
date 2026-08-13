@@ -15,7 +15,6 @@
    * @props {string} backHref — list route for the back action
    * @props {string} csrfToken — CSRF token for the hidden `_csrf` input
    * @props {string} [subtitle] — supporting text under the heading
-   * @props {string} [formClass='flex flex-col gap-6'] — classes for the form
    * @props {HTMLFormElement|null} [formEl] — bindable form element reference
    *   (dirty-guard navigation bypass in edit pages)
    * @props {boolean} [saveDisabled=false] — disables the footer Save button
@@ -44,7 +43,6 @@
     backHref,
     csrfToken,
     subtitle,
-    formClass = 'flex flex-col gap-6',
     formEl = $bindable(null),
     saveDisabled = false,
     class: className = '',
@@ -55,7 +53,6 @@
     backHref: string
     csrfToken: string
     subtitle?: string
-    formClass?: string
     formEl?: HTMLFormElement | null
     saveDisabled?: boolean
     class?: string
@@ -71,7 +68,12 @@
 
 <PageHeader {title} {subtitle} class={className} actions={headerActions} />
 
-<form method="POST" bind:this={formEl} class={formClass}>
+<form
+  method="POST"
+  bind:this={formEl}
+  class="flex flex-col gap-6"
+  data-testid="admin-editor-form"
+>
   <input type="hidden" name="_csrf" value={csrfToken} />
   {@render children?.()}
   <div class="flex justify-end gap-3">
