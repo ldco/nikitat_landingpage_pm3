@@ -19401,26 +19401,6 @@
   },
   {
     "locale": "ru",
-    "key": "portfolio.toggleLayout",
-    "value": "Переключить раскладку"
-  },
-  {
-    "locale": "en",
-    "key": "portfolio.toggleLayout",
-    "value": "Switch layout"
-  },
-  {
-    "locale": "fr",
-    "key": "portfolio.toggleLayout",
-    "value": "Changer la disposition"
-  },
-  {
-    "locale": "he",
-    "key": "portfolio.toggleLayout",
-    "value": "החלף תצוגה"
-  },
-  {
-    "locale": "ru",
     "key": "admin.portfolioTypeChangeUnsupported",
     "value": "Нельзя изменить тип портфолио, пока есть элементы — безопасного преобразования нет"
   },
@@ -19478,5 +19458,45 @@
     "locale": "he",
     "key": "portfolio.heading.solution",
     "value": "פתרון"
+  },
+  {
+    "locale": "ru",
+    "key": "portfolio.layoutFullscreen",
+    "value": "Полноэкранный"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.layoutFullscreen",
+    "value": "Fullscreen"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.layoutFullscreen",
+    "value": "Plein écran"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.layoutFullscreen",
+    "value": "מסך מלא"
+  },
+  {
+    "locale": "ru",
+    "key": "portfolio.layoutGrid",
+    "value": "Сетка"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.layoutGrid",
+    "value": "Grid"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.layoutGrid",
+    "value": "Grille"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.layoutGrid",
+    "value": "רשת"
   }
 ]

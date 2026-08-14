@@ -26,5 +26,7 @@
 </script>
 
 {#if gallery.length > 0}
-  <PortfolioLightbox {open} bind:index {images} class={className} />
+  <!-- Forward the COMPUTED gallery (single-src fallback included) — never the
+       raw `images` prop, or a one-image `src` lightbox would render empty. -->
+  <PortfolioLightbox {open} bind:index images={gallery} class={className} />
 {/if}

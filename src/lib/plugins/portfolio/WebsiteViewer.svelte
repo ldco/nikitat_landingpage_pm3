@@ -28,10 +28,13 @@
   let {
     item,
     portfolioType = 'website',
+    showImages = true,
     class: className = ''
   }: {
     item: PortfolioViewerItem
     portfolioType?: string
+    /** Hide the screenshots grid when the media is shown by the parent (lightbox). */
+    showImages?: boolean
     class?: string
   } = $props()
 
@@ -83,7 +86,7 @@
     <p class="text-base text-pm-text-secondary leading-relaxed">{item.description}</p>
   {/if}
 
-  {#if screenshots.length > 0}
+  {#if showImages && screenshots.length > 0}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       {#each screenshots as img}
         <div class="rounded-lg overflow-hidden border border-pm-border">

@@ -81,7 +81,7 @@
 
     <!-- Image -->
     <div class="max-w-[var(--lightbox-max-width)] max-h-[var(--lightbox-max-height)] flex flex-col items-center" onclick={(e) => e.stopPropagation()} role="presentation">
-      <img src={current.src} alt={current.alt ?? ''} class="max-w-full max-h-[var(--lightbox-max-height)]-image object-contain rounded-lg" />
+      <img src={current.src} alt={current.alt ?? ''} class="max-w-full max-h-[var(--lightbox-image-max-height)] object-contain rounded-lg" />
 
       {#if current.caption}
         <p class="mt-3 text-sm text-white/70 text-center max-w-lg">{current.caption}</p>

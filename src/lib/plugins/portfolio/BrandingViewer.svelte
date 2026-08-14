@@ -34,10 +34,13 @@
   let {
     item,
     portfolioType = 'branding',
+    showImages = true,
     class: className = ''
   }: {
     item: PortfolioViewerItem
     portfolioType?: string
+    /** Hide the item-media grid when the media is shown by the parent (lightbox). */
+    showImages?: boolean
     class?: string
   } = $props()
 
@@ -109,7 +112,7 @@
     </div>
   {/if}
 
-  {#if images.length > 0}
+  {#if showImages && images.length > 0}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {#each images as img}
         <div class="aspect-4/3 rounded-lg overflow-hidden bg-pm-bg-sunken">

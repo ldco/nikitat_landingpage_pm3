@@ -285,9 +285,15 @@ describe('structured per-type arrays round-trip from admin form input to the pub
 
     const page = await client.get(`/portfolio/${slug}`)
     expect(page.status).toBe(200)
-    expect(page.bodyText).toContain('Concept')
-    expect(page.bodyText).toContain('A concept paragraph.')
-    expect(page.bodyText).toContain('https://client.example.com')
+    // Branding is overlay-driven: the SSR page renders the item grid (title +
+    // thumbnail), while the viewer metadata stays in the click-to-open modal —
+    // it must NOT render in the initial HTML. Script tags carry SvelteKit's
+    // serialized load data (which includes the raw metadata JSON), so they are
+    // stripped to assert on the RENDERED markup only.
+    const html = page.bodyText.replace(/<script[\s\S]*?<\/script>/g, '')
+    expect(html).toContain('Brand 1')
+    expect(html).toContain('https://example.com/brand-1.png')
+    expect(html).not.toContain('A concept paragraph.')
   })
 
   it('website screenshots survive the form action and render on the public page', async () => {
@@ -311,9 +317,13 @@ describe('structured per-type arrays round-trip from admin form input to the pub
 
     const page = await client.get(`/portfolio/${slug}`)
     expect(page.status).toBe(200)
-    // The stored screenshot array wins over the plain image rows.
-    expect(page.bodyText).toContain('https://example.com/shot-1.png')
-    expect(page.bodyText).toContain('Home')
+    // Website is overlay-driven too: the grid renders the title + thumbnail;
+    // the stored screenshot array is only shown inside the click-to-open modal
+    // (assert on rendered markup — strip the serialized-data script tags).
+    const html = page.bodyText.replace(/<script[\s\S]*?<\/script>/g, '')
+    expect(html).toContain('Shot')
+    expect(html).toContain('https://example.com/fallback.png')
+    expect(html).not.toContain('https://example.com/shot-1.png')
   })
 
   it('brandbook pages survive the form action and render on the public page', async () => {
@@ -336,9 +346,12 @@ describe('structured per-type arrays round-trip from admin form input to the pub
 
     const page = await client.get(`/portfolio/${slug}`)
     expect(page.status).toBe(200)
-    expect(page.bodyText).toContain('https://example.com/page-1.png')
-    expect(page.bodyText).toContain('Cover')
-    expect(page.bodyText).toContain('https://example.com/book.pdf')
+    // Brandbook stays inline: the selected item's pages/pdf render in the SSR
+    // DOM (assert on rendered markup — strip the serialized-data script tags).
+    const html = page.bodyText.replace(/<script[\s\S]*?<\/script>/g, '')
+    expect(html).toContain('https://example.com/page-1.png')
+    expect(html).toContain('Cover')
+    expect(html).toContain('https://example.com/book.pdf')
   })
 
   it('the form action rejects structured arrays that do not match the type shape', async () => {
@@ -408,11 +421,13 @@ describe('structured per-type arrays round-trip from admin form input to the pub
       db2.close()
     }
 
-    // The public case-study page renders the stored body.
+    // The public case-study page renders the stored body inline in the SSR DOM
+    // (assert on rendered markup — strip the serialized-data script tags).
     const page = await client.get(`/portfolio/${slug}`)
     expect(page.status).toBe(200)
-    expect(page.bodyText).toContain('Решение')
-    expect(page.bodyText).toContain('Вторая строка.')
+    const html = page.bodyText.replace(/<script[\s\S]*?<\/script>/g, '')
+    expect(html).toContain('Решение')
+    expect(html).toContain('Вторая строка.')
   })
 
   it('clearing an optional field through ?/update persists NULL in the database', async () => {

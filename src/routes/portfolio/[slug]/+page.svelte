@@ -3,28 +3,34 @@
    * Portfolio Detail — Item grid + per-item subtype viewer (PM v2 detail contract)
    *
    * PM v2 parity (`docs/archive/pm-v2/portfolio-display-modes.md`):
-   *   - branding:  fullscreen slides by default, grid via a layout toggle
+   *   - branding:  fullscreen slides by default (edge-to-edge body region),
+   *                grid via a two-option mode control
    *   - website:   grid with image cards (info always visible)
    *   - case_study: grid with text-only cards
    *   - brandbook / gallery: grid with image cards
    *
-   * The page renders a REAL item grid from `items` and keeps explicit
-   * selected-item + open state. ONE item at a time is passed into the
-   * subtype viewer (BrandingViewer/WebsiteViewer/BrandbookViewer/
-   * CaseStudyViewer) — no portfolio-wide merged payload is built here.
+   * OVERLAY-DRIVEN types (branding, website): clicking an item opens the
+   * PortfolioItemModal lightbox (media panel + per-type viewer) — nothing is
+   * open by default. INLINE types (case_study, brandbook, gallery): the
+   * selected item's detail renders inline below the grid (open by default,
+   * matching the intentionally-inline contract). ONE item at a time is passed
+   * into the subtype viewer — no portfolio-wide merged payload is built here.
    *
    * Rule #1: class prop + twMerge
    */
   import AppImage from '$lib/components/atoms/AppImage.svelte'
-  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import EmptyState from '$lib/components/atoms/EmptyState.svelte'
   import Seo from '$lib/components/atoms/Seo.svelte'
+  import SegmentedControl from '$lib/components/atoms/SegmentedControl.svelte'
   import PortfolioPageShell from '$lib/components/molecules/PortfolioPageShell.svelte'
+  import PortfolioItemModal from '$lib/components/molecules/PortfolioItemModal.svelte'
   import { t } from '$lib/stores/content.svelte'
   import { localizedHref } from '$lib/utils/navigation'
   import { currentLocale } from '$lib/stores/locale.svelte'
   import IconX from '@tabler/icons-svelte/icons/x'
   import IconPhoto from '@tabler/icons-svelte/icons/photo'
+  import IconLayoutRows from '@tabler/icons-svelte/icons/layout-rows'
+  import IconLayoutGrid from '@tabler/icons-svelte/icons/layout-grid'
   import WebsiteViewer from '$lib/plugins/portfolio/WebsiteViewer.svelte'
   import BrandingViewer from '$lib/plugins/portfolio/BrandingViewer.svelte'
   import CaseStudyViewer from '$lib/plugins/portfolio/CaseStudyViewer.svelte'
@@ -54,6 +60,9 @@
   const isBranding = $derived(portfolio.type === 'branding')
   const isCaseStudy = $derived(portfolio.type === 'case_study')
   const isInfoVisible = $derived(portfolio.type === 'website')
+  // Branding + website open the overlay-driven modal; every other type keeps
+  // its selected-item detail inline (intentionally inline contract).
+  const isOverlayType = $derived(portfolio.type === 'branding' || portfolio.type === 'website')
 
   // Display mode (PM v2): branding defaults to fullscreen slides and can
   // toggle to a grid; every other type is grid-only. State is keyed to the
@@ -63,7 +72,9 @@
     portfolio.type === 'branding' ? 'fullscreen' : 'grid'
   )
   let selectedIndex = $state(0)
-  let viewerOpen = $state(true)
+  // Overlay types start closed (click-to-open); inline types show the selected
+  // item's detail by default.
+  let viewerOpen = $state(!isOverlayType)
   const selectedItem = $derived(viewerItems[selectedIndex] ?? null)
 
   // The branding fullscreen browser renders one h-dvh slide per item. Bounding
@@ -82,24 +93,16 @@
     void key
     layoutMode = portfolio.type === 'branding' ? 'fullscreen' : 'grid'
     selectedIndex = 0
-    viewerOpen = true
+    viewerOpen = !(portfolio.type === 'branding' || portfolio.type === 'website')
   })
 
-  function toggleLayout() {
-    layoutMode = layoutMode === 'fullscreen' ? 'grid' : 'fullscreen'
+  function setLayoutMode(id: string) {
+    layoutMode = id === 'fullscreen' ? 'fullscreen' : 'grid'
   }
 
   function selectItem(index: number) {
     selectedIndex = index
     viewerOpen = true
-    // In the immersive fullscreen browser the detail panel sits below the
-    // slides — bring it into view so the selection is immediately visible.
-    if (layoutMode === 'fullscreen') {
-      document.getElementById('portfolio-detail-panel')?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      })
-    }
   }
 </script>
 
@@ -110,12 +113,18 @@
   title={portfolio.name}
   description={portfolio.description ?? ''}
   backHref={backHref}
+  bodyWidth={layoutMode === 'fullscreen' && isBranding ? 'bleed' : 'default'}
 >
   {#snippet headerActions()}
     {#if isBranding}
-      <CtaButton variant="secondary" size="sm" onclick={toggleLayout}>
-        {t('portfolio.toggleLayout', 'Switch layout')}
-      </CtaButton>
+      <SegmentedControl
+        options={[
+          { id: 'fullscreen', label: t('portfolio.layoutFullscreen'), icon: IconLayoutRows },
+          { id: 'grid', label: t('portfolio.layoutGrid'), icon: IconLayoutGrid }
+        ]}
+        active={layoutMode}
+        onchange={setLayoutMode}
+      />
     {/if}
   {/snippet}
 
@@ -123,8 +132,8 @@
     <EmptyState title={portfolio.name} description={t('portfolio.noItems')} />
   {:else}
     {#if layoutMode === 'fullscreen' && isBranding}
-      <!-- Fullscreen slides (branding): item thumbnails as full-viewport
-           slides with overlay info + index. Click selects the item. -->
+      <!-- Fullscreen slides (branding, edge-to-edge body): item thumbnails as
+           full-viewport slides with overlay info + index. Click opens the modal. -->
       <div>
         {#each viewerItems as item, i (item.id)}
           {#if i < SSR_SLIDE_CAP || hydrated}
@@ -216,8 +225,19 @@
       </div>
     {/if}
 
-    <!-- Selected item detail: ONE item passed into the subtype viewer. -->
-    {#if viewerOpen && selectedItem}
+    <!-- Overlay viewer (branding + website): opens on item click. -->
+    {#if viewerOpen && selectedItem && isOverlayType}
+      <PortfolioItemModal
+        bind:open={viewerOpen}
+        item={selectedItem}
+        portfolioType={portfolio.type}
+        portfolioName={portfolio.name}
+      />
+    {/if}
+
+    <!-- Inline selected-item detail (case_study, brandbook, gallery): rendered
+         inline by design, never in the overlay. -->
+    {#if viewerOpen && selectedItem && !isOverlayType}
       <section
         id="portfolio-detail-panel"
         class="mt-12 rounded-[var(--radius-xl)] border border-pm-border bg-pm-bg p-[var(--space-6)] md:p-[var(--space-8)] scroll-mt-0"
