@@ -46,6 +46,12 @@ data/*.db-journal
 *.sqlite-wal
 *.sqlite-journal
 
+# Pre-import backups (full DB copies — credentials/PII must never be committed)
+data/*.pre-import
+
+# Pulled production content staging (never commit live site data)
+data/import/
+
 # ══════════════════════════════════════════════════════════════
 # USER UPLOADS
 # ══════════════════════════════════════════════════════════════
