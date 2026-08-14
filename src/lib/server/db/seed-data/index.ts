@@ -12,6 +12,7 @@ import { seedTranslations } from './translations'
 import { seedLegalDocuments } from './legal'
 import { seedFeatures } from './features'
 import { seedFaq } from './faq'
+import { seedPortfolios } from './portfolios'
 
 export function seedAll() {
   seedUsers()
@@ -21,4 +22,5 @@ export function seedAll() {
   seedLegalDocuments()
   seedFeatures()
   seedFaq()
+  seedPortfolios()
 }

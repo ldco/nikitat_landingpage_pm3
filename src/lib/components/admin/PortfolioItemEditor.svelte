@@ -53,6 +53,28 @@
 
   const adminT = $derived(getAdminT($page.data))
 
+  /**
+   * Hydrate the editable per-type fields from a stored item. When the stored
+   * metadata does not parse under the CURRENT portfolio type (a legacy row
+   * that predates a type change), fall back to the raw JSON so recognizable
+   * fields (tags, urls, …) surface into the form instead of being silently
+   * blanked — a save then keeps them instead of wiping them.
+   */
+  function hydrateItemForm(item: PortfolioItem, portfolioType: string): PortfolioItemFormMetadata {
+    const parsed = parseItemMetadata(item.metadata ?? null, portfolioType)
+    if (Object.keys(parsed).length > 0 || !item.metadata) {
+      return hydrateItemMetadata(parsed)
+    }
+    let raw: unknown
+    try {
+      raw = JSON.parse(item.metadata)
+    } catch {
+      return emptyItemFormMetadata()
+    }
+    if (typeof raw !== 'object' || raw === null) return emptyItemFormMetadata()
+    return hydrateItemMetadata(raw as Record<string, unknown>)
+  }
+
   // ── Form state ───────────────────────────────────────────────────────────
   let formItemType = $state<'image' | 'video' | 'link' | 'case_study'>('image')
   let formMediaUrl = $state('')
@@ -75,7 +97,7 @@
     formDescription = item?.description ?? ''
     formContent = item?.content ?? ''
     formPublished = item?.published ?? true
-    formMetadata = item ? hydrateItemMetadata(parseItemMetadata(item.metadata ?? null, portfolioType)) : emptyItemFormMetadata()
+    formMetadata = item ? hydrateItemForm(item, portfolioType) : emptyItemFormMetadata()
   })
 
   const isWebsite = $derived(portfolioType === 'website')

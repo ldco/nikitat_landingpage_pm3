@@ -100,7 +100,7 @@
         label={adminT['admin.portfolioType'] ?? t('admin.portfolioType')}
         options={typeOptions}
         bind:value={type}
-        error={errors.type?.[0] ? t(errors.type[0]) : ''}
+        error={errors.type?.[0] ? t(errors.type[0], 'Portfolio type change not supported') : ''}
       />
     </div>
   </AdminFormSection>

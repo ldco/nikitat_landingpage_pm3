@@ -5,15 +5,17 @@ import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
+import { normalizeItemMetadata, safeMediaUrl } from '$lib/portfolio-metadata'
 
 const updateSchema = z.object({
   itemType: z.enum(['image', 'video', 'link', 'case_study']).optional(),
-  mediaUrl: z.string().nullable().optional(),
-  thumbnailUrl: z.string().nullable().optional(),
+  mediaUrl: safeMediaUrl.nullable().optional(),
+  thumbnailUrl: safeMediaUrl.nullable().optional(),
   caption: z.string().nullable().optional(),
   title: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   content: z.string().nullable().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   order: z.number().int().optional(),
   published: z.boolean().optional()
 })
@@ -81,7 +83,25 @@ export async function PUT(event: RequestEvent) {
     return json(jsonSuccess(updated))
   }
 
-  const result = db.update(schema.portfolioItems).set(parsed.data)
+  // Metadata is validated with the SAME per-type normalization helper used by
+  // the create API and the admin page actions — never trusted raw.
+  const portfolio = db.select().from(schema.portfolios).where(eq(schema.portfolios.id, portfolioId)).get()
+  if (!portfolio) throw error(404)
+
+  const { metadata: rawMetadata, ...base } = parsed.data
+  let metadata: string | undefined
+  if (rawMetadata !== undefined) {
+    const normalized = normalizeItemMetadata(rawMetadata, portfolio.type)
+    if (normalized === null) {
+      throw error(400, 'Invalid portfolio item metadata for this portfolio type')
+    }
+    metadata = normalized
+  }
+
+  const result = db.update(schema.portfolioItems).set({
+    ...base,
+    ...(metadata !== undefined ? { metadata } : {})
+  })
     .where(and(eq(schema.portfolioItems.id, itemId), eq(schema.portfolioItems.portfolioId, portfolioId)))
     .returning().get()
   return json(jsonSuccess(result))

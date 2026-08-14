@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
+import { updatePortfolio } from '$lib/server/services/portfolio-admin'
 
 const updateSchema = z.object({
   slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/).optional(),
@@ -31,11 +32,30 @@ export async function PUT(event: RequestEvent) {
   if (!body) throw error(400)
   const parsed = updateSchema.safeParse(body)
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
+
+  // Shared admin service: the API PUT runs the SAME type-change guard, item
+  // metadata migration, transaction handling and duplicate-slug mapping as
+  // the page action (/admin/portfolios/[id]/edit) — the two admin surfaces
+  // can never drift.
+  const result = updatePortfolio(id, parsed.data)
+  if (!result.ok) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: {
+        code: 'validation.portfolio',
+        message: 'Portfolio update failed',
+        details: { fieldErrors: result.fieldErrors }
+      }
+    }), {
+      status: 400,
+      headers: { 'content-type': 'application/json' }
+    })
+  }
+
   const db = useDatabase()
-  const existing = db.select().from(schema.portfolios).where(eq(schema.portfolios.id, id)).get()
-  if (!existing) throw error(404)
-  const result = db.update(schema.portfolios).set(parsed.data).where(eq(schema.portfolios.id, id)).returning().get()
-  return json(jsonSuccess(result))
+  const updated = db.select().from(schema.portfolios).where(eq(schema.portfolios.id, id)).get()
+  if (!updated) throw error(404)
+  return json(jsonSuccess(updated))
 }
 
 export async function DELETE(event: RequestEvent) {

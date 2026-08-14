@@ -25,7 +25,7 @@ export type SectionProps = Record<string, unknown>
 export function buildSectionProps(component: string, content: SectionContent): SectionProps {
   switch (component) {
     case 'SectionPortfolio':
-      return { items: content.portfolioItems }
+      return { portfolios: content.portfolios }
     case 'SectionBlog':
       return { posts: content.blog }
     case 'SectionFeatures':

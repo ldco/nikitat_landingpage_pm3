@@ -16,7 +16,7 @@ import { getHomepagePosts } from '$lib/server/services/blog'
 import { getHomepageFaq } from '$lib/server/services/faq'
 import { getHomepageFeatures } from '$lib/server/services/features'
 import { getHomepageTiers, getTierFeatures } from '$lib/server/services/pricing'
-import { getHomepagePortfolioItems } from '$lib/server/services/portfolio'
+import { getHomepagePortfolios } from '$lib/server/services/portfolio'
 import { getHomepageTeam } from '$lib/server/services/team'
 import { getHomepageTestimonials } from '$lib/server/services/testimonials'
 import { getHomepageClients } from '$lib/server/services/clients'
@@ -26,9 +26,9 @@ import { getHomepageClients } from '$lib/server/services/clients'
  * loads the slices its single section renders, so non-onepager pages do not
  * run all nine content queries. Undefined slice = content-less section.
  */
-const SECTION_SLICES: Record<string, Array<'blog' | 'portfolioItems' | 'pricing' | 'faq' | 'features' | 'team' | 'testimonials' | 'clients'>> = {
+const SECTION_SLICES: Record<string, Array<'blog' | 'portfolios' | 'pricing' | 'faq' | 'features' | 'team' | 'testimonials' | 'clients'>> = {
   blog: ['blog'],
-  portfolio: ['portfolioItems'],
+  portfolio: ['portfolios'],
   pricing: ['pricing'],
   faq: ['faq'],
   features: ['features'],
@@ -60,7 +60,7 @@ export function loadSectionContent(locale: string, sectionId?: string): SectionC
 
   return {
     blog: wants('blog') ? getHomepagePosts(locale) : [],
-    portfolioItems: wants('portfolioItems') ? getHomepagePortfolioItems(locale) : [],
+    portfolios: wants('portfolios') ? getHomepagePortfolios(locale) : [],
     pricing,
     faq: wants('faq') ? getHomepageFaq(locale) : [],
     // The features slice only loads when the module is configured for rendering

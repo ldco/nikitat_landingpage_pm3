@@ -17,12 +17,15 @@ export interface BlogPostCard {
   readingTimeMinutes?: number | null
 }
 
-export interface PortfolioItemCard {
+export interface PortfolioCard {
   id: number
   slug: string
   name: string
   type: string
+  description?: string | null
   coverImageUrl?: string | null
+  /** First six published item thumbnails — the PM v2 six-image collage preview. */
+  thumbnails: string[]
 }
 
 export interface PricingTierCard {
@@ -87,7 +90,7 @@ export interface ClientCard {
  */
 export interface SectionContent {
   blog: BlogPostCard[]
-  portfolioItems: PortfolioItemCard[]
+  portfolios: PortfolioCard[]
   pricing: PricingTierCard[]
   faq: FaqItemCard[]
   features: FeatureItemCard[]

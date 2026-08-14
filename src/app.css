@@ -115,6 +115,9 @@
   --leading-normal: 1.5;
   --leading-relaxed: 1.625;
 
+  /* --- Letter Spacing (uppercase labels/eyebrows) --- */
+  --tracking-caps: 0.1em;
+
   /* --- Shadows (from common/spacing.css, oklch values) --- */
   --shadow-sm: 0 1px 2px oklch(0% 0 0 / 5%);
   --shadow-md: 0 4px 6px -1px oklch(0% 0 0 / 7%), 0 2px 4px -2px oklch(0% 0 0 / 6%);

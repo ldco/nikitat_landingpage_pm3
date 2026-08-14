@@ -131,8 +131,13 @@ export const MODULES: Record<string, ModuleConfig> = {
   portfolio: {
     enabled: true,
     config: {
-      layout: 'grid', cardStyle: 'overlay', showFilters: true, showCaseStudies: true,
-      showGallery: true, itemsPerPage: 12, sortDefault: 'order', showCategories: true, showTechnologies: true
+      // Wired into the shared public listing (src/lib/server/services/portfolio.ts):
+      // itemsPerPage drives listing pagination, sortDefault the listing order
+      // ('order' | 'name'), layout/cardStyle the rendering. PM2 filter flags
+      // (showFilters/showCaseStudies/showGallery/showCategories/showTechnologies)
+      // were deliberately dropped — the PM v2 listing has no filters and the
+      // portfolio card model carries no category/technology fields.
+      layout: 'grid', cardStyle: 'overlay', itemsPerPage: 12, sortDefault: 'order'
     }
   },
   blog: {

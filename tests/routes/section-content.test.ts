@@ -41,7 +41,7 @@ describe('Section content in both routing modes', () => {
 
   it('the shared loader feeds every data-backed section type', () => {
     const src = readSource('src/lib/server/services/section-content.ts')
-    for (const slice of ['blog', 'portfolioItems', 'pricing', 'faq', 'features', 'team', 'testimonials', 'clients']) {
+    for (const slice of ['blog', 'portfolios', 'pricing', 'faq', 'features', 'team', 'testimonials', 'clients']) {
       expect(src).toContain(slice)
     }
     expect(src).toContain('SectionContent')

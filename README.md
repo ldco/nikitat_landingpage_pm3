@@ -37,6 +37,25 @@ npm run dev        # dev-сервер
 | `npm run rollback` | Roll back to previous image |
 | `npm run deploy:logs` | Deploy/log helper |
 
+## Portfolio content
+
+`npm run db:reset` / `db:seed` теперь посевают **репрезентативные portfolio-фикстуры**
+(`src/lib/server/db/seed-data/portfolios.ts`: брендинг, сайты, кейсы, брендбук) — локально
+публичный листинг, детальные страницы и subtype-виверы рендерятся сразу.
+
+Полная **PM2-парати по продакшн-контенту** (реальные проекты nikitat.pro) остаётся
+отдельным шагом импорта и НЕ входит в `db:reset`, т.к. требует внешнюю БД-источник:
+
+```bash
+# после db:reset — скопировать контент из pulled-продакшн БД в v3
+tsx --env-file=.env scripts/import-pm2-content.ts <source-db> [--dry-run]
+```
+
+Импорт идемпотентен (существующие строки не перезаписываются). Подробности — в шапке
+`scripts/import-pm2-content.ts`.
+
+
+
 ## Project structure
 
 PM3 разделён на два слоя:
@@ -49,7 +68,6 @@ PM3 разделён на два слоя:
 ## Project configuration
 
 Все переключатели проекта — в `src/project/site-config.ts` (импортируется фреймворком через `src/lib/config/site.ts`):
-
 ```ts
 PM_MODE: 'build'                 // build | develop | unconfigured
 FEATURES.twoFactorAuth: true     // 2FA включена (требует TOTP_ENCRYPTION_KEY в prod)

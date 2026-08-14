@@ -1,11 +1,10 @@
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
-import { useDatabase, schema } from '$lib/server/db'
 import { redirect, fail } from '@sveltejs/kit'
 import { z } from 'zod'
 import type { RequestEvent } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
-import { uniqueConstraintFieldErrors } from '$lib/server/utils/db-errors'
+import { createPortfolio } from '$lib/server/services/portfolio-admin'
 
 const insertSchema = z.object({
   name: z.string().min(1),
@@ -37,32 +36,17 @@ export const actions = {
     // surface field errors to the UI (matches the blog/faq/features forms).
     if (!parsed.success) return fail(400, { fieldErrors: parsed.error.flatten().fieldErrors })
 
-    const db = useDatabase()
-    const published = parsed.data.published === 'on'
-    try {
-      db.insert(schema.portfolios)
-        .values({
-          name: parsed.data.name,
-          slug: parsed.data.slug,
-          type: parsed.data.type,
-          description: parsed.data.description || null,
-          coverImageUrl: parsed.data.coverImageUrl || null,
-          order: 0,
-          published,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        })
-        .run()
-    } catch (e: unknown) {
-      // Duplicate slug: the portfolios.slug UNIQUE index would otherwise
-      // surface as a 500 — map it to a field error on the slug input (same
-      // helper contract as blog/faq/features/pricing create actions).
-      const fieldErrors = uniqueConstraintFieldErrors(e, [
-        { column: 'slug', label: 'apiErrors.admin.slugExists' }
-      ])
-      if (fieldErrors) return fail(400, { fieldErrors })
-      throw e
-    }
+    // Shared admin service: duplicate-slug mapping is identical to the JSON
+    // API POST path (/api/admin/portfolios).
+    const result = createPortfolio({
+      name: parsed.data.name,
+      slug: parsed.data.slug,
+      type: parsed.data.type,
+      description: parsed.data.description || null,
+      coverImageUrl: parsed.data.coverImageUrl || null,
+      published: parsed.data.published === 'on'
+    })
+    if (!result.ok) return fail(400, { fieldErrors: result.fieldErrors })
 
     redirect(303, ADMIN_ROUTES.portfolios)
   }

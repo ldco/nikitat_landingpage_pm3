@@ -9,14 +9,15 @@ set -euo pipefail
 #   ./scripts/pull-production-content.sh [--sync-uploads] [--dest-dir <dir>]
 #
 # Snapshot strategy (production runs the app in Docker, WAL-mode SQLite):
-#   1. Try the shared-volume DB path directly (deploy user usually lacks
-#      permission — the volume is chmod 770, owned by the app uid).
-#   2. Fall back to a CONSISTENT online backup: the deploy user (sudo group,
-#      password from the env file) runs host `sqlite3 <db> ".backup <file>"`
-#      (SQLite online-backup API — atomic even while the app writes), streams
-#      the single clean file back over the ssh session, and a REMOTE EXIT trap
-#      removes the temp copy on the server — so no DB copy is ever left behind
-#      on production, even if the local client dies mid-transfer.
+# the DB is ALWAYS pulled through the SQLite online-backup API (`sqlite3
+# <db> ".backup <file>"`) — one consistent mechanism that is atomic even while
+# the app writes. The deploy user (sudo group, password from the env file)
+# snapshots via host sqlite3 (sudo fallback when the volume is unreadable —
+# the volume is chmod 770, owned by the app uid), streams the single clean
+# file back over the ssh session, and a REMOTE EXIT trap removes the temp copy
+# on the server — so no DB copy is ever left behind on production, even if the
+# local client dies mid-transfer. A directly-readable path is never copied raw
+# (a raw `scp sqlite.db` would miss writes still in the -wal/-shm files).
 #
 # All remote command interpolation is shell-escaped with printf %q (values
 # like PM_LIVE_DB / PM_LIVE_CONTAINER can never break out of quoting).
@@ -97,21 +98,18 @@ if ! sshpass -e ssh "${SSH_OPTS[@]}" "$REMOTE" "echo CONNECT_OK" >/dev/null 2>&1
   exit 3
 fi
 
-echo "[pull] Testing direct read of $LIVE_DB ..."
-DIRECT_OK="$(sshpass -e ssh "${SSH_OPTS[@]}" "$REMOTE" "test -r $(shell_escape "$LIVE_DB") && echo YES || echo NO")"
-
-if [ "$DIRECT_OK" = "YES" ]; then
-  echo "[pull] Direct path readable; pulling as-is"
-  sshpass -e scp "${SSH_OPTS[@]}" "$REMOTE:$(shell_escape "$LIVE_DB")" "$DB_DEST"
-else
-  echo "[pull] Direct path not readable — consistent online backup via container volume"
-  REMOTE_TMP="/home/$LIVE_USER/pm-data-$(date +%s)"
-
-  # Runs entirely on the remote host in ONE ssh session: snapshot via host
-  # sqlite3 (sudo, online-backup API), stream the clean file to stdout, and
-  # remove the temp dir server-side via an EXIT trap — even if the client
-  # dies, the production DB copy never lingers.
-  REMOTE_SNAPSHOT="set -eu
+# The DB is ALWAYS pulled through the SQLite online-backup API (.backup) — ONE
+# snapshot mechanism that is safe for WAL-mode databases. A directly-readable
+# path is deliberately NOT short-circuited to a raw file copy: production runs
+# the app in Docker with WAL journaling, so `scp sqlite.db` alone would miss
+# writes still sitting in the -wal/-shm files. The snapshot tries WITHOUT sudo
+# first (when the deploy user can read the volume) and falls back to sudo
+# (same password-auth path as the previous container-volume strategy), then
+# streams the single clean file back over the ssh session and removes the
+# remote temp dir via an EXIT trap — no DB copy is ever left on production.
+echo "[pull] Consistent online snapshot of $LIVE_DB (WAL-safe)..."
+REMOTE_TMP="/home/$LIVE_USER/pm-data-$(date +%s)"
+REMOTE_SNAPSHOT="set -eu
 TMP_DIR=$(shell_escape "$REMOTE_TMP")
 DB_PATH=$(shell_escape "$LIVE_DB")
 SUDO_PW=$(shell_escape "$SSHPASS")
@@ -121,16 +119,17 @@ cleanup() {
 }
 trap cleanup EXIT
 mkdir -p \"\$TMP_DIR\"
-printf '%s\\n' \"\$SUDO_PW\" | sudo -S -p '' sqlite3 \"\$DB_PATH\" \".backup '\$SN'\" >/dev/null 2>&1
-printf '%s\\n' \"\$SUDO_PW\" | sudo -S -p '' chown \"\$(id -un):\$(id -gn)\" \"\$SN\" >/dev/null 2>&1 || true
+if ! sqlite3 \"\$DB_PATH\" \".backup '\$SN'\" >/dev/null 2>&1; then
+  printf '%s\\n' \"\$SUDO_PW\" | sudo -S -p '' sqlite3 \"\$DB_PATH\" \".backup '\$SN'\" >/dev/null 2>&1
+fi
+chmod 600 \"\$SN\" || true
 sqlite3 \"\$SN\" 'PRAGMA integrity_check;' >&2
 cat \"\$SN\""
 
-  echo "[pull] Streaming snapshot to $DB_DEST"
-  if ! sshpass -e ssh "${SSH_OPTS[@]}" "$REMOTE" "$REMOTE_SNAPSHOT" > "$DB_DEST"; then
-    echo "[pull] FAILED: remote snapshot (see messages above)." >&2
-    exit 4
-  fi
+echo "[pull] Streaming snapshot to $DB_DEST"
+if ! sshpass -e ssh "${SSH_OPTS[@]}" "$REMOTE" "$REMOTE_SNAPSHOT" > "$DB_DEST"; then
+  echo "[pull] FAILED: remote snapshot (see messages above)." >&2
+  exit 4
 fi
 
 echo "[pull] Verifying local integrity..."
@@ -145,7 +144,10 @@ echo "[pull] OK. Tables: $TABLES"
 if [ "$SYNC_UPLOADS" -eq 1 ]; then
   echo "[pull] Pulling uploads (additive) -> $UPLOADS_DEST"
   STAGING="$(mktemp -d)"
-  if [ "$DIRECT_OK" = "YES" ]; then
+  # Uploads are static files (not a WAL database) — a host-directory tar when
+  # the deploy user can read it, the container path otherwise.
+  UPLOADS_DIR_OK="$(sshpass -e ssh "${SSH_OPTS[@]}" "$REMOTE" "test -r $(shell_escape "$LIVE_UPLOADS") && echo YES || echo NO")"
+  if [ "$UPLOADS_DIR_OK" = "YES" ]; then
     sshpass -e ssh "${SSH_OPTS[@]}" "$REMOTE" "tar -C $(shell_escape "$LIVE_UPLOADS") -cf - ." 2>/dev/null \
       | tar -xf - -C "$STAGING"
   else

@@ -41,7 +41,7 @@
   )
 
   const sectionData = $derived<SectionContent>(content ?? {
-    blog: [], portfolioItems: [], pricing: [], faq: [], features: [],
+    blog: [], portfolios: [], pricing: [], faq: [], features: [],
     team: [], testimonials: [], clients: [], locale: ''
   })
 

@@ -19398,5 +19398,85 @@
     "locale": "he",
     "key": "admin.portfolioContent",
     "value": "תוכן"
+  },
+  {
+    "locale": "ru",
+    "key": "portfolio.toggleLayout",
+    "value": "Переключить раскладку"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.toggleLayout",
+    "value": "Switch layout"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.toggleLayout",
+    "value": "Changer la disposition"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.toggleLayout",
+    "value": "החלף תצוגה"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.portfolioTypeChangeUnsupported",
+    "value": "Нельзя изменить тип портфолио, пока есть элементы — безопасного преобразования нет"
+  },
+  {
+    "locale": "en",
+    "key": "admin.portfolioTypeChangeUnsupported",
+    "value": "Cannot change the portfolio type while items exist — no safe conversion path"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.portfolioTypeChangeUnsupported",
+    "value": "Impossible de changer le type du portfolio tant que des éléments existent — aucune conversion sûre"
+  },
+  {
+    "locale": "he",
+    "key": "admin.portfolioTypeChangeUnsupported",
+    "value": "לא ניתן לשנות את סוג תיק העבודות כל עוד קיימים פריטים — אין נתיב המרה בטוח"
+  },
+  {
+    "locale": "ru",
+    "key": "portfolio.heading.task",
+    "value": "Задача"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.task",
+    "value": "Task"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.task",
+    "value": "Mission"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.task",
+    "value": "משימה"
+  },
+  {
+    "locale": "ru",
+    "key": "portfolio.heading.solution",
+    "value": "Решение"
+  },
+  {
+    "locale": "en",
+    "key": "portfolio.heading.solution",
+    "value": "Solution"
+  },
+  {
+    "locale": "fr",
+    "key": "portfolio.heading.solution",
+    "value": "Décision"
+  },
+  {
+    "locale": "he",
+    "key": "portfolio.heading.solution",
+    "value": "פתרון"
   }
 ]

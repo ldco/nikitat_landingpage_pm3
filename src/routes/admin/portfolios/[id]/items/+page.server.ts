@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { useDatabase, schema } from '$lib/server/db'
 import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
-import { normalizeItemMetadata } from '$lib/portfolio-metadata'
+import { normalizeItemMetadata, safeMediaUrl } from '$lib/portfolio-metadata'
 import type { PageServerLoad, Actions } from './$types'
 
 /**
@@ -33,8 +33,8 @@ function validateItemMetadata(
 
 const createItemSchema = z.object({
   itemType: z.enum(['image', 'video', 'link', 'case_study']),
-  mediaUrl: z.string().nullable().optional(),
-  thumbnailUrl: z.string().nullable().optional(),
+  mediaUrl: safeMediaUrl.nullable().optional(),
+  thumbnailUrl: safeMediaUrl.nullable().optional(),
   caption: z.string().nullable().optional(),
   title: z.string().nullable().optional(),
   description: z.string().nullable().optional(),

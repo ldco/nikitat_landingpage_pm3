@@ -13,7 +13,8 @@ describe('Admin Portfolio Module', () => {
   it('portfolio config has expected fields', () => {
     expect(MODULES.portfolio.config.layout).toBe('grid')
     expect(MODULES.portfolio.config.cardStyle).toBe('overlay')
-    expect(MODULES.portfolio.config.showFilters).toBe(true)
+    expect(MODULES.portfolio.config.itemsPerPage).toBeTypeOf('number')
+    expect(MODULES.portfolio.config.sortDefault).toBe('order')
   })
 })
 

@@ -44,7 +44,7 @@ function allRegistryKeys(): Set<string> {
 }
 
 const EMPTY_CONTENT: SectionContent = {
-  blog: [], portfolioItems: [], pricing: [], faq: [], features: [],
+  blog: [], portfolios: [], pricing: [], faq: [], features: [],
   team: [], testimonials: [], clients: [], locale: 'ru'
 }
 
@@ -84,7 +84,7 @@ describe('Section registry ↔ renderer contract', () => {
 
   it('the prop-adapter maps every data-backed framework section to its content slice', () => {
     const propsFor = (component: string) => buildSectionProps(component, EMPTY_CONTENT)
-    expect(propsFor('SectionPortfolio')).toEqual({ items: [] })
+    expect(propsFor('SectionPortfolio')).toEqual({ portfolios: [] })
     expect(propsFor('SectionBlog')).toEqual({ posts: [] })
     expect(propsFor('SectionFeatures')).toEqual({ features: [] })
     expect(propsFor('SectionFaq')).toEqual({ items: [] })

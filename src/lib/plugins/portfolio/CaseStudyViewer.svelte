@@ -1,62 +1,51 @@
 <script lang="ts">
   /**
-   * CaseStudyViewer — Rich portfolio case study (PM v2 CaseStudyViewer.vue parity)
+   * CaseStudyViewer — Single case-study portfolio item viewer (PM v2)
    *
-   * Parses content lines: lines starting with "### " become headings,
-   * everything else becomes paragraphs. Renders tags as badges.
-   *
-   * Headings arrive already translated from the service layer
-   * (portfolio.ts `translateCaseStudyContent`) — this component renders
-   * the given text as-is and never derives translation keys.
+   * Consumes ONE selected portfolio item and renders its own body: lines
+   * starting with `### ` become headings, everything else paragraphs.
+   * Renders tags as badges. Headings arrive already translated from the
+   * service layer (portfolio.ts `translateCaseStudyContent`) — this component
+   * renders the given text as-is and never derives translation keys.
    *
    * Rule #1: class prop + twMerge
+   *
+   * @props {PortfolioViewerItem} item — the selected case-study portfolio item
+   * @props {string} [portfolioType='case_study'] — portfolio type used to parse `item.metadata`
+   * @props {string} [class] — additional CSS classes merged via twMerge
+   *
+   * @example <CaseStudyViewer item={items[0]} portfolioType="case_study" />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import Badge from '$lib/components/atoms/Badge.svelte'
-
-  interface ContentBlock {
-    id: number
-    type: 'heading' | 'text'
-    text: string
-  }
+  import { parseItemMetadata, parseStoredTags } from '$lib/portfolio-metadata'
+  import { metaStringList, mergeItemTags, parseContentBlocks, type PortfolioViewerItem } from './types'
 
   let {
-    title = '',
-    content = '',
-    description = '',
-    tags = [] as string[],
+    item,
+    portfolioType = 'case_study',
     class: className = ''
   }: {
-    title?: string
-    content?: string
-    description?: string
-    tags?: string[]
+    item: PortfolioViewerItem
+    portfolioType?: string
     class?: string
   } = $props()
 
-  /** Parse content into heading/text blocks (PM v2 parseContent parity) */
-  function parseContent(raw: string): ContentBlock[] {
-    const blocks: ContentBlock[] = []
-    let id = 0
-    for (const rawLine of raw.split('\n')) {
-      const trimmed = rawLine.trim()
-      if (!trimmed) continue
-      const headingMatch = trimmed.match(/^###\s+(.+)/)
-      if (headingMatch?.[1]) {
-        blocks.push({ id: id++, type: 'heading', text: headingMatch[1] })
-      } else {
-        blocks.push({ id: id++, type: 'text', text: trimmed })
-      }
-    }
-    return blocks
-  }
-
-  const blocks = $derived(parseContent(content))
+  const metadata = $derived(parseItemMetadata(item.metadata, portfolioType))
+  const title = $derived(item.title ?? item.caption ?? '')
+  const category = $derived(item.category ?? '')
+  const content = $derived(item.content ?? '')
+  const description = $derived(item.description ?? '')
+  const tags = $derived(mergeItemTags(metadata, item))
+  const blocks = $derived(parseContentBlocks(content))
 </script>
 
 <article class={twMerge(clsx('space-y-6', className))}>
   <div class="space-y-2">
+    {#if category}
+      <span class="text-xs font-semibold uppercase tracking-[var(--tracking-caps)] text-pm-brand">{category}</span>
+    {/if}
     <h2 class="text-2xl font-bold text-pm-text">{title}</h2>
   </div>
 
@@ -82,4 +71,3 @@
     </div>
   {/if}
 </article>
-

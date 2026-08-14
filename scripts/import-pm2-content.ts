@@ -30,9 +30,12 @@
  *   - website metadata: liveUrl without a scheme gets `https://` prepended
  *     (v3 safeUrl requires a scheme).
  *   - translations: only CONTENT namespaces are imported (see CONTENT_PREFIXES
- *     below); system namespaces stay owned by the v3 catalog. Imported rows
- *     are classified via the shared $lib/constants/system-keys isSystemKey and
- *     written as customized=false.
+ *     below); system namespaces stay owned by the v3 catalog. PM v2 case-study
+ *     heading keys (`portfolio.section.*`) are remapped to the v3 runtime
+ *     format (`portfolio.heading.*` — see headingTranslationKey in
+ *     src/lib/server/services/portfolio.ts) so localized headings resolve.
+ *     Imported rows are classified via the shared $lib/constants/system-keys
+ *     isSystemKey and written as customized=false.
  *   - settings: only public contact.* / social.* keys (derived from the
  *     canonical $lib/config/settings-schema) are imported. Existing target
  *     rows are preserved (insert-only) unless --overwrite-settings is passed,
@@ -465,14 +468,23 @@ for (const item of items) {
 }
 
 // ── Translation plan ─────────────────────────────────────────────────────────
-const translationPlans: Array<{ locale: string; key: string; action: 'insert' | 'skip-exists' }> = []
+const translationPlans: Array<{ locale: string; key: string; sourceKey: string; action: 'insert' | 'skip-exists' }> = []
 for (const t of translations) {
   const isContent = CONTENT_PREFIXES.some(prefix => t.key.startsWith(prefix))
   if (!isContent) continue
-  const mapKey = `${t.locale}:${t.key}`
+  // PM v2 stored case-study heading labels under `portfolio.section.*`; the v3
+  // runtime resolves `### heading` lines to `portfolio.heading.<normalized>`
+  // (headingTranslationKey in src/lib/server/services/portfolio.ts). Imported
+  // heading keys are remapped into that runtime format so localized headings
+  // actually resolve after the pull.
+  const key = t.key.startsWith('portfolio.section.')
+    ? `portfolio.heading.${t.key.slice('portfolio.section.'.length)}`
+    : t.key
+  const mapKey = `${t.locale}:${key}`
   translationPlans.push({
     locale: t.locale,
-    key: t.key,
+    key,
+    sourceKey: t.key,
     action: targetTranslationKeys.has(mapKey) ? 'skip-exists' : 'insert'
   })
 }
@@ -594,7 +606,7 @@ const apply = target.transaction(() => {
 
   for (const plan of translationPlans) {
     if (plan.action !== 'insert') continue
-    const src = translationByKey.get(`${plan.locale}:${plan.key}`)
+    const src = translationByKey.get(`${plan.locale}:${plan.sourceKey}`)
     if (!src) continue
     insertTranslation.run(plan.locale, plan.key, src.value, isSystemKey(plan.key) ? 'system' : 'content', src.updated_at ?? unixNow())
   }
