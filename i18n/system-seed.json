@@ -19498,5 +19498,65 @@
     "locale": "he",
     "key": "portfolio.layoutGrid",
     "value": "רשת"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.itemTypeNotAllowed",
+    "value": "Тип элемента недопустим для этого типа портфолио"
+  },
+  {
+    "locale": "en",
+    "key": "admin.itemTypeNotAllowed",
+    "value": "Item type is not allowed for this portfolio type"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.itemTypeNotAllowed",
+    "value": "Type d'élément non autorisé pour ce type de portfolio"
+  },
+  {
+    "locale": "he",
+    "key": "admin.itemTypeNotAllowed",
+    "value": "סוג הפריט אינו מותר לסוג תיק עבודות זה"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.localizedText",
+    "value": "Тексты на других языках"
+  },
+  {
+    "locale": "en",
+    "key": "admin.localizedText",
+    "value": "Text in other languages"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.localizedText",
+    "value": "Textes dans d'autres langues"
+  },
+  {
+    "locale": "he",
+    "key": "admin.localizedText",
+    "value": "טקסט בשפות אחרות"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.portfolioTextTooLong",
+    "value": "Текст слишком длинный"
+  },
+  {
+    "locale": "en",
+    "key": "admin.portfolioTextTooLong",
+    "value": "Text is too long"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.portfolioTextTooLong",
+    "value": "Texte trop long"
+  },
+  {
+    "locale": "he",
+    "key": "admin.portfolioTextTooLong",
+    "value": "הטקסט ארוך מדי"
   }
 ]

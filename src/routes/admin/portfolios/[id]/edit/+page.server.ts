@@ -6,16 +6,56 @@ import { z } from 'zod'
 import type { RequestEvent } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
-import { updatePortfolio } from '$lib/server/services/portfolio-admin'
+import { updatePortfolio, getPortfolioTranslations, PORTFOLIO_LOCALIZED_FIELDS } from '$lib/server/services/portfolio-admin'
+import { setTranslations } from '$lib/server/services/translations'
+import { invalidateContentCache } from '$lib/server/db/content-cache'
+import { LOCALES, DEFAULT_LOCALE } from '$lib/config/site'
+import { PORTFOLIO_TYPES } from '$lib/portfolio-types'
 
 const updateSchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1),
-  type: z.enum(['gallery', 'case_study', 'branding', 'brandbook', 'website']).default('branding'),
+  type: z.enum(PORTFOLIO_TYPES).default('branding'),
   description: z.string().nullable().optional(),
   coverImageUrl: z.string().nullable().optional(),
   published: z.string().optional().nullable()
 })
+
+// Per-locale override fields for the portfolio text (name_<locale>,
+// description_<locale>) — the default locale maps to the base columns.
+const NON_DEFAULT_LOCALES = LOCALES.filter(l => l !== DEFAULT_LOCALE)
+
+/** Length caps for the per-locale portfolio text overrides (write boundary). */
+const portfolioLocalizedMax: Record<string, number> = { name: 200, description: 5000 }
+
+/** Validate the per-locale overrides through Zod (length caps). */
+function validatePortfolioLocalizedText(
+  form: FormData
+): { ok: true; value: Record<string, Record<string, string>> } | { ok: false; response: ReturnType<typeof fail> } {
+  const out: Record<string, Record<string, string>> = {}
+  for (const locale of NON_DEFAULT_LOCALES) {
+    const entry: Record<string, string> = {}
+    for (const field of PORTFOLIO_LOCALIZED_FIELDS) {
+      const raw = form.get(`${field}_${locale}`)
+      entry[field] = typeof raw === 'string' ? raw : ''
+    }
+    out[locale] = entry
+  }
+  const fieldSchema = z.object(
+    Object.fromEntries(
+      PORTFOLIO_LOCALIZED_FIELDS.map(field => [field, z.string().max(portfolioLocalizedMax[field] ?? 5000)])
+    )
+  )
+  for (const locale of NON_DEFAULT_LOCALES) {
+    const result = fieldSchema.safeParse(out[locale] ?? {})
+    if (!result.success) {
+      const issue = result.error.issues[0]
+      const field = String(issue?.path?.[0] ?? '')
+      return { ok: false, response: fail(400, { fieldErrors: { [`${field}_${locale}`]: ['admin.portfolioTextTooLong'] } }) }
+    }
+  }
+  return { ok: true, value: out }
+}
 
 export const load: PageServerLoad = event => {
   requireAdminPage(event, 'portfolios')
@@ -26,7 +66,10 @@ export const load: PageServerLoad = event => {
     .where(eq(schema.portfolios.id, Number(event.params.id)))
     .get()
   if (!portfolio) error(404)
-  return { portfolio }
+  return {
+    portfolio,
+    translations: getPortfolioTranslations([portfolio.id]).get(portfolio.id) ?? {}
+  }
 }
 
 export const actions = {
@@ -45,10 +88,12 @@ export const actions = {
     // audit I-10: fail() so field errors surface to the UI (matches create).
     if (!parsed.success) return fail(400, { fieldErrors: parsed.error.flatten().fieldErrors })
 
+    const portfolioId = Number(event.params.id)
+
     // Shared admin service: type-change guard, item metadata migration,
     // transaction handling and duplicate-slug mapping are identical to the
     // JSON API PUT path (/api/admin/portfolios/[id]).
-    const result = updatePortfolio(Number(event.params.id), {
+    const result = updatePortfolio(portfolioId, {
       name: parsed.data.name,
       slug: parsed.data.slug,
       type: parsed.data.type,
@@ -57,6 +102,33 @@ export const actions = {
       published: parsed.data.published === 'on'
     })
     if (!result.ok) return fail(400, { fieldErrors: result.fieldErrors })
+
+    // Per-locale text overrides persist to the translations table
+    // (portfolio.<id>.name / .description — the keys the public hydration
+    // resolves). The default locale stays column-backed (edited above); the
+    // other locales write translation rows. A submitted EMPTY value that
+    // previously carried a translation clears the override (the service
+    // `nonEmpty` guard then falls back to the column). Values are validated
+    // through Zod (length caps) before persisting.
+    const localizedCheck = validatePortfolioLocalizedText(form)
+    if (!localizedCheck.ok) return localizedCheck.response
+    const localized = localizedCheck.value
+
+    const previous = getPortfolioTranslations([portfolioId]).get(portfolioId) ?? {}
+    for (const locale of NON_DEFAULT_LOCALES) {
+      const entries: Array<{ key: string; value: string }> = []
+      for (const field of PORTFOLIO_LOCALIZED_FIELDS) {
+        const submitted = localized[locale]?.[field] ?? ''
+        const had = previous[locale]?.[field]
+        if (submitted.trim() !== '') {
+          entries.push({ key: `portfolio.${portfolioId}.${field}`, value: submitted })
+        } else if (had) {
+          entries.push({ key: `portfolio.${portfolioId}.${field}`, value: '' })
+        }
+      }
+      if (entries.length > 0) setTranslations(locale, entries)
+    }
+    invalidateContentCache()
 
     redirect(303, ADMIN_ROUTES.portfolios)
   }

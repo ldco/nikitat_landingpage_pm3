@@ -229,6 +229,13 @@
   --lightbox-max-width: 90vw;
   --lightbox-max-height: 85vh;
   --lightbox-image-max-height: 80vh;
+  /* PM v2 parity: lightbox media/content panels split 50/50 on mobile
+     (portfolio-fullscreen.css @media max-width 768px). */
+  --lightbox-panel-height-mobile: 50vh;
+  /* PM v2 parity: branding/website viewer readable width (portfolio-branding.css
+     max-inline-size 800px) and lightbox project-nav label cap (240px). */
+  --max-w-viewer: 50rem;
+  --max-w-lightbox-nav: 15rem;
   --brandbook-image-max-height: 70vh;
   --cookie-max-width: 92rem;
   /* ── Section Component Tokens ── */

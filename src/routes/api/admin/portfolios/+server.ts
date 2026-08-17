@@ -7,12 +7,13 @@ import { jsonSuccess, jsonPaginated } from '$lib/server/utils/api'
 import { paginationSchema } from '$lib/server/utils/validation'
 import { eq } from 'drizzle-orm'
 import { createPortfolio } from '$lib/server/services/portfolio-admin'
+import { PORTFOLIO_TYPES } from '$lib/portfolio-types'
 
 const createSchema = z.object({
   slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/),
   name: z.string().min(1).max(200),
   description: z.string().optional(),
-  type: z.enum(['gallery', 'case_study', 'branding', 'brandbook', 'website']),
+  type: z.enum(PORTFOLIO_TYPES),
   coverImageUrl: z.string().optional(),
   published: z.boolean().optional().default(false)
 })

@@ -2,19 +2,24 @@
   /**
    * WebsiteFields — Website-type metadata editor for the portfolio item modal
    *
-   * Edits the PM v2 website payload: liveUrl, technologies (comma list) and
-   * the screenshots array (url + caption rows). Values are bound two-way to
-   * the parent's `PortfolioItemFormMetadata` state and serialized by the
-   * shared adapter (`serializeItemMetadata`). Controls use the canonical
-   * FormField primitive; row actions use AddRowButton + IconButton.
+   * Edits the PM v2 website payload: liveUrl, technologies (comma list), the
+   * screenshots array (url + caption rows) and the long-form body `content`
+   * field (the website explanation text rendered by the public WebsiteViewer —
+   * lines starting with `### ` render as headings). The body textarea is a
+   * NAMED form field (`name="content"`) so it persists through the shared
+   * content field accepted by the create/update actions. Values are bound
+   * two-way to the parent's `PortfolioItemFormMetadata` state and serialized
+   * by the shared adapter (`serializeItemMetadata`). Controls use the
+   * canonical FormField primitive; row actions use AddRowButton + IconButton.
    *
    * @props {string} liveUrl — bindable live site URL
    * @props {string} technologies — bindable comma-separated list
    * @props {Array<{url,caption}>} screenshots — bindable screenshot rows
+   * @props {string} content — bindable long-form website body
    * @props {string} [class] — additional CSS classes
    *
    * @example
-   * <WebsiteFields bind:liveUrl={formMetadata.liveUrl} bind:technologies={formMetadata.technologies} bind:screenshots={formMetadata.screenshots} />
+   * <WebsiteFields bind:liveUrl={formMetadata.liveUrl} bind:technologies={formMetadata.technologies} bind:screenshots={formMetadata.screenshots} bind:content={formContent} />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
@@ -30,11 +35,13 @@
     liveUrl = $bindable(''),
     technologies = $bindable(''),
     screenshots = $bindable([] as Array<{ url: string; caption: string }>),
+    content = $bindable(''),
     class: className = ''
   }: {
     liveUrl?: string
     technologies?: string
     screenshots?: Array<{ url: string; caption: string }>
+    content?: string
     class?: string
   } = $props()
 
@@ -93,4 +100,12 @@
       {adminT['admin.addRow'] ?? t('admin.addRow')}
     </AddRowButton>
   </div>
+
+  <FormField
+    name="content"
+    type="textarea"
+    rows={8}
+    label={adminT['admin.portfolioContent'] ?? t('admin.portfolioContent')}
+    bind:value={content}
+  />
 </div>

@@ -56,6 +56,31 @@ export function apiError(statusCode: number, code: string, message: string, deta
   throw error(statusCode, { code, message, details } as unknown as { message: string })
 }
 
+/**
+ * Build a 400 field-level validation error response in the shared API envelope
+ * ({ success: false, error: { code, message, details.fieldErrors } }). One
+ * helper for every admin API so the error contract can never drift between
+ * routes.
+ */
+export function apiFieldError(
+  message: string,
+  field: string,
+  code: string,
+  i18nKey: string
+): Response {
+  return new Response(JSON.stringify({
+    success: false,
+    error: {
+      code,
+      message,
+      details: { fieldErrors: { [field]: [i18nKey] } }
+    }
+  }), {
+    status: 400,
+    headers: { 'content-type': 'application/json' }
+  })
+}
+
 export function requireAuth(event: RequestEvent): NonNullable<App.Locals['user']> {
   const user = event.locals.user
   if (!user) {

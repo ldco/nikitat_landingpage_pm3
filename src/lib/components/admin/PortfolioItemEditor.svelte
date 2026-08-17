@@ -20,8 +20,10 @@
   import { page } from '$app/stores'
   import { t } from '$lib/stores/content.svelte'
   import { getAdminT } from '$lib/utils/admin-translations'
+  import { LOCALES, DEFAULT_LOCALE, LOCALE_CONFIG } from '$lib/config/site'
   import AdminModal from '$lib/components/molecules/AdminModal.svelte'
   import AdminFormSection from '$lib/components/molecules/AdminFormSection.svelte'
+  import AdminLocaleTextFields from '$lib/components/molecules/AdminLocaleTextFields.svelte'
   import FileUpload from '$lib/components/molecules/FileUpload.svelte'
   import FormField from '$lib/components/atoms/FormField.svelte'
   import WebsiteFields from '$lib/components/admin/portfolio/WebsiteFields.svelte'
@@ -31,11 +33,13 @@
   import { API_ROUTES } from '$lib/utils/api-paths'
   import {
     PORTFOLIO_ITEM_TYPE_OPTIONS,
+    portfolioItemTypesFor,
     emptyItemFormMetadata,
     hydrateItemMetadata,
     serializeItemMetadata,
     type PortfolioItem,
-    type PortfolioItemFormMetadata
+    type PortfolioItemFormMetadata,
+    type PortfolioItemTypeValue
   } from '$lib/portfolio-metadata-form'
   import { parseItemMetadata } from '$lib/portfolio-metadata'
 
@@ -43,11 +47,13 @@
     open = false,
     editingItem = null,
     portfolioType = 'branding',
+    itemTranslations = {},
     onClose
   }: {
     open: boolean
     editingItem?: PortfolioItem | null
     portfolioType?: string
+    itemTranslations?: Record<number, Record<string, Record<string, string>>>
     onClose: () => void
   } = $props()
 
@@ -76,7 +82,13 @@
   }
 
   // ── Form state ───────────────────────────────────────────────────────────
-  let formItemType = $state<'image' | 'video' | 'link' | 'case_study'>('image')
+  // The CREATE path starts with the first item type the parent portfolio can
+  // render (e.g. case_study portfolios start as `case_study`) so the modal
+  // never submits a server-invalid default. The legacy EDIT path keeps the
+  // row's own type.
+  let formItemType = $state<PortfolioItemTypeValue>(
+    portfolioItemTypesFor(portfolioType)[0] ?? 'image'
+  )
   let formMediaUrl = $state('')
   let formThumbnailUrl = $state('')
   let formCaption = $state('')
@@ -89,7 +101,7 @@
   // Hydrate/blank the form whenever the target item changes.
   $effect(() => {
     const item = editingItem
-    formItemType = item?.itemType ?? 'image'
+    formItemType = item?.itemType ?? portfolioItemTypesFor(portfolioType)[0] ?? 'image'
     formMediaUrl = item?.mediaUrl ?? ''
     formThumbnailUrl = item?.thumbnailUrl ?? ''
     formCaption = item?.caption ?? ''
@@ -105,12 +117,59 @@
   const isBrandbook = $derived(portfolioType === 'brandbook')
   const isCaseStudy = $derived(portfolioType === 'case_study')
 
+  // Item-type options are derived from the parent portfolio type so the admin
+  // never offers combinations the public viewers cannot render. Legacy rows
+  // holding an item type outside the matrix stay visible (labelled raw) so
+  // they can be inspected/fixed instead of rendering a blank select.
+  const itemTypeOptions = $derived.by(() => {
+    const allowed = portfolioItemTypesFor(portfolioType)
+    const options = PORTFOLIO_ITEM_TYPE_OPTIONS
+      .filter(ty => allowed.includes(ty.value))
+      .map(ty => ({ value: ty.value, label: adminT[ty.key] ?? ty.value }))
+    if (formItemType && !options.some(o => o.value === formItemType)) {
+      options.push({ value: formItemType, label: formItemType })
+    }
+    return options
+  })
+
   const metadataJson = $derived(serializeItemMetadata(formMetadata, portfolioType))
 
   const form = $derived($page.form)
   const errors = $derived(
     (form as { fieldErrors?: Record<string, string[]> } | null)?.fieldErrors ?? {}
   )
+
+  // ── Per-locale text overrides (other languages) ──────────────────────────
+  const nonDefaultLocales = $derived(LOCALES.filter(locale => locale !== DEFAULT_LOCALE))
+  const localeNames = $derived(
+    Object.fromEntries(LOCALES.map(locale => [locale, LOCALE_CONFIG[locale].name]))
+  )
+  const localizedValues = $derived(
+    editingItem ? (itemTranslations[editingItem.id] ?? {}) : {}
+  )
+  // The localized content field mirrors the base form's conditionality: only
+  // the body-rendering portfolio types expose it. `category` is always
+  // rendered — the hydration localizes it and the viewers display it.
+  const localizedBodyField: Array<{ key: string; label: string; type: 'textarea'; rows: number }> =
+    isWebsite || isBranding || isCaseStudy
+      ? [{
+          key: 'content',
+          label: adminT['admin.portfolioContent'] ?? t('admin.portfolioContent'),
+          type: 'textarea',
+          rows: 8
+        }]
+      : []
+  const localizedFields = $derived<Array<{ key: string; label: string; type?: 'input' | 'textarea'; rows?: number }>>([
+    { key: 'title', label: adminT['admin.itemTitle'] ?? t('admin.itemTitle') },
+    {
+      key: 'description',
+      label: adminT['admin.description'] ?? t('admin.description'),
+      type: 'textarea',
+      rows: 3
+    },
+    { key: 'category', label: adminT['admin.category'] ?? t('admin.category') },
+    ...localizedBodyField
+  ])
 </script>
 
 <AdminModal
@@ -133,10 +192,7 @@
       name="itemType"
       type="select"
       label={adminT['admin.mediaType'] ?? t('admin.mediaType')}
-      options={PORTFOLIO_ITEM_TYPE_OPTIONS.map((ty) => ({
-        value: ty.value,
-        label: adminT[ty.key] ?? ty.value
-      }))}
+      options={itemTypeOptions}
       bind:value={formItemType}
     />
 
@@ -182,6 +238,7 @@
             bind:liveUrl={formMetadata.liveUrl}
             bind:technologies={formMetadata.technologies}
             bind:screenshots={formMetadata.screenshots}
+            bind:content={formContent}
           />
         {/if}
         {#if isBranding}
@@ -189,6 +246,8 @@
             bind:clientUrl={formMetadata.clientUrl}
             bind:tags={formMetadata.tags}
             bind:sections={formMetadata.sections}
+            bind:gallery={formMetadata.gallery}
+            bind:content={formContent}
           />
         {/if}
         {#if isCaseStudy}
@@ -204,6 +263,15 @@
           bind:value={formPublished}
         />
       </div>
+    </AdminFormSection>
+
+    <AdminFormSection title={adminT['admin.localizedText'] ?? t('admin.localizedText')}>
+      <AdminLocaleTextFields
+        locales={nonDefaultLocales}
+        localeNames={localeNames}
+        fields={localizedFields}
+        initialValues={localizedValues}
+      />
     </AdminFormSection>
 
     {#if errors.itemType?.[0] || errors.id?.[0] || errors.metadata?.[0]}

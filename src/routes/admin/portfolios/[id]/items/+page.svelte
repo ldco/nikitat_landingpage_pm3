@@ -25,6 +25,9 @@
   let { data }: { data: PageData } = $props()
   const portfolio = $derived(data.portfolio)
   const items = $derived((data.items ?? []) as PortfolioItem[])
+  const itemTranslations = $derived(
+    (data.itemTranslations ?? {}) as Record<number, Record<string, Record<string, string>>>
+  )
   const adminT = $derived(getAdminT($page.data))
 
   // ── Editor open/close (single responsibility of this route) ─────────────
@@ -61,5 +64,6 @@
   open={showModal}
   editingItem={editingItem}
   portfolioType={portfolio.type}
+  itemTranslations={itemTranslations}
   onClose={closeModal}
 />

@@ -11,11 +11,12 @@
  * JSON payloads degrade to empty values instead of crashing.
  */
 import { parseStoredTags } from '$lib/portfolio-metadata'
+import type { PortfolioItemType } from '$lib/portfolio-types'
 
 /** A single published portfolio item as consumed by the subtype viewers. */
 export interface PortfolioViewerItem {
   id: number
-  itemType: 'image' | 'video' | 'link' | 'case_study'
+  itemType: PortfolioItemType
   title?: string | null
   caption?: string | null
   description?: string | null
@@ -60,16 +61,46 @@ export function mediaEntry(
   return { url, caption: caption?.trim() ? caption : undefined }
 }
 
-/** The item's own media as a single-image gallery (mediaUrl only for image items). */
+/**
+ * The item's own media as a single-image gallery. `mediaUrl` is honored for
+ * `image` rows AND for `case_study` rows — the branding/website portfolios
+ * render `case_study` items (PM2 type-change migration + the admin type
+ * matrix), and those items carry a real `mediaUrl` that must surface as the
+ * detail image instead of an empty fallback. The stored `thumbnailUrl` is a
+ * PREVIEW asset for cards/grids and never becomes a detail-view gallery
+ * entry — a media-plus-thumbnail item must render exactly one slide/page,
+ * never a duplicate thumbnail slide.
+ */
 export function itemImages(item: PortfolioViewerItem): Array<{ url: string; caption?: string }> {
-  const images: Array<{ url: string; caption?: string }> = []
-  if (item.mediaUrl && item.itemType === 'image') {
-    images.push({ url: item.mediaUrl, caption: item.caption ?? undefined })
+  if (item.mediaUrl && (item.itemType === 'image' || item.itemType === 'case_study')) {
+    return [{ url: item.mediaUrl, caption: item.caption ?? undefined }]
   }
-  if (item.thumbnailUrl && item.thumbnailUrl !== item.mediaUrl) {
-    images.push({ url: item.thumbnailUrl })
-  }
-  return images
+  return []
+}
+
+/**
+ * Resolve an item's display media: the stored per-type list in `metadata`
+ * under `key` (branding `gallery` / website `screenshots` / brandbook `pages`).
+ *
+ * CANONICAL-MEDIA RULE: for the media-backed types (branding/website) this
+ * stored list is the ONLY accepted media — a missing list renders no media
+ * (the viewers no longer fall back to the flat `mediaUrl` column, so a missing
+ * structured array is a visible gap, never silently completed). Brandbook's
+ * `pages` are optional metadata, so its viewer opts into the item's own
+ * `mediaUrl` fallback via `allowItemFallback` — the lightbox modal shares the
+ * same helper so the priority rule and the per-type key mapping can never
+ * diverge between components.
+ */
+export function itemMedia(
+  metadata: Record<string, unknown>,
+  item: PortfolioViewerItem,
+  key: string,
+  allowItemFallback = false
+): Array<{ url: string; caption?: string }> {
+  const stored = metaObjectList(metadata, key)
+    .map(mediaEntry)
+    .filter((v): v is { url: string; caption?: string } => v !== null)
+  return stored.length > 0 ? stored : (allowItemFallback ? itemImages(item) : [])
 }
 
 export interface ContentBlock {

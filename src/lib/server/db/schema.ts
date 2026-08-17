@@ -10,6 +10,7 @@
  * config-driven — see LOCALES in src/project/site-config.ts)
  */
 import { sqliteTable, text, integer, unique, index } from 'drizzle-orm/sqlite-core'
+import { PORTFOLIO_TYPES, PORTFOLIO_ITEM_TYPES } from '$lib/portfolio-types'
 
 // ═══════════════════════════════════════════════════════════════════════════
 // USERS & AUTH
@@ -97,13 +98,9 @@ export const settings = sqliteTable('settings', {
 // ═══════════════════════════════════════════════════════════════════════════
 // CONTENT: PORTFOLIOS
 // ═══════════════════════════════════════════════════════════════════════════
-
-export const PORTFOLIO_TYPES = ['gallery', 'case_study'] as const
-export type PortfolioType = (typeof PORTFOLIO_TYPES)[number]
-export const PORTFOLIO_ITEM_SUBTYPES = ['branding', 'brandbook', 'website'] as const
-export type PortfolioItemSubtype = (typeof PORTFOLIO_ITEM_SUBTYPES)[number]
-export const PORTFOLIO_ITEM_TYPES = ['image', 'video', 'link', 'case_study'] as const
-export type PortfolioItemType = (typeof PORTFOLIO_ITEM_TYPES)[number]
+// Portfolio + item type contracts come from the shared module ($lib/portfolio-types)
+// — the single source used by the schema enums, services, admin forms and API
+// validation, so no legacy type list can drift back into this file.
 
 // Canonical per-type payload for portfolio_items.metadata (PM v2 parity):
 // branding / brandbook / website declare their own JSON shape; gallery and
@@ -122,7 +119,7 @@ export const portfolios = sqliteTable('portfolios', {
   slug: text('slug').notNull().unique(),
   name: text('name').notNull(),
   description: text('description'),
-  type: text('type', { enum: ['gallery', 'case_study', 'branding', 'brandbook', 'website'] }).notNull(),
+  type: text('type', { enum: [...PORTFOLIO_TYPES] }).notNull(),
   coverImageUrl: text('cover_image_url'),
   coverThumbnailUrl: text('cover_thumbnail_url'),
   order: integer('order').default(0),
@@ -134,7 +131,7 @@ export const portfolios = sqliteTable('portfolios', {
 export const portfolioItems = sqliteTable('portfolio_items', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   portfolioId: integer('portfolio_id').notNull().references(() => portfolios.id, { onDelete: 'cascade' }),
-  itemType: text('item_type', { enum: ['image', 'video', 'link', 'case_study'] }).notNull(),
+  itemType: text('item_type', { enum: [...PORTFOLIO_ITEM_TYPES] }).notNull(),
   order: integer('order').default(0),
   published: integer('published', { mode: 'boolean' }).default(true),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),

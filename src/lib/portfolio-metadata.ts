@@ -11,12 +11,25 @@
  *   - the admin API validation (api/admin/portfolios/[id]/items)
  *   - the public viewers (plugins/portfolio/*) — parse + render stored data
  *
+ * CANONICAL-MEDIA RULE: `gallery` (branding) and `screenshots` (website) are
+ * REQUIRED keys — a branding/website item without its structured media array is
+ * invalid at every admin write boundary (`normalizeItemMetadata` rejects it)
+ * and incomplete at the PM2 enrichment gate. Legacy rows are normalized into
+ * the required arrays by the import (`scripts/import-pm2-content.ts`) and the
+ * runtime source enrichment (`$lib/server/services/portfolio-pm2-source.ts`)
+ * before they are treated as complete; the public viewers never fall back to
+ * the flat `mediaUrl` column for these types.
+ *
  * PM v2 shapes (docs/archive/pm-v2/portfolio-architecture.md):
- *   branding:  { sections: [{title,text}], clientUrl, tags[] }
+ *   branding:  { sections: [{title,text}], clientUrl, tags[], gallery: [{url,caption?}] }
  *   brandbook: { pdfUrl, pages: [{url,caption}] }
  *   website:   { liveUrl, technologies[], screenshots: [{url,caption}] }
  */
 import { z } from 'zod'
+import { safeImportUrl, REQUIRED_MEDIA_KEYS } from '$lib/portfolio-metadata-import'
+import type { PortfolioItemType } from '$lib/portfolio-types'
+
+export { REQUIRED_MEDIA_KEYS }
 
 /**
  * URL fields render into public `href` sinks (WebsiteViewer/BrandingViewer/
@@ -62,7 +75,13 @@ export const safeMediaUrl = z.string().refine(
 export const brandingMetadataSchema = z.object({
   sections: z.array(z.object({ title: z.string(), text: z.string().optional() })).optional(),
   clientUrl: safeUrl.optional(),
-  tags: z.array(z.string()).optional()
+  tags: z.array(z.string()).optional(),
+  // Canonical media (REQUIRED): every branding item carries a `gallery` — the
+  // admin write boundaries reject payloads without it, and the PM2 import /
+  // runtime enrichment fold legacy flat media (mediaUrl) into this array so
+  // imported rows are normalized before they are treated as complete. The
+  // public viewers render branding media ONLY from here (no mediaUrl fallback).
+  gallery: z.array(z.object({ url: safeUrl, caption: z.string().optional() }))
 })
 
 export const brandbookMetadataSchema = z.object({
@@ -73,7 +92,10 @@ export const brandbookMetadataSchema = z.object({
 export const websiteMetadataSchema = z.object({
   liveUrl: safeUrl.optional(),
   technologies: z.array(z.string()).optional(),
-  screenshots: z.array(z.object({ url: safeUrl, caption: z.string().optional() })).optional()
+  // Canonical media (REQUIRED): same contract as branding `gallery` — every
+  // website item carries `screenshots`, enforced at the write boundaries and
+  // normalized into imported/enriched rows; the viewers render no fallback.
+  screenshots: z.array(z.object({ url: safeUrl, caption: z.string().optional() }))
 })
 
 export const caseStudyMetadataSchema = z.object({
@@ -100,7 +122,12 @@ export type PortfolioItemMetadata =
 
 /**
  * Parse the stored `metadata` JSON string for an item. Unknown portfolio
- * types and malformed JSON degrade to `{}` (legacy rows keep working).
+ * types and malformed JSON degrade to `{}` (legacy rows keep working). Under
+ * the canonical-media rule, a branding/website payload WITHOUT its required
+ * `gallery`/`screenshots` array also fails the schema and degrades to `{}` —
+ * such rows are incomplete (the import/enrichment normalize them into the
+ * required arrays before they reach the viewers), so the viewers render the
+ * visible media gap instead of a flat-mediaUrl fallback.
  */
 export function parseItemMetadata(
   raw: string | null | undefined,
@@ -132,6 +159,19 @@ export function normalizeItemMetadata(parsed: unknown, portfolioType: string): s
   const result = schema ? schema.safeParse(parsed) : { success: true, data: parsed }
   if (!result.success) return null
   return JSON.stringify(result.data)
+}
+
+/**
+ * True when a portfolio type REQUIRES a metadata payload at the admin write
+ * boundaries — the types whose canonical structured media array (branding
+ * `gallery`, website `screenshots`) is REQUIRED by the schemas (see
+ * REQUIRED_MEDIA_KEYS). A missing metadata payload for these types must be
+ * rejected on create/update — storing null would bypass the canonical-media
+ * contract the public viewers render from. Every other type stores null when
+ * no metadata is provided.
+ */
+export function portfolioTypeRequiresMetadata(portfolioType: string): boolean {
+  return REQUIRED_MEDIA_KEYS[portfolioType] !== undefined
 }
 
 /** Split a comma-separated input into trimmed, non-empty values. */
@@ -179,7 +219,9 @@ export function parseStoredTags(tags: string | null | undefined): string[] {
  *     (markdown `### heading` blocks — the case-study contract) and tags carry
  *     over. See `migrateItemMetadata`.
  *   - `gallery` → any type: legacy gallery rows have no metadata; their flat
- *     columns (title/caption/description/mediaUrl) survive every schema.
+ *     columns (title/caption/description/mediaUrl) survive every schema, and a
+ *     conversion into branding/website folds `mediaUrl` into the REQUIRED
+ *     `gallery`/`screenshots` array (see `migrateItemMetadata`).
  *
  * Every other transition would silently drop metadata (e.g. website liveUrl/
  * screenshots, brandbook pages/pdfUrl), so it is rejected by the admin edit
@@ -195,13 +237,28 @@ export function canMigratePortfolioType(fromType: string, toType: string): boole
 
 /** Result of rewriting one item's metadata for a portfolio type change. */
 export type MetadataMigration =
-  | { ok: true; metadata: string | null; content?: string | null }
+  | {
+      ok: true
+      metadata: string | null
+      content?: string | null
+      /** New item type when the conversion changes the item's renderable type
+       *  (e.g. media items folded into a case-study body become `case_study`). */
+      itemType?: PortfolioItemType
+    }
   | { ok: false }
 
 /**
  * Rewrite one item's stored metadata from `fromType` to `toType` for a
  * supported conversion (see `canMigratePortfolioType`). Returns `ok: false`
  * for unsupported conversions — callers must keep the old type in that case.
+ *
+ * Canonical-media rule on conversion: `branding` requires `gallery` and
+ * `website` requires `screenshots`, so conversions INTO these types fold the
+ * item's own `mediaUrl` (`itemMediaUrl`) into the required array — for
+ * image-rendering items only (`itemItemType` image/case_study); a video/link
+ * row's URL must never land in an image array. A media-less item converts with
+ * an EMPTY array (schema-valid but incomplete — the PM2 enrichment fills it
+ * from the sources when one is configured).
  *
  * The `content` field is the FINAL canonical body for the target type and is
  * applied as a replacement (never appended):
@@ -217,11 +274,31 @@ export function migrateItemMetadata(
   raw: string | null | undefined,
   fromType: string,
   toType: string,
-  itemContent?: string | null
+  itemContent?: string | null,
+  itemMediaUrl?: string | null,
+  itemItemType?: string | null
 ): MetadataMigration {
   if (!canMigratePortfolioType(fromType, toType)) return { ok: false }
   if (fromType === toType) return { ok: true, metadata: raw ?? null }
-  if (fromType === 'gallery') return { ok: true, metadata: null }
+  if (fromType === 'gallery') {
+    // gallery → media-backed types: an image-rendering item's flat mediaUrl
+    // becomes the REQUIRED structured array (the only media the new type
+    // renders); video/link rows fold an EMPTY array so their non-image URL
+    // never renders as a broken <img>. Text-only targets (case_study,
+    // brandbook) keep the null-metadata contract — they have no required media.
+    if (toType === 'branding' || toType === 'website') {
+      // Canonical media key from the shared single source (REQUIRED_MEDIA_KEYS)
+      // — never a hand-copied ternary that can drift from the schemas. The
+      // nullish fallback is unreachable (both keys exist) and only satisfies
+      // noUncheckedIndexedAccess.
+      const key = REQUIRED_MEDIA_KEYS[toType] ?? 'gallery'
+      const isImageItem = itemItemType === 'image' || itemItemType === 'case_study'
+      const media = isImageItem ? safeMediaEntry(itemMediaUrl) : null
+      const migrated = normalizeItemMetadata({ [key]: media ? [media] : [] }, toType)
+      return { ok: true, metadata: migrated }
+    }
+    return { ok: true, metadata: null }
+  }
 
   const from = parseItemMetadata(raw, fromType)
 
@@ -231,10 +308,12 @@ export function migrateItemMetadata(
       ...metaSections(from),
       ...contentToSections(itemContent)
     ]
-    const migrated = normalizeItemMetadata(
-      sections.length > 0 ? { tags, sections } : { tags },
-      'branding'
-    )
+    const media = safeMediaEntry(itemMediaUrl)
+    const payload: Record<string, unknown> = {}
+    if (sections.length > 0) payload.sections = sections
+    if (tags.length > 0) payload.tags = tags
+    payload.gallery = media ? [media] : []
+    const migrated = normalizeItemMetadata(payload, 'branding')
     // The body now lives in `sections` — clear the stale content column so a
     // future `branding` → `case_study` conversion cannot duplicate it.
     return { ok: true, metadata: migrated, content: null }
@@ -255,8 +334,16 @@ export function migrateItemMetadata(
     const migrated = normalizeItemMetadata({ tags }, 'case_study')
     // The regenerated body REPLACES any existing content column value (the
     // sections are the canonical branding body), so round-trips never stack
-    // the same text twice.
-    return { ok: true, metadata: migrated, content: folded.length > 0 ? folded.join('\n\n') : null }
+    // the same text twice. The items become text-only case-study entries (the
+    // only type a case_study portfolio renders), so their itemType is
+    // migrated too — otherwise the admin write boundary would reject every
+    // save of the converted rows.
+    return {
+      ok: true,
+      metadata: migrated,
+      content: folded.length > 0 ? folded.join('\n\n') : null,
+      itemType: 'case_study'
+    }
   }
 
   return { ok: false }
@@ -303,6 +390,24 @@ export function contentToSections(content: string | null | undefined): Array<{ t
 function metaTags(metadata: Record<string, unknown>): string[] {
   const value = metadata['tags']
   return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []
+}
+
+/**
+ * A single canonical media entry (`{ url }`) from the item's flat `mediaUrl`
+ * column, or null when absent/unsafe. Uses the SAME policy as the import /
+ * enrichment fold (`safeImportUrl` in portfolio-metadata-import.ts): absolute
+ * http(s):// and /-relative values pass, bare hostnames get `https://`
+ * prefixed, and every other scheme (javascript:, data:, mailto:, tel:, …) is
+ * dropped — so a legacy direct-DB value can never inject a scriptable URL into
+ * the required `gallery`/`screenshots` array, and every path that folds a flat
+ * media URL into the canonical array applies the identical scheme policy.
+ */
+function safeMediaEntry(url: string | null | undefined): { url: string } | null {
+  const trimmed = url?.trim() ?? ''
+  if (!trimmed) return null
+  const safe = safeImportUrl(trimmed)
+  if (!safe) return null
+  return { url: safe }
 }
 
 /** Sections from parsed metadata (`sections: [{title, text?}]`). */

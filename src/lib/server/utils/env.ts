@@ -61,7 +61,15 @@ const envSchema = z.object({
   // Build metadata (injected at build/deploy time)
   APP_BUILD_VERSION: z.string().optional(),
   APP_BUILD_SHA: z.string().optional(),
-  APP_BUILD_TIMESTAMP: z.string().optional()
+  APP_BUILD_TIMESTAMP: z.string().optional(),
+
+  // PM2 content enrichment (OPT-IN — portfolio fallback sources, see
+  // src/lib/server/services/portfolio-pm2-source.ts): the live pulled
+  // nikitat.pro snapshot and the legacy metadata snapshot. When set, missing
+  // values are validated (string paths); when unset, sparse rows render
+  // unchanged and the service warns once so the misconfiguration is visible.
+  PM2_SOURCE_DB: z.string().optional(),
+  PM2_LEGACY_SOURCE_DB: z.string().optional()
 })
 
 export type EnvConfig = z.infer<typeof envSchema>

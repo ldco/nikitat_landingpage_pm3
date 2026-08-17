@@ -60,7 +60,8 @@ const PORTFOLIO_FIXTURES: FixturePortfolio[] = [
           tags: ['айдентика', 'логотип'],
           sections: [
             { title: 'Концепция', text: 'Минималистичная айдентика, построенная на чистой типографике.' }
-          ]
+          ],
+          gallery: [{ url: '/portfolio-fixtures/branding-1.png', caption: 'Фирменный стиль' }]
         }
       },
       {
@@ -72,7 +73,8 @@ const PORTFOLIO_FIXTURES: FixturePortfolio[] = [
         mediaUrl: '/portfolio-fixtures/branding-2.png',
         metadata: {
           clientUrl: 'https://fabrica22.pro',
-          tags: ['полиграфия']
+          tags: ['полиграфия'],
+          gallery: [{ url: '/portfolio-fixtures/branding-2.png', caption: 'Носители' }]
         }
       }
     ]

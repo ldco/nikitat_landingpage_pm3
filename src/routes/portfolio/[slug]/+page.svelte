@@ -225,11 +225,14 @@
       </div>
     {/if}
 
-    <!-- Overlay viewer (branding + website): opens on item click. -->
+    <!-- Overlay viewer (branding + website): opens on item click. The modal
+         owns project navigation over the shared `selectedIndex`, so the grid
+         selection stays in sync with the lightbox. -->
     {#if viewerOpen && selectedItem && isOverlayType}
       <PortfolioItemModal
         bind:open={viewerOpen}
-        item={selectedItem}
+        bind:selectedIndex={selectedIndex}
+        items={viewerItems}
         portfolioType={portfolio.type}
         portfolioName={portfolio.name}
       />

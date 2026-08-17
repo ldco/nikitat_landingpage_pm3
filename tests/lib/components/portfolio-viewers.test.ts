@@ -36,7 +36,8 @@ describe('BrandingViewer — single branding item', () => {
     metadata: JSON.stringify({
       clientUrl: 'https://client.example.com',
       tags: ['identity'],
-      sections: [{ title: 'Concept', text: 'A concept paragraph.' }]
+      sections: [{ title: 'Concept', text: 'A concept paragraph.' }],
+      gallery: [{ url: 'https://example.com/brand.png', caption: 'Cover' }]
     })
   }
 
@@ -48,6 +49,44 @@ describe('BrandingViewer — single branding item', () => {
     expect(screen.getByText('identity')).toBeTruthy()
     const link = screen.getByRole('link', { name: 'Client URL' })
     expect(link.getAttribute('href')).toBe('https://client.example.com')
+  })
+
+  it('prefers the stored gallery array over the mediaUrl/thumbnailUrl fallback', () => {
+    const galleryItem: PortfolioViewerItem = {
+      ...item,
+      metadata: JSON.stringify({
+        clientUrl: 'https://client.example.com',
+        tags: ['identity'],
+        gallery: [
+          { url: 'https://example.com/gal-1.png', caption: 'Shot A' },
+          { url: 'https://example.com/gal-2.png', caption: 'Shot B' }
+        ]
+      })
+    }
+    const { container } = render(BrandingViewer, { props: { item: galleryItem, portfolioType: 'branding' } })
+    const srcs = Array.from(container.querySelectorAll('img')).map(img => img.getAttribute('src'))
+    // The stored gallery array is the ONLY media source (canonical-media rule).
+    expect(srcs).toContain('https://example.com/gal-1.png')
+    expect(srcs).toContain('https://example.com/gal-2.png')
+    expect(srcs).not.toContain('https://example.com/brand.png')
+    expect(screen.getByText('Shot A')).toBeTruthy()
+  })
+
+  it('a case_study row WITHOUT a gallery renders the body but NO media (no flat fallback)', () => {
+    const caseStudyRow: PortfolioViewerItem = {
+      ...item,
+      itemType: 'case_study',
+      content: '### Задача\nПервая строка.',
+      metadata: JSON.stringify({ clientUrl: 'https://client.example.com' })
+    }
+    const { container } = render(BrandingViewer, { props: { item: caseStudyRow, portfolioType: 'branding' } })
+    // The case-study body still renders as the explanation …
+    expect(screen.getByText('Задача')).toBeTruthy()
+    expect(screen.getByText('Первая строка.')).toBeTruthy()
+    // … but a missing `gallery` is a VISIBLE GAP — the removed mediaUrl
+    // fallback must not surface the item's own image.
+    const srcs = Array.from(container.querySelectorAll('img')).map(img => img.getAttribute('src'))
+    expect(srcs).toEqual([])
   })
 })
 
@@ -73,6 +112,43 @@ describe('WebsiteViewer — single website item', () => {
     expect(screen.getByText('Technologies')).toBeTruthy()
     const liveLink = screen.getByRole('link', { name: 'live.example.com' })
     expect(liveLink.getAttribute('href')).toBe('https://live.example.com')
+  })
+
+  it('renders the long-form body as the primary explanation path', () => {
+    const withBody: PortfolioViewerItem = {
+      ...item,
+      content: '### Идея\nПроектируем интерфейс.\n\n### Реализация\nСобрали на SvelteKit.',
+      description: 'Short description',
+      metadata: JSON.stringify({
+        liveUrl: 'https://live.example.com',
+        technologies: ['SvelteKit'],
+        screenshots: [{ url: 'https://example.com/shot.png', caption: 'Home' }]
+      })
+    }
+    render(WebsiteViewer, { props: { item: withBody, portfolioType: 'website' } })
+    // Headings/text from the authored body render first (the short description
+    // is only a fallback when no body is authored).
+    expect(screen.getByText('Идея')).toBeTruthy()
+    expect(screen.getByText('Проектируем интерфейс.')).toBeTruthy()
+    expect(screen.getByText('Реализация')).toBeTruthy()
+    expect(screen.queryByText('Short description')).toBeNull()
+  })
+
+  it('a case_study row WITHOUT screenshots renders the body but NO media (no flat fallback)', () => {
+    const caseStudyRow: PortfolioViewerItem = {
+      ...item,
+      itemType: 'case_study',
+      content: '### Идея\nПроектируем интерфейс.',
+      metadata: JSON.stringify({ liveUrl: 'https://live.example.com', technologies: ['SvelteKit'] })
+    }
+    const { container } = render(WebsiteViewer, { props: { item: caseStudyRow, portfolioType: 'website' } })
+    // The case-study body renders as the explanation …
+    expect(screen.getByText('Идея')).toBeTruthy()
+    expect(screen.getByText('Проектируем интерфейс.')).toBeTruthy()
+    // … but a missing `screenshots` is a VISIBLE GAP — the removed mediaUrl
+    // fallback must not surface the item's own image.
+    const srcs = Array.from(container.querySelectorAll('img')).map(img => img.getAttribute('src'))
+    expect(srcs).toEqual([])
   })
 })
 
@@ -165,5 +241,46 @@ describe('CaseStudyViewer — single case-study item', () => {
     expect(screen.getByText('Вторая строка.')).toBeTruthy()
     expect(screen.getByText('ux')).toBeTruthy()
     expect(screen.getByText('kiosk')).toBeTruthy()
+  })
+})
+
+describe('canonical-media rule — branding/website render no flat mediaUrl fallback', () => {
+  // An item carrying mediaUrl + thumbnailUrl but NO required structured media
+  // array (gallery/screenshots) must render NO detail media — the fallback
+  // path was removed so the media gap is always visible, never silently
+  // filled from the flat columns. thumbnailUrl stays preview-only for
+  // cards/grids (surfaces outside the viewers).
+  const itemWithThumbnail: PortfolioViewerItem = {
+    id: 10,
+    itemType: 'image',
+    title: 'Media plus thumbnail',
+    mediaUrl: 'https://example.com/full.png',
+    thumbnailUrl: 'https://example.com/thumb.png',
+    metadata: '{}'
+  }
+
+  function renderedSrcs(container: HTMLElement): Array<string | null> {
+    return Array.from(container.querySelectorAll('img')).map(img => img.getAttribute('src'))
+  }
+
+  it('BrandingViewer renders no media without a gallery array', () => {
+    const { container } = render(BrandingViewer, {
+      props: { item: itemWithThumbnail, portfolioType: 'branding' }
+    })
+    expect(renderedSrcs(container)).toEqual([])
+  })
+
+  it('WebsiteViewer renders no media without a screenshots array', () => {
+    const { container } = render(WebsiteViewer, {
+      props: { item: itemWithThumbnail, portfolioType: 'website' }
+    })
+    expect(renderedSrcs(container)).toEqual([])
+  })
+
+  it('BrandbookViewer keeps the single mediaUrl page fallback (pages are optional)', () => {
+    const { container } = render(BrandbookViewer, {
+      props: { item: itemWithThumbnail, portfolioType: 'brandbook' }
+    })
+    expect(renderedSrcs(container)).toEqual(['https://example.com/full.png'])
   })
 })

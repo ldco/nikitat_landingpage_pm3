@@ -25,7 +25,7 @@
   import {
     metaString,
     metaObjectList,
-    itemImages,
+    itemMedia,
     mergeItemTags,
     parseContentBlocks,
     type PortfolioViewerItem
@@ -62,10 +62,13 @@
   // renders its `### heading` content; the migration folds case-study bodies
   // into sections, so both paths never render the same text twice.
   const contentBlocks = $derived(parseContentBlocks(sections.length > 0 ? '' : (item.content ?? '')))
-  const images = $derived(itemImages(item))
+  // Canonical-media rule: the stored branding `gallery` array is the ONLY
+  // accepted media — a missing/empty gallery renders NO images (the flat
+  // mediaUrl fallback was removed, so the media gap is always visible).
+  const images = $derived(itemMedia(metadata, item, 'gallery'))
 </script>
 
-<div class={twMerge(clsx('space-y-6', className))}>
+<div class={twMerge(clsx('mx-auto w-full max-w-[var(--max-w-viewer)] space-y-6', className))}>
   <div class="mb-6">
     {#if category}
       <span class="text-xs font-semibold uppercase tracking-[var(--tracking-caps)] text-pm-brand">{category}</span>
@@ -92,10 +95,10 @@
       {#each sections as section}
         <div>
           {#if section.title}
-            <h3 class="text-lg font-semibold text-pm-text">{section.title}</h3>
+            <h3 class="mb-2 text-lg font-semibold text-pm-brand">{section.title}</h3>
           {/if}
           {#if section.text}
-            <p class="mt-1 text-base text-pm-text-secondary leading-relaxed">{section.text}</p>
+            <p class="text-base text-pm-text-secondary leading-relaxed">{section.text}</p>
           {/if}
         </div>
       {/each}
@@ -104,7 +107,7 @@
     <div class="space-y-4">
       {#each contentBlocks as block (block.id)}
         {#if block.type === 'heading'}
-          <h3 class="text-lg font-semibold text-pm-text pt-2">{block.text}</h3>
+          <h3 class="text-lg font-semibold text-pm-brand pt-2">{block.text}</h3>
         {:else}
           <p class="text-base text-pm-text-secondary leading-relaxed">{block.text}</p>
         {/if}

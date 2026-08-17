@@ -1,11 +1,17 @@
 <script lang="ts">
   /**
-   * AppImage — Image with loading/error states and fallback
+   * AppImage — Image with loading/error states and an in-component placeholder
    * Rule #1: class prop + twMerge
    *
-   * @props {string} src — image source URL
+   * PM v2 (Vue) parity: the image is COMPLETELY removed on load error and a
+   * themed in-component placeholder (IconPhoto) is shown instead — never a
+   * broken-image icon and never a second network fetch to a fallback asset.
+   * Load state resets reactively whenever `src` changes, so a new src is
+   * always attempted even after a previous src failed (a failed first gallery
+   * image must not poison later slides).
+   *
+   * @props {string|null} [src=null] — image source URL (null/empty → placeholder)
    * @props {string} [alt=''] — alt text
-   * @props {string} [fallback='/images/placeholder.svg'] — shown on load error
    * @props {'lazy'|'eager'} [loading='lazy'] — native img loading attribute
    * @props {string} [class] — additional CSS classes merged via twMerge
    *
@@ -14,23 +20,32 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import IconPhoto from '@tabler/icons-svelte/icons/photo'
 
   let {
-    src,
+    src = null,
     alt = '',
-    fallback = '/images/placeholder.svg',
     class: className = '',
     loading = 'lazy' as const
   }: {
-    src: string
+    src?: string | null
     alt?: string
-    fallback?: string
     class?: string
     loading?: 'lazy' | 'eager'
   } = $props()
 
   let loaded = $state(false)
   let error = $state(false)
+
+  // Reset the load state whenever the src changes (PM v2 AppImage `watch`):
+  // the effect depends on `src` and runs before the DOM update, so a new src
+  // always renders as a fresh image attempt instead of inheriting a previous
+  // src's error state.
+  $effect.pre(() => {
+    const current = src
+    loaded = false
+    error = false
+  })
 
   function onLoad() {
     loaded = true
@@ -44,8 +59,14 @@
   const base = 'transition-opacity duration-300'
 </script>
 
-{#if error}
-  <img src={fallback} {alt} class={twMerge(clsx(base, 'opacity-60', className))} />
+{#if error || !src}
+  <div
+    class={twMerge(clsx('flex items-center justify-center bg-pm-bg-sunken text-pm-text-muted', className))}
+    role="img"
+    aria-label={alt}
+  >
+    <IconPhoto class="size-8" />
+  </div>
 {:else}
   <img
     {src}

@@ -23,7 +23,7 @@
   import Badge from '$lib/components/atoms/Badge.svelte'
   import { t } from '$lib/stores/content.svelte'
   import { parseItemMetadata } from '$lib/portfolio-metadata'
-  import { metaString, metaStringList, metaObjectList, mediaEntry, itemImages, mergeItemTags, parseContentBlocks, type PortfolioViewerItem } from './types'
+  import { metaString, metaStringList, itemMedia, mergeItemTags, parseContentBlocks, type PortfolioViewerItem } from './types'
 
   let {
     item,
@@ -45,20 +45,18 @@
   const technologies = $derived(metaStringList(metadata, 'technologies'))
   const tags = $derived(mergeItemTags(metadata, item))
   const blocks = $derived(parseContentBlocks(item.content ?? ''))
-  const screenshots = $derived.by(() => {
-    const stored = metaObjectList(metadata, 'screenshots')
-      .map(mediaEntry)
-      .filter((v): v is { url: string; caption?: string } => v !== null)
-    return stored.length > 0 ? stored : itemImages(item)
-  })
+  // Canonical-media rule: the stored `screenshots` array is the ONLY accepted
+  // media — a missing/empty array renders NO images (the flat mediaUrl
+  // fallback was removed, so the media gap is always visible).
+  const screenshots = $derived(itemMedia(metadata, item, 'screenshots'))
 </script>
 
-<div class={twMerge(clsx('space-y-6', className))}>
+<div class={twMerge(clsx('mx-auto w-full max-w-[var(--max-w-viewer)] space-y-6', className))}>
   <div class="mb-6">
     {#if category}
       <span class="text-xs font-semibold uppercase tracking-[var(--tracking-caps)] text-pm-brand">{category}</span>
     {/if}
-    <h2 class="text-2xl font-bold text-pm-text">{title}</h2>
+    <h2 class="mt-2 text-2xl font-bold leading-tight text-pm-text">{title}</h2>
     {#if url}
       <a
         href={url}
@@ -73,17 +71,17 @@
   </div>
 
   {#if blocks.length > 0}
-    <div class="space-y-4">
+    <div class="mb-6">
       {#each blocks as block (block.id)}
         {#if block.type === 'heading'}
-          <h3 class="text-lg font-semibold text-pm-text pt-2">{block.text}</h3>
+          <h3 class="mt-5 mb-2 text-lg font-semibold text-pm-text">{block.text}</h3>
         {:else}
-          <p class="text-base text-pm-text-secondary leading-relaxed">{block.text}</p>
+          <p class="mb-3 text-base text-pm-text-secondary leading-relaxed">{block.text}</p>
         {/if}
       {/each}
     </div>
   {:else if item.description}
-    <p class="text-base text-pm-text-secondary leading-relaxed">{item.description}</p>
+    <p class="mb-6 text-base text-pm-text-secondary leading-relaxed">{item.description}</p>
   {/if}
 
   {#if showImages && screenshots.length > 0}

@@ -5,11 +5,12 @@ import type { RequestEvent } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
 import { createPortfolio } from '$lib/server/services/portfolio-admin'
+import { PORTFOLIO_TYPES } from '$lib/portfolio-types'
 
 const insertSchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1),
-  type: z.enum(['gallery', 'case_study', 'branding', 'brandbook', 'website']).default('branding'),
+  type: z.enum(PORTFOLIO_TYPES).default('branding'),
   description: z.string().nullable().optional(),
   coverImageUrl: z.string().nullable().optional(),
   published: z.string().optional().nullable()

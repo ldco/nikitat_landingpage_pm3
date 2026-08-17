@@ -16,12 +16,112 @@
  * for missing portfolios (SvelteKit propagates it in both contexts).
  */
 import { useDatabase, schema } from '$lib/server/db'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, like } from 'drizzle-orm'
 import { error } from '@sveltejs/kit'
 import { uniqueConstraintFieldErrors } from '$lib/server/utils/db-errors'
 import { canMigratePortfolioType, migrateItemMetadata } from '$lib/portfolio-metadata'
+import type { PortfolioType } from '$lib/portfolio-types'
 
-export type PortfolioType = 'gallery' | 'case_study' | 'branding' | 'brandbook' | 'website'
+/** Portfolio item display fields that can carry per-locale translation rows. */
+export const PORTFOLIO_ITEM_LOCALIZED_FIELDS = ['title', 'description', 'content', 'category'] as const
+export type PortfolioItemLocalizedField = (typeof PORTFOLIO_ITEM_LOCALIZED_FIELDS)[number]
+
+/** Portfolio display fields that can carry per-locale translation rows. */
+export const PORTFOLIO_LOCALIZED_FIELDS = ['name', 'description'] as const
+export type PortfolioLocalizedField = (typeof PORTFOLIO_LOCALIZED_FIELDS)[number]
+
+/** Per-locale override shape for a portfolio item (translation table rows). */
+export type PortfolioItemLocalizedText = Partial<Record<PortfolioItemLocalizedField, string>>
+
+/** Per-locale override shape for a portfolio (translation table rows). */
+export type PortfolioLocalizedText = Partial<Record<PortfolioLocalizedField, string>>
+
+/**
+ * The localized fields the admin editor actually renders for a portfolio type
+ * (mirrors PortfolioItemEditor's conditionality): `title`/`description`/
+ * `category` always, `content` only for the body-rendering types. The
+ * persistence loop must use the SAME set so an unrendered field can never
+ * trigger the clear-on-empty branch (which would wipe an imported row the
+ * editor never showed).
+ */
+export function portfolioItemLocalizedFieldsFor(
+  portfolioType: string
+): readonly PortfolioItemLocalizedField[] {
+  const always: PortfolioItemLocalizedField[] = ['title', 'description', 'category']
+  if (portfolioType === 'website' || portfolioType === 'branding' || portfolioType === 'case_study') {
+    return [...always, 'content']
+  }
+  return always
+}
+
+/**
+ * Load the per-locale text overrides for a batch of portfolio items from the
+ * `translations` table (`portfolio_item.<id>.<field>` — the same keys the
+ * public hydration in services/portfolio.ts resolves). ONE set-based query for
+ * the whole batch, never a per-item lookup. Rows whose id is not in the batch
+ * are ignored; non-numeric keys (e.g. `portfolio_item.title`) never match.
+ */
+export function getPortfolioItemTranslations(
+  itemIds: number[]
+): Map<number, Record<string, PortfolioItemLocalizedText>> {
+  const db = useDatabase()
+  const idSet = new Set(itemIds)
+  const result = new Map<number, Record<string, PortfolioItemLocalizedText>>()
+  if (idSet.size === 0) return result
+
+  const rows = db
+    .select({ locale: schema.translations.locale, key: schema.translations.key, value: schema.translations.value })
+    .from(schema.translations)
+    .where(like(schema.translations.key, 'portfolio_item.%.%'))
+    .all()
+
+  for (const row of rows) {
+    const match = row.key.match(/^portfolio_item\.(\d+)\.(title|description|content|category)$/)
+    if (!match?.[1] || !match[2]) continue
+    const id = Number(match[1])
+    if (!idSet.has(id)) continue
+    const byLocale = result.get(id) ?? {}
+    const entry = byLocale[row.locale] ?? {}
+    entry[match[2] as PortfolioItemLocalizedField] = row.value
+    byLocale[row.locale] = entry
+    result.set(id, byLocale)
+  }
+  return result
+}
+
+/**
+ * Load the per-locale text overrides for a batch of portfolios from the
+ * `translations` table (`portfolio.<id>.name` / `.description`). ONE
+ * set-based query for the whole batch; non-numeric keys (e.g.
+ * `portfolio.heading.task`, `portfolio.noItems`) never match.
+ */
+export function getPortfolioTranslations(
+  portfolioIds: number[]
+): Map<number, Record<string, PortfolioLocalizedText>> {
+  const db = useDatabase()
+  const idSet = new Set(portfolioIds)
+  const result = new Map<number, Record<string, PortfolioLocalizedText>>()
+  if (idSet.size === 0) return result
+
+  const rows = db
+    .select({ locale: schema.translations.locale, key: schema.translations.key, value: schema.translations.value })
+    .from(schema.translations)
+    .where(like(schema.translations.key, 'portfolio.%.%'))
+    .all()
+
+  for (const row of rows) {
+    const match = row.key.match(/^portfolio\.(\d+)\.(name|description)$/)
+    if (!match?.[1] || !match[2]) continue
+    const id = Number(match[1])
+    if (!idSet.has(id)) continue
+    const byLocale = result.get(id) ?? {}
+    const entry = byLocale[row.locale] ?? {}
+    entry[match[2] as PortfolioLocalizedField] = row.value
+    byLocale[row.locale] = entry
+    result.set(id, byLocale)
+  }
+  return result
+}
 
 export interface PortfolioWriteInput {
   name: string
@@ -104,7 +204,9 @@ export function updatePortfolio(
           .select({
             id: schema.portfolioItems.id,
             metadata: schema.portfolioItems.metadata,
-            content: schema.portfolioItems.content
+            content: schema.portfolioItems.content,
+            mediaUrl: schema.portfolioItems.mediaUrl,
+            itemType: schema.portfolioItems.itemType
           })
           .from(schema.portfolioItems)
           .where(eq(schema.portfolioItems.portfolioId, portfolioId))
@@ -115,7 +217,18 @@ export function updatePortfolio(
         }
 
         for (const item of existingItems) {
-          const migration = migrateItemMetadata(item.metadata, current.type, nextType, item.content)
+          // The item's own mediaUrl feeds the REQUIRED branding `gallery` /
+          // website `screenshots` array when converting INTO a media-backed
+          // type — image-rendering items only (a video/link row's URL must
+          // never land in an image array; see migrateItemMetadata).
+          const migration = migrateItemMetadata(
+            item.metadata,
+            current.type,
+            nextType,
+            item.content,
+            item.mediaUrl,
+            item.itemType
+          )
           // Defensive: the upfront canMigratePortfolioType check makes this
           // unreachable, but a migration must never half-apply.
           if (!migration.ok) throw UNSUPPORTED_TYPE_CHANGE
@@ -126,6 +239,10 @@ export function updatePortfolio(
               // type: replace (string) or clear (null) the column — never
               // append, or round-trip conversions would duplicate the text.
               ...(migration.content !== undefined ? { content: migration.content } : {}),
+              // A conversion can change the item's renderable type (e.g.
+              // media items folded into a case-study body become case_study);
+              // the write boundary would otherwise reject every save.
+              ...(migration.itemType !== undefined ? { itemType: migration.itemType } : {}),
               updatedAt: new Date()
             })
             .where(and(

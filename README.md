@@ -48,11 +48,31 @@ npm run dev        # dev-сервер
 
 ```bash
 # после db:reset — скопировать контент из pulled-продакшн БД в v3
-tsx --env-file=.env scripts/import-pm2-content.ts <source-db> [--dry-run]
+# (--legacy-source: снапшот legacy-метаданных для fallback-цепочки, напр. ../app_pm2_deprec/app/data/sqlite.db)
+tsx --env-file=.env scripts/import-pm2-content.ts <source-db> [--dry-run] [--legacy-source <legacy-db>]
 ```
 
-Импорт идемпотентен (существующие строки не перезаписываются). Подробности — в шапке
+Импорт идемпотентен (существующие строки не перезаписываются). Повторный запуск с
+`--repair-existing` пересчитывает `metadata` + `content` уже импортированных строк
+(backfill website screenshots/live URLs и branding sections/client URLs); остальные
+колонки (title/caption/media/order) сохраняются. Разовый `--gallery-repair` (см. ниже)
+восстанавливает branding `gallery` в metadata уже импортированных строк и удаляет
+legacy-синтезированные галерейные дубликаты; **это единственный деструктивный шаг
+импорта, и он выполняется только при явном флаге** — `--dry-run` показывает точное
+число планируемых перезаписей/удалений до применения. Подробности — в шапке
 `scripts/import-pm2-content.ts`.
+
+**Runtime-fallback (enrichment):** публичная детальная страница `/portfolio/[slug]`
+дозаполняет неполные строки (`content`, `description`, `metadata`, `mediaUrl`,
+`thumbnailUrl`) — локальные непустые значения всегда в приоритете. Fallback-цепочка
+источников (обе опциональны, id-keyed): `PM2_SOURCE_DB` — live-снапшот nikitat.pro
+(media/description, БЕЗ per-item metadata), `PM2_LEGACY_SOURCE_DB` — legacy-снапшот
+метаданных (`sections`/`gallery`/`clientUrl`/`liveUrl`, напр.
+`PM2_LEGACY_SOURCE_DB=../app_pm2_deprec/app/data/sqlite.db`); per-type metadata
+сливается по полям (локальные значения побеждают). При отсутствии снапшотов строка
+возвращается без изменений; сервис логирует предупреждение о мис-конфигурации
+(sparse-строки без источника / id не найден). Реализация:
+`src/lib/server/services/portfolio-pm2-source.ts`.
 
 
 

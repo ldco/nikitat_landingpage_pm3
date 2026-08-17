@@ -1,24 +1,31 @@
 <script lang="ts">
   /**
-   * PortfolioItemModal — overlay-driven portfolio viewer (PM v2 lightbox parity)
+   * PortfolioItemModal — immersive overlay-driven portfolio viewer (PM v2 lightbox parity)
    *
-   * Shows the selected item's media (gallery with prev/next/counter) in a dark
-   * panel on the left and the per-type viewer content in a light panel on the
-   * right, inside an overlay with close (button / backdrop / Escape), body
-   * scroll-locking and keyboard nav. The detail route uses this for the
+   * PM v2 lightbox contract (app-nuxt `portfolio/[slug].vue` +
+   * portfolio-fullscreen.css): a two-column shell — media column (dark panel,
+   * the active gallery item's image with the pill gallery-nav chrome at the
+   * bottom) and content column (solid light background, full-height scroll,
+   * PM2 panel sizing: 50vh/50vh mobile, full-height desktop, content padding
+   * space-4/space-8). Project-level previous/next chrome sits at the bottom
+   * corners with the neighboring item title, matching `.lightbox-nav-btn`.
+   * The grid collapses to a single column when the item has no media. Close
+   * via button / backdrop / Escape, body scroll-lock and keyboard nav (arrows
+   * move through the gallery). The detail route uses this for the
    * overlay-driven types (branding, website); the viewers are rendered with
-   * `showImages={false}` because the media panel already shows the item media.
+   * `showImages={false}` because the media column already shows the item media.
    *
    * Rule #1: class prop + twMerge
    *
-   * @props {boolean} open — bindable overlay visibility
-   * @props {PortfolioViewerItem | null} item — the selected portfolio item
+   * @props {boolean} [open=false] — bindable overlay visibility
+   * @props {PortfolioViewerItem[]} items — the portfolio's items (project nav walks this list)
+   * @props {number} [selectedIndex=0] — bindable index of the active item in `items`
    * @props {string} [portfolioType=''] — portfolio type used to parse `item.metadata`
    * @props {string} [portfolioName=''] — portfolio name shown as the dialog label
    * @props {string} [class] — additional CSS classes merged via twMerge
    *
    * @example
-   * <PortfolioItemModal bind:open {item} portfolioType="branding" portfolioName={portfolio.name} />
+   * <PortfolioItemModal bind:open bind:selectedIndex {items} portfolioType="branding" portfolioName={portfolio.name} />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
@@ -26,13 +33,11 @@
   import IconX from '@tabler/icons-svelte/icons/x'
   import IconChevronLeft from '@tabler/icons-svelte/icons/chevron-left'
   import IconChevronRight from '@tabler/icons-svelte/icons/chevron-right'
-  import IconPhoto from '@tabler/icons-svelte/icons/photo'
   import { t } from '$lib/stores/content.svelte'
-  import { parseItemMetadata } from '$lib/portfolio-metadata'
+  import { parseItemMetadata, REQUIRED_MEDIA_KEYS } from '$lib/portfolio-metadata'
   import {
-    metaObjectList,
-    mediaEntry,
     itemImages,
+    itemMedia,
     type PortfolioViewerItem
   } from '$lib/plugins/portfolio/types'
   import BrandingViewer from '$lib/plugins/portfolio/BrandingViewer.svelte'
@@ -42,30 +47,36 @@
 
   let {
     open = $bindable(false),
-    item,
+    items,
+    selectedIndex = $bindable(0),
     portfolioType = '',
     portfolioName = '',
     class: className = ''
   }: {
     open?: boolean
-    item: PortfolioViewerItem | null
+    items: PortfolioViewerItem[]
+    selectedIndex?: number
     portfolioType?: string
     portfolioName?: string
     class?: string
   } = $props()
 
-  /** The item's media: website screenshots win over the plain image rows; every
-   *  other type uses the item's own media (thumbnail/media). PM2 galleryImages
-   *  parity. */
+  /** The active project item (PM2 lightboxIndex → items[lightboxIndex]). */
+  const item = $derived(items[selectedIndex] ?? null)
+
+  /** The item's media: the stored per-type gallery/screenshots are the ONLY
+   *  accepted media for branding/website (canonical-media rule — no flat
+   *  mediaUrl fallback); every other type uses the item's own media
+   *  (thumbnail/media). PM2 galleryImages parity. */
   const gallery = $derived.by((): Array<{ src: string; alt?: string; caption?: string }> => {
     if (!item) return []
-    if (portfolioType === 'website') {
-      const stored = metaObjectList(parseItemMetadata(item.metadata, portfolioType), 'screenshots')
-        .map(mediaEntry)
-        .filter((v): v is { url: string; caption?: string } => v !== null)
-      if (stored.length > 0) {
-        return stored.map(s => ({ src: s.url, alt: s.caption ?? item.title ?? '', caption: s.caption }))
-      }
+    if (portfolioType === 'branding' || portfolioType === 'website') {
+      const key = REQUIRED_MEDIA_KEYS[portfolioType] ?? 'gallery'
+      return itemMedia(parseItemMetadata(item.metadata, portfolioType), item, key).map(img => ({
+        src: img.url,
+        alt: img.caption ?? item.title ?? '',
+        caption: img.caption
+      }))
     }
     return itemImages(item).map(img => ({
       src: img.url,
@@ -78,7 +89,7 @@
 
   // Selecting a different item resets the media gallery to its first image.
   $effect(() => {
-    void item?.id
+    void selectedIndex
     galleryIndex = 0
   })
 
@@ -92,6 +103,22 @@
 
   function nextImage() {
     if (galleryIndex < gallery.length - 1) galleryIndex++
+  }
+
+  /** PM2 prevProject/nextProject — move between portfolio items, resetting the
+   *  per-item media gallery. */
+  function prevProject() {
+    if (selectedIndex > 0) {
+      selectedIndex--
+      galleryIndex = 0
+    }
+  }
+
+  function nextProject() {
+    if (selectedIndex < items.length - 1) {
+      selectedIndex++
+      galleryIndex = 0
+    }
   }
 
   // Keyboard navigation + body scroll lock (isolated cleanup — Rule #4).
@@ -112,9 +139,14 @@
 </script>
 
 {#if open && item}
+  <!-- Immersive lightbox shell (PM2 parity): the root overlay IS the clickable
+       backdrop — the media/content panels sit inside an inner wrapper that is
+       inset by the overlay padding, so the backdrop stays reachable around the
+       panels even in the full-height two-column (media-present) layout. The
+       grid collapses to a single column when the item has no media. -->
   <div
     class={twMerge(clsx(
-      'fixed inset-0 z-50 flex flex-col md:flex-row bg-black/90',
+      'fixed inset-0 z-50 overflow-y-auto bg-black/90 md:p-[var(--space-6)]',
       className
     ))}
     onclick={(e) => { if (e.target === e.currentTarget) close() }}
@@ -123,66 +155,74 @@
     aria-label={portfolioName || t('common.lightbox')}
     tabindex="-1"
   >
-    <!-- Close -->
+    <!-- Close (PM2 .lightbox-immersive-close — 40px circular elevated) -->
     <button
       type="button"
-      class="absolute top-4 right-4 z-10 p-2 text-pm-white/80 hover:text-pm-white transition-colors"
+      class="absolute top-4 right-4 z-20 flex size-10 items-center justify-center rounded-full border border-pm-border bg-pm-bg-elevated text-pm-text-secondary transition-colors hover:bg-pm-bg-sunken hover:text-pm-text"
       onclick={close}
       aria-label={t('common.close')}
     >
-      <IconX class="size-6" />
+      <IconX class="size-5" />
     </button>
 
-    <!-- Media panel (left / top): the ACTIVE gallery item's image + its own
-         caption (mirrors PortfolioLightbox — the caption is tied to the active
-         gallery entry, never the portfolio item as a whole) + gallery nav. -->
-    <div class="relative flex h-[45vh] md:h-auto md:w-1/2 shrink-0 flex-col items-center justify-center overflow-hidden bg-black/40">
+    <div
+      class={clsx(
+        'grid min-h-full grid-cols-1 overflow-hidden rounded-[var(--radius-xl)] md:h-full',
+        gallery.length > 0 && 'md:grid-cols-2'
+      )}
+    >
+      <!-- Media column (PM2 .lightbox-immersive-image): the ACTIVE gallery
+           item's image fills the column (object-contain, PM2 img padding) with
+           the pill gallery-nav chrome + counter at the bottom. The caption is
+           tied to the active gallery entry, never the portfolio item as a
+           whole. -->
       {#if gallery.length > 0}
-        <AppImage
-          src={gallery[galleryIndex]?.src ?? ''}
-          alt={gallery[galleryIndex]?.alt ?? ''}
-          class="max-h-[var(--lightbox-image-max-height)] max-w-full object-contain p-[var(--space-4)]"
-        />
-      {:else}
-        <IconPhoto class="size-12 text-pm-white/40" />
-      {/if}
+        <div class="relative flex h-[var(--lightbox-panel-height-mobile)] md:h-full flex-col overflow-hidden bg-black/40">
+          <div class="flex min-h-0 flex-1 items-center justify-center p-[var(--space-3)] md:p-[var(--space-6)]">
+            <AppImage
+              src={gallery[galleryIndex]?.src ?? ''}
+              alt={gallery[galleryIndex]?.alt ?? ''}
+              class="max-h-[var(--lightbox-image-max-height)] max-w-full object-contain"
+            />
+          </div>
 
-      {#if gallery[galleryIndex]?.caption}
-        <p class="mt-3 max-w-lg px-[var(--space-4)] text-center text-sm text-pm-white/70">
-          {gallery[galleryIndex]?.caption}
-        </p>
-      {/if}
+          {#if gallery[galleryIndex]?.caption}
+            <p class="mx-auto max-w-lg px-[var(--space-4)] pb-3 text-center text-sm text-pm-white/70">
+              {gallery[galleryIndex]?.caption}
+            </p>
+          {/if}
 
-      {#if gallery.length > 1}
-        <div class="mt-3 flex items-center gap-3">
-          <button
-            type="button"
-            class="p-2 text-pm-white/80 hover:text-pm-white disabled:opacity-30 transition-colors"
-            onclick={(e) => { e.stopPropagation(); prevImage() }}
-            disabled={galleryIndex === 0}
-            aria-label={t('common.previous')}
-          >
-            <IconChevronLeft class="size-6" />
-          </button>
-          <span class="text-sm text-pm-white/70 tabular-nums">{galleryIndex + 1} / {gallery.length}</span>
-          <button
-            type="button"
-            class="p-2 text-pm-white/80 hover:text-pm-white disabled:opacity-30 transition-colors"
-            onclick={(e) => { e.stopPropagation(); nextImage() }}
-            disabled={galleryIndex >= gallery.length - 1}
-            aria-label={t('common.next')}
-          >
-            <IconChevronRight class="size-6" />
-          </button>
+          {#if gallery.length > 1}
+            <div class="flex flex-shrink-0 items-center justify-center gap-3 px-[var(--space-6)] pb-6">
+              <button
+                type="button"
+                class="flex size-11 items-center justify-center rounded-full border border-pm-border bg-pm-bg-elevated text-pm-text-secondary transition-colors hover:bg-pm-bg-sunken hover:text-pm-text disabled:pointer-events-none disabled:opacity-20"
+                onclick={(e) => { e.stopPropagation(); prevImage() }}
+                disabled={galleryIndex === 0}
+                aria-label={t('common.previous')}
+              >
+                <IconChevronLeft class="size-5" />
+              </button>
+              <span class="rounded-full border border-pm-border bg-pm-bg-elevated px-[var(--space-3)] py-[var(--space-1)] text-xs leading-none text-pm-text-secondary tabular-nums">
+                {galleryIndex + 1} / {gallery.length}
+              </span>
+              <button
+                type="button"
+                class="flex size-11 items-center justify-center rounded-full border border-pm-border bg-pm-bg-elevated text-pm-text-secondary transition-colors hover:bg-pm-bg-sunken hover:text-pm-text disabled:pointer-events-none disabled:opacity-20"
+                onclick={(e) => { e.stopPropagation(); nextImage() }}
+                disabled={galleryIndex >= gallery.length - 1}
+                aria-label={t('common.next')}
+              >
+                <IconChevronRight class="size-5" />
+              </button>
+            </div>
+          {/if}
         </div>
       {/if}
-    </div>
 
-    <!-- Content panel (right / bottom): the per-type viewer -->
-    <div
-      class="flex-1 overflow-y-auto bg-pm-bg p-[var(--space-6)] md:p-[var(--space-8)]"
-    >
-      <div class="mx-auto max-w-[var(--content-narrow)]">
+      <!-- Content column (PM2 .lightbox-immersive-content — solid background,
+           full-height scroll, padding space-4 mobile / space-8 desktop). -->
+      <div class="h-[var(--lightbox-panel-height-mobile)] md:h-full overflow-y-auto bg-pm-bg p-[var(--space-4)] md:p-[var(--space-8)]">
         {#if portfolioType === 'website'}
           <WebsiteViewer item={item} portfolioType="website" showImages={false} />
         {:else if portfolioType === 'case_study'}
@@ -201,5 +241,35 @@
         {/if}
       </div>
     </div>
+
+    <!-- Project nav (PM2 .lightbox-nav-btn — bottom corners, neighbor title
+         label, hidden on mobile). -->
+    {#if selectedIndex > 0 && items[selectedIndex - 1]}
+      <button
+        type="button"
+        class="fixed bottom-6 left-6 z-20 inline-flex max-w-[var(--max-w-lightbox-nav)] items-center gap-2 rounded-full border border-pm-border bg-pm-bg-elevated px-[var(--space-5)] py-[var(--space-3)] text-sm text-pm-text-secondary transition-colors hover:bg-pm-bg-sunken hover:text-pm-text"
+        onclick={(e) => { e.stopPropagation(); prevProject() }}
+        aria-label={items[selectedIndex - 1]?.title ?? ''}
+      >
+        <IconChevronLeft class="size-4 flex-shrink-0" />
+        <span class="hidden overflow-hidden text-ellipsis whitespace-nowrap md:inline">
+          {items[selectedIndex - 1]?.title ?? ''}
+        </span>
+      </button>
+    {/if}
+
+    {#if selectedIndex < items.length - 1 && items[selectedIndex + 1]}
+      <button
+        type="button"
+        class="fixed bottom-6 right-6 z-20 inline-flex max-w-[var(--max-w-lightbox-nav)] items-center gap-2 rounded-full border border-pm-border bg-pm-bg-elevated px-[var(--space-5)] py-[var(--space-3)] text-sm text-pm-text-secondary transition-colors hover:bg-pm-bg-sunken hover:text-pm-text"
+        onclick={(e) => { e.stopPropagation(); nextProject() }}
+        aria-label={items[selectedIndex + 1]?.title ?? ''}
+      >
+        <span class="hidden overflow-hidden text-ellipsis whitespace-nowrap md:inline">
+          {items[selectedIndex + 1]?.title ?? ''}
+        </span>
+        <IconChevronRight class="size-4 flex-shrink-0" />
+      </button>
+    {/if}
   </div>
 {/if}

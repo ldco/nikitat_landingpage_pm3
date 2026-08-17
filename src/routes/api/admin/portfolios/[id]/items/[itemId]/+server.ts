@@ -4,8 +4,11 @@ import { eq, and, asc } from 'drizzle-orm'
 import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
-import { jsonSuccess } from '$lib/server/utils/api'
+import { jsonSuccess, apiFieldError } from '$lib/server/utils/api'
 import { normalizeItemMetadata, safeMediaUrl } from '$lib/portfolio-metadata'
+import { markAdminMetadata, metadataDeepEqual } from '$lib/portfolio-metadata-import'
+import { enrichPortfolioItemsFromSource } from '$lib/server/services/portfolio-pm2-source'
+import { portfolioItemTypesFor } from '$lib/portfolio-metadata-form'
 
 const updateSchema = z.object({
   itemType: z.enum(['image', 'video', 'link', 'case_study']).optional(),
@@ -16,6 +19,9 @@ const updateSchema = z.object({
   description: z.string().nullable().optional(),
   content: z.string().nullable().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
+  // `order` is ONLY accepted as the sole field — a signed DELTA reorder (see
+  // PUT). It is deliberately NOT part of the general update path, so it can
+  // never be written as an absolute value or combined with field updates.
   order: z.number().int().optional(),
   published: z.boolean().optional()
 })
@@ -46,9 +52,9 @@ export async function PUT(event: RequestEvent) {
     .get()
   if (!existing) throw error(404)
 
-  // Reorder path: when the caller provides only an order delta (move up/down),
-  // swap this item with its sibling atomically inside a transaction so the
-  // order column can never end up with duplicates or partial updates.
+  // Reorder path: `order` as the SOLE field is a signed delta (move up/down);
+  // this item is swapped with its sibling atomically inside a transaction so
+  // the order column can never end up with duplicates or partial updates.
   if (parsed.data.order !== undefined && Object.keys(parsed.data).length === 1) {
     db.transaction(() => {
       const siblings = db.select({ id: schema.portfolioItems.id, order: schema.portfolioItems.order })
@@ -88,14 +94,48 @@ export async function PUT(event: RequestEvent) {
   const portfolio = db.select().from(schema.portfolios).where(eq(schema.portfolios.id, portfolioId)).get()
   if (!portfolio) throw error(404)
 
-  const { metadata: rawMetadata, ...base } = parsed.data
-  let metadata: string | undefined
+  // `order` must NEVER be combined with general field updates: reordering has
+  // its own delta semantics above. Writing it here as an absolute value would
+  // silently overload the column and break the ordering invariant.
+  const { metadata: rawMetadata, order: mixedOrder, ...base } = parsed.data
+  if (mixedOrder !== undefined) {
+    throw error(400, 'order is only accepted as the sole field (delta reorder)')
+  }
+
+  // Item type must be renderable by the parent portfolio's viewers. A row that
+  // ALREADY carries a type outside the current matrix (a legacy/imported row,
+  // or one left by a portfolio type change) must stay editable: the guard fires
+  // only when the type is actually being CHANGED, so the admin can fix or keep
+  // the existing value without being locked out of the item.
+  if (
+    parsed.data.itemType !== undefined &&
+    !portfolioItemTypesFor(portfolio.type).includes(parsed.data.itemType) &&
+    parsed.data.itemType !== existing.itemType
+  ) {
+    return apiFieldError(
+      'Item type is not allowed for this portfolio type',
+      'itemType',
+      'validation.itemType',
+      'admin.itemTypeNotAllowed'
+    )
+  }
+
+  let metadata: string | null | undefined
   if (rawMetadata !== undefined) {
     const normalized = normalizeItemMetadata(rawMetadata, portfolio.type)
     if (normalized === null) {
       throw error(400, 'Invalid portfolio item metadata for this portfolio type')
     }
-    metadata = normalized
+    // NO-OP metadata guard (mirrors the page action): a payload equal to the
+    // enriched runtime baseline (e.g. the cover-only gallery folded by the PM2
+    // enrichment) is not an edit — keep the stored metadata unmarked so
+    // --gallery-repair / the runtime enrichment can still reconstruct the full
+    // gallery. Only a real edit (or an intentional clear) is marked + written.
+    const enrichedBaseline = enrichPortfolioItemsFromSource([existing], portfolio.type)[0]
+    const baselineMetadata = enrichedBaseline?.metadata ?? existing.metadata
+    const unchanged =
+      baselineMetadata != null ? metadataDeepEqual(normalized, baselineMetadata) : normalized === baselineMetadata
+    metadata = unchanged ? (existing.metadata ?? null) : markAdminMetadata(normalized)
   }
 
   const result = db.update(schema.portfolioItems).set({

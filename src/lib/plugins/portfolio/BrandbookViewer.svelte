@@ -22,7 +22,7 @@
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import { t } from '$lib/stores/content.svelte'
   import { parseItemMetadata } from '$lib/portfolio-metadata'
-  import { metaString, metaObjectList, mediaEntry, itemImages, type PortfolioViewerItem } from './types'
+  import { metaString, itemMedia, type PortfolioViewerItem } from './types'
 
   let {
     item,
@@ -37,12 +37,10 @@
   const metadata = $derived(parseItemMetadata(item.metadata, portfolioType))
   const title = $derived(item.title ?? item.caption ?? '')
   const pdfUrl = $derived(metaString(metadata, 'pdfUrl'))
-  const pages = $derived.by(() => {
-    const stored = metaObjectList(metadata, 'pages')
-      .map(mediaEntry)
-      .filter((v): v is { url: string; caption?: string } => v !== null)
-    return stored.length > 0 ? stored : itemImages(item)
-  })
+  // Brandbook `pages` are optional metadata — unlike branding/website (whose
+  // required arrays are the only accepted media), this viewer keeps the item's
+  // own mediaUrl fallback for page-less rows.
+  const pages = $derived(itemMedia(metadata, item, 'pages', true))
 
   let currentPage = $state(0)
   const total = $derived(pages.length)

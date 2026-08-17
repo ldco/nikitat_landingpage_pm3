@@ -6,12 +6,13 @@ import { useDatabase, schema } from '$lib/server/db'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
 import { updatePortfolio } from '$lib/server/services/portfolio-admin'
+import { PORTFOLIO_TYPES } from '$lib/portfolio-types'
 
 const updateSchema = z.object({
   slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/).optional(),
   name: z.string().min(1).max(200).optional(),
   description: z.string().nullable().optional(),
-  type: z.enum(['gallery', 'case_study', 'branding', 'brandbook', 'website']).optional(),
+  type: z.enum(PORTFOLIO_TYPES).optional(),
   coverImageUrl: z.string().nullable().optional(),
   published: z.boolean().optional()
 })

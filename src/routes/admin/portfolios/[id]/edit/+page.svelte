@@ -15,10 +15,12 @@
   import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
   import { getAdminT } from '$lib/utils/admin-translations'
   import { createFormDirty } from '$lib/utils/form-dirty.svelte'
+  import { LOCALES, DEFAULT_LOCALE, LOCALE_CONFIG } from '$lib/config/site'
   import AdminEditorPage from '$lib/components/molecules/AdminEditorPage.svelte'
+  import AdminFormSection from '$lib/components/molecules/AdminFormSection.svelte'
+  import AdminLocaleTextFields from '$lib/components/molecules/AdminLocaleTextFields.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import FormField from '$lib/components/atoms/FormField.svelte'
-  import AdminFormSection from '$lib/components/molecules/AdminFormSection.svelte'
   import FileUpload from '$lib/components/molecules/FileUpload.svelte'
   import IconPencil from '@tabler/icons-svelte/icons/pencil'
   let { data }: { data: PageData } = $props()
@@ -49,6 +51,11 @@
   const form = $derived($page.form)
   const errors = $derived(
     (form as { fieldErrors?: Record<string, string[]> } | null)?.fieldErrors ?? {}
+  )
+
+  const nonDefaultLocales = $derived(LOCALES.filter(locale => locale !== DEFAULT_LOCALE))
+  const localeNames = $derived(
+    Object.fromEntries(LOCALES.map(locale => [locale, LOCALE_CONFIG[locale].name]))
   )
 
   const PORTFOLIO_TYPES = [
@@ -129,6 +136,23 @@
         />
       </div>
     </div>
+  </AdminFormSection>
+
+  <AdminFormSection title={adminT['admin.localizedText'] ?? t('admin.localizedText')}>
+    <AdminLocaleTextFields
+      locales={nonDefaultLocales}
+      localeNames={localeNames}
+      fields={[
+        { key: 'name', label: adminT['admin.name'] ?? t('admin.name') },
+        {
+          key: 'description',
+          label: adminT['admin.description'] ?? t('admin.description'),
+          type: 'textarea',
+          rows: 4
+        }
+      ]}
+      initialValues={data.translations ?? {}}
+    />
   </AdminFormSection>
 
   <AdminFormSection title={adminT['admin.publicationStatus'] ?? t('admin.publicationStatus')}>
