@@ -17,6 +17,9 @@
 export const PORTFOLIO_TYPES = ['gallery', 'case_study', 'branding', 'brandbook', 'website'] as const
 export type PortfolioType = (typeof PORTFOLIO_TYPES)[number]
 
+/** O(1) membership check for type filters (no `as readonly string[]` cast). */
+export const PORTFOLIO_TYPE_SET: ReadonlySet<PortfolioType> = new Set(PORTFOLIO_TYPES)
+
 /** The four portfolio_item.itemType values (legacy media spread + case study). */
 export const PORTFOLIO_ITEM_TYPES = ['image', 'video', 'link', 'case_study'] as const
 export type PortfolioItemType = (typeof PORTFOLIO_ITEM_TYPES)[number]

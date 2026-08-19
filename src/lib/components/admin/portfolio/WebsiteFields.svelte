@@ -30,18 +30,17 @@
   import AddRowButton from '$lib/components/atoms/AddRowButton.svelte'
   import IconButton from '$lib/components/atoms/IconButton.svelte'
   import IconTrash from '@tabler/icons-svelte/icons/trash'
+  import RowImageUpload from '$lib/components/molecules/RowImageUpload.svelte'
 
   let {
     liveUrl = $bindable(''),
     technologies = $bindable(''),
     screenshots = $bindable([] as Array<{ url: string; caption: string }>),
-    content = $bindable(''),
     class: className = ''
   }: {
     liveUrl?: string
     technologies?: string
     screenshots?: Array<{ url: string; caption: string }>
-    content?: string
     class?: string
   } = $props()
 
@@ -74,6 +73,12 @@
     {#each screenshots as shot, i (i)}
       <div class="flex flex-col gap-1.5 rounded-md border border-pm-border bg-pm-bg-sunken p-2">
         <div class="flex items-center gap-2">
+          <RowImageUpload
+            bind:url={shot.url}
+            ariaLabel={adminT['admin.portfolioImageUrl'] ?? t('admin.portfolioImageUrl')}
+            uploadingLabel={t('common.uploading')}
+            uploadFailedLabel={adminT['admin.uploadFailed'] ?? t('admin.uploadFailed')}
+          />
           <FormField
             name={`screenshot-url-${i}`}
             class="flex-1"
@@ -100,12 +105,4 @@
       {adminT['admin.addRow'] ?? t('admin.addRow')}
     </AddRowButton>
   </div>
-
-  <FormField
-    name="content"
-    type="textarea"
-    rows={8}
-    label={adminT['admin.portfolioContent'] ?? t('admin.portfolioContent')}
-    bind:value={content}
-  />
 </div>

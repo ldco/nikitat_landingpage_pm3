@@ -30,6 +30,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import { untrack } from 'svelte'
   import SegmentedControl from '$lib/components/atoms/SegmentedControl.svelte'
   import FormField from '$lib/components/atoms/FormField.svelte'
 
@@ -54,7 +55,9 @@
     class?: string
   } = $props()
 
-  let activeLocale = $state(locales[0] ?? '')
+  // Intentional one-time capture: the active tab never tracks prop changes.
+  const firstLocale = untrack(() => locales[0] ?? '')
+  let activeLocale = $state(firstLocale)
 
   let values = $state<Record<string, Record<string, string>>>(seedValues())
 

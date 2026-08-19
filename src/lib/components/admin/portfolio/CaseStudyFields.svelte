@@ -24,11 +24,9 @@
 
   let {
     tags = $bindable(''),
-    content = $bindable(''),
     class: className = ''
   }: {
     tags?: string
-    content?: string
     class?: string
   } = $props()
 
@@ -40,12 +38,4 @@
     name="field-item-cs-tags"
     label={adminT['admin.tags'] ?? t('admin.tags')}
     bind:value={tags}
-  />
-  <FormField
-    name="content"
-    type="textarea"
-    rows={8}
-    label={adminT['admin.portfolioContent'] ?? t('admin.portfolioContent')}
-    bind:value={content}
-  />
-</div>
+  /></div>

@@ -53,8 +53,9 @@
     4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
   }
 
-  // Auto-fit uses min() trick for responsive without breakpoints (PM v2 approach)
-  const autoFit = 'grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))]'
+  // Auto-fit uses min() trick for responsive without breakpoints (PM v2 approach).
+  // The minimum column width is a design token (--grid-auto-min), not a literal.
+  const autoFit = 'grid-cols-[repeat(auto-fit,minmax(min(100%,var(--grid-auto-min)),1fr))]'
 
   const gridBase = $derived(cols === 'auto'
     ? clsx('grid', autoFit)

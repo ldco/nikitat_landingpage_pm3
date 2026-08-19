@@ -17,6 +17,7 @@ import { t } from '$lib/stores/content.svelte'
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { pageNumbers } from '$lib/utils/pagination'
+  import IconButton from '$lib/components/atoms/IconButton.svelte'
   import IconChevronLeft from '@tabler/icons-svelte/icons/chevron-left'
   import IconChevronRight from '@tabler/icons-svelte/icons/chevron-right'
 
@@ -43,15 +44,15 @@ import { t } from '$lib/stores/content.svelte'
 
 {#if totalPages > 1}
   <nav class={twMerge(clsx('flex items-center justify-center gap-1', className))} aria-label={t('pagination.navigation')}>
-    <button
-      type="button"
-      onclick={() => goTo(page - 1)}
+    <IconButton
+      size="md"
+      ariaLabel={t('common.previous')}
       disabled={page <= 1}
-      aria-label={t('common.previous')}
-      class="flex items-center justify-center size-9 rounded-md border border-pm-border text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      onclick={() => goTo(page - 1)}
+      class="border border-pm-border text-pm-text-secondary hover:text-pm-text"
     >
       <IconChevronLeft class="size-4" />
-    </button>
+    </IconButton>
 
     {#each items as item (typeof item === 'number' ? `p-${item}` : `gap-${item}`)}
       {#if item === '...'}
@@ -71,14 +72,14 @@ import { t } from '$lib/stores/content.svelte'
       {/if}
     {/each}
 
-    <button
-      type="button"
-      onclick={() => goTo(page + 1)}
+    <IconButton
+      size="md"
+      ariaLabel={t('common.next')}
       disabled={page >= totalPages}
-      aria-label={t('common.next')}
-      class="flex items-center justify-center size-9 rounded-md border border-pm-border text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      onclick={() => goTo(page + 1)}
+      class="border border-pm-border text-pm-text-secondary hover:text-pm-text"
     >
       <IconChevronRight class="size-4" />
-    </button>
+    </IconButton>
   </nav>
 {/if}

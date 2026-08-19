@@ -24,6 +24,7 @@
   import AddRowButton from '$lib/components/atoms/AddRowButton.svelte'
   import IconButton from '$lib/components/atoms/IconButton.svelte'
   import IconTrash from '@tabler/icons-svelte/icons/trash'
+  import RowImageUpload from '$lib/components/molecules/RowImageUpload.svelte'
 
   let {
     pdfUrl = $bindable(''),
@@ -59,6 +60,12 @@
     {#each pages as pageRow, i (i)}
       <div class="flex flex-col gap-1.5 rounded-md border border-pm-border bg-pm-bg-sunken p-2">
         <div class="flex items-center gap-2">
+          <RowImageUpload
+            bind:url={pageRow.url}
+            ariaLabel={adminT['admin.portfolioImageUrl'] ?? t('admin.portfolioImageUrl')}
+            uploadingLabel={t('common.uploading')}
+            uploadFailedLabel={adminT['admin.uploadFailed'] ?? t('admin.uploadFailed')}
+          />
           <FormField
             name={`page-url-${i}`}
             class="flex-1"

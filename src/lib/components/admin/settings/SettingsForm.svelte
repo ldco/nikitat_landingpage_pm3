@@ -16,6 +16,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import { untrack } from 'svelte'
   import { t } from '$lib/stores/content.svelte'
   import { page } from '$app/stores'
   import { getCsrfToken } from '$lib/utils/auth'
@@ -61,7 +62,9 @@
   const form = $state<Record<string, string>>({})
 
   {
-    for (const group of groups) {
+    // Intentional one-time capture: the form seeds from the props once.
+    const initGroups = untrack(() => groups)
+    for (const group of initGroups) {
       for (const item of group.items) {
         if (form[item.key] === undefined) {
           form[item.key] = item.value ?? (item.type === 'boolean' ? 'false' : '')

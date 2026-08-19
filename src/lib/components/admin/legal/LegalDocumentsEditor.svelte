@@ -19,6 +19,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import { untrack } from 'svelte'
   import { t } from '$lib/stores/content.svelte'
   import { renderLegalMarkdown } from '$lib/utils/legal-markdown'
   import { resolveInitialLocale } from '$lib/utils/admin-locale'
@@ -54,7 +55,9 @@
     class?: string
   } = $props()
 
-  const initialLocale = resolveInitialLocale(locales)
+  // Intentional one-time capture: the active tab never tracks prop changes.
+  const initLocales = untrack(() => locales)
+  const initialLocale = resolveInitialLocale(initLocales)
   let activeLocale = $state(initialLocale)
 
   function docLabel(slug: string): string {

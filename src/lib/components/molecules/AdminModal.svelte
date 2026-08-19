@@ -75,19 +75,54 @@
     footer?: import('svelte').Snippet
   } = $props()
 
-  // Prevent body scroll when modal is open
+  let dialogEl = $state<HTMLDivElement | null>(null)
+  let lastFocused = $state<HTMLElement | null>(null)
+
+  // Prevent body scroll when modal is open; move focus into the dialog on
+  // open and restore it on close so keyboard/screen-reader users keep a
+  // consistent focus context.
   $effect(() => {
-    document.body.style.overflow = open ? 'hidden' : ''
+    if (open) {
+      document.body.style.overflow = 'hidden'
+      lastFocused = document.activeElement as HTMLElement | null
+      dialogEl?.focus()
+    } else {
+      document.body.style.overflow = ''
+      if (lastFocused) {
+        lastFocused.focus()
+        lastFocused = null
+      }
+    }
   })
 </script>
 
 {#if open}
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
+    bind:this={dialogEl}
+    tabindex="-1"
     class="fixed inset-0 z-[var(--z-modal-backdrop)] flex items-center justify-center bg-black/50 p-4"
     onclick={onclose}
     onkeydown={e => {
       if (e.key === 'Escape') onclose()
+      if (e.key === 'Tab' && dialogEl) {
+        // Focus trap: keep Tab cycling inside the dialog, never the backdrop.
+        const focusables = dialogEl.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+        )
+        if (focusables.length === 0) return
+        const first = focusables[0]
+        const last = focusables[focusables.length - 1]
+        if (first && last) {
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault()
+            last.focus()
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault()
+            first.focus()
+          }
+        }
+      }
     }}
     role="dialog"
     aria-modal="true"

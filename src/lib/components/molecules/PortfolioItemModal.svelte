@@ -30,6 +30,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import AppImage from '$lib/components/atoms/AppImage.svelte'
+  import IconButton from '$lib/components/atoms/IconButton.svelte'
   import IconX from '@tabler/icons-svelte/icons/x'
   import IconChevronLeft from '@tabler/icons-svelte/icons/chevron-left'
   import IconChevronRight from '@tabler/icons-svelte/icons/chevron-right'
@@ -146,7 +147,7 @@
        grid collapses to a single column when the item has no media. -->
   <div
     class={twMerge(clsx(
-      'fixed inset-0 z-50 overflow-y-auto bg-black/90 md:p-[var(--space-6)]',
+      'fixed inset-0 z-[var(--z-modal)] overflow-y-auto bg-black/90 md:p-[var(--space-6)]',
       className
     ))}
     onclick={(e) => { if (e.target === e.currentTarget) close() }}
@@ -156,14 +157,15 @@
     tabindex="-1"
   >
     <!-- Close (PM2 .lightbox-immersive-close — 40px circular elevated) -->
-    <button
-      type="button"
-      class="absolute top-4 right-4 z-20 flex size-10 items-center justify-center rounded-full border border-pm-border bg-pm-bg-elevated text-pm-text-secondary transition-colors hover:bg-pm-bg-sunken hover:text-pm-text"
-      onclick={close}
-      aria-label={t('common.close')}
+    <IconButton
+      variant="circle"
+      size="lg"
+      class="absolute top-4 right-4 z-20"
+      onclick={(e) => { e.stopPropagation(); close() }}
+      ariaLabel={t('common.close')}
     >
       <IconX class="size-5" />
-    </button>
+    </IconButton>
 
     <div
       class={clsx(
@@ -177,7 +179,7 @@
            tied to the active gallery entry, never the portfolio item as a
            whole. -->
       {#if gallery.length > 0}
-        <div class="relative flex h-[var(--lightbox-panel-height-mobile)] md:h-full flex-col overflow-hidden bg-black/40">
+        <div class="relative flex h-[var(--lightbox-panel-height-mobile)] md:h-full flex-col overflow-hidden bg-pm-bg-sunken">
           <div class="flex min-h-0 flex-1 items-center justify-center p-[var(--space-3)] md:p-[var(--space-6)]">
             <AppImage
               src={gallery[galleryIndex]?.src ?? ''}
@@ -187,34 +189,34 @@
           </div>
 
           {#if gallery[galleryIndex]?.caption}
-            <p class="mx-auto max-w-lg px-[var(--space-4)] pb-3 text-center text-sm text-pm-white/70">
+            <p class="mx-auto max-w-lg px-[var(--space-4)] pb-3 text-center text-sm text-pm-text-secondary">
               {gallery[galleryIndex]?.caption}
             </p>
           {/if}
 
           {#if gallery.length > 1}
             <div class="flex flex-shrink-0 items-center justify-center gap-3 px-[var(--space-6)] pb-6">
-              <button
-                type="button"
-                class="flex size-11 items-center justify-center rounded-full border border-pm-border bg-pm-bg-elevated text-pm-text-secondary transition-colors hover:bg-pm-bg-sunken hover:text-pm-text disabled:pointer-events-none disabled:opacity-20"
+              <IconButton
+                variant="circle"
+                size="xl"
                 onclick={(e) => { e.stopPropagation(); prevImage() }}
                 disabled={galleryIndex === 0}
-                aria-label={t('common.previous')}
+                ariaLabel={t('common.previous')}
               >
                 <IconChevronLeft class="size-5" />
-              </button>
+              </IconButton>
               <span class="rounded-full border border-pm-border bg-pm-bg-elevated px-[var(--space-3)] py-[var(--space-1)] text-xs leading-none text-pm-text-secondary tabular-nums">
                 {galleryIndex + 1} / {gallery.length}
               </span>
-              <button
-                type="button"
-                class="flex size-11 items-center justify-center rounded-full border border-pm-border bg-pm-bg-elevated text-pm-text-secondary transition-colors hover:bg-pm-bg-sunken hover:text-pm-text disabled:pointer-events-none disabled:opacity-20"
+              <IconButton
+                variant="circle"
+                size="xl"
                 onclick={(e) => { e.stopPropagation(); nextImage() }}
                 disabled={galleryIndex >= gallery.length - 1}
-                aria-label={t('common.next')}
+                ariaLabel={t('common.next')}
               >
                 <IconChevronRight class="size-5" />
-              </button>
+              </IconButton>
             </div>
           {/if}
         </div>

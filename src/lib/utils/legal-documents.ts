@@ -13,6 +13,11 @@ import { DEFAULT_LOCALE } from '$lib/config/site'
 import { useDatabase, schema } from '$lib/server/db'
 import { and, eq } from 'drizzle-orm'
 
+// Client-safe constants live in legal-labels.ts (server-db-free) so the
+// footer and legal page can import them without pulling server modules into
+// the client bundle; re-exported here for the server-side consumers.
+export { LEGAL_DOCUMENT_SLUGS, legalDocumentLabelKey } from '$lib/utils/legal-labels'
+
 const LEGAL_DIR = 'legal'
 
 /**

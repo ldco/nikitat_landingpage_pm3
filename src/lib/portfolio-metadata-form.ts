@@ -23,6 +23,7 @@ export interface PortfolioItem {
   title?: string | null
   description?: string | null
   content?: string | null
+  category?: string | null
   metadata?: string | null
   order: number
   published: boolean

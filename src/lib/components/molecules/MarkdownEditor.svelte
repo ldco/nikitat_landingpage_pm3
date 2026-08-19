@@ -1,3 +1,10 @@
+<script module>
+  // Module-level counter: every instance gets a unique id (SSR and hydration
+  // iterate instances in the same order) so labels associate with the right
+  // textarea even when several editors render on one page.
+  let nextEditorId = 0
+</script>
+
 <script lang="ts">
   /**
    * MarkdownEditor — textarea with live preview toggle
@@ -46,6 +53,10 @@
 
   let preview = $state(false)
 
+  // Stable id per instance (module counter matches SSR and hydration order)
+  // so the visible label is associated with the textarea control.
+  const uid = `markdown-editor-${++nextEditorId}`
+
   function handleInput(e: Event) {
     const target = e.currentTarget as HTMLTextAreaElement
     onchange?.(target.value)
@@ -55,7 +66,7 @@
 <div class={twMerge(clsx('flex flex-col gap-2', className))}>
   {#if label}
     <div class="flex items-center justify-between">
-      <label class="text-sm font-medium text-pm-text">{label}</label>
+      <label for={uid} class="text-sm font-medium text-pm-text">{label}</label>
       <button type="button" onclick={() => preview = !preview}
         class="inline-flex items-center gap-1 text-xs text-pm-text-muted hover:text-pm-brand transition-colors">
         {#if preview}
@@ -76,6 +87,7 @@
     </div>
   {:else}
     <textarea
+      id={uid}
       value={content}
       oninput={handleInput}
       rows={rows}

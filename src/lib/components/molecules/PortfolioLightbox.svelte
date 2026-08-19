@@ -66,7 +66,7 @@
 
 {#if open && current}
   <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/90" onclick={close} role="dialog" aria-label={t('common.lightbox')} tabindex="-1">
+  <div class="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-black/90" onclick={close} role="dialog" aria-label={t('common.lightbox')} tabindex="-1">
     <!-- Close button -->
     <button class="absolute top-4 right-4 z-10 p-2 text-white/80 hover:text-white transition-colors" onclick={close} aria-label={t('common.close')}>
       <IconX class="size-6" />

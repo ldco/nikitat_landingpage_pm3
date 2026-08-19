@@ -125,8 +125,17 @@
 
 <div class={twMerge(clsx('flex flex-col gap-2', className))}>
   {#if value}
-    <!-- Preview mode: show uploaded image + clear button -->
-    <div class="relative group rounded-md overflow-hidden border border-pm-border">
+    <!-- Preview mode: click the image to replace (re-opens the file picker),
+         X clears. The hidden input stays mounted (see below) so the click can
+         always reach it. -->
+    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+    <div
+      class="relative group rounded-md overflow-hidden border border-pm-border cursor-pointer"
+      onclick={() => document.getElementById(inputId)?.click()}
+      role="button"
+      tabindex="0"
+      onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') document.getElementById(inputId)?.click() }}
+    >
       <img src={value} alt="" class="w-full h-48 object-cover" />
       <button type="button" onclick={clearValue}
         class="absolute top-2 end-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
@@ -162,14 +171,17 @@
       <p class="text-sm text-pm-text-muted">{dropzoneLabel}</p>
       <p class="text-xs text-pm-text-muted">{accept.replace('image/', '').replace(',', ', ').toUpperCase()}</p>
     </div>
-    <input
-      id={inputId}
-      type="file"
-      {accept}
-      onchange={handleInput}
-      class="hidden"
-    />
   {/if}
+
+  <!-- Hidden file input is ALWAYS mounted so both the dropzone and the preview
+       image can re-trigger it. -->
+  <input
+    id={inputId}
+    type="file"
+    {accept}
+    onchange={handleInput}
+    class="hidden"
+  />
 
   {#if uploadError}
     <p class="text-xs text-pm-danger">{uploadError}</p>
