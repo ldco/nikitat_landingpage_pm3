@@ -1,20 +1,17 @@
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { useDatabase, schema } from '$lib/server/db'
-import { eq, and, asc, count } from 'drizzle-orm'
+import { eq, and, asc } from 'drizzle-orm'
 import type { PageServerLoad } from './$types'
 import { detectAdminLocale } from '$lib/server/utils/locales'
+import { buildPagination, getPaginationParams, getTableCount } from '$lib/server/utils/pagination'
 
 export const load: PageServerLoad = (event) => {
   requireAdminPage(event, 'faq')
   const db = useDatabase()
   const locale = detectAdminLocale(event)
 
-  const pageParam = Number(event.url.searchParams.get('page') ?? '1')
-  const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1
-  const limit = 20
-  const offset = (page - 1) * limit
-
-  const total = db.select({ n: count() }).from(schema.faqItems).get()?.n ?? 0
+  const { page, pageSize, offset } = getPaginationParams(event.url, 20)
+  const total = getTableCount(schema.faqItems)
 
   const items = db.select({
     id: schema.faqItems.id,
@@ -31,9 +28,9 @@ export const load: PageServerLoad = (event) => {
       eq(schema.faqItemTranslations.locale, locale)
     ))
     .orderBy(asc(schema.faqItems.order))
-    .limit(limit)
+    .limit(pageSize)
     .offset(offset)
     .all()
 
-  return { items, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } }
+  return { items, pagination: buildPagination(page, pageSize, total) }
 }

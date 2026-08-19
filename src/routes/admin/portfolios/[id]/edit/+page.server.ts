@@ -6,10 +6,9 @@ import { z } from 'zod'
 import type { RequestEvent } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
-import { updatePortfolio, getPortfolioTranslations, PORTFOLIO_LOCALIZED_FIELDS } from '$lib/server/services/portfolio-admin'
-import { setTranslations } from '$lib/server/services/translations'
+import { updatePortfolio, getPortfolioTranslations, persistPortfolioTranslations, PORTFOLIO_LOCALIZED_FIELDS } from '$lib/server/services/portfolio-admin'
 import { invalidateContentCache } from '$lib/server/db/content-cache'
-import { LOCALES, DEFAULT_LOCALE } from '$lib/config/site'
+import { LOCALES } from '$lib/config/site'
 import { PORTFOLIO_TYPES } from '$lib/portfolio-types'
 
 const updateSchema = z.object({
@@ -21,9 +20,9 @@ const updateSchema = z.object({
   published: z.string().optional().nullable()
 })
 
-// Per-locale override fields for the portfolio text (name_<locale>,
-// description_<locale>) — the default locale maps to the base columns.
-const NON_DEFAULT_LOCALES = LOCALES.filter(l => l !== DEFAULT_LOCALE)
+// Every configured locale is persisted to the dedicated translation table
+// (ADR-001: ru is a row like any other — no default-locale split).
+const ALL_LOCALES = LOCALES
 
 /** Length caps for the per-locale portfolio text overrides (write boundary). */
 const portfolioLocalizedMax: Record<string, number> = { name: 200, description: 5000 }
@@ -33,7 +32,7 @@ function validatePortfolioLocalizedText(
   form: FormData
 ): { ok: true; value: Record<string, Record<string, string>> } | { ok: false; response: ReturnType<typeof fail> } {
   const out: Record<string, Record<string, string>> = {}
-  for (const locale of NON_DEFAULT_LOCALES) {
+  for (const locale of ALL_LOCALES) {
     const entry: Record<string, string> = {}
     for (const field of PORTFOLIO_LOCALIZED_FIELDS) {
       const raw = form.get(`${field}_${locale}`)
@@ -46,7 +45,7 @@ function validatePortfolioLocalizedText(
       PORTFOLIO_LOCALIZED_FIELDS.map(field => [field, z.string().max(portfolioLocalizedMax[field] ?? 5000)])
     )
   )
-  for (const locale of NON_DEFAULT_LOCALES) {
+  for (const locale of ALL_LOCALES) {
     const result = fieldSchema.safeParse(out[locale] ?? {})
     if (!result.success) {
       const issue = result.error.issues[0]
@@ -115,19 +114,7 @@ export const actions = {
     const localized = localizedCheck.value
 
     const previous = getPortfolioTranslations([portfolioId]).get(portfolioId) ?? {}
-    for (const locale of NON_DEFAULT_LOCALES) {
-      const entries: Array<{ key: string; value: string }> = []
-      for (const field of PORTFOLIO_LOCALIZED_FIELDS) {
-        const submitted = localized[locale]?.[field] ?? ''
-        const had = previous[locale]?.[field]
-        if (submitted.trim() !== '') {
-          entries.push({ key: `portfolio.${portfolioId}.${field}`, value: submitted })
-        } else if (had) {
-          entries.push({ key: `portfolio.${portfolioId}.${field}`, value: '' })
-        }
-      }
-      if (entries.length > 0) setTranslations(locale, entries)
-    }
+    persistPortfolioTranslations(portfolioId, localized, previous, PORTFOLIO_LOCALIZED_FIELDS)
     invalidateContentCache()
 
     redirect(303, ADMIN_ROUTES.portfolios)

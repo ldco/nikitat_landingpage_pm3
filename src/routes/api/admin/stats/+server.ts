@@ -2,19 +2,19 @@ import type { RequestEvent } from '@sveltejs/kit'
 import { json } from '@sveltejs/kit'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
-import { useDatabase, schema } from '$lib/server/db'
+import { schema } from '$lib/server/db'
+import { getTableCount } from '$lib/server/utils/pagination'
 
 export function GET(event: RequestEvent) {
   requireAdminPage(event, 'dashboard')
-  const db = useDatabase()
   const stats = {
-    users: db.select({ id: schema.users.id }).from(schema.users).all().length,
-    portfolios: db.select({ id: schema.portfolios.id }).from(schema.portfolios).all().length,
-    blogPosts: db.select({ id: schema.blogPosts.id }).from(schema.blogPosts).all().length,
-    contacts: db.select({ id: schema.contactSubmissions.id }).from(schema.contactSubmissions).all().length,
-    translations: db.select({ id: schema.translations.id }).from(schema.translations).all().length,
-    settings: db.select({ id: schema.settings.id }).from(schema.settings).all().length,
-    auditLogs: db.select({ id: schema.auditLogs.id }).from(schema.auditLogs).all().length
+    users: getTableCount(schema.users),
+    portfolios: getTableCount(schema.portfolios),
+    blogPosts: getTableCount(schema.blogPosts),
+    contacts: getTableCount(schema.contactSubmissions),
+    translations: getTableCount(schema.translations),
+    settings: getTableCount(schema.settings),
+    auditLogs: getTableCount(schema.auditLogs)
   }
   return json(jsonSuccess(stats))
 }

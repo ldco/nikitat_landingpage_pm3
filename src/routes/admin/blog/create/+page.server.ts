@@ -1,18 +1,11 @@
 import { z } from 'zod'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { useDatabase, schema } from '$lib/server/db'
-import { redirect, fail } from '@sveltejs/kit'
 import { LOCALE_STRINGS } from '$lib/config/site'
 import type { RequestEvent } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
-import { uniqueConstraintFieldErrors } from '$lib/server/utils/db-errors'
-import {
-  localeFieldsSchema,
-  mergeFieldErrors,
-  readLocaleFields,
-  submittedLocaleSections
-} from '$lib/server/utils/locale-form'
+import { runAdminFormAction } from '$lib/server/services/entity-crud'
 import { BLOG_LOCALE_SPEC as localeSpec } from '$lib/server/utils/entity-locale-specs'
 
 // A submitted locale section must contain the title — a translation with only
@@ -47,40 +40,26 @@ export const load: PageServerLoad = event => {
 }
 
 export const actions = {
-  default: async (event: RequestEvent) => {
-    requireAdminPage(event, 'blog')
-    const form = event.locals.csrfForm ?? (await event.request.formData())
-    // Base fields and the locale block are validated up-front together — an
-    // incomplete locale section fails the same way a bad base field does.
-    const parsed = createSchema.safeParse({
-      slug: form.get('slug'),
-      categoryId: form.get('categoryId') || null,
-      coverImageUrl: form.get('coverImageUrl') || null,
-      coverImageAlt: form.get('coverImageAlt') || null,
-      published: form.get('published') || null,
-      readingTimeMinutes: form.get('readingTimeMinutes') || null
-    })
-    const localeParsed = localeFieldsSchema(localeSpec).safeParse(
-      readLocaleFields(form, localeSpec)
-    )
-    if (!parsed.success || !localeParsed.success) {
-      return fail(400, {
-        fieldErrors: mergeFieldErrors(
-          parsed.success ? undefined : parsed.error.flatten().fieldErrors,
-          localeParsed.success ? undefined : localeParsed.error.flatten().fieldErrors
-        )
-      })
-    }
-
-    const db = useDatabase()
-    const published = parsed.data.published === 'on'
-    const translations = submittedLocaleSections(localeParsed.data, localeSpec)
-
-    try {
-      db.transaction(() => {
-        const post = db
-          .insert(schema.blogPosts)
-          .values({
+  default: (event: RequestEvent) =>
+    runAdminFormAction(event, {
+      adminPage: 'blog',
+      localeSpec,
+      redirectTo: ADMIN_ROUTES.blog,
+      uniqueFieldErrors: [{ column: 'slug', label: 'apiErrors.admin.slugExists' }],
+      parseBase: form => {
+        const parsed = createSchema.safeParse({
+          slug: form.get('slug'),
+          categoryId: form.get('categoryId') || null,
+          coverImageUrl: form.get('coverImageUrl') || null,
+          coverImageAlt: form.get('coverImageAlt') || null,
+          published: form.get('published') || null,
+          readingTimeMinutes: form.get('readingTimeMinutes') || null
+        })
+        if (!parsed.success) return { ok: false, fieldErrors: parsed.error.flatten().fieldErrors }
+        const published = parsed.data.published === 'on'
+        return {
+          ok: true,
+          input: {
             slug: parsed.data.slug,
             categoryId: parsed.data.categoryId ? Number(parsed.data.categoryId) : null,
             coverImageUrl: parsed.data.coverImageUrl || null,
@@ -93,7 +72,13 @@ export const actions = {
             authorId: event.locals.user?.id ?? null,
             createdAt: new Date(),
             updatedAt: new Date()
-          })
+          }
+        }
+      },
+      execute: (db, input, translations) => {
+        const post = db
+          .insert(schema.blogPosts)
+          .values(input)
           .returning({ id: schema.blogPosts.id })
           .get()
 
@@ -102,22 +87,13 @@ export const actions = {
             .values({
               postId: post.id,
               locale: loc,
-              title: values.title ?? (parsed.data.slug as string),
+              title: values.title ?? (input.slug as string),
               excerpt: values.excerpt || null,
               content: values.content || null,
               updatedAt: new Date()
             })
             .run()
         }
-      })
-    } catch (e: unknown) {
-      const fieldErrors = uniqueConstraintFieldErrors(e, [
-        { column: 'slug', label: 'apiErrors.admin.slugExists' }
-      ])
-      if (fieldErrors) return fail(400, { fieldErrors })
-      throw e
-    }
-
-    redirect(303, ADMIN_ROUTES.blog)
-  }
+      }
+    })
 }

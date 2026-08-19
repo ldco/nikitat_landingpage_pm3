@@ -1,18 +1,11 @@
 import { z } from 'zod'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
-import { useDatabase, schema } from '$lib/server/db'
-import { redirect, fail } from '@sveltejs/kit'
+import { schema } from '$lib/server/db'
 import { LOCALE_STRINGS } from '$lib/config/site'
 import type { RequestEvent } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
-import { uniqueConstraintFieldErrors } from '$lib/server/utils/db-errors'
-import {
-  localeFieldsSchema,
-  mergeFieldErrors,
-  readLocaleFields,
-  submittedLocaleSections
-} from '$lib/server/utils/locale-form'
+import { runAdminFormAction } from '$lib/server/services/entity-crud'
 import { FAQ_LOCALE_SPEC as localeSpec } from '$lib/server/utils/entity-locale-specs'
 
 // A submitted locale section must contain BOTH the question and the answer —
@@ -37,44 +30,35 @@ export const load: PageServerLoad = event => {
 }
 
 export const actions = {
-  default: async (event: RequestEvent) => {
-    requireAdminPage(event, 'faq')
-    const form = event.locals.csrfForm ?? (await event.request.formData())
-    // Base fields and the locale block are validated up-front together — an
-    // incomplete locale section fails the same way a bad base field does.
-    const parsed = createSchema.safeParse({
-      slug: form.get('slug'),
-      category: form.get('category') || null,
-      published: form.get('published') || null,
-      order: form.get('order')
-    })
-    const localeParsed = localeFieldsSchema(localeSpec).safeParse(
-      readLocaleFields(form, localeSpec)
-    )
-    if (!parsed.success || !localeParsed.success) {
-      return fail(400, {
-        fieldErrors: mergeFieldErrors(
-          parsed.success ? undefined : parsed.error.flatten().fieldErrors,
-          localeParsed.success ? undefined : localeParsed.error.flatten().fieldErrors
-        )
-      })
-    }
-
-    const db = useDatabase()
-    const published = parsed.data.published === 'on'
-    const translations = submittedLocaleSections(localeParsed.data, localeSpec)
-
-    try {
-      db.transaction(() => {
-        const item = db
-          .insert(schema.faqItems)
-          .values({
+  default: (event: RequestEvent) =>
+    runAdminFormAction(event, {
+      adminPage: 'faq',
+      localeSpec,
+      redirectTo: ADMIN_ROUTES.faq,
+      uniqueFieldErrors: [{ column: 'slug', label: 'apiErrors.admin.slugExists' }],
+      parseBase: form => {
+        const parsed = createSchema.safeParse({
+          slug: form.get('slug'),
+          category: form.get('category') || null,
+          published: form.get('published') || null,
+          order: form.get('order')
+        })
+        if (!parsed.success) return { ok: false, fieldErrors: parsed.error.flatten().fieldErrors }
+        return {
+          ok: true,
+          input: {
             slug: parsed.data.slug,
             category: parsed.data.category || null,
-            published,
+            published: parsed.data.published === 'on',
             order: parsed.data.order,
             createdAt: new Date()
-          })
+          }
+        }
+      },
+      execute: (db, input, translations) => {
+        const item = db
+          .insert(schema.faqItems)
+          .values(input)
           .returning({ id: schema.faqItems.id })
           .get()
 
@@ -89,15 +73,6 @@ export const actions = {
             })
             .run()
         }
-      })
-    } catch (e: unknown) {
-      const fieldErrors = uniqueConstraintFieldErrors(e, [
-        { column: 'slug', label: 'apiErrors.admin.slugExists' }
-      ])
-      if (fieldErrors) return fail(400, { fieldErrors })
-      throw e
-    }
-
-    redirect(303, ADMIN_ROUTES.faq)
-  }
+      }
+    })
 }

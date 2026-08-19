@@ -26,7 +26,10 @@
   const overlays = getOverlaysState()
   let deletePending = $state<number | null>(null)
   let deleteError = $state<string | null>(null)
-  let currentPage = $state(data.pagination?.page ?? 1)
+  let currentPage = $state(1)
+  $effect.pre(() => {
+    currentPage = data.pagination?.page ?? 1
+  })
 
   async function handleDelete(id: number, slug: string) {
     const msg = adminT['admin.confirmDelete'] ?? t('common.areYouSure')
@@ -52,7 +55,7 @@
   const columns = $derived<AdminTableColumn[]>([
     { key: 'title', label: adminT['admin.title'] ?? t('admin.title') },
     { key: 'category', label: adminT['admin.category'] ?? t('admin.category') },
-    { key: 'order', label: adminT['admin.order'] ?? 'Order' },
+    { key: 'order', label: adminT['admin.order'] ?? t('admin.order') },
     { key: 'status', label: adminT['admin.status'] ?? t('admin.status') }
   ])
 </script>

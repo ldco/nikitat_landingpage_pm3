@@ -39,7 +39,10 @@
   const overlays = getOverlaysState()
   let deletePending = $state<number | null>(null)
   let deleteError = $state<string | null>(null)
-  let currentPage = $state(data.pagination?.page ?? 1)
+  let currentPage = $state(1)
+  $effect.pre(() => {
+    currentPage = data.pagination?.page ?? 1
+  })
 
   function displayName(item: PricingItem): string {
     return item.translationName ?? item.name
@@ -117,7 +120,7 @@
             <span class="text-pm-text-muted">{displayPeriod(row)}</span>
           {:else if column.key === 'featured'}
             {#if row.featured}
-              <Badge variant="primary">{adminT['admin.featured'] ?? 'Featured'}</Badge>
+              <Badge variant="primary">{adminT['admin.featured'] ?? t('admin.featured')}</Badge>
             {:else}
               <span class="text-pm-text-muted">{''}</span>
             {/if}

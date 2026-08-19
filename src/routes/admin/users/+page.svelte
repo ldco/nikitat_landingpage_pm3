@@ -51,7 +51,10 @@
   const roles = $derived((data.roles ?? []) as Array<{ id: number; slug: string; name: string }>)
   const currentUser = $derived((data.user ?? null) as { id?: number; role?: string } | null)
   const isMaster = $derived(currentUser?.role === 'master')
-  let currentPage = $state(data.pagination?.page ?? 1)
+  let currentPage = $state(1)
+  $effect.pre(() => {
+    currentPage = data.pagination?.page ?? 1
+  })
   const overlays = getOverlaysState()
 
   // ── Role badges (PM2 roleBadgeClass) ─────────────────────────────────────
@@ -82,12 +85,12 @@
     return new Date(user.lockedUntil).getTime() > Date.now()
   }
 
-  const columns: AdminTableColumn[] = [
+  const columns = $derived<AdminTableColumn[]>([
     { key: 'name', label: adminT['admin.name'] ?? t('admin.name') },
     { key: 'email', label: adminT['admin.email'] ?? t('admin.email') },
     { key: 'role', label: adminT['admin.roleColumn'] ?? t('admin.roleColumn') },
     { key: 'created', label: adminT['admin.created'] ?? t('admin.created') }
-  ]
+  ])
 
   // ── Modal orchestration ─────────────────────────────────────────────────
   let showModal = $state(false)

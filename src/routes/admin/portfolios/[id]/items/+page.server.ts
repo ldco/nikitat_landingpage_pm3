@@ -6,23 +6,22 @@ import { useDatabase, schema } from '$lib/server/db'
 import { getAdminPortfolioItems } from '$lib/server/services/portfolio'
 import {
   getPortfolioItemTranslations,
+  persistPortfolioItemTranslations,
   portfolioItemLocalizedFieldsFor,
   type PortfolioItemLocalizedField
 } from '$lib/server/services/portfolio-admin'
 import { enrichPortfolioItemsFromSource } from '$lib/server/services/portfolio-pm2-source'
-import { setTranslations, deleteTranslations } from '$lib/server/services/translations'
 import { invalidateContentCache } from '$lib/server/db/content-cache'
-import { LOCALES, DEFAULT_LOCALE } from '$lib/config/site'
+import { LOCALES } from '$lib/config/site'
 import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
 import { normalizeItemMetadata, safeMediaUrl, portfolioTypeRequiresMetadata } from '$lib/portfolio-metadata'
 import { markAdminMetadata, metadataDeepEqual } from '$lib/portfolio-metadata-import'
 import { portfolioItemTypesFor } from '$lib/portfolio-metadata-form'
 import type { PageServerLoad, Actions } from './$types'
 
-// Per-locale text overrides for an item (<field>_<locale> form fields) — the
-// default locale maps to the base columns; the other locales persist to the
-// translations table as `portfolio_item.<id>.<field>`.
-const NON_DEFAULT_LOCALES = LOCALES.filter(locale => locale !== DEFAULT_LOCALE)
+// Every configured locale is persisted to the dedicated translation table
+// (ADR-001: ru is a row like any other — no default-locale split).
+const ALL_LOCALES = LOCALES
 
 /** Per-field length caps for the per-locale text overrides (write boundary). */
 const localizedFieldMax: Record<PortfolioItemLocalizedField, number> = {
@@ -51,7 +50,7 @@ function validateLocalizedItemText(
   fields: readonly PortfolioItemLocalizedField[]
 ): { ok: true } | { ok: false; response: ReturnType<typeof fail> } {
   const fieldSchema = buildLocalizedFieldSchema(fields)
-  for (const locale of NON_DEFAULT_LOCALES) {
+  for (const locale of ALL_LOCALES) {
     const result = fieldSchema.safeParse(localized[locale] ?? {})
     if (!result.success) {
       const issue = result.error.issues[0]
@@ -100,9 +99,6 @@ const createItemSchema = z.object({
   mediaUrl: safeMediaUrl.nullable().optional(),
   thumbnailUrl: safeMediaUrl.nullable().optional(),
   caption: z.string().nullable().optional(),
-  title: z.string().nullable().optional(),
-  description: z.string().nullable().optional(),
-  content: z.string().nullable().optional(),
   metadata: z.string().nullable().optional(),
   published: z.string().optional().nullable()
 })
@@ -154,7 +150,7 @@ function collectLocalizedItemText(
   fields: readonly PortfolioItemLocalizedField[]
 ): Record<string, Record<string, string>> {
   const out: Record<string, Record<string, string>> = {}
-  for (const locale of NON_DEFAULT_LOCALES) {
+  for (const locale of ALL_LOCALES) {
     for (const field of fields) {
       const raw = form.get(`${field}_${locale}`)
       const value = typeof raw === 'string' ? raw : ''
@@ -178,19 +174,7 @@ function persistItemLocalizedText(
   previous: Record<string, Record<string, string>>,
   fields: readonly PortfolioItemLocalizedField[]
 ): void {
-  for (const locale of NON_DEFAULT_LOCALES) {
-    const entries: Array<{ key: string; value: string }> = []
-    for (const field of fields) {
-      const submitted = localized[locale]?.[field] ?? ''
-      const had = previous[locale]?.[field]
-      if (submitted.trim() !== '') {
-        entries.push({ key: `portfolio_item.${itemId}.${field}`, value: submitted })
-      } else if (had) {
-        entries.push({ key: `portfolio_item.${itemId}.${field}`, value: '' })
-      }
-    }
-    if (entries.length > 0) setTranslations(locale, entries)
-  }
+  persistPortfolioItemTranslations(itemId, localized, previous, fields)
   invalidateContentCache()
 }
 
@@ -230,9 +214,6 @@ export const actions: Actions = {
       mediaUrl: form.get('mediaUrl') || null,
       thumbnailUrl: form.get('thumbnailUrl') || null,
       caption: form.get('caption') || null,
-      title: form.get('title') || null,
-      description: form.get('description') || null,
-      content: form.get('content') || null,
       metadata: form.get('metadata') || undefined,
       published: form.get('published') || null
     })
@@ -298,9 +279,6 @@ export const actions: Actions = {
       mediaUrl: form.get('mediaUrl') || null,
       thumbnailUrl: form.get('thumbnailUrl') || null,
       caption: form.get('caption') || null,
-      title: form.get('title') || null,
-      description: form.get('description') || null,
-      content: form.get('content') || null,
       metadata: form.get('metadata') || undefined,
       published: form.get('published') || null
     })
@@ -405,13 +383,8 @@ export const actions: Actions = {
       )
       .run()
 
-    // Remove the orphaned per-locale translation rows for the deleted item.
-    const previous = getPortfolioItemTranslations([existing.id]).get(existing.id) ?? {}
-    for (const locale of NON_DEFAULT_LOCALES) {
-      const keys = Object.keys(previous[locale] ?? {})
-        .map(field => `portfolio_item.${existing.id}.${field}`)
-      if (keys.length > 0) deleteTranslations(locale, keys)
-    }
+    // Dedicated translation rows cascade with the item (FK ON DELETE CASCADE) —
+    // no manual cleanup needed.
     invalidateContentCache()
 
     redirect(303, ADMIN_ROUTES.portfolioItems(portfolioId))

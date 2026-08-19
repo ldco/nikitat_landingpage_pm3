@@ -8,6 +8,7 @@ import { jsonSuccess, apiFieldError } from '$lib/server/utils/api'
 import { normalizeItemMetadata, safeMediaUrl } from '$lib/portfolio-metadata'
 import { markAdminMetadata, metadataDeepEqual } from '$lib/portfolio-metadata-import'
 import { enrichPortfolioItemsFromSource } from '$lib/server/services/portfolio-pm2-source'
+import { persistItemRuLocalizedText, type PortfolioItemLocalizedField } from '$lib/server/services/portfolio-admin'
 import { portfolioItemTypesFor } from '$lib/portfolio-metadata-form'
 
 const updateSchema = z.object({
@@ -18,6 +19,7 @@ const updateSchema = z.object({
   title: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   content: z.string().nullable().optional(),
+  category: z.string().nullable().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
   // `order` is ONLY accepted as the sole field — a signed DELTA reorder (see
   // PUT). It is deliberately NOT part of the general update path, so it can
@@ -97,7 +99,15 @@ export async function PUT(event: RequestEvent) {
   // `order` must NEVER be combined with general field updates: reordering has
   // its own delta semantics above. Writing it here as an absolute value would
   // silently overload the column and break the ordering invariant.
-  const { metadata: rawMetadata, order: mixedOrder, ...base } = parsed.data
+  const {
+    metadata: rawMetadata,
+    order: mixedOrder,
+    title,
+    description,
+    content,
+    category,
+    ...base
+  } = parsed.data
   if (mixedOrder !== undefined) {
     throw error(400, 'order is only accepted as the sole field (delta reorder)')
   }
@@ -144,6 +154,15 @@ export async function PUT(event: RequestEvent) {
   })
     .where(and(eq(schema.portfolioItems.id, itemId), eq(schema.portfolioItems.portfolioId, portfolioId)))
     .returning().get()
+
+  // Localized body fields route to the ru translation row (ADR-001).
+  const ruFields: Partial<Record<PortfolioItemLocalizedField, string | null | undefined>> = {}
+  if (title !== undefined) ruFields.title = title
+  if (description !== undefined) ruFields.description = description
+  if (content !== undefined) ruFields.content = content
+  if (category !== undefined) ruFields.category = category
+  persistItemRuLocalizedText(itemId, ruFields)
+
   return json(jsonSuccess(result))
 }
 

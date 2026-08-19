@@ -4,25 +4,27 @@ import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
-import { paginationSchema } from '$lib/server/utils/validation'
+import { slugSchema } from '$lib/server/utils/validation'
+import {
+  apiListEntities,
+  type SimpleEntitySpec
+} from '$lib/server/services/entity-crud'
+
+const faqSpec: SimpleEntitySpec<typeof schema.faqItems> = {
+  table: schema.faqItems,
+  idColumn: schema.faqItems.id,
+  adminPage: 'faq'
+}
 
 const createSchema = z.object({
-  slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/),
+  slug: slugSchema,
   category: z.string().nullable().optional(),
   published: z.boolean().optional().default(true),
   order: z.number().int().optional().default(0)
 })
 
 export function GET(event: RequestEvent) {
-  requireAdminPage(event, 'faq')
-  const db = useDatabase()
-  const parsed = paginationSchema.safeParse(Object.fromEntries(event.url.searchParams))
-  if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
-  const { page, pageSize } = parsed.data
-  const offset = (page - 1) * pageSize
-  const all = db.select().from(schema.faqItems).limit(pageSize).offset(offset).all()
-  const total = db.select({ id: schema.faqItems.id }).from(schema.faqItems).all().length
-  return json({ success: true, data: all, pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) } })
+  return apiListEntities(event, faqSpec)
 }
 
 export async function POST(event: RequestEvent) {

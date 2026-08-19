@@ -12,6 +12,7 @@
    * save via PUT /api/admin/legal/:slug per locale.
    */
   import { t } from '$lib/stores/content.svelte'
+  import { untrack } from 'svelte'
   import { page } from '$app/stores'
   import { getCsrfToken } from '$lib/utils/auth'
   import { API_ROUTES } from '$lib/utils/api-paths'
@@ -33,6 +34,12 @@
   const locales = $derived((data.locales ?? []) as string[])
   const settingsInitial = $derived((data.settings ?? {}) as Record<string, string>)
 
+  // Intentional one-time captures for the form seeding below — the reactive
+  // $deriveds above stay for the template and save loop.
+  const initSettings = untrack(() => (data.settings ?? {}) as Record<string, string>)
+  const initDocsByLocale = untrack(() => (data.byLocale ?? {}) as Record<string, AdminLegalRow[]>)
+  const initLocales = untrack(() => (data.locales ?? []) as string[])
+
   const overlays = getOverlaysState()
 
   const LEGAL_SETTING_KEYS = [
@@ -53,7 +60,7 @@
   {
     for (const key of LEGAL_SETTING_KEYS) {
       if (legalSettingsForm[key] === undefined) {
-        legalSettingsForm[key] = settingsInitial[key] ?? (key === 'contact.forceShowFormWithoutLegalDocuments' ? 'false' : '')
+        legalSettingsForm[key] = initSettings[key] ?? (key === 'contact.forceShowFormWithoutLegalDocuments' ? 'false' : '')
       }
     }
   }
@@ -63,7 +70,7 @@
   // target locale's real content (never a blank pre-initialized row). Missing
   // rows hydrate to '' so the "missing document" state stays accurate.
   // `docsForm` is a `let` (not `const`) because LegalDocumentsEditor binds to it.
-  let docsForm = $state(hydrateDocsForm(byLocale, locales, LEGAL_DOC_SLUGS))
+  let docsForm = $state(hydrateDocsForm(initDocsByLocale, initLocales, LEGAL_DOC_SLUGS))
 
   const { isDirty, markClean } = createFormDirty(() => ({
     settings: legalSettingsForm,

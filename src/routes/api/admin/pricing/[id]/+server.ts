@@ -1,18 +1,28 @@
 import type { RequestEvent } from '@sveltejs/kit'
-import { error, json } from '@sveltejs/kit'
-import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { useDatabase, schema } from '$lib/server/db'
-import { requireAdminPage } from '$lib/server/utils/admin-rbac'
-import { jsonSuccess } from '$lib/server/utils/api'
+import { schema } from '$lib/server/db'
+import { slugSchema } from '$lib/server/utils/validation'
+import { PRICING_CURRENCIES, PRICING_PERIODS } from '$lib/pricing-constants'
+import {
+  apiGetEntity,
+  apiUpdateEntity,
+  apiDeleteEntity,
+  type SimpleEntitySpec
+} from '$lib/server/services/entity-crud'
+
+const pricingSpec: SimpleEntitySpec<typeof schema.pricingTiers> = {
+  table: schema.pricingTiers,
+  idColumn: schema.pricingTiers.id,
+  adminPage: 'pricing'
+}
 
 const updateSchema = z.object({
-  slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/).optional(),
+  slug: slugSchema.optional(),
   name: z.string().min(1).max(200).optional(),
   description: z.string().nullable().optional(),
   price: z.number().int().nullable().optional(),
-  currency: z.string().optional(),
-  period: z.enum(['month', 'year', 'one-time']).optional(),
+  currency: z.enum(PRICING_CURRENCIES).optional(),
+  period: z.enum(PRICING_PERIODS).optional(),
   featured: z.boolean().optional(),
   ctaText: z.string().nullable().optional(),
   ctaUrl: z.string().optional(),
@@ -21,34 +31,13 @@ const updateSchema = z.object({
 })
 
 export function GET(event: RequestEvent) {
-  requireAdminPage(event, 'pricing')
-  const db = useDatabase()
-  const id = Number(event.params.id)
-  const item = db.select().from(schema.pricingTiers).where(eq(schema.pricingTiers.id, id)).get()
-  if (!item) error(404)
-  return json(jsonSuccess(item))
+  return apiGetEntity(event, pricingSpec)
 }
 
-export async function PUT(event: RequestEvent) {
-  requireAdminPage(event, 'pricing')
-  const id = Number(event.params.id)
-  const body = await event.request.json().catch(() => null)
-  if (!body) error(400)
-  const parsed = updateSchema.safeParse(body)
-  if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
-  const db = useDatabase()
-  const existing = db.select().from(schema.pricingTiers).where(eq(schema.pricingTiers.id, id)).get()
-  if (!existing) error(404)
-  const result = db.update(schema.pricingTiers).set(parsed.data).where(eq(schema.pricingTiers.id, id)).returning().get()
-  return json(jsonSuccess(result))
+export function PUT(event: RequestEvent) {
+  return apiUpdateEntity(event, pricingSpec, updateSchema)
 }
 
-export async function DELETE(event: RequestEvent) {
-  requireAdminPage(event, 'pricing')
-  const id = Number(event.params.id)
-  const db = useDatabase()
-  const existing = db.select().from(schema.pricingTiers).where(eq(schema.pricingTiers.id, id)).get()
-  if (!existing) error(404)
-  db.delete(schema.pricingTiers).where(eq(schema.pricingTiers.id, id)).run()
-  return json(jsonSuccess({ deleted: true }))
+export function DELETE(event: RequestEvent) {
+  return apiDeleteEntity(event, pricingSpec)
 }

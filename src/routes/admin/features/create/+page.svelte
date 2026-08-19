@@ -26,11 +26,11 @@
   let order = $state('0')
   let published = $state(true)
   const translations = $state<Record<string, { title: string; description: string }>>({})
-  {
+  $effect.pre(() => {
     for (const loc of locales) {
       translations[loc] = { title: '', description: '' }
     }
-  }
+  })
 
   function localeName(loc: string): string {
     return LOCALE_CONFIG[loc as keyof typeof LOCALE_CONFIG]?.name ?? loc

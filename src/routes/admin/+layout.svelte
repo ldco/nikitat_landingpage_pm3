@@ -72,7 +72,11 @@
       } catch (e) { console.warn('[admin] unread count fetch failed:', e instanceof Error ? e.message : e) }
     }
     fetchCount()
-    const interval = setInterval(fetchCount, 30000)
+    // Unread-badge poll cadence (decoupled from the server-side TTL constant —
+    // a badge that refreshes a few seconds late is fine, one that hammers the
+    // API is not).
+    const UNREAD_POLL_MS = 30_000
+    const interval = setInterval(fetchCount, UNREAD_POLL_MS)
     return () => clearInterval(interval)
   })
 </script>

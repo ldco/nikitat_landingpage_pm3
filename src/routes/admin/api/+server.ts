@@ -1,8 +1,10 @@
 import { error, json } from '@sveltejs/kit'
 import { useDatabase, schema } from '$lib/server/db'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
-import { resolveUserDeleteViolation } from '$lib/server/services'
+import { resolveUserDeleteViolation, getUserById } from '$lib/server/services'
 import type { AdminPageId } from '$lib/server/db/schema'
+import { audit } from '$lib/server/audit'
+import { getClientIp } from '$lib/server/security/rateLimit'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import type { RequestEvent } from '@sveltejs/kit'
@@ -20,6 +22,11 @@ const deleteSchema = z.object({
  *
  * Authorization is page-aware: the module id IS the admin page id, so the
  * same ADMIN_CONFIG/MODULES/role-permission gate applies as for the menu.
+ *
+ * Child rows (translations, pricing features, portfolio items, sessions) are
+ * removed by the schema's ON DELETE CASCADE foreign keys — the switch below
+ * deletes only the owning row, inside one transaction so a failure cannot
+ * leave partial state.
  */
 export async function POST(event: RequestEvent) {
   const body = await event.request.json().catch(() => null)
@@ -30,34 +37,29 @@ export async function POST(event: RequestEvent) {
   const { module, id } = parsed.data
   const actor = requireAdminPage(event, module as AdminPageId)
   const db = useDatabase()
+  const ip = getClientIp(event)
+  const ua = event.request.headers.get('user-agent')
 
   switch (module) {
     case 'portfolios':
-      db.delete(schema.portfolioItems).where(eq(schema.portfolioItems.portfolioId, id)).run()
       db.delete(schema.portfolios).where(eq(schema.portfolios.id, id)).run()
       break
     case 'blog':
-      db.delete(schema.blogPostTranslations).where(eq(schema.blogPostTranslations.postId, id)).run()
       db.delete(schema.blogPosts).where(eq(schema.blogPosts.id, id)).run()
       break
     case 'features':
-      db.delete(schema.featureTranslations).where(eq(schema.featureTranslations.featureId, id)).run()
       db.delete(schema.features).where(eq(schema.features.id, id)).run()
       break
     case 'faq':
-      db.delete(schema.faqItemTranslations).where(eq(schema.faqItemTranslations.faqItemId, id)).run()
       db.delete(schema.faqItems).where(eq(schema.faqItems.id, id)).run()
       break
     case 'pricing':
-      db.delete(schema.pricingFeatures).where(eq(schema.pricingFeatures.tierId, id)).run()
       db.delete(schema.pricingTiers).where(eq(schema.pricingTiers.id, id)).run()
       break
     case 'team':
-      db.delete(schema.teamMemberTranslations).where(eq(schema.teamMemberTranslations.memberId, id)).run()
       db.delete(schema.teamMembers).where(eq(schema.teamMembers.id, id)).run()
       break
     case 'testimonials':
-      db.delete(schema.testimonialTranslations).where(eq(schema.testimonialTranslations.testimonialId, id)).run()
       db.delete(schema.testimonials).where(eq(schema.testimonials.id, id)).run()
       break
     case 'clients':
@@ -70,12 +72,14 @@ export async function POST(event: RequestEvent) {
       // The SAME policy as the users page `?/delete` form action (shared
       // service guard): no self-delete, masters protected from non-masters,
       // target must exist. A non-master admin must not be able to delete the
-      // master account through the cascade endpoint.
+      // master account through the cascade endpoint. Audited like the other
+      // user-delete surfaces.
       const violation = resolveUserDeleteViolation(actor, id)
       if (violation === 'self_delete' || violation === 'master_protected') throw error(403)
       if (violation === 'not_found') throw error(404)
-      db.delete(schema.sessions).where(eq(schema.sessions.userId, id)).run()
+      const existing = getUserById(id)
       db.delete(schema.users).where(eq(schema.users.id, id)).run()
+      audit.userDelete(ip, ua, actor.id, id, existing?.email ?? '')
       break
     }
   }

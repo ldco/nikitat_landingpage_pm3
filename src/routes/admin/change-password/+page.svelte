@@ -46,9 +46,17 @@
         await invalidateAll()
         goto('/admin')
       } else {
-        errorMessage = res.error?.code === 'http.401'
-          ? t('apiErrors.auth.currentPasswordIncorrect')
-          : t('apiErrors.auth.passwordPolicyFailed')
+        // The API returns i18n key codes (apiErrors.auth.*) — translate the
+        // specific failure instead of collapsing everything into the
+        // policy-failed message.
+        const code = res.error?.code ?? ''
+        if (code === 'apiErrors.auth.currentPasswordIncorrect') {
+          errorMessage = t('apiErrors.auth.currentPasswordIncorrect')
+        } else if (code === 'apiErrors.auth.passwordBreached') {
+          errorMessage = t('apiErrors.auth.passwordBreached')
+        } else {
+          errorMessage = t('apiErrors.auth.passwordPolicyFailed')
+        }
       }
     } catch {
       errorMessage = t('common.error')

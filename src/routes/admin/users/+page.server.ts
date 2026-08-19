@@ -17,6 +17,7 @@ import { resetFailedAttempts } from '$lib/server/auth/lockout'
 import { getClientIp } from '$lib/server/security/rateLimit'
 import { audit } from '$lib/server/audit'
 import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
+import { buildPagination, getPaginationParams } from '$lib/server/utils/pagination'
 import type { PageServerLoad, Actions } from './$types'
 
 const createUserSchema = z.object({
@@ -46,16 +47,13 @@ function passwordPolicyErrors(password: string): string[] {
 
 export const load: PageServerLoad = event => {
   requireAdminPage(event, 'users')
-  const pageParam = Number(event.url.searchParams.get('page') ?? '1')
-  const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1
-  const limit = 20
-  const offset = (page - 1) * limit
+  const { page, pageSize, offset } = getPaginationParams(event.url, 20)
 
-  const { users, total } = getUsers(limit, offset)
+  const { users, total } = getUsers(pageSize, offset)
   return {
     items: users,
     roles: getAllRoles(),
-    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
+    pagination: buildPagination(page, pageSize, total)
   }
 }
 

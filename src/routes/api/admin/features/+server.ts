@@ -4,26 +4,29 @@ import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
-import { paginationSchema } from '$lib/server/utils/validation'
+import { slugSchema } from '$lib/server/utils/validation'
+import {
+  apiListEntities,
+  type SimpleEntitySpec
+} from '$lib/server/services/entity-crud'
+
+const featuresSpec: SimpleEntitySpec<typeof schema.features> = {
+  table: schema.features,
+  idColumn: schema.features.id,
+  adminPage: 'features'
+}
 
 const createSchema = z.object({
-  slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/),
+  slug: slugSchema,
   imageUrl: z.string().nullable().optional(),
+  hoverImageUrl: z.string().nullable().optional(),
   category: z.string().nullable().optional(),
   published: z.boolean().optional().default(true),
   order: z.number().int().optional().default(0)
 })
 
 export function GET(event: RequestEvent) {
-  requireAdminPage(event, 'features')
-  const db = useDatabase()
-  const parsed = paginationSchema.safeParse(Object.fromEntries(event.url.searchParams))
-  if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
-  const { page, pageSize } = parsed.data
-  const offset = (page - 1) * pageSize
-  const all = db.select().from(schema.features).limit(pageSize).offset(offset).all()
-  const total = db.select({ id: schema.features.id }).from(schema.features).all().length
-  return json({ success: true, data: all, pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) } })
+  return apiListEntities(event, featuresSpec)
 }
 
 export async function POST(event: RequestEvent) {

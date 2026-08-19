@@ -1,20 +1,17 @@
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { useDatabase, schema } from '$lib/server/db'
-import { eq, and, desc, inArray, count } from 'drizzle-orm'
+import { eq, and, desc, inArray } from 'drizzle-orm'
 import type { PageServerLoad } from './$types'
 import { detectAdminLocale } from '$lib/server/utils/locales'
+import { buildPagination, getPaginationParams, getTableCount } from '$lib/server/utils/pagination'
 
 export const load: PageServerLoad = (event) => {
   requireAdminPage(event, 'blog')
   const db = useDatabase()
   const locale = detectAdminLocale(event)
 
-  const pageParam = Number(event.url.searchParams.get('page') ?? '1')
-  const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1
-  const limit = 20
-  const offset = (page - 1) * limit
-
-  const total = db.select({ n: count() }).from(schema.blogPosts).get()?.n ?? 0
+  const { page, pageSize, offset } = getPaginationParams(event.url, 20)
+  const total = getTableCount(schema.blogPosts)
 
   const posts = db.select({
     id: schema.blogPosts.id,
@@ -31,7 +28,7 @@ export const load: PageServerLoad = (event) => {
       eq(schema.blogPostTranslations.locale, locale)
     ))
     .orderBy(desc(schema.blogPosts.createdAt))
-    .limit(limit)
+    .limit(pageSize)
     .offset(offset)
     .all()
 
@@ -93,6 +90,6 @@ export const load: PageServerLoad = (event) => {
       tags: tagsMap.get(p.id) ?? [],
       locales: localesMap.get(p.id) ?? []
     })),
-    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
+    pagination: buildPagination(page, pageSize, total)
   }
 }

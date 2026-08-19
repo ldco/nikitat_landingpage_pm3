@@ -4,11 +4,11 @@ import { requireAdminPage, invalidateRolePermissionsCache } from '$lib/server/ut
 import { useDatabase, schema } from '$lib/server/db'
 import { eq } from 'drizzle-orm'
 import { uniqueConstraintFieldErrors } from '$lib/server/utils/db-errors'
-import { count } from 'drizzle-orm'
 import { getClientIp } from '$lib/server/security/rateLimit'
 import { audit } from '$lib/server/audit'
 import { ADMIN_PAGE_DEFS } from '$lib/server/utils/admin-pages'
 import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
+import { buildPagination, getPaginationParams, getTableCount } from '$lib/server/utils/pagination'
 import type { PageServerLoad, Actions } from './$types'
 
 const createRoleSchema = z.object({
@@ -49,12 +49,8 @@ export const load: PageServerLoad = event => {
   requireAdminPage(event, 'roles')
   const db = useDatabase()
 
-  const pageParam = Number(event.url.searchParams.get('page') ?? '1')
-  const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1
-  const limit = 20
-  const offset = (page - 1) * limit
-
-  const total = db.select({ n: count() }).from(schema.roles).get()?.n ?? 0
+  const { page, pageSize, offset } = getPaginationParams(event.url, 20)
+  const total = getTableCount(schema.roles)
   const items = db
     .select({
       id: schema.roles.id,
@@ -67,7 +63,7 @@ export const load: PageServerLoad = event => {
       permissions: schema.roles.permissions
     })
     .from(schema.roles)
-    .limit(limit)
+    .limit(pageSize)
     .offset(offset)
     .all()
 
@@ -75,7 +71,7 @@ export const load: PageServerLoad = event => {
     .filter(def => def.menu !== false)
     .map(def => ({ id: def.id }))
 
-  return { items, pages, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } }
+  return { items, pages, pagination: buildPagination(page, pageSize, total) }
 }
 
 export const actions: Actions = {

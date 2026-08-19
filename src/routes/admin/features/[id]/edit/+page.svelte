@@ -23,28 +23,18 @@
   const form = $derived($page.form)
   const errors = $derived((form as { fieldErrors?: Record<string, string[]> } | null)?.fieldErrors ?? {})
 
-  let slug = $state(p.slug)
-  let imageUrl = $state(p.imageUrl ?? '')
-  let hoverImageUrl = $state(p.hoverImageUrl ?? '')
-  let category = $state(p.category ?? '')
-  let order = $state(p.order !== null ? String(p.order) : '0')
-  let published = $state(p.published === true)
+  let slug = $state('')
+  let imageUrl = $state('')
+  let hoverImageUrl = $state('')
+  let category = $state('')
+  let order = $state('0')
+  let published = $state(false)
 
   const translations = $state<Record<string, { title: string; description: string }>>({})
   // Per-locale explicit-removal intent (the `remove_<loc>` checkboxes below).
   // Part of the dirty source so a removal-only edit enables Save — toggling
   // the checkbox must count as a change even when no field text is edited.
   const removals = $state<Record<string, boolean>>({})
-  {
-    for (const loc of locales) {
-      const row = featureTranslations.find(r => r.locale === loc)
-      translations[loc] = {
-        title: row?.title ?? '',
-        description: row?.description ?? ''
-      }
-      removals[loc] = false
-    }
-  }
 
   const { isDirty, markClean, guardNavigation } = createFormDirty(() => ({
     slug,
@@ -56,7 +46,27 @@
     translations,
     removals
   }))
-  markClean()
+
+  // Seed the editable form from the server-loaded record. Runs before the
+  // first paint (no blank flash) and re-seeds whenever the record changes, so
+  // client-side navigation between two records can never show stale values.
+  $effect.pre(() => {
+    slug = p.slug
+    imageUrl = p.imageUrl ?? ''
+    hoverImageUrl = p.hoverImageUrl ?? ''
+    category = p.category ?? ''
+    order = p.order !== null ? String(p.order) : '0'
+    published = p.published === true
+    for (const loc of locales) {
+      const row = featureTranslations.find(r => r.locale === loc)
+      translations[loc] = {
+        title: row?.title ?? '',
+        description: row?.description ?? ''
+      }
+      removals[loc] = false
+    }
+    markClean()
+  })
   // The form element arms the submit bypass — an intentional Save must not be
   // blocked by the unsaved-changes guard (nor its post-save redirect).
   let formEl = $state<HTMLFormElement | null>(null)

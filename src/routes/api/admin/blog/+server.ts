@@ -4,25 +4,27 @@ import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
-import { paginationSchema } from '$lib/server/utils/validation'
+import { slugSchema } from '$lib/server/utils/validation'
+import {
+  apiListEntities,
+  type SimpleEntitySpec
+} from '$lib/server/services/entity-crud'
+
+const blogSpec: SimpleEntitySpec<typeof schema.blogPosts> = {
+  table: schema.blogPosts,
+  idColumn: schema.blogPosts.id,
+  adminPage: 'blog'
+}
 
 const createSchema = z.object({
-  slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/),
+  slug: slugSchema,
   categoryId: z.number().int().nullable().optional(),
   coverImageUrl: z.string().nullable().optional(),
   published: z.boolean().optional().default(false)
 })
 
 export function GET(event: RequestEvent) {
-  requireAdminPage(event, 'blog')
-  const db = useDatabase()
-  const parsed = paginationSchema.safeParse(Object.fromEntries(event.url.searchParams))
-  if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
-  const { page, pageSize } = parsed.data
-  const offset = (page - 1) * pageSize
-  const all = db.select().from(schema.blogPosts).limit(pageSize).offset(offset).all()
-  const total = db.select({ id: schema.blogPosts.id }).from(schema.blogPosts).all().length
-  return json({ success: true, data: all, pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) } })
+  return apiListEntities(event, blogSpec)
 }
 
 export async function POST(event: RequestEvent) {
@@ -32,6 +34,13 @@ export async function POST(event: RequestEvent) {
   const parsed = createSchema.safeParse(body)
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
   const db = useDatabase()
-  const result = db.insert(schema.blogPosts).values({ ...parsed.data, authorId: actor.id }).returning().get()
+  // Publish semantics mirror the create page action: a published post gets a
+  // publishedAt timestamp (the public feed orders by desc(publishedAt)) so an
+  // API-published post is not pushed to the bottom of the listing.
+  const result = db.insert(schema.blogPosts).values({
+    ...parsed.data,
+    authorId: actor.id,
+    publishedAt: parsed.data.published ? new Date() : null
+  }).returning().get()
   return json(jsonSuccess(result))
 }

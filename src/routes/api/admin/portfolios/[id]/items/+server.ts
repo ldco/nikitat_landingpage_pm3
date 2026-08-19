@@ -6,6 +6,7 @@ import { useDatabase, schema } from '$lib/server/db'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess, apiFieldError } from '$lib/server/utils/api'
 import { getAdminPortfolioItems } from '$lib/server/services/portfolio'
+import { persistItemRuLocalizedText, type PortfolioItemLocalizedField } from '$lib/server/services/portfolio-admin'
 import { normalizeItemMetadata, safeMediaUrl, portfolioTypeRequiresMetadata } from '$lib/portfolio-metadata'
 import { markAdminMetadata } from '$lib/portfolio-metadata-import'
 import { portfolioItemTypesFor } from '$lib/portfolio-metadata-form'
@@ -18,6 +19,7 @@ const createSchema = z.object({
   title: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   content: z.string().nullable().optional(),
+  category: z.string().nullable().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
   published: z.boolean().optional().default(true)
   // NOTE: no `order` — raw client-controlled ordering is NOT accepted on
@@ -82,7 +84,14 @@ export async function POST(event: RequestEvent) {
     )
   }
 
-  const { metadata: rawMetadata, ...base } = parsed.data
+  const {
+    metadata: rawMetadata,
+    title,
+    description,
+    content,
+    category,
+    ...base
+  } = parsed.data
   const metadata = serializeMetadata(rawMetadata, portfolio.type)
 
   // Append after the persisted max order INSIDE a transaction — order is never
@@ -94,12 +103,22 @@ export async function POST(event: RequestEvent) {
       .orderBy(desc(schema.portfolioItems.order))
       .limit(1)
       .get()
-    return db.insert(schema.portfolioItems).values({
+    const inserted = db.insert(schema.portfolioItems).values({
       ...base,
       metadata,
       order: maxOrder?.order != null ? maxOrder.order + 1 : 0,
       portfolioId
-    }).returning().get()
+    }).returning({ id: schema.portfolioItems.id }).get()
+
+    // Localized body fields route to the ru translation row (ADR-001).
+    const ruFields: Partial<Record<PortfolioItemLocalizedField, string | null | undefined>> = {}
+    if (title !== undefined) ruFields.title = title
+    if (description !== undefined) ruFields.description = description
+    if (content !== undefined) ruFields.content = content
+    if (category !== undefined) ruFields.category = category
+    persistItemRuLocalizedText(inserted.id, ruFields)
+
+    return inserted
   })
   return json(jsonSuccess(result))
 }

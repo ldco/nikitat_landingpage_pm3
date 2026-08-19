@@ -20,6 +20,7 @@
    * API routes.
    */
   import { t } from '$lib/stores/content.svelte'
+  import { untrack } from 'svelte'
   import { page } from '$app/stores'
   import { getCsrfToken } from '$lib/utils/auth'
   import { API_ROUTES } from '$lib/utils/api-paths'
@@ -58,10 +59,14 @@
 
   // Rows are loaded ON DEMAND: the server ships only the initial locale; the
   // rest are fetched the first time their tab is opened (fetchLocaleRows).
-  const byLocale = $state<Record<string, AdminTranslationRow[]>>(data.byLocale ?? {})
+  // Intentional one-time captures seed the initial state; `byLocale` is
+  // mutated in place by the on-demand loader.
+  const initByLocale = untrack(() => data.byLocale ?? {})
+  const initLocaleCounts = untrack(() => data.localeCounts ?? {})
+  const byLocale = $state<Record<string, AdminTranslationRow[]>>(initByLocale)
   // Precomputed server-side counts (one lightweight query) — locale tabs and
   // the Content/System totals never filter raw row arrays.
-  const localeCounts = $state<Record<string, LocaleCounts>>(data.localeCounts ?? {})
+  const localeCounts = $state<Record<string, LocaleCounts>>(initLocaleCounts)
 
   // PM2: system section only editable by master (admin guide: "System |
   // Navigation, buttons, labels | Master only"); hidden namespace for legal docs
@@ -69,7 +74,8 @@
   const overlays = getOverlaysState()
 
   let activeSection = $state<'content' | 'system'>('content')
-  const initialLocale = resolveInitialLocale(data.locales)
+  const initLocales = untrack(() => data.locales)
+  const initialLocale = resolveInitialLocale(initLocales)
   let activeLocale = $state(initialLocale)
   let searchQuery = $state('')
   let loadingLocales = $state<ReadonlySet<string>>(new Set())
@@ -192,15 +198,19 @@
         headers: { 'x-csrf-token': getCsrfToken() }
       })
       const body = await res.json().catch(() => null)
-      if (!res.ok || body?.success === false) throw new Error()
+      // Surface the server's specific error (an i18n key code) instead of a
+      // generic toast — e.g. a key still referenced by content stays visible.
+      const errorCode = typeof body?.error?.code === 'string' ? body.error.code : ''
+      if (!res.ok || body?.success === false) throw new Error(errorCode)
       overlays.showToast(
         adminT['admin.translationDeleted'] ?? t('admin.translationDeleted'),
         'success'
       )
       await refreshFromServer()
-    } catch {
+    } catch (e) {
+      const key = e instanceof Error && e.message ? e.message : ''
       overlays.showToast(
-        adminT['admin.failedDeleteTranslation'] ?? t('admin.failedDeleteTranslation'),
+        key ? t(key) : (adminT['admin.failedDeleteTranslation'] ?? t('admin.failedDeleteTranslation')),
         'error'
       )
     }

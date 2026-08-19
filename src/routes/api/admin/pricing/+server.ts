@@ -4,32 +4,41 @@ import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { jsonSuccess } from '$lib/server/utils/api'
-import { paginationSchema } from '$lib/server/utils/validation'
+import { slugSchema } from '$lib/server/utils/validation'
+import {
+  PRICING_CURRENCIES,
+  PRICING_PERIODS,
+  PRICING_DEFAULT_CURRENCY,
+  PRICING_DEFAULT_PERIOD,
+  PRICING_DEFAULT_CTA_URL
+} from '$lib/pricing-constants'
+import {
+  apiListEntities,
+  type SimpleEntitySpec
+} from '$lib/server/services/entity-crud'
+
+const pricingSpec: SimpleEntitySpec<typeof schema.pricingTiers> = {
+  table: schema.pricingTiers,
+  idColumn: schema.pricingTiers.id,
+  adminPage: 'pricing'
+}
 
 const createSchema = z.object({
-  slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/),
+  slug: slugSchema,
   name: z.string().min(1).max(200),
   description: z.string().nullable().optional(),
   price: z.number().int().nullable().optional(),
-  currency: z.string().optional().default('USD'),
-  period: z.enum(['month', 'year', 'one-time']).optional().default('month'),
+  currency: z.enum(PRICING_CURRENCIES).optional().default(PRICING_DEFAULT_CURRENCY),
+  period: z.enum(PRICING_PERIODS).optional().default(PRICING_DEFAULT_PERIOD),
   featured: z.boolean().optional().default(false),
   ctaText: z.string().nullable().optional(),
-  ctaUrl: z.string().optional().default('/contact'),
+  ctaUrl: z.string().optional().default(PRICING_DEFAULT_CTA_URL),
   published: z.boolean().optional().default(true),
   order: z.number().int().optional().default(0)
 })
 
 export function GET(event: RequestEvent) {
-  requireAdminPage(event, 'pricing')
-  const db = useDatabase()
-  const parsed = paginationSchema.safeParse(Object.fromEntries(event.url.searchParams))
-  if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
-  const { page, pageSize } = parsed.data
-  const offset = (page - 1) * pageSize
-  const all = db.select().from(schema.pricingTiers).limit(pageSize).offset(offset).all()
-  const total = db.select({ id: schema.pricingTiers.id }).from(schema.pricingTiers).all().length
-  return json({ success: true, data: all, pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) } })
+  return apiListEntities(event, pricingSpec)
 }
 
 export async function POST(event: RequestEvent) {

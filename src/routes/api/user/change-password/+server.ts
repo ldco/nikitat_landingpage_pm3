@@ -1,4 +1,4 @@
-import { error, json } from '@sveltejs/kit'
+import { json } from '@sveltejs/kit'
 import type { RequestEvent } from '@sveltejs/kit'
 import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm'
 import { verifyPassword, hashPassword, validatePassword, DEFAULT_PASSWORD_POLICY } from '$lib/server/auth/password'
 import { createSession, deleteUserSessions, sessionCookieMaxAge } from '$lib/server/auth/session'
 import { isPasswordBreached } from '$lib/server/utils/breach-check'
-import { requireAuth } from '$lib/server/utils/api'
+import { apiErrorResponse, requireAuth } from '$lib/server/utils/api'
 import { audit } from '$lib/server/audit'
 import { getClientIp, changePasswordRateLimiter } from '$lib/server/security/rateLimit'
 
@@ -18,18 +18,20 @@ const changePasswordSchema = z.object({
 /**
  * PUT /api/user/change-password
  * Changes the current user's password after verifying the current one.
+ * Errors are contract-format responses carrying i18n KEY codes (the client
+ * translates them) instead of raw English literals with generic http.* codes.
  */
 export async function PUT(event: RequestEvent) {
   const user = requireAuth(event)
 
   if (!changePasswordRateLimiter.check(String(user.id))) {
-    throw error(429, 'Too many attempts. Please try again later.')
+    return apiErrorResponse(429, 'apiErrors.auth.tooManyLoginAttempts', 'Too many attempts. Please try again later.')
   }
 
   const body = await event.request.json().catch(() => null)
-  if (!body) throw error(400, 'Invalid password change request')
+  if (!body) return apiErrorResponse(400, 'apiErrors.auth.changePasswordInvalidInput', 'Invalid password change request')
   const parsed = changePasswordSchema.safeParse(body)
-  if (!parsed.success) throw error(400, 'Invalid password change request')
+  if (!parsed.success) return apiErrorResponse(400, 'apiErrors.auth.changePasswordInvalidInput', 'Invalid password change request')
 
   const { currentPassword, newPassword } = parsed.data
 
@@ -40,21 +42,21 @@ export async function PUT(event: RequestEvent) {
     .where(eq(schema.users.id, user.id))
     .get()
 
-  if (!row) throw error(404, 'User not found')
+  if (!row) return apiErrorResponse(404, 'apiErrors.auth.authenticationRequired', 'User not found')
 
   if (!verifyPassword(currentPassword, row.passwordHash)) {
-    throw error(401, 'Current password is incorrect')
+    return apiErrorResponse(401, 'apiErrors.auth.currentPasswordIncorrect', 'Current password is incorrect')
   }
 
   const policy = validatePassword(newPassword, DEFAULT_PASSWORD_POLICY)
   if (!policy.valid) {
-    throw error(400, 'Password does not meet policy requirements')
+    return apiErrorResponse(400, 'apiErrors.auth.passwordPolicyFailed', 'Password does not meet policy requirements')
   }
 
   // audit N-4: optional HIBP breach check (fail-open — never blocks on the API)
   const breached = await isPasswordBreached(newPassword)
   if (breached) {
-    throw error(400, 'Password appears in known data breaches. Choose a different one.')
+    return apiErrorResponse(400, 'apiErrors.auth.passwordBreached', 'Password appears in known data breaches. Choose a different one.')
   }
 
   db.update(schema.users)

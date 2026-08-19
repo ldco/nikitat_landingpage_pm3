@@ -42,7 +42,10 @@
   const overlays = getOverlaysState()
 
   let showModal = $state(false)
-  let currentPage = $state(data.pagination?.page ?? 1)
+  let currentPage = $state(1)
+  $effect.pre(() => {
+    currentPage = data.pagination?.page ?? 1
+  })
   let editingRole = $state<EditingRole | null>(null)
 
   function openCreate() {

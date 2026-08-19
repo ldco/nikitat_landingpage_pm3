@@ -39,7 +39,10 @@
   const overlays = getOverlaysState()
   let deletePending = $state<number | null>(null)
   let deleteError = $state<string | null>(null)
-  let currentPage = $state(data.pagination?.page ?? 1)
+  let currentPage = $state(1)
+  $effect.pre(() => {
+    currentPage = data.pagination?.page ?? 1
+  })
 
   async function handleDelete(id: number, title: string) {
     const msg = adminT['admin.confirmDelete'] ?? t('common.areYouSure')
