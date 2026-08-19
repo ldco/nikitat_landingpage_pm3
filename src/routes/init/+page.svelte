@@ -12,9 +12,11 @@
    * client-side navigation — it is an enhancement, not the only submission
    * path.
    */
-import { t } from '$lib/stores/content.svelte'
+  import { t } from '$lib/stores/content.svelte'
+  import { untrack } from 'svelte'
   import Logo from '$lib/components/atoms/Logo.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import FormField from '$lib/components/atoms/FormField.svelte'
   import { DEFAULT_LOCALE } from '$lib/config/site'
   import { page } from '$app/stores'
   import { enhance } from '$app/forms'
@@ -22,7 +24,9 @@ import { t } from '$lib/stores/content.svelte'
   let { data } = $props()
 
   let contactEmail = $state('')
-  let defaultLocale = $state(data.locales[0] ?? DEFAULT_LOCALE)
+  // Intentional one-time capture: the wizard defaults from the first locale.
+  const firstLocale = untrack(() => data.locales[0] ?? DEFAULT_LOCALE)
+  let defaultLocale = $state(firstLocale)
 
   // Validation errors flow through $page.form: the server action returns
   // fail(400, { fieldErrors }), which the enhanced submission applies in
@@ -31,6 +35,7 @@ import { t } from '$lib/stores/content.svelte'
   // failures update $page.form, redirects navigate — no custom callback needed.
   const form = $derived($page.form)
   const fieldErrors = $derived((form as { fieldErrors?: Record<string, string[]> } | null)?.fieldErrors ?? {})
+  const localeOptions = $derived((data.locales ?? []).map(loc => ({ value: loc, label: loc })))
 </script>
 
 <div class="min-h-screen flex items-center justify-center bg-pm-bg">
@@ -45,39 +50,22 @@ import { t } from '$lib/stores/content.svelte'
 
       <form method="POST" use:enhance class="space-y-4">
         <input type="hidden" name="_csrf" value={data.csrfToken} />
-        <div>
-          <label for="contactEmail" class="block text-sm font-medium text-pm-text mb-1">
-            {t('init.contactEmail')}
-          </label>
-          <input
-            id="contactEmail"
-            name="contactEmail"
-            type="email"
-            required
-            bind:value={contactEmail}
-            class="w-full rounded-md border border-pm-border bg-pm-bg px-3 py-2 text-sm text-pm-text focus:outline-none focus:ring-2 focus:ring-pm-brand"
-          />
-          <p class="text-xs text-pm-text-muted mt-1">{t('init.contactEmailHint')}</p>
-          {#if fieldErrors.contactEmail}
-            <p class="text-xs text-pm-error mt-1">{fieldErrors.contactEmail[0]}</p>
-          {/if}
-        </div>
-
-        <div>
-          <label for="defaultLocale" class="block text-sm font-medium text-pm-text mb-1">
-            {t('init.defaultLocale')}
-          </label>
-          <select
-            id="defaultLocale"
-            name="defaultLocale"
-            bind:value={defaultLocale}
-            class="w-full rounded-md border border-pm-border bg-pm-bg px-3 py-2 text-sm text-pm-text focus:outline-none focus:ring-2 focus:ring-pm-brand"
-          >
-            {#each data.locales as loc}
-              <option value={loc}>{loc}</option>
-            {/each}
-          </select>
-        </div>
+        <FormField
+          name="contactEmail"
+          label={t('init.contactEmail')}
+          type="email"
+          required
+          bind:value={contactEmail}
+          hint={t('init.contactEmailHint')}
+          error={fieldErrors.contactEmail?.[0] ? t(fieldErrors.contactEmail[0]) : ''}
+        />
+        <FormField
+          name="defaultLocale"
+          label={t('init.defaultLocale')}
+          type="select"
+          options={localeOptions}
+          bind:value={defaultLocale}
+        />
 
         <CtaButton
           type="submit"

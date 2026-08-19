@@ -96,7 +96,6 @@ import { t } from '$lib/stores/content.svelte'
         pattern={useBackupCode ? '[A-Za-z0-9]*' : '[0-9]*'}
         maxlength={useBackupCode ? 8 : 6}
         autocomplete="one-time-code"
-        autofocus
         class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-pm-text text-sm focus:outline-none focus:ring-2 focus:ring-pm-focus-ring"
         placeholder={useBackupCode ? t('auth.twoFactor.backupPlaceholder') : t('auth.twoFactor.codePlaceholder')}
       />

@@ -11,6 +11,8 @@
   import { t } from '$lib/stores/content.svelte'
   import { FEATURES, MODULES } from '$lib/config/site'
   import Section from '$lib/components/atoms/Section.svelte'
+  import EmptyState from '$lib/components/atoms/EmptyState.svelte'
+  import Card from '$lib/components/atoms/Card.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
   import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
 
@@ -37,15 +39,15 @@
       colsDesktop >= 4 && 'xl:grid-cols-4',
     )}>
       {#each features as feature}
-        <div class="text-center p-6 rounded-xl bg-pm-bg-elevated border border-pm-border">
+        <Card class="text-center">
           {#if feature.icon}
             <span class="text-3xl block mb-3">{feature.icon}</span>
           {/if}
           <h3 class="text-lg font-bold text-pm-text mb-2">{feature.title}</h3>
           <p class="text-sm text-pm-text-muted leading-relaxed">{feature.description}</p>
-        </div>
+        </Card>
       {:else}
-        <p class="text-center text-pm-muted col-span-full py-16">{t('common.note')}</p>
+        <EmptyState size="compact" title={t('common.note')} class="col-span-full" />
       {/each}
     </div>
   </SectionContent>

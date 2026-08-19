@@ -45,7 +45,7 @@ import { t } from '$lib/stores/content.svelte'
       </time>
     {/if}
     {#if post.readingTimeMinutes}
-      <span>{post.readingTimeMinutes} min read</span>
+      <span>{t('blog.minRead', { minutes: String(post.readingTimeMinutes) })}</span>
     {/if}
   </div>
 

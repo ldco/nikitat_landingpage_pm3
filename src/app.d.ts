@@ -24,6 +24,16 @@ declare global {
        */
       csrfForm?: FormData
     }
+
+    /**
+     * Typed error body: the shared API envelope (rule 11) carries a machine-
+     * readable i18n `code` plus optional details so `apiError()` never needs
+     * to cast SvelteKit's error payload.
+     */
+    interface Error {
+      code?: string
+      details?: Record<string, unknown>
+    }
   }
 }
 

@@ -11,6 +11,8 @@
   import { twMerge } from 'tailwind-merge'
   import { t } from '$lib/stores/content.svelte'
   import Section from '$lib/components/atoms/Section.svelte'
+  import EmptyState from '$lib/components/atoms/EmptyState.svelte'
+  import Card from '$lib/components/atoms/Card.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
   import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
   import IconCpu from '@tabler/icons-svelte/icons/cpu'
@@ -29,10 +31,10 @@
   const title = $derived(t('focus.title', t('sections.services')))
   const devLabel = $derived(t('focus.dev', t('sections.services')))
   const designLabel = $derived(t('focus.design', t('sections.services')))
-  type Card = { title: string; desc: string; category: 'dev' | 'design'; icon: typeof IconCpu }
+  type FocusCard = { title: string; desc: string; category: 'dev' | 'design'; icon: typeof IconCpu }
   const cards = $derived.by(() => {
     const icons = [IconCpu, IconBuilding, IconCode, IconPalette, IconComponents, IconTemplate]
-    const result: Card[] = []
+    const result: FocusCard[] = []
     for (let i = 1; i <= 6; i++) {
       const ct = t(`focus.card${i}.title`, '')
       const cd = t(`focus.card${i}.desc`, '')
@@ -48,8 +50,8 @@
     {#if cards.length > 0}
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[var(--gap-lg)]">
         {#each cards as card}
-          <div class={twMerge(clsx(
-            'flex flex-col items-start p-[var(--space-6)] bg-pm-bg-elevated border border-pm-border rounded-[var(--radius-xl)] shadow-frosted',
+          <Card class={twMerge(clsx(
+            'flex flex-col items-start shadow-frosted rounded-[var(--radius-xl)]',
             'border-t-[var(--focus-card-accent-height)] border-t-solid border-t-transparent',
             'transition-[transform,box-shadow] duration-200 ease-smooth',
             card.category === 'dev' ? 'border-t-pm-brand' : 'border-t-pm-brand-subtle'
@@ -68,11 +70,11 @@
             </div>
             <h3 class="text-xl font-semibold mb-[var(--space-2)] text-pm-text">{card.title}</h3>
             <p class="text-base text-pm-text-secondary leading-relaxed">{card.desc}</p>
-          </div>
+          </Card>
         {/each}
       </div>
     {:else}
-      <p class="text-center text-pm-muted py-12">{t('common.note')}</p>
+      <EmptyState size="compact" title={t('common.note')} />
     {/if}
   </SectionContent>
 </Section>

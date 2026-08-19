@@ -4,6 +4,7 @@
    */
   import '../app.css'
   import { clsx } from 'clsx'
+  import { untrack } from 'svelte'
   import { page } from '$app/stores'
   import { fade, slide, scale, fly } from 'svelte/transition'
   import { FEATURES, LOCALES } from '$lib/config/site'
@@ -57,14 +58,30 @@ if (browser) {
   // Content translations: call synchronously during setup (SSR needs this)
   // and in $effect for client-side navigation updates (locale changes)
   // SSR needs sync init; $effect for client nav. data captured at init is intentional.
-  initContent(data.contentTranslations ?? {})
-  useSettings(data.publicSettings as Record<string, string | null> ?? {})
+  initContent(untrack(() => data.contentTranslations ?? {}))
+  useSettings(untrack(() => data.publicSettings ?? {}))
   $effect(() => {
     // SSR needs sync init; $effect for client nav. data captured at init is intentional.
   initContent(data.contentTranslations ?? {})
   })
   const transitionType = $derived(!isOnepager ? FEATURES.pageTransitions : '')
   const isVerticalNav = $derived(FEATURES.verticalNav)
+
+  // One config map drives every page-transition branch — no repeated
+  // `{#if transitionType === ...}` blocks with duplicated duration literals.
+  // Destructured to plain identifiers so the `transition:` directive (which
+  // requires a bare identifier, not a member expression) can use them.
+  const { fn: transitionFn, params: transitionParams } = $derived.by(() => {
+    const duration = 200
+    switch (transitionType) {
+      case 'slide-left': return { fn: slide, params: { duration, axis: 'x' as const } }
+      case 'slide-up': return { fn: slide, params: { duration, axis: 'y' as const } }
+      case 'scale': return { fn: scale, params: { duration, start: 0.95 } }
+      case 'zoom': return { fn: scale, params: { duration, start: 1.1 } }
+      case 'flip': return { fn: fly, params: { duration, x: 300 } }
+      default: return { fn: fade, params: { duration } }
+    }
+  })
 
   // Admin shell detection. $page.url.pathname is the ADDRESS-BAR URL — during
   // a locale switch the client navigates to the same rerouted admin route but
@@ -94,21 +111,7 @@ if (browser) {
 {/if}
 <main id="main-content" class={clsx(!isAdminRoute && 'min-h-screen', !isAdminRoute && (isVerticalNav ? 'ms-16' : ''))} use:scrollSpy>
   {#key $page.url.pathname}
-    {#if transitionType === 'fade'}
-      <div transition:fade={{ duration: 200 }}>{@render children?.()}</div>
-    {:else if transitionType === 'slide-left'}
-      <div transition:slide={{ duration: 200, axis: 'x' }}>{@render children?.()}</div>
-    {:else if transitionType === 'slide-up'}
-      <div transition:slide={{ duration: 200, axis: 'y' }}>{@render children?.()}</div>
-    {:else if transitionType === 'scale'}
-      <div transition:scale={{ duration: 200, start: 0.95 }}>{@render children?.()}</div>
-    {:else if transitionType === 'zoom'}
-      <div transition:scale={{ duration: 200, start: 1.1 }}>{@render children?.()}</div>
-    {:else if transitionType === 'flip'}
-      <div transition:fly={{ duration: 200, x: 300 }}>{@render children?.()}</div>
-    {:else}
-      <div transition:fade={{ duration: 200 }}>{@render children?.()}</div>
-    {/if}
+    <div transition:transitionFn={{ ...transitionParams }}>{@render children?.()}</div>
   {/key}
 </main>
 {#if !isAdminRoute}

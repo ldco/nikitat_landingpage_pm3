@@ -18,6 +18,7 @@
   import { currentLocale } from '$lib/stores/locale.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import Section from '$lib/components/atoms/Section.svelte'
+  import EmptyState from '$lib/components/atoms/EmptyState.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
   import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
   import PortfolioCard from '$lib/components/molecules/PortfolioCard.svelte'
@@ -45,7 +46,7 @@
         {/each}
       </div>
     {:else}
-      <p class="text-center text-pm-text-muted py-12">{t('common.note')}</p>
+      <EmptyState size="compact" title={t('common.note')} />
     {/if}
     <div class="flex justify-center mt-10">
       <CtaButton href={localizedHref('/portfolio', locale)} variant="outline" size="lg">{t('common.more')}</CtaButton>

@@ -19,6 +19,7 @@
    * Rule #1: class prop + twMerge
    */
   import AppImage from '$lib/components/atoms/AppImage.svelte'
+  import { untrack } from 'svelte'
   import EmptyState from '$lib/components/atoms/EmptyState.svelte'
   import Seo from '$lib/components/atoms/Seo.svelte'
   import SegmentedControl from '$lib/components/atoms/SegmentedControl.svelte'
@@ -68,13 +69,13 @@
   // toggle to a grid; every other type is grid-only. State is keyed to the
   // current portfolio so client-side navigation between two portfolios resets
   // selection/viewer/layout instead of leaking the previous portfolio's state.
-  let layoutMode = $state<'fullscreen' | 'grid'>(
-    portfolio.type === 'branding' ? 'fullscreen' : 'grid'
-  )
+  const initialLayoutMode = untrack(() => data.portfolio.type === 'branding' ? 'fullscreen' : 'grid')
+  let layoutMode = $state<'fullscreen' | 'grid'>(initialLayoutMode)
   let selectedIndex = $state(0)
   // Overlay types start closed (click-to-open); inline types show the selected
   // item's detail by default.
-  let viewerOpen = $state(!isOverlayType)
+  const initialViewerOpen = untrack(() => !(data.portfolio.type === 'branding' || data.portfolio.type === 'website'))
+  let viewerOpen = $state(initialViewerOpen)
   const selectedItem = $derived(viewerItems[selectedIndex] ?? null)
 
   // The branding fullscreen browser renders one h-dvh slide per item. Bounding

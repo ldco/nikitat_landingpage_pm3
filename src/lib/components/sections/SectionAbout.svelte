@@ -14,6 +14,7 @@
    */
   import { t } from '$lib/stores/content.svelte'
   import Section from '$lib/components/atoms/Section.svelte'
+  import EmptyState from '$lib/components/atoms/EmptyState.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
   import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
   import BeforeAfterSlider from '$lib/components/molecules/BeforeAfterSlider.svelte'
@@ -63,7 +64,7 @@
             <p class="text-[var(--text-section-body)] font-normal text-pm-text-secondary leading-relaxed">{paragraph2}</p>
           {/if}
         {:else}
-          <p class="text-fluid-2xl text-pm-text-secondary leading-relaxed text-center">{t('common.note')}</p>
+          <EmptyState size="compact" title={t('common.note')} />
         {/if}
       </div>
     </div>

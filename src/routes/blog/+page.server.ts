@@ -1,9 +1,12 @@
 import type { PageServerLoad } from './$types'
 import { getPostsPaginated } from '$lib/server/services/blog'
-import * as runtime from '$lib/paraglide/runtime.js'
+import { activeLocale } from '$lib/server/utils/locales'
+import { MODULES } from '$lib/config/site'
 
-export const load: PageServerLoad = async ({ url }) => {
-  const locale = runtime.languageTag()
+export const load: PageServerLoad = async ({ url, locals }) => {
+  const locale = activeLocale(locals.paraglide?.lang)
   const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '1', 10) || 1)
-  return getPostsPaginated(locale, page, 9)
+  const configured = MODULES.blog?.config.postsPerPage
+  const pageSize = typeof configured === 'number' ? configured : 10
+  return getPostsPaginated(locale, page, pageSize)
 }

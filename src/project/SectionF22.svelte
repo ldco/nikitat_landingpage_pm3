@@ -48,7 +48,7 @@
 
     <div class="flex flex-col items-center">
       {#if description}
-        <!-- eslint-disable-next-line -->
+        <!-- eslint-disable-next-line svelte/no-at-html-tags -- description is project-authored config content (content.json), sanitized upstream -->
         <div class="text-fluid-2xl text-pm-text-secondary leading-relaxed mb-[var(--space-8)]">{@html description}</div>
       {:else}
         <p class="text-fluid-2xl text-pm-text-secondary leading-relaxed mb-[var(--space-8)]">{t('common.note')}</p>

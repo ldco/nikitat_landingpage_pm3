@@ -1,14 +1,15 @@
 import type { PageServerLoad } from './$types'
 import { error } from '@sveltejs/kit'
-import { readLegalDocument } from '$lib/utils/legal-documents'
+import { readLegalDocument, LEGAL_DOCUMENT_SLUGS } from '$lib/utils/legal-documents'
 import { activeLocale } from '$lib/server/utils/locales'
 
 export const load: PageServerLoad = ({ params, locals }) => {
   const locale = activeLocale(locals.paraglide?.lang)
   const slug = params.slug ?? ''
 
-  const knownSlugs = ['privacy-policy', 'personal-data-policy', 'terms-of-service']
-  if (!knownSlugs.includes(slug)) error(404)
+  // Same canonical slug list that drives the footer links (legal-documents.ts)
+  // — a document added there is automatically routable here.
+  if (!LEGAL_DOCUMENT_SLUGS.includes(slug)) error(404)
 
   // DB-first (admin-edited content) with filesystem fallback through the
   // locale → DEFAULT_LOCALE → framework-en baseline chain.

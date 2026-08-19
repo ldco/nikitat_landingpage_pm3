@@ -23,6 +23,9 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { t } from '$lib/stores/content.svelte'
+  import { localizedHref } from '$lib/utils/navigation'
+  import { currentLocale } from '$lib/stores/locale.svelte'
+  import { legalDocumentLabelKey } from '$lib/utils/legal-labels'
   import { FEATURES, FRAMEWORK } from '$lib/config/site'
   import MadeBy from '$lib/components/atoms/MadeBy.svelte'
   import MadeWith from '$lib/components/atoms/MadeWith.svelte'
@@ -53,11 +56,9 @@
   const showMadeWith = $derived(FEATURES.footerMadeWith)
   const showFooterCta = $derived(FEATURES.footerCta)
 
-  /** Resolve translated title for a legal document file (typed, no dynamic indexing) */
+  /** Resolve translated title for a legal document file (shared slug→label map). */
   function legalDocLabel(file: string): string {
-    if (file === 'privacy-policy') return t('footer.privacy')
-    if (file === 'personal-data-policy') return t('footer.personalData')
-    return t('footer.terms')
+    return t(legalDocumentLabelKey(file))
   }
 </script>
 
@@ -97,7 +98,7 @@
       {#if showLegalLinks && legalDocs.length > 0}
       <div class="flex gap-3">
         {#each legalDocs as doc (doc.slug)}
-          <a href={`/legal/${doc.slug}`} class="text-pm-text-muted underline underline-offset-2 decoration-1 hover:text-pm-text transition-colors decoration-pm-border/50">{legalDocLabel(doc.file)}</a>
+          <a href={localizedHref(`/legal/${doc.slug}`, currentLocale())} class="text-pm-text-muted underline underline-offset-2 decoration-1 hover:text-pm-text transition-colors decoration-pm-border/50">{legalDocLabel(doc.file)}</a>
         {/each}
       </div>
       {/if}

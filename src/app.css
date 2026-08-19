@@ -217,6 +217,10 @@
   --width-key-column: 35%;
   --grid-admin-form: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
 
+  /* --- Grid Primitives --- */
+  /* Smallest auto-fit column for the shared Grid atom (no literal px in markup). */
+  --grid-auto-min: 280px;
+
   /* --- Admin Bottom Nav Tokens (PM v2 bottom-nav.css parity) --- */
   --app-bottom-nav-height: 3.5rem;
   --app-bottom-nav-safe: env(safe-area-inset-bottom, 0px);

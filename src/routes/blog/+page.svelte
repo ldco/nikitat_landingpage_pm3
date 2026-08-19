@@ -5,7 +5,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import AppImage from '$lib/components/atoms/AppImage.svelte'
+  import BlogPostCard from '$lib/components/molecules/BlogPostCard.svelte'
   import Pagination from '$lib/components/molecules/Pagination.svelte'
   import Seo from '$lib/components/atoms/Seo.svelte'
 import { t } from '$lib/stores/content.svelte'
@@ -27,27 +27,7 @@ import { t } from '$lib/stores/content.svelte'
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {#each data.posts as post}
-      <article class="flex flex-col overflow-hidden rounded-xl border border-pm-border bg-pm-bg hover:shadow-lg transition-all duration-200">
-        {#if post.coverImageUrl}
-          <div class="aspect-video overflow-hidden">
-            <AppImage src={post.coverImageUrl} alt={post.coverImageAlt ?? post.title} class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-          </div>
-        {/if}
-        <div class="flex flex-col flex-1 p-5">
-          {#if post.readingTimeMinutes}
-            <span class="text-xs text-pm-text-muted mb-2">{t('blog.minRead', { minutes: String(post.readingTimeMinutes) })}</span>
-          {/if}
-          <h2 class="text-lg font-bold text-pm-text">
-            <a href={localizedHref(`/blog/${post.slug}`, locale)} class="hover:text-pm-brand transition-colors">{post.title}</a>
-          </h2>
-          {#if post.excerpt}
-            <p class="mt-2 text-sm text-pm-text-muted line-clamp-3">{post.excerpt}</p>
-          {/if}
-          {#if post.publishedAt}
-            <p class="mt-auto pt-4 text-xs text-pm-text-muted">{new Date(Number(post.publishedAt) * 1000).toLocaleDateString()}</p>
-          {/if}
-        </div>
-      </article>
+      <BlogPostCard {...post} />
     {/each}
   </div>
 

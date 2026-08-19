@@ -11,6 +11,7 @@
   import { FEATURES } from '$lib/config/site'
   import BlogPostCard from '$lib/components/molecules/BlogPostCard.svelte'
   import Section from '$lib/components/atoms/Section.svelte'
+  import EmptyState from '$lib/components/atoms/EmptyState.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
   import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
 
@@ -32,7 +33,7 @@
       {#each posts as post}
         <BlogPostCard {...post} />
       {:else}
-        <p class="text-center text-pm-muted col-span-full py-16">{t('common.note')}</p>
+        <EmptyState size="compact" title={t('common.note')} class="col-span-full" />
       {/each}
     </div>
   </SectionContent>

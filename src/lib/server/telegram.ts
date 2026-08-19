@@ -10,6 +10,7 @@ import { setDefaultResultOrder } from 'node:dns'
 import { logger } from './utils/logger'
 import { useDatabase, schema } from '$lib/server/db'
 import { eq } from 'drizzle-orm'
+import { DEFAULT_LOCALE, LOCALE_CONFIG } from '$lib/config/site'
 
 // Some deployment hosts resolve api.telegram.org to IPv6 first even when IPv6
 // egress is broken. Prefer IPv4 so notifications do not silently stall.
@@ -30,8 +31,16 @@ function getSettingValue(key: string): string | null {
 
 function formatTelegramDate(value: Date | string | number | null | undefined): string {
   const date = value instanceof Date ? value : value ? new Date(value) : new Date()
-  const parts = new Intl.DateTimeFormat('ru-RU', {
-    timeZone: 'Europe/Moscow',
+  // Locale comes from the project config (site-config.ts); the timezone is
+  // admin-configurable via the `contact.telegramTimezone` setting, falling
+  // back to the server's own zone — a framework never hardcodes a zone.
+  const localeIso = LOCALE_CONFIG[DEFAULT_LOCALE]?.iso ?? 'en-US'
+  const timeZone =
+    getSettingValue('contact.telegramTimezone')
+    || Intl.DateTimeFormat().resolvedOptions().timeZone
+    || 'UTC'
+  const parts = new Intl.DateTimeFormat(localeIso, {
+    timeZone,
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',

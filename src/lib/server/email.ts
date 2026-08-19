@@ -9,6 +9,8 @@ import nodemailer from 'nodemailer'
 import type { Transporter } from 'nodemailer'
 import { logger } from './utils/logger'
 import { useEnv } from './utils/env'
+import { DEFAULT_LOCALE } from '$lib/config/site'
+import { getSanitizedContentTranslations } from '$lib/server/db/content-cache'
 
 // Lazy-initialized transporter
 let transporter: Transporter | null = null
@@ -73,21 +75,58 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
 
 /**
  * Send contact form confirmation to the user who submitted.
+ *
+ * The email copy is i18n-managed: strings resolve from the translations table
+ * for the project's default locale (the DB is the runtime owner, seeded from
+ * i18n/system-seed.json under `email.contactConfirmation.*`). The literals
+ * below are the compile-time catalog fallbacks — identical to the seed
+ * defaults — so an unseeded DB still sends readable copy.
  */
 export async function sendContactConfirmation(
   to: string,
   name: string,
   siteName = 'Our Team'
 ): Promise<boolean> {
+  const catalog = getSanitizedContentTranslations(DEFAULT_LOCALE)
+
+  function text(key: string, fallback: string, params: Record<string, string>): string {
+    let value = catalog[key] ?? fallback
+    for (const [k, v] of Object.entries(params)) {
+      value = value.replaceAll(`{${k}}`, v)
+    }
+    return value
+  }
+
+  const subject = text(
+    'email.contactConfirmation.subject',
+    'We received your message - {siteName}',
+    { siteName }
+  )
+  const body = text(
+    'email.contactConfirmation.body',
+    'Hi {name},\n\nThank you for contacting us! We have received your message and will get back to you as soon as possible.\n\nBest regards,\n{siteName}',
+    { name, siteName }
+  )
+  const heading = text(
+    'email.contactConfirmation.htmlHeading',
+    'Thank you for reaching out!',
+    {}
+  )
+  const htmlBody = text(
+    'email.contactConfirmation.htmlBody',
+    'We have received your message and will get back to you as soon as possible.',
+    {}
+  )
+
   return sendEmail({
     to,
-    subject: `We received your message - ${siteName}`,
-    text: `Hi ${name},\n\nThank you for contacting us! We have received your message and will get back to you as soon as possible.\n\nBest regards,\n${siteName}`,
+    subject,
+    text: body,
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2>Thank you for reaching out!</h2>
+        <h2>${heading}</h2>
         <p>Hi ${name},</p>
-        <p>We have received your message and will get back to you as soon as possible.</p>
+        <p>${htmlBody}</p>
         <p>Best regards,<br/><strong>${siteName}</strong></p>
       </div>
     `

@@ -14,6 +14,7 @@
   import PricingCard from '$lib/components/molecules/PricingCard.svelte'
   import PricingComparison from '$lib/components/molecules/PricingComparison.svelte'
   import Section from '$lib/components/atoms/Section.svelte'
+  import EmptyState from '$lib/components/atoms/EmptyState.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
   import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
 
@@ -44,7 +45,7 @@
       {#each tiers as tier}
         <PricingCard {...tier} />
       {:else}
-        <p class="text-center text-pm-muted col-span-full py-16">{t('common.note')}</p>
+        <EmptyState size="compact" title={t('common.note')} class="col-span-full" />
       {/each}
     </div>
     {#if showComparison}

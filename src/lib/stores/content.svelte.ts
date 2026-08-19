@@ -33,10 +33,15 @@ export function initContent(translations: Record<string, string>) {
 /**
  * Resolve a dotted key against the Paraglide message catalog (a.b → a_b).
  * Params are forwarded so catalog messages with {param} placeholders work.
+ *
+ * The catalog module is a generated namespace of message functions, so a
+ * computed-key lookup needs an index-signature view of it; the values are
+ * runtime-checked functions and invoked with the uniform (optional params)
+ * contract every Paraglide message shares.
  */
 function paraglideMessage(key: string, params?: Record<string, unknown>): string | undefined {
   const msgKey = key.replace(/\./g, '_')
-  const msgModule = m as unknown as Record<string, unknown>
+  const msgModule = m as Record<string, unknown>
   if (!(msgKey in msgModule)) return undefined
   const fn = msgModule[msgKey]
   if (typeof fn !== 'function') return undefined

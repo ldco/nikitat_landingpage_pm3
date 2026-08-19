@@ -7,19 +7,15 @@
 import { t } from '$lib/stores/content.svelte'
   import Seo from '$lib/components/atoms/Seo.svelte'
   import { renderLegalMarkdown } from '$lib/utils/legal-markdown'
+  import { legalDocumentLabelKey } from '$lib/utils/legal-labels'
   import { FEATURES } from '$lib/config/site'
   import type { PageData } from './$types'
   let { data }: { data: PageData } = $props()
   const isContained = $derived(FEATURES.bodyWidthMode === 'contained')
 
-  // Doc-specific title via the shared metadata contract (translated labels).
-  const legalTitle = $derived(
-    data.slug === 'privacy-policy'
-      ? t('footer.privacy')
-      : data.slug === 'personal-data-policy'
-        ? t('footer.personalData')
-        : t('legal.title')
-  )
+  // Doc-specific title via the shared slug→label mapping (same source as the
+  // footer legal links — translated labels can never drift between surfaces).
+  const legalTitle = $derived(t(legalDocumentLabelKey(data.slug)))
 
   const rendered = $derived(renderLegalMarkdown(data.markdown ?? ''))
 </script>

@@ -77,7 +77,7 @@ import { t } from '$lib/stores/content.svelte'
         onChanged?.()
         close()
       } else {
-        errorMessage = res.error?.code === 'http.401'
+        errorMessage = res.error?.code === 'apiErrors.auth.currentPasswordIncorrect'
           ? t('apiErrors.auth.currentPasswordIncorrect')
           : t('apiErrors.auth.passwordPolicyFailed')
       }

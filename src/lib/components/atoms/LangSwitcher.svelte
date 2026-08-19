@@ -102,17 +102,21 @@
   }
 </script>
 
+{#snippet option(code: string)}
+  <button
+    type="button"
+    class={clsx(optionBase, code === currentLocale ? optionActive : optionIdle)}
+    onclick={() => selectLocale(code)}
+  >
+    {code}
+  </button>
+{/snippet}
+
 {#if mode === 'inline'}
   <!-- ═══ INLINE MODE (PM v2: direction="inline") ═══ -->
   <div class={twMerge(clsx('lang-switcher-inline flex items-center gap-1', className))}>
     {#each availableLanguageTags as code}
-      <button
-        type="button"
-        class={clsx(optionBase, code === currentLocale ? optionActive : optionIdle)}
-        onclick={() => selectLocale(code)}
-      >
-        {code}
-      </button>
+      {@render option(code)}
     {/each}
   </div>
 
@@ -120,13 +124,7 @@
   <!-- ═══ SIDE-BY-SIDE MODE (PM v2: direction="side") ═══ -->
   <div class={twMerge(clsx('lang-switcher--side flex items-center gap-1', className))}>
     {#each availableLanguageTags as code}
-      <button
-        type="button"
-        class={clsx(optionBase, code === currentLocale ? optionActive : optionIdle)}
-        onclick={() => selectLocale(code)}
-      >
-        {code}
-      </button>
+      {@render option(code)}
     {/each}
   </div>
 
@@ -149,13 +147,7 @@
       <!-- PM v2: shows ALL locales, current gets active class -->
       <div class="lang-switcher-panel absolute top-full end-0 mt-1 z-[var(--z-popover)] flex gap-1 p-2 bg-pm-bg-elevated border border-pm-border rounded-sm shadow-lg">
         {#each availableLanguageTags as code}
-          <button
-            type="button"
-            class={clsx(optionBase, code === currentLocale ? optionActive : optionIdle)}
-            onclick={() => selectLocale(code)}
-          >
-            {code}
-          </button>
+          {@render option(code)}
         {/each}
       </div>
     {/if}

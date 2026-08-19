@@ -6,7 +6,6 @@
   * @props class?: string — merged Tailwind classes
   * @example <SectionTestimonials testimonials={content.testimonials} />
   */
-  import { clsx } from 'clsx'
   import { t } from '$lib/stores/content.svelte'
 
   import { FEATURES, MODULES } from '$lib/config/site'
@@ -14,6 +13,7 @@
   import IconChevronLeft from '@tabler/icons-svelte/icons/chevron-left'
   import IconChevronRight from '@tabler/icons-svelte/icons/chevron-right'
   import Section from '$lib/components/atoms/Section.svelte'
+  import EmptyState from '$lib/components/atoms/EmptyState.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
   import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
 
@@ -70,7 +70,7 @@
         {/if}
       </div>
     {:else}
-      <p class="text-center text-pm-muted py-16">{t('common.note')}</p>
+      <EmptyState size="compact" title={t('common.note')} />
     {/if}
   </SectionContent>
 </Section>

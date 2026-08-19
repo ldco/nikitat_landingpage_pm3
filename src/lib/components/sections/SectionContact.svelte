@@ -26,12 +26,19 @@
   import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
   import ContactInfo from '$lib/components/molecules/ContactInfo.svelte'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import FormField from '$lib/components/atoms/FormField.svelte'
 
   let {
     class: className = ''
   }: {
     class?: string
   } = $props()
+
+  // Public-form control styling on top of the canonical FormField bundle
+  // (the admin bundle stays the default; the contact form overrides the
+  // radii/type scale/ring to match the PM v2 public design).
+  const publicControlClass =
+    'rounded-lg text-fluid-base placeholder-pm-text-muted focus:ring focus:ring-pm-brand/30 transition'
 
   const settings = useSettings()
 
@@ -117,27 +124,43 @@
     <div class="max-w-[var(--contact-form-max-w)] mx-auto flex flex-col gap-[var(--gap-xl)]">
       <form onsubmit={handleSubmit} class="flex flex-col gap-[var(--space-5)] p-[var(--space-8)] bg-pm-bg-elevated border border-pm-border rounded-[var(--radius-xl)] shadow-frosted">
         <div class="flex flex-col gap-[var(--space-2)]">
-          <label for="c-name" class="text-sm font-medium text-pm-text">{nameLabel}</label>
-          <input id="c-name" bind:value={name} type="text" autocomplete="name" placeholder={namePlaceholder} class="w-full px-[var(--space-3)] py-[var(--space-2)] bg-pm-bg border border-pm-border rounded-lg text-fluid-base text-pm-text placeholder-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring focus:ring-pm-brand/30 transition" aria-invalid={!!nameError} />
-          {#if nameError}
-            <p class="text-xs text-pm-danger" transition:fly={{ y: -6, duration: 200 }}>{nameError}</p>
-          {/if}
+          <FormField
+            name="c-name"
+            label={nameLabel}
+            type="text"
+            bind:value={name}
+            autocomplete="name"
+            placeholder={namePlaceholder}
+            error={nameError}
+            inputClass={publicControlClass}
+          />
         </div>
 
         <div class="flex flex-col gap-[var(--space-2)] mt-[var(--space-5)]">
-          <label for="c-email" class="text-sm font-medium text-pm-text">{emailLabel}</label>
-          <input id="c-email" bind:value={email} type="email" inputmode="email" autocomplete="email" placeholder={emailPlaceholder} class="w-full px-[var(--space-3)] py-[var(--space-2)] bg-pm-bg border border-pm-border rounded-lg text-fluid-base text-pm-text placeholder-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring focus:ring-pm-brand/30 transition" aria-invalid={!!emailError} />
-          {#if emailError}
-            <p class="text-xs text-pm-danger" transition:fly={{ y: -6, duration: 200 }}>{emailError}</p>
-          {/if}
+          <FormField
+            name="c-email"
+            label={emailLabel}
+            type="email"
+            bind:value={email}
+            autocomplete="email"
+            placeholder={emailPlaceholder}
+            error={emailError}
+            inputClass={publicControlClass}
+          />
         </div>
 
         <div class="flex flex-col gap-[var(--space-2)] mt-[var(--space-5)]">
-          <label for="c-msg" class="text-sm font-medium text-pm-text">{messageLabel}</label>
-          <textarea id="c-msg" bind:value={message} rows={5} minlength={10} placeholder={messagePlaceholder} class="w-full px-[var(--space-3)] py-[var(--space-2)] bg-pm-bg border border-pm-border rounded-lg text-fluid-base text-pm-text placeholder-pm-text-muted focus:outline-none focus:border-pm-brand focus:ring focus:ring-pm-brand/30 transition min-h-[var(--form-textarea-min-h)] resize-y" aria-invalid={!!messageError}></textarea>
-          {#if messageError}
-            <p class="text-xs text-pm-danger" transition:fly={{ y: -6, duration: 200 }}>{messageError}</p>
-          {/if}
+          <FormField
+            name="c-msg"
+            label={messageLabel}
+            type="textarea"
+            bind:value={message}
+            rows={5}
+            minlength={10}
+            placeholder={messagePlaceholder}
+            error={messageError}
+            inputClass={publicControlClass + ' min-h-[var(--form-textarea-min-h)] resize-y'}
+          />
         </div>
 
         <label class="flex items-start gap-[var(--gap-xs)] leading-relaxed cursor-pointer mt-[var(--space-5)]">
