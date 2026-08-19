@@ -12847,17 +12847,17 @@
   {
     "locale": "ru",
     "key": "init.features.pwa",
-    "value": "Progressive Web App (PWA)"
+    "value": "Прогрессивное веб-приложение (PWA)"
   },
   {
     "locale": "fr",
     "key": "init.features.pwa",
-    "value": "Progressive Web App (PWA)"
+    "value": "Application web progressive (PWA)"
   },
   {
     "locale": "he",
     "key": "init.features.pwa",
-    "value": "Progressive Web App (PWA)"
+    "value": "יישום אינטרנט מתקדם (PWA)"
   },
   {
     "locale": "en",
@@ -12867,17 +12867,17 @@
   {
     "locale": "ru",
     "key": "init.features.scrollytelling",
-    "value": "Scrollytelling Scene Engine"
+    "value": "Движок сцен со скролл-сторителлингом"
   },
   {
     "locale": "fr",
     "key": "init.features.scrollytelling",
-    "value": "Scrollytelling Scene Engine"
+    "value": "Moteur de scènes scrollytelling"
   },
   {
     "locale": "he",
     "key": "init.features.scrollytelling",
-    "value": "Scrollytelling Scene Engine"
+    "value": "מנוע סצנות סקרוליטלינג"
   },
   {
     "locale": "en",
@@ -15787,12 +15787,12 @@
   {
     "locale": "ru",
     "key": "settings.analytics.googleId",
-    "value": "ID Google Analytics (G-XXXXXXXX)"
+    "value": "Идентификатор Google Analytics (G-XXXXXXXX)"
   },
   {
     "locale": "fr",
     "key": "settings.analytics.googleId",
-    "value": "ID Google Analytics (G-XXXXXXXX)"
+    "value": "Identifiant Google Analytics (G-XXXXXXXX)"
   },
   {
     "locale": "he",

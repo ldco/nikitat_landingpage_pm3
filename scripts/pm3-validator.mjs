@@ -1130,6 +1130,33 @@ function checkLocalizedContent() {
       }
     }
   }
+  // The generic translations table (UI + content labels): ru values must not
+  // be English-dominant and no row may render its own key (missing translation).
+  const genericRows = db.prepare('SELECT locale, key, value FROM translations').all()
+  for (const row of genericRows) {
+    if (row.locale !== DEFAULT_LOCALE) continue
+    const value = row.value
+    if (value == null) continue
+    if (String(value).trim().toLowerCase() === String(row.key).toLowerCase()) {
+      issues.push({
+        file: 'data/sqlite.db (translations)',
+        message: '\u274C ' + row.key + ' (ru) value equals its key — missing translation renders raw',
+        line: undefined
+      })
+      continue
+    }
+    if (typeof value === 'string' && value.trim().length >= MIN_LANGUAGE_LEN) {
+      const mismatch = scriptMismatch(DEFAULT_LOCALE, value)
+      if (mismatch) {
+        issues.push({
+          file: 'data/sqlite.db (translations)',
+          message: '\u274C ' + row.key + ' (ru): ' + mismatch,
+          line: undefined
+        })
+      }
+    }
+  }
+
   db.close()
   return issues
 }
