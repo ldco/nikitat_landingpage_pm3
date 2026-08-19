@@ -221,8 +221,16 @@ test.describe('Admin edit journeys', () => {
     // The form is pre-filled from the seeded row.
     await expect(page.locator('#slug')).toHaveValue(/.+/)
 
-    // A change enables Save; saving redirects to the FAQ list (303).
+    // A change enables Save; saving redirects to the FAQ list (303). The
+    // original category is restored afterwards so the journey leaves the
+    // seeded row untouched (no e2e-category-* pollution in the DB).
+    const originalCategory = await page.locator('#category').inputValue()
     await page.locator('#category').fill(`e2e-category-${Date.now()}`)
+    await page.getByRole('button', { name: ru('common.save') }).click()
+    await expect(page).toHaveURL(/\/admin\/faq\/?$/)
+
+    await gotoAdmin(page, `/admin/faq/${faqId}/edit`)
+    await page.locator('#category').fill(originalCategory)
     await page.getByRole('button', { name: ru('common.save') }).click()
     await expect(page).toHaveURL(/\/admin\/faq\/?$/)
   })
@@ -235,7 +243,15 @@ test.describe('Admin edit journeys', () => {
     await expect(page.locator('#name')).toHaveValue(/.+/)
     await expect(page.getByRole('link', { name: ru('admin.editContent') })).toBeVisible()
 
+    // A change enables Save; saving redirects to the list (303). The original
+    // description is restored afterwards so the seeded row is left untouched.
+    const originalDescription = await page.locator('#description').inputValue()
     await page.locator('#description').fill(`e2e-description-${Date.now()}`)
+    await page.getByRole('button', { name: ru('common.save') }).click()
+    await expect(page).toHaveURL(/\/admin\/portfolios\/?$/)
+
+    await gotoAdmin(page, `/admin/portfolios/${portfolioId}/edit`)
+    await page.locator('#description').fill(originalDescription)
     await page.getByRole('button', { name: ru('common.save') }).click()
     await expect(page).toHaveURL(/\/admin\/portfolios\/?$/)
   })

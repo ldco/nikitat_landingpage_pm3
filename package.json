@@ -18,6 +18,7 @@
     "predb:reset": "node scripts/env-bootstrap.mjs",
     "db:reset": "rm -f data/sqlite.db && drizzle-kit push && tsx --env-file=.env src/lib/server/db/seed.ts",
     "i18n:export": "npm run i18n:validate && tsx scripts/export-paraglide-messages.ts",
+    "import:portfolio-translations": "tsx --env-file=.env scripts/import-portfolio-translations.ts",
     "db:studio": "drizzle-kit studio",
     "assets:favicons": "node scripts/generate-favicons.mjs",
     "deploy": "bash scripts/deploy.sh",
@@ -37,7 +38,8 @@
     "test:e2e:update": "playwright test --update-snapshots",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "i18n:validate": "tsx scripts/validate-system-seed.ts"
+    "i18n:validate": "tsx scripts/validate-system-seed.ts",
+    "seed:portfolio-localizations": "tsx --env-file=.env scripts/seed-portfolio-localizations.ts"
   },
   "dependencies": {
     "@fontsource-variable/geologica": "^5.3.0",
