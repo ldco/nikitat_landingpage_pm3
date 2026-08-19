@@ -11,18 +11,19 @@ import { drizzle } from 'drizzle-orm/better-sqlite3'
 import * as schema from './schema'
 
 let _db: ReturnType<typeof drizzle<typeof schema>> | null = null
+let _sqlite: Database.Database | null = null
 
 export function useDatabase(): ReturnType<typeof drizzle<typeof schema>> {
   if (!_db) {
     const dbPath = process.env.DATABASE_URL || './data/sqlite.db'
-    const sqlite = new Database(dbPath)
+    _sqlite = new Database(dbPath)
 
     // Enable WAL mode for concurrent read performance
-    sqlite.pragma('journal_mode = WAL')
+    _sqlite.pragma('journal_mode = WAL')
     // Enable foreign keys
-    sqlite.pragma('foreign_keys = ON')
+    _sqlite.pragma('foreign_keys = ON')
 
-    _db = drizzle(sqlite, { schema })
+    _db = drizzle(_sqlite, { schema })
   }
   return _db
 }
@@ -31,9 +32,9 @@ export function useDatabase(): ReturnType<typeof drizzle<typeof schema>> {
  * Close the database connection. Used in testing and graceful shutdown.
  */
 export function closeDatabase(): void {
-  if (_db) {
-    const sqlite = (_db as unknown as { session: { client: Database.Database } }).session.client
-    sqlite.close()
+  if (_sqlite) {
+    _sqlite.close()
+    _sqlite = null
     _db = null
   }
 }

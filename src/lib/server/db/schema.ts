@@ -11,6 +11,12 @@
  */
 import { sqliteTable, text, integer, unique, index } from 'drizzle-orm/sqlite-core'
 import { PORTFOLIO_TYPES, PORTFOLIO_ITEM_TYPES } from '$lib/portfolio-types'
+import {
+  PRICING_PERIODS,
+  PRICING_DEFAULT_CURRENCY,
+  PRICING_DEFAULT_PERIOD,
+  PRICING_DEFAULT_CTA_URL
+} from '$lib/pricing-constants'
 
 // ═══════════════════════════════════════════════════════════════════════════
 // USERS & AUTH
@@ -80,7 +86,7 @@ export const user2fa = sqliteTable('user_2fa', {
   backupCodesRemaining: integer('backup_codes_remaining').default(10),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
-}, table => [index('user_2fa_user_idx').on(table.userId)])
+})
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SITE SETTINGS
@@ -118,7 +124,6 @@ export const portfolios = sqliteTable('portfolios', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   slug: text('slug').notNull().unique(),
   name: text('name').notNull(),
-  description: text('description'),
   type: text('type', { enum: [...PORTFOLIO_TYPES] }).notNull(),
   coverImageUrl: text('cover_image_url'),
   coverThumbnailUrl: text('cover_thumbnail_url'),
@@ -140,14 +145,39 @@ export const portfolioItems = sqliteTable('portfolio_items', {
   thumbnailUrl: text('thumbnail_url'),
   caption: text('caption'),
   slug: text('slug'),
-  title: text('title'),
-  description: text('description'),
-  content: text('content'),
   tags: text('tags'),
-  category: text('category'),
   publishedAt: integer('published_at', { mode: 'timestamp' }),
   metadata: text('metadata')
 }, table => [index('portfolio_items_portfolio_idx').on(table.portfolioId)])
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PORTFOLIO LOCALIZATION (ADR-001: all languages equal — dedicated per-locale
+// tables mirroring blog_post_translations, one row per (owner_id, locale))
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const portfolioItemTranslations = sqliteTable('portfolio_item_translations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  itemId: integer('item_id').notNull().references(() => portfolioItems.id, { onDelete: 'cascade' }),
+  locale: text('locale').notNull(),
+  title: text('title'),
+  description: text('description'),
+  content: text('content'),
+  category: text('category'),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
+}, table => [
+  unique().on(table.itemId, table.locale)
+])
+
+export const portfolioTranslations = sqliteTable('portfolio_translations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  portfolioId: integer('portfolio_id').notNull().references(() => portfolios.id, { onDelete: 'cascade' }),
+  locale: text('locale').notNull(),
+  name: text('name'),
+  description: text('description'),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
+}, table => [
+  unique().on(table.portfolioId, table.locale)
+])
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CONTACT
@@ -163,14 +193,14 @@ export const contactSubmissions = sqliteTable('contact_submissions', {
   consent: integer('consent', { mode: 'boolean' }).default(false),
   read: integer('read', { mode: 'boolean' }).default(false),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
-})
+}, table => [
+  index('contact_submissions_read_idx').on(table.read),
+  index('contact_submissions_created_idx').on(table.createdAt)
+])
 
 // ═══════════════════════════════════════════════════════════════════════════
 // PRICING
 // ═══════════════════════════════════════════════════════════════════════════
-
-export const PRICING_PERIODS = ['month', 'year', 'one-time'] as const
-export type PricingPeriod = (typeof PRICING_PERIODS)[number]
 
 export const pricingTiers = sqliteTable('pricing_tiers', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -178,11 +208,11 @@ export const pricingTiers = sqliteTable('pricing_tiers', {
   name: text('name').notNull(),
   description: text('description'),
   price: integer('price'),
-  currency: text('currency').default('USD'),
-  period: text('period', { enum: ['month', 'year', 'one-time'] }).default('month'),
+  currency: text('currency').default(PRICING_DEFAULT_CURRENCY),
+  period: text('period', { enum: [...PRICING_PERIODS] }).default(PRICING_DEFAULT_PERIOD),
   featured: integer('featured', { mode: 'boolean' }).default(false),
   ctaText: text('cta_text'),
-  ctaUrl: text('cta_url').default('/contact'),
+  ctaUrl: text('cta_url').default(PRICING_DEFAULT_CTA_URL),
   order: integer('order').default(0),
   published: integer('published', { mode: 'boolean' }).default(true),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
@@ -207,8 +237,7 @@ export const pricingTierTranslations = sqliteTable('pricing_tier_translations', 
   ctaText: text('cta_text'),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
 }, table => [
-  unique().on(table.tierId, table.locale),
-  index('pricing_tier_translations_tier_idx').on(table.tierId)
+  unique().on(table.tierId, table.locale)
 ])
 
 export const pricingFeatureTranslations = sqliteTable('pricing_feature_translations', {
@@ -218,8 +247,7 @@ export const pricingFeatureTranslations = sqliteTable('pricing_feature_translati
   text: text('text'),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
 }, table => [
-  unique().on(table.featureId, table.locale),
-  index('pricing_feature_translations_feature_idx').on(table.featureId)
+  unique().on(table.featureId, table.locale)
 ])
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -252,8 +280,7 @@ export const teamMemberTranslations = sqliteTable('team_member_translations', {
   bio: text('bio'),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
 }, table => [
-  unique().on(table.memberId, table.locale),
-  index('team_member_translations_member_idx').on(table.memberId)
+  unique().on(table.memberId, table.locale)
 ])
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -275,8 +302,7 @@ export const blogCategoryTranslations = sqliteTable('blog_category_translations'
   description: text('description'),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
 }, table => [
-  unique().on(table.categoryId, table.locale),
-  index('blog_category_translations_category_idx').on(table.categoryId)
+  unique().on(table.categoryId, table.locale)
 ])
 
 export const blogTags = sqliteTable('blog_tags', {
@@ -314,8 +340,7 @@ export const blogPostTranslations = sqliteTable('blog_post_translations', {
   content: text('content'),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
 }, table => [
-  unique().on(table.postId, table.locale),
-  index('blog_post_translations_post_idx').on(table.postId)
+  unique().on(table.postId, table.locale)
 ])
 
 export const blogPostTags = sqliteTable('blog_post_tags', {
@@ -383,8 +408,7 @@ export const featureTranslations = sqliteTable('feature_translations', {
   description: text('description'),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
 }, table => [
-  unique().on(table.featureId, table.locale),
-  index('feature_translations_feature_idx').on(table.featureId)
+  unique().on(table.featureId, table.locale)
 ])
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -412,8 +436,7 @@ export const testimonialTranslations = sqliteTable('testimonial_translations', {
   authorTitle: text('author_title'),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
 }, table => [
-  unique().on(table.testimonialId, table.locale),
-  index('testimonial_translations_testimonial_idx').on(table.testimonialId)
+  unique().on(table.testimonialId, table.locale)
 ])
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -437,8 +460,7 @@ export const faqItemTranslations = sqliteTable('faq_item_translations', {
   answer: text('answer').notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
 }, table => [
-  unique().on(table.faqItemId, table.locale),
-  index('faq_item_translations_faq_idx').on(table.faqItemId)
+  unique().on(table.faqItemId, table.locale)
 ])
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -473,8 +495,7 @@ export const legalDocuments = sqliteTable('legal_documents', {
   content: text('content').notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
 }, table => [
-  unique().on(table.slug, table.locale),
-  index('legal_documents_slug_locale_idx').on(table.slug, table.locale)
+  unique().on(table.slug, table.locale)
 ])
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -166,7 +166,6 @@ export function seedPortfolios() {
       .values({
         slug: fixture.slug,
         name: fixture.name,
-        description: fixture.description,
         type: fixture.type,
         coverImageUrl: fixture.coverImageUrl ?? null,
         order: fixture.order,
@@ -177,20 +176,42 @@ export function seedPortfolios() {
       .returning()
       .get()
 
+    // Localized portfolio text lives in the dedicated translation table
+    // (ADR-001) — the fixture seeds the default (ru) locale row.
+    db.insert(schema.portfolioTranslations)
+      .values({
+        portfolioId: portfolio.id,
+        locale: 'ru',
+        name: fixture.name,
+        description: fixture.description,
+        updatedAt: new Date()
+      })
+      .run()
+
     for (const item of fixture.items) {
-      db.insert(schema.portfolioItems)
+      const inserted = db.insert(schema.portfolioItems)
         .values({
           portfolioId: portfolio.id,
           itemType: item.itemType,
           order: item.order,
           published: true,
+          mediaUrl: item.mediaUrl ?? null,
+          thumbnailUrl: item.thumbnailUrl ?? null,
+          metadata: normalizeItemMetadata(item.metadata, fixture.type)
+        })
+        .returning({ id: schema.portfolioItems.id })
+        .get()
+
+      // Localized item text → dedicated translation row (default ru locale).
+      db.insert(schema.portfolioItemTranslations)
+        .values({
+          itemId: inserted.id,
+          locale: 'ru',
           title: item.title ?? null,
           description: item.description ?? null,
           content: item.content ?? null,
-          mediaUrl: item.mediaUrl ?? null,
-          thumbnailUrl: item.thumbnailUrl ?? null,
           category: item.category ?? null,
-          metadata: normalizeItemMetadata(item.metadata, fixture.type)
+          updatedAt: new Date()
         })
         .run()
     }
