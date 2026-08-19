@@ -154,8 +154,8 @@ describe('per-type portfolio item metadata round-trips through the admin API', (
       itemType: 'image',
       mediaUrl: 'https://example.com/site.png',
       caption: 'Site',
-      title: 'Site',
-      content: '### Идея\nПроектируем интерфейс.\n\n### Реализация\nСобрали на SvelteKit.',
+      title_ru: 'Site',
+      content_ru: '### Идея\nПроектируем интерфейс.\n\n### Реализация\nСобрали на SvelteKit.',
       metadata: JSON.stringify({
         liveUrl: 'https://example.com',
         technologies: ['SvelteKit'],
@@ -170,8 +170,8 @@ describe('per-type portfolio item metadata round-trips through the admin API', (
     const db = new Database(server.dbPath, { readonly: true })
     try {
       const row = db
-        .prepare('SELECT content FROM portfolio_items WHERE portfolio_id = ?')
-        .get(id) as { content: string | null } | undefined
+        .prepare("SELECT content FROM portfolio_item_translations WHERE item_id = ? AND locale = 'ru'")
+        .get((db.prepare('SELECT id FROM portfolio_items WHERE portfolio_id = ?').get(id) as { id: number }).id) as { content: string | null } | undefined
       expect(row?.content).toBe('### Идея\nПроектируем интерфейс.\n\n### Реализация\nСобрали на SvelteKit.')
     } finally {
       db.close()
@@ -519,9 +519,9 @@ describe('structured per-type arrays round-trip from admin form input to the pub
 
     const created = await client.postForm(`/admin/portfolios/${id}/items?/create`, {
       itemType: 'case_study',
-      title: 'Case Study',
-      description: 'Desc',
-      content: '### Задача\nПервая строка.',
+      title_ru: 'Case Study',
+      description_ru: 'Desc',
+      content_ru: '### Задача\nПервая строка.',
       metadata: JSON.stringify({ tags: ['kiosk'] }),
       published: 'on'
     })
@@ -531,12 +531,14 @@ describe('structured per-type arrays round-trip from admin form input to the pub
     let itemId = -1
     const db = new Database(server.dbPath, { readonly: true })
     try {
-      const row = db
-        .prepare('SELECT id, content, metadata FROM portfolio_items WHERE portfolio_id = ?')
-        .get(id) as { id: number; content: string | null; metadata: string | null } | undefined
-      expect(row?.content).toBe('### Задача\nПервая строка.')
-      expect(userMetadata(row?.metadata)).toEqual({ tags: ['kiosk'] })
-      itemId = row?.id ?? -1
+      const item = db
+        .prepare('SELECT id, metadata FROM portfolio_items WHERE portfolio_id = ?')
+        .get(id) as { id: number; metadata: string | null } | undefined
+      const tr = db.prepare("SELECT content FROM portfolio_item_translations WHERE item_id = ? AND locale = 'ru'")
+        .get(item?.id ?? -1) as { content: string | null } | undefined
+      expect(tr?.content).toBe('### Задача\nПервая строка.')
+      expect(userMetadata(item?.metadata)).toEqual({ tags: ['kiosk'] })
+      itemId = item?.id ?? -1
     } finally {
       db.close()
     }
@@ -547,9 +549,9 @@ describe('structured per-type arrays round-trip from admin form input to the pub
     const updated = await client.postForm(`/admin/portfolios/${id}/items?/update`, {
       id: String(itemId),
       itemType: 'case_study',
-      title: 'Case Study',
-      description: 'Desc',
-      content: '### Решение\nВторая строка.',
+      title_ru: 'Case Study',
+      description_ru: 'Desc',
+      content_ru: '### Решение\nВторая строка.',
       metadata: JSON.stringify({ tags: ['kiosk'] }),
       published: 'on'
     })
@@ -559,7 +561,7 @@ describe('structured per-type arrays round-trip from admin form input to the pub
     const db2 = new Database(server.dbPath, { readonly: true })
     try {
       const row = db2
-        .prepare('SELECT content FROM portfolio_items WHERE id = ?')
+        .prepare("SELECT content FROM portfolio_item_translations WHERE item_id = ? AND locale = 'ru'")
         .get(itemId) as { content: string | null } | undefined
       expect(row?.content).toBe('### Решение\nВторая строка.')
     } finally {
@@ -601,8 +603,8 @@ describe('structured per-type arrays round-trip from admin form input to the pub
       mediaUrl: 'https://example.com/a.png',
       thumbnailUrl: 'https://example.com/a-thumb.png',
       caption: '',
-      title: 'Title A',
-      description: 'Desc A',
+      title_ru: 'Title A',
+      description_ru: 'Desc A',
       metadata: JSON.stringify({
         liveUrl: 'https://example.com',
         screenshots: [{ url: 'https://example.com/a.png', caption: 'Shot' }]
@@ -615,12 +617,14 @@ describe('structured per-type arrays round-trip from admin form input to the pub
     const db = new Database(server.dbPath, { readonly: true })
     try {
       const row = db
-        .prepare('SELECT caption, title, media_url, metadata FROM portfolio_items WHERE id = ?')
+        .prepare('SELECT caption, media_url, metadata FROM portfolio_items WHERE id = ?')
         .get(itemId ?? 0) as
-        | { caption: string | null; title: string | null; media_url: string | null; metadata: string | null }
+        | { caption: string | null; media_url: string | null; metadata: string | null }
         | undefined
+      const tr = db.prepare("SELECT title FROM portfolio_item_translations WHERE item_id = ? AND locale = 'ru'")
+        .get(itemId ?? 0) as { title: string | null } | undefined
       expect(row?.caption).toBeNull()
-      expect(row?.title).toBe('Title A')
+      expect(tr?.title).toBe('Title A')
       expect(row?.media_url).toBe('https://example.com/a.png')
       expect(userMetadata(row?.metadata)).toEqual({
         liveUrl: 'https://example.com',

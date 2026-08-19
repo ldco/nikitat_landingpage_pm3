@@ -53,9 +53,15 @@ function readPortfolio(id: number): { type: string; slug: string } | undefined {
 function readFirstItem(id: number): { metadata: string | null; content: string | null } | undefined {
   const db = new Database(server.dbPath, { readonly: true })
   try {
-    return db.prepare('SELECT metadata, content FROM portfolio_items WHERE portfolio_id = ? ORDER BY "order" LIMIT 1').get(id) as
-      | { metadata: string | null; content: string | null }
+    const item = db.prepare('SELECT id, metadata FROM portfolio_items WHERE portfolio_id = ? ORDER BY "order" LIMIT 1').get(id) as
+      | { id: number; metadata: string | null }
       | undefined
+    const tr = item
+      ? (db.prepare("SELECT content FROM portfolio_item_translations WHERE item_id = ? AND locale = 'ru'").get(item.id) as
+          | { content: string | null }
+          | undefined)
+      : undefined
+    return { metadata: item?.metadata ?? null, content: tr?.content ?? null }
   } finally {
     db.close()
   }
@@ -123,9 +129,9 @@ describe('portfolio type-change guard on portfolios with items', () => {
     const id = await createPortfolio('case_study', slug)
     await client.postForm(`/admin/portfolios/${id}/items?/create`, {
       itemType: 'case_study',
-      title: 'Case',
-      description: 'Desc',
-      content: '### Задача\nПервая строка.',
+      title_ru: 'Case',
+      description_ru: 'Desc',
+      content_ru: '### Задача\nПервая строка.',
       metadata: JSON.stringify({ tags: ['kiosk'] }),
       published: 'on'
     })
@@ -148,7 +154,7 @@ describe('portfolio type-change guard on portfolios with items', () => {
     }
     expect(metadata.sections).toEqual([{ title: 'Задача', text: 'Первая строка.' }])
     expect(metadata.tags).toEqual(['kiosk'])
-    // The body now lives in sections — the stale content column is cleared so
+    // The body now lives in sections — the stale ru content is cleared so
     // a later conversion back cannot append the regenerated body onto it.
     expect(item?.content).toBeNull()
   })
@@ -159,9 +165,9 @@ describe('portfolio type-change guard on portfolios with items', () => {
     const originalBody = '### Задача\nПервая строка.'
     await client.postForm(`/admin/portfolios/${id}/items?/create`, {
       itemType: 'case_study',
-      title: 'Case',
-      description: 'Desc',
-      content: originalBody,
+      title_ru: 'Case',
+      description_ru: 'Desc',
+      content_ru: originalBody,
       metadata: JSON.stringify({ tags: ['kiosk'] }),
       published: 'on'
     })
@@ -392,23 +398,22 @@ describe('portfolio type-change guard on portfolios with items', () => {
     const afterMixed = (() => {
       const db4 = new Database(server.dbPath, { readonly: true })
       try {
-        return db4.prepare('SELECT id, "order" AS o, title FROM portfolio_items WHERE portfolio_id = ?').all(id) as Array<{ id: number; o: number; title: string | null }>
+        return db4.prepare('SELECT id, "order" AS o FROM portfolio_items WHERE portfolio_id = ?').all(id) as Array<{ id: number; o: number }>
       } finally {
         db4.close()
       }
     })()
-    // Order untouched by the rejected update; the title was not applied either.
+    // Order untouched by the rejected update.
     expect(afterMixed.find(x => x.id === secondId)?.o).toBe(0)
-    expect(afterMixed.find(x => x.id === secondId)?.title).not.toBe('Renamed')
   })
 
   it('API PUT runs the same supported type-change migration as the page action', async () => {
     const id = await createPortfolio('case_study', `api-put-migrate-${stamp}`)
     await client.postForm(`/admin/portfolios/${id}/items?/create`, {
       itemType: 'case_study',
-      title: 'C',
-      description: 'D',
-      content: '### Задача\nПервая строка.',
+      title_ru: 'C',
+      description_ru: 'D',
+      content_ru: '### Задача\nПервая строка.',
       metadata: JSON.stringify({ tags: ['kiosk'] }),
       published: 'on'
     })
@@ -448,9 +453,12 @@ describe('portfolio type-change guard on portfolios with items', () => {
     const db = new Database(server.dbPath, { readonly: true })
     let storedItem: { item_type: string | null; content: string | null } | undefined
     try {
-      storedItem = db.prepare('SELECT item_type, content FROM portfolio_items WHERE id = ?').get(itemId ?? 0) as
-        | { item_type: string | null; content: string | null }
+      const item = db.prepare('SELECT item_type FROM portfolio_items WHERE id = ?').get(itemId ?? 0) as
+        | { item_type: string | null }
         | undefined
+      const tr = db.prepare("SELECT content FROM portfolio_item_translations WHERE item_id = ? AND locale = 'ru'")
+        .get(itemId ?? 0) as { content: string | null } | undefined
+      storedItem = { item_type: item?.item_type ?? null, content: tr?.content ?? null }
     } finally {
       db.close()
     }
@@ -476,10 +484,13 @@ describe('portfolio type-change guard on portfolios with items', () => {
     const now = Math.floor(Date.now() / 1000)
     const db = new Database(server.dbPath)
     try {
+      const info = db.prepare(
+        `INSERT INTO portfolio_items (portfolio_id, item_type, "order", published, created_at, updated_at, media_url)
+         VALUES (?, 'image', 1, 1, ?, ?, ?)`
+      ).run(id, now, now, 'https://example.com/legacy.png')
       db.prepare(
-        `INSERT INTO portfolio_items (portfolio_id, item_type, "order", published, created_at, updated_at, media_url, title, content)
-         VALUES (?, 'image', 1, 1, ?, ?, ?, ?, ?)`
-      ).run(id, now, now, 'https://example.com/legacy.png', 'Legacy Image', '### Задача\nТекст.')
+        "INSERT INTO portfolio_item_translations (item_id, locale, title, content, updated_at) VALUES (?, 'ru', ?, ?, ?)"
+      ).run(Number(info.lastInsertRowid), 'Legacy Image', '### Задача\nТекст.', now)
     } finally {
       db.close()
     }

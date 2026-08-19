@@ -16,12 +16,19 @@ let client: ApiClient
 let portfolioId = 0
 let itemId = 0
 
-function translationRows(id: number): Array<{ locale: string; key: string; value: string }> {
+function translationRows(id: number): Array<{ locale: string; field: string; value: string | null }> {
   const db = new Database(server.dbPath, { readonly: true })
   try {
-    return db
-      .prepare('SELECT locale, key, value FROM translations WHERE key LIKE ? ORDER BY locale, key')
-      .all(`portfolio_item.${id}.%`) as Array<{ locale: string; key: string; value: string }>
+    return (db
+      .prepare('SELECT locale, title, description, content, category FROM portfolio_item_translations WHERE item_id = ? ORDER BY locale')
+      .all(id) as Array<Record<string, string | null>>)
+      .flatMap(r => {
+        const out: Array<{ locale: string; field: string; value: string | null }> = []
+        for (const field of ['title', 'description', 'content', 'category'] as const) {
+          out.push({ locale: r.locale ?? '', field, value: r[field] ?? null })
+        }
+        return out
+      })
   } finally {
     db.close()
   }
@@ -39,13 +46,13 @@ function latestItemId(): number {
   }
 }
 
-function itemRow(id: number): { title: string | null; content: string | null } {
+function itemRow(id: number): { title: string | null; content: string | null } | undefined {
   const db = new Database(server.dbPath, { readonly: true })
   try {
-    return db.prepare('SELECT title, content FROM portfolio_items WHERE id = ?').get(id) as {
+    return db.prepare("SELECT title, content FROM portfolio_item_translations WHERE item_id = ? AND locale = 'ru'").get(id) as {
       title: string | null
       content: string | null
-    }
+    } | undefined
   } finally {
     db.close()
   }
@@ -94,8 +101,8 @@ describe('portfolio item per-locale text persistence', () => {
   it('create writes the non-default locale overrides as translation rows', async () => {
     const res = await client.postForm(`/admin/portfolios/${portfolioId}/items?/create`, {
       itemType: 'image',
-      title: 'Название по умолчанию',
-      content: '### Задача\nТело по умолчанию',
+      title_ru: 'Название по умолчанию',
+      content_ru: '### Задача\nТело по умолчанию',
       title_en: 'EN title',
       description_en: 'EN description',
       content_en: '### Overview\nEN body',
@@ -111,29 +118,29 @@ describe('portfolio item per-locale text persistence', () => {
     itemId = latestItemId()
     expect(itemId).toBeGreaterThan(0)
 
-    // Default-locale fields stay in the base columns; en/fr overrides land in
-    // the translations table with the hydration keys.
+    // ru + en/fr overrides land in the dedicated translation rows (ru is a
+    // first-class row, not the base columns).
     const row = itemRow(itemId)
-    expect(row.title).toBe('Название по умолчанию')
-    expect(row.content).toBe('### Задача\nТело по умолчанию')
+    expect(row?.title).toBe('Название по умолчанию')
+    expect(row?.content).toBe('### Задача\nТело по умолчанию')
 
     const rows = translationRows(itemId)
-    const enTitle = rows.find(r => r.locale === 'en' && r.key === `portfolio_item.${itemId}.title`)
+    const enTitle = rows.find(r => r.locale === 'en' && r.field === 'title')
     expect(enTitle?.value).toBe('EN title')
-    const enContent = rows.find(r => r.locale === 'en' && r.key === `portfolio_item.${itemId}.content`)
+    const enContent = rows.find(r => r.locale === 'en' && r.field === 'content')
     expect(enContent?.value).toBe('### Overview\nEN body')
-    const frTitle = rows.find(r => r.locale === 'fr' && r.key === `portfolio_item.${itemId}.title`)
+    const frTitle = rows.find(r => r.locale === 'fr' && r.field === 'title')
     expect(frTitle?.value).toBe('FR title')
-    // Locales without a submitted override get no rows (no data-loss writes).
-    expect(rows.some(r => r.locale === 'he')).toBe(false)
+    // Locales without a submitted override get no non-empty rows.
+    expect(rows.filter(r => r.locale === 'he' && r.value).length).toBe(0)
   })
 
   it('update replaces an override and clears it when the field is emptied', async () => {
     const res = await client.postForm(`/admin/portfolios/${portfolioId}/items?/update`, {
       id: String(itemId),
       itemType: 'image',
-      title: 'Новое название по умолчанию',
-      content: '### Задача\nНовое тело',
+      title_ru: 'Новое название по умолчанию',
+      content_ru: '### Задача\nНовое тело',
       title_en: 'EN updated title',
       description_en: '', // cleared — the previous override must fall back to the column
       content_en: '### Overview\nEN updated body',
@@ -147,13 +154,12 @@ describe('portfolio item per-locale text persistence', () => {
     expect(body.status).toBe(303)
 
     const rows = translationRows(itemId)
-    const enTitle = rows.find(r => r.key === `portfolio_item.${itemId}.title`)
+    const enTitle = rows.find(r => r.locale === 'en' && r.field === 'title')
     expect(enTitle?.value).toBe('EN updated title')
     // Empty override on a previously-populated locale clears the row value
-    // (the service `nonEmpty` guard then falls back to the column).
-    const enDescription = rows.find(r => r.key === `portfolio_item.${itemId}.description`)
-    expect(enDescription?.value).toBe('')
-    expect(rows.some(r => r.key === `portfolio_item.${itemId}.description`)).toBe(true)
+    // (the service `nonEmpty` guard then falls back to the ru/default row).
+    const enDescription = rows.find(r => r.locale === 'en' && r.field === 'description')
+    expect(enDescription?.value).toBeNull()
   })
 
   it('delete removes the orphaned translation rows', async () => {
@@ -165,7 +171,7 @@ describe('portfolio item per-locale text persistence', () => {
     expect(body.type).toBe('redirect')
     expect(body.status).toBe(303)
 
-    expect(translationRows(itemId)).toEqual([])
+    expect(translationRows(itemId).filter(r => r.value)).toEqual([])
   })
 })
 
@@ -200,8 +206,8 @@ describe('portfolio item per-locale text — review-fix regressions', () => {
   it('category overrides persist like the other localized fields', async () => {
     const res = await client.postForm(`/admin/portfolios/${portfolioId}/items?/create`, {
       itemType: 'image',
-      title: 'Categorized',
-      category: 'Брендинг',
+      title_ru: 'Categorized',
+      category_ru: 'Брендинг',
       category_en: 'Branding EN',
       metadata: JSON.stringify({ gallery: [{ url: '/portfolio-fixtures/branding-1.png' }] }),
       published: 'on'
@@ -213,7 +219,7 @@ describe('portfolio item per-locale text — review-fix regressions', () => {
 
     const id = latestItemId()
     const rows = translationRows(id)
-    const catEn = rows.find(r => r.key === `portfolio_item.${id}.category`)
+    const catEn = rows.find(r => r.locale === 'en' && r.field === 'category')
     expect(catEn?.value).toBe('Branding EN')
   })
 
@@ -221,7 +227,7 @@ describe('portfolio item per-locale text — review-fix regressions', () => {
     // Create a gallery item (gallery portfolios render no localized content).
     const created = await client.postForm(`/admin/portfolios/${galleryPortfolioId}/items?/create`, {
       itemType: 'image',
-      title: 'Gallery Item',
+      title_ru: 'Gallery Item',
       mediaUrl: '/uploads/portfolios/branding/template_g90b.png',
       published: 'on'
     })
@@ -238,8 +244,8 @@ describe('portfolio item per-locale text — review-fix regressions', () => {
       expect(galleryItemId).toBeGreaterThan(0)
       // Simulate an imported content translation the editor never renders.
       db.prepare(
-        "INSERT INTO translations (locale, key, value, type, customized, updated_at) VALUES ('en', ?, '### Overview\nImported body', 'content', 0, 1)"
-      ).run(`portfolio_item.${galleryItemId}.content`)
+        "INSERT INTO portfolio_item_translations (item_id, locale, content, updated_at) VALUES (?, 'en', '### Overview\nImported body', 1)"
+      ).run(galleryItemId)
     } finally {
       db.close()
     }
@@ -248,7 +254,7 @@ describe('portfolio item per-locale text — review-fix regressions', () => {
     const saved = await client.postForm(`/admin/portfolios/${galleryPortfolioId}/items?/update`, {
       id: String(galleryItemId),
       itemType: 'image',
-      title: 'Gallery Item v2',
+      title_ru: 'Gallery Item v2',
       mediaUrl: '/uploads/portfolios/branding/template_g90b.png',
       published: 'on'
     })
@@ -258,7 +264,7 @@ describe('portfolio item per-locale text — review-fix regressions', () => {
 
     // The imported content translation must survive the save untouched.
     const rows = translationRows(galleryItemId)
-    const contentEn = rows.find(r => r.key === `portfolio_item.${galleryItemId}.content`)
+    const contentEn = rows.find(r => r.locale === 'en' && r.field === 'content')
     expect(contentEn?.value).toBe('### Overview\nImported body')
   })
 
@@ -267,7 +273,7 @@ describe('portfolio item per-locale text — review-fix regressions', () => {
     // (no metadata) so the enrichment baseline is the folded cover-only gallery.
     const created = await client.postForm(`/admin/portfolios/${portfolioId}/items?/create`, {
       itemType: 'image',
-      title: 'No-op baseline',
+      title_ru: 'No-op baseline',
       mediaUrl: '/uploads/portfolios/branding/template_g90b.png',
       metadata: JSON.stringify({ gallery: [{ url: '/uploads/portfolios/branding/template_g90b.png' }] }),
       published: 'on'
@@ -289,7 +295,7 @@ describe('portfolio item per-locale text — review-fix regressions', () => {
       const saved = await client.postForm(`/admin/portfolios/${portfolioId}/items?/update`, {
         id: String(sparseItemId),
         itemType: 'image',
-        title: 'No-op save',
+        title_ru: 'No-op save',
         mediaUrl: '/uploads/portfolios/branding/template_g90b.png',
         metadata: JSON.stringify({ gallery: [{ url: '/uploads/portfolios/branding/template_g90b.png' }] }),
         published: 'on'
@@ -311,12 +317,16 @@ describe('portfolio item per-locale text — review-fix regressions', () => {
 })
 
 describe('portfolio per-locale name/description persistence', () => {
-  function portfolioTranslationRows(id: number): Array<{ locale: string; key: string; value: string }> {
+  function portfolioTranslationRows(id: number): Array<{ locale: string; field: string; value: string | null }> {
     const db = new Database(server.dbPath, { readonly: true })
     try {
-      return db
-        .prepare('SELECT locale, key, value FROM translations WHERE key LIKE ? ORDER BY locale, key')
-        .all(`portfolio.${id}.%`) as Array<{ locale: string; key: string; value: string }>
+      return (db
+        .prepare('SELECT locale, name, description FROM portfolio_translations WHERE portfolio_id = ? ORDER BY locale')
+        .all(id) as Array<Record<string, string | null>>)
+        .flatMap(r => [
+          { locale: r.locale ?? '', field: 'name', value: r.name ?? null },
+          { locale: r.locale ?? '', field: 'description', value: r.description ?? null }
+        ])
     } finally {
       db.close()
     }
@@ -337,9 +347,9 @@ describe('portfolio per-locale name/description persistence', () => {
     expect(baseBody.status).toBe(303)
 
     let rows = portfolioTranslationRows(portfolioId)
-    const nameEn = rows.find(r => r.key === `portfolio.${portfolioId}.name`)
+    const nameEn = rows.find(r => r.locale === 'en' && r.field === 'name')
     expect(nameEn?.value).toBe('Localized Test EN')
-    const descEn = rows.find(r => r.key === `portfolio.${portfolioId}.description`)
+    const descEn = rows.find(r => r.locale === 'en' && r.field === 'description')
     expect(descEn?.value).toBe('EN portfolio description')
 
     // Emptying a previously-populated override clears it (falls back to the
@@ -354,7 +364,7 @@ describe('portfolio per-locale name/description persistence', () => {
     })
     expect(cleared.status).toBe(200)
     rows = portfolioTranslationRows(portfolioId)
-    const clearedName = rows.find(r => r.key === `portfolio.${portfolioId}.name`)
-    expect(clearedName?.value).toBe('')
+    const clearedName = rows.find(r => r.locale === 'en' && r.field === 'name')
+    expect(clearedName?.value).toBeNull()
   })
 })

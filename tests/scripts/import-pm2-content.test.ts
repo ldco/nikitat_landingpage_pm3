@@ -158,10 +158,10 @@ function simulateOldImport(
 ): void {
   const db = new Database(dbPath)
   db.prepare(
-    'INSERT INTO portfolios (id, slug, name, description, type, cover_image_url, cover_thumbnail_url, "order", published, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)'
-  ).run(1, 'branding', 'Branding', 'Desc', 'branding', null, null, 1, 1, NOW, NOW)
+    'INSERT INTO portfolios (id, slug, name, type, cover_image_url, cover_thumbnail_url, "order", published, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)'
+  ).run(1, 'branding', 'Branding', 'branding', null, null, 1, 1, NOW, NOW)
   const insertPrimary = db.prepare(
-    'INSERT INTO portfolio_items (id, portfolio_id, item_type, "order", published, created_at, updated_at, media_url, thumbnail_url, caption, slug, title, description, content, tags, category, published_at, metadata) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+    'INSERT INTO portfolio_items (id, portfolio_id, item_type, "order", published, created_at, updated_at, media_url, thumbnail_url, caption, slug, tags, published_at, metadata) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
   )
   for (const item of items) {
     const metadata = JSON.stringify({
@@ -169,8 +169,8 @@ function simulateOldImport(
     })
     insertPrimary.run(
       item.id, item.portfolio_id, item.item_type, item.order, 1, NOW, NOW,
-      item.media_url, item.thumbnail_url, item.caption, null, item.title, null, null,
-      null, null, null, metadata
+      item.media_url, item.thumbnail_url, item.caption, null,
+      null, null, metadata
     )
   }
   // Legacy synthesized rows: id beyond source ids, image type, media_url ===
@@ -249,10 +249,19 @@ function createEnrichmentSourceDb(dbPath: string): void {
  *  rows that lost their metadata/content before a repair). */
 function blankItemFields(dbPath: string, ids: number[], columns: string[]): void {
   const db = new Database(dbPath)
-  const assignments = columns.map(c => `${c} = NULL`).join(', ')
-  db.prepare(
-    `UPDATE portfolio_items SET ${assignments} WHERE id IN (${ids.map(() => '?').join(',')})`
-  ).run(...ids)
+  const localized = columns.filter(c => c === 'title' || c === 'description' || c === 'content' || c === 'category')
+  const base = columns.filter(c => !localized.includes(c))
+  if (base.length > 0) {
+    const assignments = base.map(c => `${c} = NULL`).join(', ')
+    db.prepare(
+      `UPDATE portfolio_items SET ${assignments} WHERE id IN (${ids.map(() => '?').join(',')})`
+    ).run(...ids)
+  }
+  for (const column of localized) {
+    db.prepare(
+      `UPDATE portfolio_item_translations SET ${column} = NULL WHERE locale = 'ru' AND item_id IN (${ids.map(() => '?').join(',')})`
+    ).run(...ids)
+  }
   db.close()
 }
 
@@ -297,9 +306,13 @@ function seedTargetItem(
 ): void {
   const db = new Database(dbPath)
   db.prepare(
-    `INSERT INTO portfolio_items (id, portfolio_id, item_type, "order", published, created_at, updated_at, content, metadata)
-     VALUES (?, ?, 'image', 1, 1, ?, ?, ?, ?)`
-  ).run(item.id, item.portfolioId, NOW, NOW, item.content, JSON.stringify(item.metadata))
+    `INSERT INTO portfolio_items (id, portfolio_id, item_type, "order", published, created_at, updated_at, metadata)
+     VALUES (?, ?, 'image', 1, 1, ?, ?, ?)`
+  ).run(item.id, item.portfolioId, NOW, NOW, JSON.stringify(item.metadata))
+  // Localized body → ru translation row.
+  db.prepare(
+    "INSERT INTO portfolio_item_translations (item_id, locale, content, updated_at) VALUES (?, 'ru', ?, ?)"
+  ).run(item.id, item.content, NOW)
   db.close()
 }
 
@@ -409,9 +422,12 @@ function createLegacyScalarSourceDb(dbPath: string): void {
 function readItemRow(dbPath: string, id: number): { title: string | null; content: string | null; metadata: string | null } | undefined {
   const db = new Database(dbPath, { readonly: true })
   try {
-    return db.prepare('SELECT title, content, metadata FROM portfolio_items WHERE id = ?').get(id) as
-      | { title: string | null; content: string | null; metadata: string | null }
+    const meta = db.prepare('SELECT metadata FROM portfolio_items WHERE id = ?').get(id) as
+      | { metadata: string | null }
       | undefined
+    const tr = db.prepare('SELECT title, content FROM portfolio_item_translations WHERE item_id = ? AND locale = ?')
+      .get(id, 'ru') as { title: string | null; content: string | null } | undefined
+    return { title: tr?.title ?? null, content: tr?.content ?? null, metadata: meta?.metadata ?? null }
   } finally {
     db.close()
   }
@@ -428,16 +444,19 @@ function readFullRow(dbPath: string, id: number): {
 } | undefined {
   const db = new Database(dbPath, { readonly: true })
   try {
-    return db.prepare(
-      'SELECT title, description, media_url, thumbnail_url, content, metadata FROM portfolio_items WHERE id = ?'
-    ).get(id) as {
-      title: string | null
-      description: string | null
-      media_url: string | null
-      thumbnail_url: string | null
-      content: string | null
-      metadata: string | null
-    } | undefined
+    const item = db.prepare('SELECT media_url, thumbnail_url, metadata FROM portfolio_items WHERE id = ?').get(id) as
+      | { media_url: string | null; thumbnail_url: string | null; metadata: string | null }
+      | undefined
+    const tr = db.prepare('SELECT title, description, content FROM portfolio_item_translations WHERE item_id = ? AND locale = ?')
+      .get(id, 'ru') as { title: string | null; description: string | null; content: string | null } | undefined
+    return {
+      title: tr?.title ?? null,
+      description: tr?.description ?? null,
+      media_url: item?.media_url ?? null,
+      thumbnail_url: item?.thumbnail_url ?? null,
+      content: tr?.content ?? null,
+      metadata: item?.metadata ?? null
+    }
   } finally {
     db.close()
   }
@@ -647,7 +666,7 @@ describe('import-pm2-content branding gallery repair', () => {
     blankItemFields(targetDb, [10, 20], ['metadata', 'content'])
     {
       const db = new Database(targetDb)
-      db.prepare("UPDATE portfolio_items SET title = 'Admin edit' WHERE id IN (10, 20)").run()
+      db.prepare("UPDATE portfolio_item_translations SET title = 'Admin edit' WHERE locale = 'ru' AND item_id IN (10, 20)").run()
       db.close()
     }
 
@@ -690,10 +709,10 @@ describe('import-pm2-content branding gallery repair', () => {
     {
       const db = new Database(targetDb)
       const insertPortfolio = db.prepare(
-        'INSERT INTO portfolios (id, slug, name, description, type, cover_image_url, cover_thumbnail_url, "order", published, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)'
+        'INSERT INTO portfolios (id, slug, name, type, cover_image_url, cover_thumbnail_url, "order", published, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)'
       )
-      insertPortfolio.run(1, 'branding', 'Branding', 'Desc', 'branding', null, null, 1, 1, NOW, NOW)
-      insertPortfolio.run(2, 'websites', 'Websites', 'Desc', 'website', null, null, 1, 1, NOW, NOW)
+      insertPortfolio.run(1, 'branding', 'Branding', 'branding', null, null, 1, 1, NOW, NOW)
+      insertPortfolio.run(2, 'websites', 'Websites', 'website', null, null, 1, 1, NOW, NOW)
       db.close()
     }
     seedTargetItem(targetDb, {
@@ -801,7 +820,7 @@ describe('import-pm2-content branding gallery repair', () => {
     {
       const db = new Database(targetDb)
       db.prepare("UPDATE portfolio_items SET media_url = 'https://admin.example.com/cover.png' WHERE id = 10").run()
-      db.prepare("UPDATE portfolio_items SET title = 'Admin title' WHERE id IN (10, 20)").run()
+      db.prepare("UPDATE portfolio_item_translations SET title = 'Admin title' WHERE locale = 'ru' AND item_id IN (10, 20)").run()
       // Admin metadata edit: a target-only key that a source-wins repair would
       // drop — the local-wins merge must keep it while still backfilling the
       // blanked fields.
@@ -862,7 +881,8 @@ describe('import-pm2-content branding gallery repair', () => {
     // an import gap).
     {
       const db = new Database(targetDb)
-      db.prepare("UPDATE portfolio_items SET content = NULL, metadata = ? WHERE id = 10")
+      db.prepare("UPDATE portfolio_item_translations SET content = NULL WHERE locale = 'ru' AND item_id = 10").run()
+      db.prepare("UPDATE portfolio_items SET metadata = ? WHERE id = 10")
         .run(JSON.stringify({ tags: ['manual'], _adminEdited: true }))
       db.close()
     }

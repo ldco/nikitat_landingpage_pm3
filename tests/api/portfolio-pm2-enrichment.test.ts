@@ -220,20 +220,23 @@ function insertItemRow(
       | undefined
     if (!portfolio) throw new Error(`missing portfolio ${portfolioSlug}`)
     db.prepare(
-      `INSERT INTO portfolio_items (id, portfolio_id, item_type, "order", published, created_at, updated_at, content, description, media_url, thumbnail_url, metadata)
-       VALUES (?, ?, ?, 1, 1, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO portfolio_items (id, portfolio_id, item_type, "order", published, created_at, updated_at, media_url, thumbnail_url, metadata)
+       VALUES (?, ?, ?, 1, 1, ?, ?, ?, ?, ?)`
     ).run(
       itemId,
       portfolio.id,
       fields.itemType ?? 'image',
       NOW,
       NOW,
-      fields.content ?? null,
-      fields.description ?? null,
       fields.mediaUrl ?? null,
       fields.thumbnailUrl ?? null,
       fields.metadata ?? null
     )
+    // Localized body fields → ru translation row (ADR-001).
+    db.prepare(
+      `INSERT INTO portfolio_item_translations (item_id, locale, content, description, updated_at)
+       VALUES (?, 'ru', ?, ?, ?)`
+    ).run(itemId, fields.content ?? null, fields.description ?? null, NOW)
   } finally {
     db.close()
   }
@@ -485,8 +488,8 @@ describe('PM2 source enrichment — cleared optional metadata stays cleared afte
       id: '108',
       itemType: 'image',
       mediaUrl: 'https://local.example.com/cover.png',
-      title: 'Brand 108',
-      content: '### Локально\nЛокальный текст 108.',
+      title_ru: 'Brand 108',
+      content_ru: '### Локально\nЛокальный текст 108.',
       metadata: JSON.stringify({
         gallery: [{ url: 'https://local.example.com/cover.png' }],
         tags: ['manual']
