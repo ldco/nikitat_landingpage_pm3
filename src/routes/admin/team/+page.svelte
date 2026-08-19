@@ -29,7 +29,7 @@
           <div class="flex gap-2 text-xs text-pm-text-muted">
             <span>{item.slug}</span>
             <Badge variant={item.published ? 'success' : 'default'}>
-              {item.published ? (adminT['admin.published'] ?? t('admin.published')) : (adminT['admin.hidden'] ?? 'Hidden')}
+              {item.published ? (adminT['admin.published'] ?? t('admin.published')) : (adminT['admin.hidden'] ?? t('admin.hidden'))}
             </Badge>
           </div>
         </div>

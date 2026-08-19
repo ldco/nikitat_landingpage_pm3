@@ -29,7 +29,10 @@
   const overlays = getOverlaysState()
   let deletePending = $state<number | null>(null)
   let deleteError = $state<string | null>(null)
-  let currentPage = $state(data.pagination?.page ?? 1)
+  let currentPage = $state(1)
+  $effect.pre(() => {
+    currentPage = data.pagination?.page ?? 1
+  })
 
   async function handleDelete(id: number, name: string) {
     const msg = adminT['admin.confirmDelete'] ?? t('common.areYouSure')
@@ -49,6 +52,18 @@
     } finally {
       deletePending = null
     }
+  }
+
+  const PORTFOLIO_TYPE_LABEL_KEYS: Record<string, string> = {
+    branding: 'admin.branding',
+    case_study: 'admin.caseStudy',
+    website: 'admin.website',
+    gallery: 'admin.gallery',
+    brandbook: 'admin.brandbook'
+  }
+
+  function portfolioTypeLabel(type: string): string {
+    return adminT[PORTFOLIO_TYPE_LABEL_KEYS[type] ?? ''] ?? t(PORTFOLIO_TYPE_LABEL_KEYS[type] ?? '') ?? type
   }
 
   const columns = $derived<AdminTableColumn[]>([
@@ -82,7 +97,7 @@
           {#if column.key === 'name'}
             <span class="font-medium text-pm-text">{row.name}</span>
           {:else if column.key === 'type'}
-            <span class="text-pm-text-muted">{row.type}</span>
+            <span class="text-pm-text-muted">{portfolioTypeLabel(row.type)}</span>
           {:else}
             <Badge variant={row.published ? 'success' : 'default'}>
               {row.published ? adminT['admin.published'] : adminT['admin.draft']}

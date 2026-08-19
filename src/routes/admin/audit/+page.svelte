@@ -15,12 +15,15 @@
   let { data }: { data: PageData } = $props()
   const items = $derived(data.items)
   const adminT = $derived(getAdminT($page.data))
-  let currentPage = $state(data.pagination?.page ?? 1)
+  let currentPage = $state(1)
+  $effect.pre(() => {
+    currentPage = data.pagination?.page ?? 1
+  })
 
   const columns = $derived<AdminTableColumn[]>([
-    { key: 'action', label: adminT['admin.action'] ?? 'Action' },
-    { key: 'user', label: adminT['admin.user'] ?? 'User' },
-    { key: 'date', label: adminT['admin.date'] ?? 'Date' }
+    { key: 'action', label: adminT['admin.action'] ?? t('admin.action') },
+    { key: 'user', label: adminT['admin.user'] ?? t('admin.user') },
+    { key: 'date', label: adminT['admin.date'] ?? t('admin.date') }
   ])
 </script>
 

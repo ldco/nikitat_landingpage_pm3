@@ -1,22 +1,23 @@
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
 import { useDatabase, schema } from '$lib/server/db'
-import { count } from 'drizzle-orm'
 import type { PageServerLoad } from './$types'
+import { buildPagination, getPaginationParams, getTableCount } from '$lib/server/utils/pagination'
+import { loadPortfolioTranslations, localizePortfolio } from '$lib/server/services/portfolio'
+import { detectAdminLocale } from '$lib/server/utils/locales'
 
 export const load: PageServerLoad = (event) => {
   requireAdminPage(event, 'portfolios')
   const db = useDatabase()
+  const locale = detectAdminLocale(event)
 
-  const pageParam = Number(event.url.searchParams.get('page') ?? '1')
-  const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1
-  const limit = 20
-  const offset = (page - 1) * limit
-
-  const total = db.select({ n: count() }).from(schema.portfolios).get()?.n ?? 0
-  const items = db.select({ id: schema.portfolios.id, slug: schema.portfolios.slug, name: schema.portfolios.name, type: schema.portfolios.type, published: schema.portfolios.published })
+  const { page, pageSize, offset } = getPaginationParams(event.url, 20)
+  const total = getTableCount(schema.portfolios)
+  const rows = db.select({ id: schema.portfolios.id, slug: schema.portfolios.slug, name: schema.portfolios.name, type: schema.portfolios.type, published: schema.portfolios.published })
     .from(schema.portfolios)
-    .limit(limit)
+    .limit(pageSize)
     .offset(offset)
     .all()
-  return { items, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } }
+  const translations = loadPortfolioTranslations(locale, rows.map(r => r.id))
+  const items = rows.map(row => localizePortfolio(row, translations.get(row.id)))
+  return { items, pagination: buildPagination(page, pageSize, total) }
 }

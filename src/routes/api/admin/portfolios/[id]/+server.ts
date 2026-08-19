@@ -4,6 +4,8 @@ import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { useDatabase, schema } from '$lib/server/db'
 import { requireAdminPage } from '$lib/server/utils/admin-rbac'
+import { loadPortfolioTranslations, localizePortfolio } from '$lib/server/services/portfolio'
+import { detectAdminLocale } from '$lib/server/utils/locales'
 import { jsonSuccess } from '$lib/server/utils/api'
 import { updatePortfolio } from '$lib/server/services/portfolio-admin'
 import { PORTFOLIO_TYPES } from '$lib/portfolio-types'
@@ -21,8 +23,10 @@ export function GET(event: RequestEvent) {
   requireAdminPage(event, 'portfolios')
   const db = useDatabase()
   const id = Number(event.params.id)
-  const item = db.select().from(schema.portfolios).where(eq(schema.portfolios.id, id)).get()
-  if (!item) throw error(404)
+  const row = db.select().from(schema.portfolios).where(eq(schema.portfolios.id, id)).get()
+  if (!row) throw error(404)
+  const translations = loadPortfolioTranslations(detectAdminLocale(event), [id])
+  const item = localizePortfolio(row, translations.get(id))
   return json(jsonSuccess(item))
 }
 
@@ -54,8 +58,10 @@ export async function PUT(event: RequestEvent) {
   }
 
   const db = useDatabase()
-  const updated = db.select().from(schema.portfolios).where(eq(schema.portfolios.id, id)).get()
-  if (!updated) throw error(404)
+  const updatedRow = db.select().from(schema.portfolios).where(eq(schema.portfolios.id, id)).get()
+  if (!updatedRow) throw error(404)
+  const translations = loadPortfolioTranslations(detectAdminLocale(event), [id])
+  const updated = localizePortfolio(updatedRow, translations.get(id))
   return json(jsonSuccess(updated))
 }
 

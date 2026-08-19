@@ -7,6 +7,8 @@ import { jsonSuccess, jsonPaginated } from '$lib/server/utils/api'
 import { paginationSchema } from '$lib/server/utils/validation'
 import { eq } from 'drizzle-orm'
 import { createPortfolio } from '$lib/server/services/portfolio-admin'
+import { loadPortfolioTranslations, localizePortfolio } from '$lib/server/services/portfolio'
+import { detectAdminLocale } from '$lib/server/utils/locales'
 import { PORTFOLIO_TYPES } from '$lib/portfolio-types'
 
 const createSchema = z.object({
@@ -25,7 +27,9 @@ export function GET(event: RequestEvent) {
   if (!parsed.success) throw error(400, parsed.error.issues.map(e => e.message).join(', '))
   const { page, pageSize } = parsed.data
   const offset = (page - 1) * pageSize
-  const all = db.select().from(schema.portfolios).limit(pageSize).offset(offset).all()
+  const rows = db.select().from(schema.portfolios).limit(pageSize).offset(offset).all()
+  const translations = loadPortfolioTranslations(detectAdminLocale(event), rows.map(r => r.id))
+  const all = rows.map(row => localizePortfolio(row, translations.get(row.id)))
   const total = db.select({ id: schema.portfolios.id }).from(schema.portfolios).all().length
   return json(jsonPaginated(all, page, pageSize, total))
 }

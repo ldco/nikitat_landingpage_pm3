@@ -12,10 +12,11 @@
 import { useDatabase, schema } from '$lib/server/db'
 import { eq, and, asc, inArray, sql, type SQL } from 'drizzle-orm'
 import type { PortfolioCard } from '$lib/components/sections/types'
-import { MODULES, DEFAULT_LOCALE } from '$lib/config/site'
+import { MODULES } from '$lib/config/site'
 import { getSanitizedContentTranslations } from '$lib/server/db/content-cache'
-import { PORTFOLIO_TYPES, type PortfolioType } from '$lib/portfolio-types'
+import { PORTFOLIO_TYPE_SET, type PortfolioType } from '$lib/portfolio-types'
 import { enrichPortfolioItemsFromSource } from '$lib/server/services/portfolio-pm2-source'
+import { getFilteredCount } from '$lib/server/utils/pagination'
 
 /** Sort modes honored by the shared public listing (config `sortDefault`). */
 export type PortfolioSort = 'order' | 'name'
@@ -39,7 +40,6 @@ interface PortfolioRow {
   slug: string
   name: string
   type: string
-  description: string | null
   coverImageUrl: string | null
 }
 
@@ -53,94 +53,105 @@ function nonEmpty(value: string | null | undefined): value is string {
 
 interface LocalizableItem {
   id: number
+  title?: string | null
+  description?: string | null
+  content?: string | null
+  category?: string | null
+}
+
+interface ItemTranslationRow {
+  itemId: number
   title: string | null
   description: string | null
   content: string | null
   category: string | null
 }
 
-/**
- * Localize one display field. Ownership contract (review fix):
- *  - DEFAULT locale (`ru`): the raw COLUMN is the single source of truth —
- *    an admin edit to the column must never be shadowed by an imported
- *    translation row. The translation row is only consulted to FILL a missing
- *    column (e.g. rich bodies that never existed in the column).
- *  - other locales: the translation row wins whenever present (PM2 parity),
- *    with the column as fallback.
- */
-function localizeField(
-  column: string | null,
-  translation: string | undefined,
-  locale: string
-): string | null {
-  if (locale === DEFAULT_LOCALE) {
-    return nonEmpty(column) ? column : (nonEmpty(translation) ? translation : column)
-  }
-  return nonEmpty(translation) ? translation : column
+interface PortfolioTranslationRow {
+  portfolioId: number
+  name: string | null
+  description: string | null
 }
 
 /**
- * Localize a portfolio row's display fields from the locale's content
- * translations (`portfolio.<id>.name` / `.description`), falling back to the
- * raw column when the locale carries no row. PM2 parity: nikitat.pro stores
- * per-locale portfolio names/descriptions in the translations table, so the
- * hydrated value must win over the Russian column fallback. Mirrors the
- * translated-??-base fallback pattern of the pricing service. The default
- * locale is column-owned (see `localizeField`).
+ * Load the dedicated `portfolio_item_translations` rows for ONE locale (ADR-001:
+ * all languages equal — ru is a translation row like any other). Keyed by item
+ * id for O(1) lookup during hydration. The legacy base columns remain the
+ * read-fallback until Phase 4 drops them.
  */
-function localizePortfolio<T extends { id: number; name: string; description: string | null }>(
+function loadItemTranslations(locale: string, itemIds?: number[]): Map<number, ItemTranslationRow> {
+  const db = useDatabase()
+  const rows = db.select({
+    itemId: schema.portfolioItemTranslations.itemId,
+    title: schema.portfolioItemTranslations.title,
+    description: schema.portfolioItemTranslations.description,
+    content: schema.portfolioItemTranslations.content,
+    category: schema.portfolioItemTranslations.category
+  })
+    .from(schema.portfolioItemTranslations)
+    .where(eq(schema.portfolioItemTranslations.locale, locale))
+    .all()
+  const map = new Map<number, ItemTranslationRow>()
+  for (const row of rows) {
+    if (itemIds && !itemIds.includes(row.itemId)) continue
+    map.set(row.itemId, row)
+  }
+  return map
+}
+
+/**
+ * Load the dedicated `portfolio_translations` rows for ONE locale, keyed by
+ * portfolio id.
+ */
+export function loadPortfolioTranslations(locale: string, portfolioIds?: number[]): Map<number, PortfolioTranslationRow> {
+  const db = useDatabase()
+  const rows = db.select({
+    portfolioId: schema.portfolioTranslations.portfolioId,
+    name: schema.portfolioTranslations.name,
+    description: schema.portfolioTranslations.description
+  })
+    .from(schema.portfolioTranslations)
+    .where(eq(schema.portfolioTranslations.locale, locale))
+    .all()
+  const map = new Map<number, PortfolioTranslationRow>()
+  for (const row of rows) {
+    if (portfolioIds && !portfolioIds.includes(row.portfolioId)) continue
+    map.set(row.portfolioId, row)
+  }
+  return map
+}
+
+/**
+ * Localize a portfolio row's display fields from the dedicated translation row,
+ * falling back to the legacy column when the locale carries no row. Uniform
+ * across locales (no default-locale special case).
+ */
+export function localizePortfolio<T extends { id: number; name: string; description?: string | null }>(
   row: T,
-  translations: Record<string, string>,
-  locale: string
-): T {
-  const name = localizeField(row.name, translations[`portfolio.${row.id}.name`], locale)
-  const description = localizeField(
-    row.description,
-    translations[`portfolio.${row.id}.description`],
-    locale
-  )
+  translation: PortfolioTranslationRow | undefined
+): T & { description: string | null } {
   return {
     ...row,
-    name: name ?? row.name,
-    description
+    name: nonEmpty(translation?.name) ? translation.name : row.name,
+    description: nonEmpty(translation?.description) ? translation.description : (row.description ?? null)
   }
 }
 
 /**
- * Localize a portfolio item's display fields from the locale's content
- * translations (`portfolio_item.<id>.title/.description/.content/.category`),
- * falling back to the raw column when the locale carries no row. PM2 parity:
- * the rich localized item bodies (markdown with `### ` sections) live in the
- * translations table — the hydrated content is what the viewers render. The
- * default locale is column-owned (see `localizeField`).
+ * Localize a portfolio item's display fields from the dedicated translation
+ * row, falling back to the raw column when the locale carries no row. Uniform
+ * across locales (no default-locale special case).
  */
-function localizeItem<T extends LocalizableItem>(
+function localizeItem<T extends { id: number }>(
   item: T,
-  translations: Record<string, string>,
-  locale: string
-): T {
-  const title = localizeField(item.title, translations[`portfolio_item.${item.id}.title`], locale)
-  const description = localizeField(
-    item.description,
-    translations[`portfolio_item.${item.id}.description`],
-    locale
-  )
-  const content = localizeField(
-    item.content,
-    translations[`portfolio_item.${item.id}.content`],
-    locale
-  )
-  const category = localizeField(
-    item.category,
-    translations[`portfolio_item.${item.id}.category`],
-    locale
-  )
+  translation: ItemTranslationRow | undefined
+): T & { title: string | null; description: string | null; content: string | null; category: string | null } {
   return {
     ...item,
-    title,
-    description,
-    content,
-    category
+    title: nonEmpty(translation?.title) ? translation.title : ((item as LocalizableItem).title ?? null),
+    description: nonEmpty(translation?.description) ? translation.description : ((item as LocalizableItem).description ?? null),
+    content: nonEmpty(translation?.content) ? translation.content : ((item as LocalizableItem).content ?? null),
+    category: nonEmpty(translation?.category) ? translation.category : ((item as LocalizableItem).category ?? null)
   }
 }
 
@@ -201,7 +212,7 @@ function attachThumbnails(db: ReturnType<typeof useDatabase>, rows: PortfolioRow
       slug: row.slug,
       name: row.name,
       type: row.type,
-      description: row.description,
+      description: (row as { description?: string | null }).description ?? null,
       coverImageUrl,
       thumbnails
     }
@@ -233,7 +244,6 @@ export function getPublishedPortfolios(locale: string, sort: PortfolioSort = 'or
     slug: schema.portfolios.slug,
     name: schema.portfolios.name,
     type: schema.portfolios.type,
-    description: schema.portfolios.description,
     coverImageUrl: schema.portfolios.coverImageUrl
   })
     .from(schema.portfolios)
@@ -241,8 +251,8 @@ export function getPublishedPortfolios(locale: string, sort: PortfolioSort = 'or
     .orderBy(portfolioOrder(sort))
     .all()
 
-  const translations = getSanitizedContentTranslations(locale)
-  return attachThumbnails(db, rows.map(row => localizePortfolio(row, translations, locale)))
+  const portfolioTranslations = loadPortfolioTranslations(locale, rows.map(r => r.id))
+  return attachThumbnails(db, rows.map(row => localizePortfolio(row, portfolioTranslations.get(row.id))))
 }
 
 /**
@@ -260,23 +270,19 @@ export function getPublicPortfolioListing(
   const sort = resolvePortfolioSort(options.sort)
   const types = (options.types ?? [])
     .map(t => t.trim())
-    .filter((t): t is PortfolioType => (PORTFOLIO_TYPES as readonly string[]).includes(t))
+    .filter((t): t is PortfolioType => PORTFOLIO_TYPE_SET.has(t as PortfolioType))
 
   const conditions = [eq(schema.portfolios.published, true)]
   if (types.length > 0) conditions.push(inArray(schema.portfolios.type, types))
   const where = and(...conditions)
 
-  const total = db.select({ id: schema.portfolios.id })
-    .from(schema.portfolios)
-    .where(where)
-    .all().length
+  const total = getFilteredCount(schema.portfolios, where)
 
   const rows = db.select({
     id: schema.portfolios.id,
     slug: schema.portfolios.slug,
     name: schema.portfolios.name,
     type: schema.portfolios.type,
-    description: schema.portfolios.description,
     coverImageUrl: schema.portfolios.coverImageUrl
   })
     .from(schema.portfolios)
@@ -286,9 +292,9 @@ export function getPublicPortfolioListing(
     .offset((page - 1) * pageSize)
     .all()
 
-  const translations = getSanitizedContentTranslations(locale)
+  const portfolioTranslations = loadPortfolioTranslations(locale, rows.map(r => r.id))
   return {
-    items: attachThumbnails(db, rows.map(row => localizePortfolio(row, translations, locale))),
+    items: attachThumbnails(db, rows.map(row => localizePortfolio(row, portfolioTranslations.get(row.id)))),
     pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) }
   }
 }
@@ -333,22 +339,35 @@ const HEADING_KEY_MAP: Record<string, string> = {
  * in this map + the database — no hardcoded visible words.
  */
 export function headingTranslationKey(heading: string): string {
-  const normalized = heading
-    .toLowerCase()
-    .replace(/[\s-]+/g, '-')
-    .replace(/[^a-zа-яё0-9-]/g, '')
-  const mapped = HEADING_KEY_MAP[normalized] ?? normalized
-  return `portfolio.heading.${mapped}`
+  return `portfolio.heading.${headingKey(heading)}`
 }
 
 /**
  * Resolve a case-study heading against the locale's content translations.
- * Falls back to the raw heading when the database has no translation.
+ *
+ * The runtime v3 namespace is `portfolio.heading.<key>` (headingTranslationKey),
+ * but PM2-imported catalogs shipped the same labels under `portfolio.section.<key>`
+ * (import-pm2-content.ts remaps them at import time; a legacy DB that predates
+ * the remap carries the old namespace). BOTH are resolved so translated
+ * headings work regardless of which namespace the data uses — a missing key in
+ * either namespace falls back to the raw heading (never a raw key).
  */
 export function translateHeading(heading: string, translations: Record<string, string>): string {
-  const key = headingTranslationKey(heading)
-  const translated = translations[key]
-  return translated && translated !== key ? translated : heading
+  const mapped = headingKey(heading)
+  for (const key of [`portfolio.heading.${mapped}`, `portfolio.section.${mapped}`]) {
+    const translated = translations[key]
+    if (translated && translated.trim() !== '') return translated
+  }
+  return heading
+}
+
+/** Normalize a `### ` heading line to its PM2 latin section key (no namespace). */
+function headingKey(heading: string): string {
+  const normalized = heading
+    .toLowerCase()
+    .replace(/[\s-]+/g, '-')
+    .replace(/[^a-zа-яё0-9-]/g, '')
+  return HEADING_KEY_MAP[normalized] ?? normalized
 }
 
 /**
@@ -401,21 +420,23 @@ export function getPortfolioBySlug(slug: string, locale: string) {
     .orderBy(asc(schema.portfolioItems.order))
     .all()
 
-  const translations = getSanitizedContentTranslations(locale)
   const enrichedItems = enrichPortfolioItemsFromSource(items, portfolio.type)
+  const itemTranslations = loadItemTranslations(locale, enrichedItems.map(i => i.id))
+  const portfolioTranslations = loadPortfolioTranslations(locale, [portfolio.id])
+  const headingTranslations = getSanitizedContentTranslations(locale)
   // Localize the item's display fields BEFORE heading resolution — the
   // hydrated per-locale body carries its own `### ` section headings, and they
-  // must be resolved against the same translations map (viewers render the
-  // same body contract: WebsiteViewer, BrandingViewer, CaseStudyViewer).
+  // must be resolved against the same heading map (viewers render the same
+  // body contract: WebsiteViewer, BrandingViewer, CaseStudyViewer).
   const translatedItems = enrichedItems.map(item => {
-    const localized = localizeItem(item, translations, locale)
+    const localized = localizeItem(item, itemTranslations.get(item.id))
     if (localized.content) {
-      return { ...localized, content: translateCaseStudyContent(localized.content, translations) }
+      return { ...localized, content: translateCaseStudyContent(localized.content, headingTranslations) }
     }
     return localized
   })
 
-  return { portfolio: localizePortfolio(portfolio, translations, locale), items: translatedItems }
+  return { portfolio: localizePortfolio(portfolio, portfolioTranslations.get(portfolio.id)), items: translatedItems }
 }
 
 /**

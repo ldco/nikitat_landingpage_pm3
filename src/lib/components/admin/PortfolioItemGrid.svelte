@@ -10,10 +10,11 @@
    *
    * @props {PortfolioItem[]} items — items to render
    * @props {(item: PortfolioItem) => void} onEdit — edit click callback
+   * @props {Record<number, Record<string, Record<string, string>>>} [itemTranslations] — per-locale text overrides keyed by item id (title/description/content/category); the card title shows the current admin locale's title
    * @props {string} [class] — additional CSS classes
    *
    * @example
-   * <PortfolioItemGrid items={items} onEdit={(item) => openEditor(item)} />
+   * <PortfolioItemGrid items={items} onEdit={(item) => openEditor(item)} itemTranslations={itemTranslations} />
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
@@ -35,15 +36,22 @@
   let {
     items = [] as PortfolioItem[],
     onEdit,
+    itemTranslations = {} as Record<number, Record<string, Record<string, string>>>,
     class: className = ''
   }: {
     items?: PortfolioItem[]
     onEdit: (item: PortfolioItem) => void
+    itemTranslations?: Record<number, Record<string, Record<string, string>>>
     class?: string
   } = $props()
 
   const adminT = $derived(getAdminT($page.data))
+  const adminLocale = $derived(($page.data.locale as string | undefined) ?? 'ru')
   const overlays = getOverlaysState()
+
+  function localizedTitle(item: PortfolioItem): string {
+    return itemTranslations[item.id]?.[adminLocale]?.title ?? item.caption ?? '—'
+  }
 
   async function confirmThenSubmit(e: MouseEvent): Promise<void> {
     e.preventDefault()
@@ -74,7 +82,9 @@
             {#if item.mediaUrl && item.itemType !== 'video'}
               <img src={item.mediaUrl} alt={item.caption ?? ''} class="w-full h-40 object-cover" />
             {:else if item.mediaUrl}
-              <video src={item.mediaUrl} class="w-full h-40 object-cover" />
+              <video src={item.mediaUrl} class="w-full h-40 object-cover">
+                <track kind="captions" />
+              </video>
             {:else}
               <div class="flex items-center justify-center h-full text-pm-text-muted text-sm">
                 {adminT['admin.noImage'] ?? t('admin.noImage')}
@@ -89,7 +99,7 @@
           </div>
           <div class="flex-1 p-3 flex flex-col gap-1">
             <span class="text-sm font-medium text-pm-text truncate">
-              {item.title ?? item.caption ?? '—'}
+              {localizedTitle(item)}
             </span>
             <span class="text-xs text-pm-text-muted">{adminT['admin.order'] ?? t('admin.order')}: {item.order}</span>
           </div>

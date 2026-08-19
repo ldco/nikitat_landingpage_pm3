@@ -58,7 +58,7 @@
   {/snippet}
 </PageHeader>
 
-<PortfolioItemGrid {items} onEdit={openEdit} />
+<PortfolioItemGrid {items} onEdit={openEdit} itemTranslations={itemTranslations} />
 
 <PortfolioItemEditor
   open={showModal}
