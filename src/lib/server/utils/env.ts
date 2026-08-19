@@ -34,9 +34,11 @@ const envSchema = z.object({
   DATABASE_URL: z.string().default('./data/sqlite.db'),
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
 
-  // Hard runtime requirement: 2FA secrets are encrypted with this key
-  // (bootstrap-generated, keep stable between deploys).
-  TOTP_ENCRYPTION_KEY: z.string().min(1),
+  // 2FA secret encryption key — required only when FEATURES.twoFactorAuth is
+  // enabled (hooks.server.ts fails the boot without it in that case, and
+  // auth/totp.ts guards the crypto path). Optional here so projects with 2FA
+  // disabled don't fail unrelated useEnv() callers (e.g. email) at runtime.
+  TOTP_ENCRYPTION_KEY: z.string().optional(),
 
   // Security / rate limiting
   PM_TRUST_PROXY: z.string().optional(),
@@ -82,14 +84,9 @@ export function useEnv(): EnvConfig {
     if (!result.success) {
       console.error('Environment validation failed:', result.error.format())
       // Unified contract: refuse to run with a degraded configuration in
-      // every environment. A missing TOTP_ENCRYPTION_KEY here means the env
-      // bootstrap did not run (or .env was deleted) — not a dev convenience.
-      const missingTotp = result.error.issues.some(issue => issue.path[0] === 'TOTP_ENCRYPTION_KEY')
-      const hint = missingTotp
-        ? ' TOTP_ENCRYPTION_KEY is not set — run `npm run dev` once to bootstrap .env, or set it in .env (generate with `openssl rand -hex 32`).'
-        : ''
+      // every environment.
       throw new Error(
-        `Environment validation failed — refusing to start with a degraded configuration.${hint}`
+        'Environment validation failed — refusing to start with a degraded configuration.'
       )
     }
     _env = result.data

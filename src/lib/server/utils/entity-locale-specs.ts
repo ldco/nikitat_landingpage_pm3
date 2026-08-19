@@ -17,3 +17,6 @@ export const FAQ_LOCALE_SPEC: LocaleFormSpec = { question: true, answer: true }
 
 /** Features: a submitted locale section must contain the title. */
 export const FEATURE_LOCALE_SPEC: LocaleFormSpec = { title: true, description: false }
+
+/** Pricing: every field is optional — a locale section is any non-empty subset. */
+export const PRICING_LOCALE_SPEC: LocaleFormSpec = { name: false, description: false, ctaText: false }

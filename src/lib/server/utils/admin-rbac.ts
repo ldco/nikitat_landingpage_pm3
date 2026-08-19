@@ -100,7 +100,7 @@ function isAdminPageAllowed(user: AdminUser, pageId: AdminPageId): boolean {
  */
 function assertPasswordChanged(user: AdminUser): void {
   if (user.mustChangePassword) {
-    throw error(403, { code: 'auth.passwordChangeRequired', message: 'Password change required' } as unknown as { message: string })
+    throw error(403, { code: 'auth.passwordChangeRequired', message: 'Password change required' })
   }
 }
 

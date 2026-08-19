@@ -333,6 +333,12 @@ function unixNow(): number {
   return Math.floor(Date.now() / 1000)
 }
 
+/** PM2 source stores epoch milliseconds; PM3 columns are epoch seconds. */
+function toUnixSeconds(v: number | null): number {
+  if (v === null) return unixNow()
+  return v > 1000000000000 ? Math.floor(v / 1000) : v
+}
+
 function getRowIds(db: Database, table: string, idColumn: string): Set<number> {
   return new Set(
     (db.prepare(`SELECT ${idColumn} AS id FROM ${table}`).all() as Array<{ id: number }>).map(r => r.id)
@@ -393,18 +399,15 @@ function planGalleryRepair(
     // are `image` rows in the same portfolio; signature filtering happens in
     // memory, then a single set-based DELETE removes every match.
     const candidates = target.prepare(
-      `SELECT id, media_url, thumbnail_url, item_type, title, caption, slug, description, content, metadata
+      `SELECT id, media_url, thumbnail_url, item_type, caption, slug, metadata
        FROM portfolio_items WHERE portfolio_id = ?`
     ).all(portfolioId) as Array<{
       id: number
       media_url: string | null
       thumbnail_url: string | null
       item_type: string
-      title: string | null
       caption: string | null
       slug: string | null
-      description: string | null
-      content: string | null
       metadata: string | null
     }>
     const duplicatesToDelete = new Set<number>()
@@ -472,11 +475,14 @@ function planGalleryRepair(
         if (candidate.item_type !== 'image') continue
         if (!candidate.media_url || !galleryUrlSet.has(candidate.media_url)) continue
         if (candidate.media_url !== candidate.thumbnail_url) continue
-        const isSynthesized = candidate.title === null &&
+        const ruRow = target.prepare(
+          "SELECT title, description, content FROM portfolio_item_translations WHERE item_id = ? AND locale = 'ru'"
+        ).get(candidate.id) as { title: string | null; description: string | null; content: string | null } | undefined
+        const isSynthesized = (ruRow?.title ?? null) === null &&
           candidate.caption === null &&
           candidate.slug === null &&
-          candidate.description === null &&
-          candidate.content === null &&
+          (ruRow?.description ?? null) === null &&
+          (ruRow?.content ?? null) === null &&
           candidate.metadata === null
         if (!isSynthesized) continue
         duplicatesToDelete.add(candidate.id)
@@ -541,15 +547,14 @@ const sourcePortfolioSlugs = new Set(portfolios.map(p => p.slug))
 
 const insertPortfolio = target.prepare(
   `INSERT INTO portfolios
-     (id, slug, name, description, type, cover_image_url, cover_thumbnail_url, "order", published, created_at, updated_at)
-   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+     (id, slug, name, type, cover_image_url, cover_thumbnail_url, "order", published, created_at, updated_at)
+   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 )
 const insertItem = target.prepare(
   `INSERT INTO portfolio_items
      (id, portfolio_id, item_type, "order", published, created_at, updated_at,
-      media_url, thumbnail_url, caption, slug, title, description, content,
-      tags, category, published_at, metadata)
-   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      media_url, thumbnail_url, caption, slug, tags, published_at, metadata)
+   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 )
 // --repair-existing backfills with the RUNTIME enrichment contract (local-wins,
 // shared with $lib/server/services/portfolio-pm2-source.ts): a non-empty target
@@ -573,18 +578,16 @@ function safeScalarMedia(value: string | null): string | null {
 }
 
 interface RepairItemRow {
-  content: string | null
-  description: string | null
   media_url: string | null
   thumbnail_url: string | null
   metadata: string | null
 }
 
 const repairItemSelect = target.prepare(
-  'SELECT content, description, media_url, thumbnail_url, metadata FROM portfolio_items WHERE id = ?'
+  'SELECT media_url, thumbnail_url, metadata FROM portfolio_items WHERE id = ?'
 )
 const repairItemUpdate = target.prepare(
-  `UPDATE portfolio_items SET updated_at = ?, content = ?, description = ?, media_url = ?, thumbnail_url = ?, metadata = ? WHERE id = ?`
+  `UPDATE portfolio_items SET updated_at = ?, media_url = ?, thumbnail_url = ?, metadata = ? WHERE id = ?`
 )
 
 function repairExistingItem(item: SourceItem, portfolioType: string, id: number): void {
@@ -598,14 +601,18 @@ function repairExistingItem(item: SourceItem, portfolioType: string, id: number)
   // $lib/server/services/portfolio-pm2-source.ts).
   if (isAdminEditedMetadata(current.metadata)) return
 
-  // Every column is written with either the backfilled value (empty target
-  // field + a live → legacy chain hit) or the CURRENT target value (a no-op
-  // that preserves manual edits).
-  const content = !isEmptyField(current.content)
-    ? current.content
+  // The localized body lives in the ru translation row (ADR-001). Read it for
+  // the local-wins content/description repair.
+  const ruRow = target.prepare(
+    'SELECT title, description, content, category FROM portfolio_item_translations WHERE item_id = ? AND locale = ?'
+  ).get(id, 'ru') as { content?: string | null; description?: string | null } | undefined
+  const ruContent = ruRow?.content ?? null
+  const ruDescription = ruRow?.description ?? null
+  const content = !isEmptyField(ruContent)
+    ? ruContent
     : resolveImportScalar(item.content, id, 'content')
-  const description = !isEmptyField(current.description)
-    ? current.description
+  const description = !isEmptyField(ruDescription)
+    ? ruDescription
     : resolveImportScalar(item.description, id, 'description')
   const mediaUrl = !isEmptyField(current.media_url)
     ? current.media_url
@@ -632,12 +639,34 @@ function repairExistingItem(item: SourceItem, portfolioType: string, id: number)
     item.item_type
   )
 
-  repairItemUpdate.run(unixNow(), content, description, mediaUrl, thumbnailUrl, metadata, id)
+  repairItemUpdate.run(unixNow(), mediaUrl, thumbnailUrl, metadata, id)
+
+  // Persist the (possibly backfilled) ru body to the dedicated translation row.
+  upsertItemTranslationField(id, 'ru', 'content', content, unixNow())
+  upsertItemTranslationField(id, 'ru', 'description', description, unixNow())
 }
 const insertTranslation = target.prepare(
   `INSERT INTO translations (locale, key, value, type, customized, updated_at)
    VALUES (?, ?, ?, ?, 0, ?)`
 )
+/** Upsert ONE localized field into a dedicated translation row. The field
+ *  name is validated to a fixed allowlist by the caller regex, so interpolating
+ *  it into the statement is safe (never user input). */
+function upsertItemTranslationField(itemId: number, locale: string, field: string, value: string, ts: number): void {
+  target.prepare(
+    `INSERT INTO portfolio_item_translations (item_id, locale, ${field}, updated_at)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT(item_id, locale) DO UPDATE SET ${field} = excluded.${field}, updated_at = excluded.updated_at`
+  ).run(itemId, locale, value, ts)
+}
+
+function upsertPortfolioTranslationField(portfolioId: number, locale: string, field: string, value: string, ts: number): void {
+  target.prepare(
+    `INSERT INTO portfolio_translations (portfolio_id, locale, ${field}, updated_at)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT(portfolio_id, locale) DO UPDATE SET ${field} = excluded.${field}, updated_at = excluded.updated_at`
+  ).run(portfolioId, locale, value, ts)
+}
 const upsertSetting = target.prepare(
   `INSERT INTO settings (key, value, type, "group", updated_at)
    VALUES (?, ?, ?, ?, ?)
@@ -894,10 +923,14 @@ const apply = target.transaction(() => {
     const src = portfolioBySourceId.get(p.id)
     if (!src) continue
     insertPortfolio.run(
-      src.id, src.slug, src.name, src.description, src.type,
+      src.id, src.slug, src.name, src.type,
       src.cover_image_url, src.cover_thumbnail_url, src.order, src.published,
-      src.created_at, src.updated_at
+      toUnixSeconds(src.created_at), toUnixSeconds(src.updated_at)
     )
+    upsertPortfolioTranslationField(src.id, 'ru', 'name', src.name, toUnixSeconds(src.updated_at))
+    if (src.description != null && src.description.trim() !== '') {
+      upsertPortfolioTranslationField(src.id, 'ru', 'description', src.description, toUnixSeconds(src.updated_at))
+    }
   }
 
   // Insert pass only — --repair-existing updates run AFTER the branding
@@ -909,10 +942,16 @@ const apply = target.transaction(() => {
     const i = plan.item
     insertItem.run(
       i.id, i.portfolio_id, i.item_type, i.order, i.published,
-      i.created_at, i.updated_at,
-      safeScalarMedia(i.media_url), safeScalarMedia(i.thumbnail_url), i.caption, i.slug, i.title, i.description, i.content,
-      i.tags, i.category, i.published_at, plan.metadata
+      toUnixSeconds(i.created_at), toUnixSeconds(i.updated_at),
+      safeScalarMedia(i.media_url), safeScalarMedia(i.thumbnail_url), i.caption, i.slug,
+      i.tags, i.published_at, plan.metadata
     )
+    const itemTs = toUnixSeconds(i.updated_at)
+    for (const [field, value] of [['title', i.title], ['description', i.description], ['content', i.content], ['category', i.category]] as const) {
+      if (value != null && value.trim() !== '') {
+        upsertItemTranslationField(i.id, 'ru', field, value, itemTs)
+      }
+    }
   }
 
   // ── Branding gallery repair (SOURCE-driven, per original branding item) ──
@@ -968,7 +1007,24 @@ const apply = target.transaction(() => {
     if (plan.action !== 'insert') continue
     const src = translationByKey.get(`${plan.locale}:${plan.sourceKey}`)
     if (!src) continue
-    insertTranslation.run(plan.locale, plan.key, src.value, isSystemKey(plan.key) ? 'system' : 'content', src.updated_at ?? unixNow())
+    const ts = toUnixSeconds(src.updated_at)
+
+    // ADR-001: entity-localized fields go to the dedicated per-locale tables,
+    // never the generic `translations` table. Everything else (heading labels,
+    // UI strings) stays in the generic table.
+    const itemMatch = plan.key.match(/^portfolio_item\.(\d+)\.(title|description|content|category)$/)
+    if (itemMatch?.[1] && itemMatch[2]) {
+      upsertItemTranslationField(Number(itemMatch[1]), plan.locale, itemMatch[2], src.value, ts)
+      continue
+    }
+
+    const portfolioMatch = plan.key.match(/^portfolio\.(\d+)\.(name|description)$/)
+    if (portfolioMatch?.[1] && portfolioMatch[2]) {
+      upsertPortfolioTranslationField(Number(portfolioMatch[1]), plan.locale, portfolioMatch[2], src.value, ts)
+      continue
+    }
+
+    insertTranslation.run(plan.locale, plan.key, src.value, isSystemKey(plan.key) ? 'system' : 'content', ts)
   }
 
   for (const plan of settingPlans) {

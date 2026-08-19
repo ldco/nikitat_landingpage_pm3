@@ -13,6 +13,7 @@
  */
 import { useDatabase, schema } from '$lib/server/db'
 import { eq } from 'drizzle-orm'
+import { getTableCount } from '$lib/server/utils/pagination'
 
 /** Safe user projection — NEVER select passwordHash into responses. */
 export const USERS_SELECT = {
@@ -50,7 +51,7 @@ export function getUsers(pageSize: number, offset: number) {
     .limit(pageSize)
     .offset(offset)
     .all()
-  const total = db.select({ id: schema.users.id }).from(schema.users).all().length
+  const total = getTableCount(schema.users)
   return {
     users: rows.map(row => ({
       id: row.id,

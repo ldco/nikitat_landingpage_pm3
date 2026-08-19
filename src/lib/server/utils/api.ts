@@ -53,7 +53,32 @@ export function jsonPaginated<T>(
 }
 
 export function apiError(statusCode: number, code: string, message: string, details?: Record<string, unknown>): never {
-  throw error(statusCode, { code, message, details } as unknown as { message: string })
+  // App.Error carries the envelope's code/details fields (app.d.ts), so the
+  // error() body is typed — no cast needed.
+  throw error(statusCode, { code, message, ...(details ? { details } : {}) })
+}
+
+/**
+ * Contract-format error Response ({ success: false, error: { code, message } })
+ * with an i18n KEY as the code. Unlike `apiError` (which throws through
+ * SvelteKit and gets normalized to a generic `http.<status>` code by
+ * hooks.server.ts), this passes the errorFormatHandle untouched, so the
+ * client can branch on the specific key (e.g. current-password-incorrect vs
+ * policy-failed) and translate the message itself.
+ */
+export function apiErrorResponse(
+  statusCode: number,
+  code: string,
+  message: string,
+  details?: Record<string, unknown>
+): Response {
+  return new Response(JSON.stringify({
+    success: false,
+    error: { code, message, ...(details ? { details } : {}) }
+  }), {
+    status: statusCode,
+    headers: { 'content-type': 'application/json' }
+  })
 }
 
 /**

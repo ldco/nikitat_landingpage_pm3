@@ -12,6 +12,7 @@
 import { useDatabase, schema } from '$lib/server/db'
 import { eq, and, desc, inArray } from 'drizzle-orm'
 import type { BlogPostCard } from '$lib/components/sections/types'
+import { getFilteredCount } from '$lib/server/utils/pagination'
 
 export interface BlogListPost extends BlogPostCard {
   excerpt?: string
@@ -118,10 +119,7 @@ export function getPostsPaginated(locale: string, page: number, pageSize = 9): {
     excerpt: transMap.get(p.id)?.excerpt ?? undefined
   }))
 
-  const total = db.select({ id: schema.blogPosts.id })
-    .from(schema.blogPosts)
-    .where(eq(schema.blogPosts.published, true))
-    .all().length
+  const total = getFilteredCount(schema.blogPosts, eq(schema.blogPosts.published, true))
 
   return {
     posts,

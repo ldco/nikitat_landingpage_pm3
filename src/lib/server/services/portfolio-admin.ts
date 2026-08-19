@@ -16,7 +16,8 @@
  * for missing portfolios (SvelteKit propagates it in both contexts).
  */
 import { useDatabase, schema } from '$lib/server/db'
-import { eq, and, like } from 'drizzle-orm'
+import { eq, and, inArray } from 'drizzle-orm'
+import { DEFAULT_LOCALE } from '$lib/config/site'
 import { error } from '@sveltejs/kit'
 import { uniqueConstraintFieldErrors } from '$lib/server/utils/db-errors'
 import { canMigratePortfolioType, migrateItemMetadata } from '$lib/portfolio-metadata'
@@ -69,22 +70,28 @@ export function getPortfolioItemTranslations(
   const result = new Map<number, Record<string, PortfolioItemLocalizedText>>()
   if (idSet.size === 0) return result
 
-  const rows = db
-    .select({ locale: schema.translations.locale, key: schema.translations.key, value: schema.translations.value })
-    .from(schema.translations)
-    .where(like(schema.translations.key, 'portfolio_item.%.%'))
+  const rows = db.select({
+    itemId: schema.portfolioItemTranslations.itemId,
+    locale: schema.portfolioItemTranslations.locale,
+    title: schema.portfolioItemTranslations.title,
+    description: schema.portfolioItemTranslations.description,
+    content: schema.portfolioItemTranslations.content,
+    category: schema.portfolioItemTranslations.category
+  })
+    .from(schema.portfolioItemTranslations)
+    .where(inArray(schema.portfolioItemTranslations.itemId, [...idSet]))
     .all()
 
   for (const row of rows) {
-    const match = row.key.match(/^portfolio_item\.(\d+)\.(title|description|content|category)$/)
-    if (!match?.[1] || !match[2]) continue
-    const id = Number(match[1])
-    if (!idSet.has(id)) continue
-    const byLocale = result.get(id) ?? {}
+    if (!idSet.has(row.itemId)) continue
+    const byLocale = result.get(row.itemId) ?? {}
     const entry = byLocale[row.locale] ?? {}
-    entry[match[2] as PortfolioItemLocalizedField] = row.value
+    for (const field of PORTFOLIO_ITEM_LOCALIZED_FIELDS) {
+      const value = row[field]
+      if (value != null) entry[field] = value
+    }
     byLocale[row.locale] = entry
-    result.set(id, byLocale)
+    result.set(row.itemId, byLocale)
   }
   return result
 }
@@ -103,24 +110,169 @@ export function getPortfolioTranslations(
   const result = new Map<number, Record<string, PortfolioLocalizedText>>()
   if (idSet.size === 0) return result
 
-  const rows = db
-    .select({ locale: schema.translations.locale, key: schema.translations.key, value: schema.translations.value })
-    .from(schema.translations)
-    .where(like(schema.translations.key, 'portfolio.%.%'))
+  const rows = db.select({
+    portfolioId: schema.portfolioTranslations.portfolioId,
+    locale: schema.portfolioTranslations.locale,
+    name: schema.portfolioTranslations.name,
+    description: schema.portfolioTranslations.description
+  })
+    .from(schema.portfolioTranslations)
+    .where(inArray(schema.portfolioTranslations.portfolioId, [...idSet]))
     .all()
 
   for (const row of rows) {
-    const match = row.key.match(/^portfolio\.(\d+)\.(name|description)$/)
-    if (!match?.[1] || !match[2]) continue
-    const id = Number(match[1])
-    if (!idSet.has(id)) continue
-    const byLocale = result.get(id) ?? {}
+    if (!idSet.has(row.portfolioId)) continue
+    const byLocale = result.get(row.portfolioId) ?? {}
     const entry = byLocale[row.locale] ?? {}
-    entry[match[2] as PortfolioLocalizedField] = row.value
+    for (const field of PORTFOLIO_LOCALIZED_FIELDS) {
+      const value = row[field]
+      if (value != null) entry[field] = value
+    }
     byLocale[row.locale] = entry
-    result.set(id, byLocale)
+    result.set(row.portfolioId, byLocale)
   }
   return result
+}
+
+/**
+ * Upsert the per-locale translation rows for ONE portfolio item into the
+ * dedicated `portfolio_item_translations` table (ADR-001: ru is a row like any
+ * other). Non-empty values are written; an EMPTY submitted value whose row
+ * previously carried text is cleared. Empty values with no prior row are
+ * skipped. Runs in ONE transaction so a failure cannot leave a half-written
+ * locale set.
+ */
+export function persistPortfolioItemTranslations(
+  itemId: number,
+  localized: Record<string, Partial<Record<PortfolioItemLocalizedField, string>>>,
+  previous: Record<string, PortfolioItemLocalizedText>,
+  fields: readonly PortfolioItemLocalizedField[]
+): void {
+  const db = useDatabase()
+  db.transaction(() => {
+    for (const [locale, overrides] of Object.entries(localized)) {
+      const values: Partial<Record<PortfolioItemLocalizedField, string | null>> = {}
+      let hasWrite = false
+      for (const field of fields) {
+        const submitted = overrides[field] ?? ''
+        const had = previous[locale]?.[field]
+        if (submitted.trim() !== '') {
+          values[field] = submitted
+          hasWrite = true
+        } else if (had) {
+          values[field] = null
+          hasWrite = true
+        }
+      }
+      if (!hasWrite) continue
+
+      const existing = db.select({ id: schema.portfolioItemTranslations.id })
+        .from(schema.portfolioItemTranslations)
+        .where(and(
+          eq(schema.portfolioItemTranslations.itemId, itemId),
+          eq(schema.portfolioItemTranslations.locale, locale)
+        ))
+        .get()
+
+      if (existing) {
+        db.update(schema.portfolioItemTranslations)
+          .set({ ...values, updatedAt: new Date() })
+          .where(eq(schema.portfolioItemTranslations.id, existing.id))
+          .run()
+      } else {
+        db.insert(schema.portfolioItemTranslations)
+          .values({ itemId, locale, ...values })
+          .run()
+      }
+    }
+  })
+}
+
+/**
+ * Upsert the per-locale translation rows for ONE portfolio into the dedicated
+ * `portfolio_translations` table. Same empty-clears / missing-skip semantics as
+ * the item variant.
+ */
+export function persistPortfolioTranslations(
+  portfolioId: number,
+  localized: Record<string, Partial<Record<PortfolioLocalizedField, string>>>,
+  previous: Record<string, PortfolioLocalizedText>,
+  fields: readonly PortfolioLocalizedField[]
+): void {
+  const db = useDatabase()
+  db.transaction(() => {
+    for (const [locale, overrides] of Object.entries(localized)) {
+      const values: Partial<Record<PortfolioLocalizedField, string | null>> = {}
+      let hasWrite = false
+      for (const field of fields) {
+        const submitted = overrides[field] ?? ''
+        const had = previous[locale]?.[field]
+        if (submitted.trim() !== '') {
+          values[field] = submitted
+          hasWrite = true
+        } else if (had) {
+          values[field] = null
+          hasWrite = true
+        }
+      }
+      if (!hasWrite) continue
+
+      const existing = db.select({ id: schema.portfolioTranslations.id })
+        .from(schema.portfolioTranslations)
+        .where(and(
+          eq(schema.portfolioTranslations.portfolioId, portfolioId),
+          eq(schema.portfolioTranslations.locale, locale)
+        ))
+        .get()
+
+      if (existing) {
+        db.update(schema.portfolioTranslations)
+          .set({ ...values, updatedAt: new Date() })
+          .where(eq(schema.portfolioTranslations.id, existing.id))
+          .run()
+      } else {
+        db.insert(schema.portfolioTranslations)
+          .values({ portfolioId, locale, ...values })
+          .run()
+      }
+    }
+  })
+}
+
+/**
+ * Persist the DEFAULT-locale localized fields for one item from a partial
+ * input (used by the JSON API item routes, which accept `title`/`description`/
+ * `content`/`category` in the body and route them into the ru translation row).
+ * Only fields actually present in the input are written; null clears.
+ */
+export function persistItemRuLocalizedText(
+  itemId: number,
+  input: Partial<Record<PortfolioItemLocalizedField, string | null | undefined>>
+): void {
+  const db = useDatabase()
+  const values: Partial<Record<PortfolioItemLocalizedField, string | null>> = {}
+  for (const field of PORTFOLIO_ITEM_LOCALIZED_FIELDS) {
+    if (field in input) values[field] = input[field] ?? null
+  }
+  if (Object.keys(values).length === 0) return
+
+  const existing = db.select({ id: schema.portfolioItemTranslations.id })
+    .from(schema.portfolioItemTranslations)
+    .where(and(
+      eq(schema.portfolioItemTranslations.itemId, itemId),
+      eq(schema.portfolioItemTranslations.locale, DEFAULT_LOCALE)
+    ))
+    .get()
+  if (existing) {
+    db.update(schema.portfolioItemTranslations)
+      .set({ ...values, updatedAt: new Date() })
+      .where(eq(schema.portfolioItemTranslations.id, existing.id))
+      .run()
+  } else {
+    db.insert(schema.portfolioItemTranslations)
+      .values({ itemId, locale: DEFAULT_LOCALE, ...values })
+      .run()
+  }
 }
 
 export interface PortfolioWriteInput {
@@ -153,7 +305,6 @@ export function createPortfolio(input: PortfolioWriteInput): PortfolioWriteResul
         name: input.name,
         slug: input.slug,
         type: input.type,
-        description: input.description || null,
         coverImageUrl: input.coverImageUrl || null,
         order: 0,
         published: input.published,
@@ -204,13 +355,25 @@ export function updatePortfolio(
           .select({
             id: schema.portfolioItems.id,
             metadata: schema.portfolioItems.metadata,
-            content: schema.portfolioItems.content,
             mediaUrl: schema.portfolioItems.mediaUrl,
             itemType: schema.portfolioItems.itemType
           })
           .from(schema.portfolioItems)
           .where(eq(schema.portfolioItems.portfolioId, portfolioId))
           .all()
+        // The item body now lives in the default-locale translation row
+        // (ADR-001); the type-change migration folds THAT content, not a
+        // (dropped) base column.
+        const itemIds = existingItems.map(i => i.id)
+        const ruContents = itemIds.length > 0
+          ? new Map(db.select({ itemId: schema.portfolioItemTranslations.itemId, content: schema.portfolioItemTranslations.content })
+              .from(schema.portfolioItemTranslations)
+              .where(and(
+                inArray(schema.portfolioItemTranslations.itemId, itemIds),
+                eq(schema.portfolioItemTranslations.locale, DEFAULT_LOCALE)
+              ))
+              .all().map(r => [r.itemId, r.content] as const))
+          : new Map<number, string | null>()
 
         if (existingItems.length > 0 && !canMigratePortfolioType(current.type, nextType)) {
           throw UNSUPPORTED_TYPE_CHANGE
@@ -225,7 +388,7 @@ export function updatePortfolio(
             item.metadata,
             current.type,
             nextType,
-            item.content,
+            ruContents.get(item.id) ?? null,
             item.mediaUrl,
             item.itemType
           )
@@ -235,10 +398,6 @@ export function updatePortfolio(
           db.update(schema.portfolioItems)
             .set({
               metadata: migration.metadata,
-              // The migrated body is the FINAL canonical content for the new
-              // type: replace (string) or clear (null) the column — never
-              // append, or round-trip conversions would duplicate the text.
-              ...(migration.content !== undefined ? { content: migration.content } : {}),
               // A conversion can change the item's renderable type (e.g.
               // media items folded into a case-study body become case_study);
               // the write boundary would otherwise reject every save.
@@ -250,6 +409,27 @@ export function updatePortfolio(
               eq(schema.portfolioItems.portfolioId, portfolioId)
             ))
             .run()
+          // When the migration produced a new canonical body, persist it to the
+          // default-locale translation row (the new authoritative content).
+          if (migration.content !== undefined) {
+            const existingTr = db.select({ id: schema.portfolioItemTranslations.id })
+              .from(schema.portfolioItemTranslations)
+              .where(and(
+                eq(schema.portfolioItemTranslations.itemId, item.id),
+                eq(schema.portfolioItemTranslations.locale, DEFAULT_LOCALE)
+              ))
+              .get()
+            if (existingTr) {
+              db.update(schema.portfolioItemTranslations)
+                .set({ content: migration.content, updatedAt: new Date() })
+                .where(eq(schema.portfolioItemTranslations.id, existingTr.id))
+                .run()
+            } else {
+              db.insert(schema.portfolioItemTranslations)
+                .values({ itemId: item.id, locale: DEFAULT_LOCALE, content: migration.content })
+                .run()
+            }
+          }
         }
       }
 
@@ -257,7 +437,7 @@ export function updatePortfolio(
         .set({
           ...(input.name !== undefined ? { name: input.name } : {}),
           ...(input.slug !== undefined ? { slug: input.slug } : {}),
-          ...(input.description !== undefined ? { description: input.description || null } : {}),
+
           ...(input.coverImageUrl !== undefined ? { coverImageUrl: input.coverImageUrl || null } : {}),
           ...(input.published !== undefined ? { published: input.published } : {}),
           type: nextType,

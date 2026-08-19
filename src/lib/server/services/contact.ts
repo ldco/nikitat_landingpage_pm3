@@ -6,6 +6,7 @@
  */
 import { useDatabase, schema } from '$lib/server/db'
 import { eq, desc } from 'drizzle-orm'
+import { getFilteredCount, getTableCount } from '$lib/server/utils/pagination'
 
 export interface ContactSubmissionInput {
   name: string
@@ -45,22 +46,13 @@ export function getSubmissions(page: number, pageSize: number, offset: number) {
     .limit(pageSize)
     .offset(offset)
     .all()
-  const total = db
-    .select({ id: schema.contactSubmissions.id })
-    .from(schema.contactSubmissions)
-    .all().length
+  const total = getTableCount(schema.contactSubmissions)
   return { items: all, total }
 }
 
 /** Unread count for the admin layout badge. */
 export function getUnreadCount(): number {
-  const db = useDatabase()
-  const row = db
-    .select({ id: schema.contactSubmissions.id })
-    .from(schema.contactSubmissions)
-    .where(eq(schema.contactSubmissions.read, false))
-    .all()
-  return row.length
+  return getFilteredCount(schema.contactSubmissions, eq(schema.contactSubmissions.read, false))
 }
 
 /** Set the read state of a submission (reversible — true or false). */

@@ -47,7 +47,7 @@ const SECTION_SLICES: Record<string, Array<'blog' | 'portfolios' | 'pricing' | '
  */
 export function loadSectionContent(locale: string, sectionId?: string): SectionContent {
   const wants = (slice: keyof Omit<SectionContent, 'locale'>) =>
-    !sectionId || (SECTION_SLICES[sectionId] ?? []).includes(slice as never)
+    !sectionId || (SECTION_SLICES[sectionId] ?? []).includes(slice)
 
   const pricing: PricingTierCard[] = wants('pricing') ? getHomepageTiers(locale) : []
   const tierIds = pricing.map(t => t.id)

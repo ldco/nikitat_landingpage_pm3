@@ -246,6 +246,7 @@ const ROUTE_ADMIN_KEYS: Record<string, readonly string[]> = {
   '/admin/portfolios/[id]/edit': [
     'admin.basicInfo',
     'admin.coverImage',
+    'admin.defaultLocaleHint',
     'admin.description',
     'admin.dropzoneLabel',
     'admin.editContent',
@@ -275,6 +276,7 @@ const ROUTE_ADMIN_KEYS: Record<string, readonly string[]> = {
     'admin.itemTitle',
     'admin.localizedText',
     'admin.mediaType',
+    'admin.defaultLocaleHint',
     'admin.portfolioTextTooLong',
     'admin.noImage',
     'admin.noPortfolios',
