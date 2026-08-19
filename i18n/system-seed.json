@@ -19558,5 +19558,585 @@
     "locale": "he",
     "key": "admin.portfolioTextTooLong",
     "value": "הטקסט ארוך מדי"
+  },
+  {
+    "locale": "en",
+    "key": "admin.color",
+    "value": "Color"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.color",
+    "value": "Цвет"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.color",
+    "value": "Couleur"
+  },
+  {
+    "locale": "he",
+    "key": "admin.color",
+    "value": "צבע"
+  },
+  {
+    "locale": "en",
+    "key": "admin.level",
+    "value": "Level"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.level",
+    "value": "Уровень"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.level",
+    "value": "Niveau"
+  },
+  {
+    "locale": "he",
+    "key": "admin.level",
+    "value": "רמה"
+  },
+  {
+    "locale": "en",
+    "key": "admin.slugImmutable",
+    "value": "The slug cannot be changed after creation."
+  },
+  {
+    "locale": "ru",
+    "key": "admin.slugImmutable",
+    "value": "Слаг нельзя изменить после создания."
+  },
+  {
+    "locale": "fr",
+    "key": "admin.slugImmutable",
+    "value": "Le slug ne peut pas être modifié après la création."
+  },
+  {
+    "locale": "he",
+    "key": "admin.slugImmutable",
+    "value": "לא ניתן לשנות את המזהה לאחר היצירה."
+  },
+  {
+    "locale": "en",
+    "key": "common.date",
+    "value": "Date"
+  },
+  {
+    "locale": "ru",
+    "key": "common.date",
+    "value": "Дата"
+  },
+  {
+    "locale": "fr",
+    "key": "common.date",
+    "value": "Date"
+  },
+  {
+    "locale": "he",
+    "key": "common.date",
+    "value": "תאריך"
+  },
+  {
+    "locale": "en",
+    "key": "contact.nameRequired",
+    "value": "Name is required"
+  },
+  {
+    "locale": "ru",
+    "key": "contact.nameRequired",
+    "value": "Укажите имя"
+  },
+  {
+    "locale": "fr",
+    "key": "contact.nameRequired",
+    "value": "Le nom est requis"
+  },
+  {
+    "locale": "he",
+    "key": "contact.nameRequired",
+    "value": "נדרש שם"
+  },
+  {
+    "locale": "en",
+    "key": "admin.defaultLocaleHint",
+    "value": "The fields above are in Russian (the site's default language)"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.defaultLocaleHint",
+    "value": "Поля выше — русский (основной язык сайта)"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.defaultLocaleHint",
+    "value": "Les champs ci-dessus sont en russe (langue par défaut du site)"
+  },
+  {
+    "locale": "he",
+    "key": "admin.defaultLocaleHint",
+    "value": "השדות למעלה הם ברוסית (שפת ברירת המחדל של האתר)"
+  },
+  {
+    "locale": "en",
+    "key": "apiErrors.auth.passwordBreached",
+    "value": "Password appears in known data breaches. Choose a different one."
+  },
+  {
+    "locale": "ru",
+    "key": "apiErrors.auth.passwordBreached",
+    "value": "Пароль обнаружен в известных утечках данных. Выберите другой."
+  },
+  {
+    "locale": "fr",
+    "key": "apiErrors.auth.passwordBreached",
+    "value": "Ce mot de passe apparaît dans des fuites de données connues. Choisissez-en un autre."
+  },
+  {
+    "locale": "he",
+    "key": "apiErrors.auth.passwordBreached",
+    "value": "הסיסמה מופיעה בפרצות נתונים ידועות. בחרו סיסמה אחרת."
+  },
+  {
+    "locale": "en",
+    "key": "email.contactConfirmation.subject",
+    "value": "We received your message - {siteName}"
+  },
+  {
+    "locale": "ru",
+    "key": "email.contactConfirmation.subject",
+    "value": "Мы получили ваше сообщение — {siteName}"
+  },
+  {
+    "locale": "fr",
+    "key": "email.contactConfirmation.subject",
+    "value": "Nous avons reçu votre message — {siteName}"
+  },
+  {
+    "locale": "he",
+    "key": "email.contactConfirmation.subject",
+    "value": "קיבלנו את ההודעה שלך — {siteName}"
+  },
+  {
+    "locale": "en",
+    "key": "email.contactConfirmation.body",
+    "value": "Hi {name},\n\nThank you for contacting us! We have received your message and will get back to you as soon as possible.\n\nBest regards,\n{siteName}"
+  },
+  {
+    "locale": "ru",
+    "key": "email.contactConfirmation.body",
+    "value": "Здравствуйте, {name},\n\nСпасибо, что написали нам! Мы получили ваше сообщение и ответим в ближайшее время.\n\nС уважением,\n{siteName}"
+  },
+  {
+    "locale": "fr",
+    "key": "email.contactConfirmation.body",
+    "value": "Bonjour {name},\n\nMerci de nous avoir contactés ! Nous avons bien reçu votre message et vous répondrons dès que possible.\n\nCordialement,\n{siteName}"
+  },
+  {
+    "locale": "he",
+    "key": "email.contactConfirmation.body",
+    "value": "שלום {name},\n\nתודה שפנית אלינו! קיבלנו את ההודעה שלך ונחזור אליך בהקדם האפשרי.\n\nבברכה,\n{siteName}"
+  },
+  {
+    "locale": "en",
+    "key": "email.contactConfirmation.htmlHeading",
+    "value": "Thank you for reaching out!"
+  },
+  {
+    "locale": "ru",
+    "key": "email.contactConfirmation.htmlHeading",
+    "value": "Спасибо, что обратились к нам!"
+  },
+  {
+    "locale": "fr",
+    "key": "email.contactConfirmation.htmlHeading",
+    "value": "Merci de nous avoir contactés !"
+  },
+  {
+    "locale": "he",
+    "key": "email.contactConfirmation.htmlHeading",
+    "value": "תודה שפנית אלינו!"
+  },
+  {
+    "locale": "en",
+    "key": "email.contactConfirmation.htmlBody",
+    "value": "We have received your message and will get back to you as soon as possible."
+  },
+  {
+    "locale": "ru",
+    "key": "email.contactConfirmation.htmlBody",
+    "value": "Мы получили ваше сообщение и ответим в ближайшее время."
+  },
+  {
+    "locale": "fr",
+    "key": "email.contactConfirmation.htmlBody",
+    "value": "Nous avons bien reçu votre message et vous répondrons dès que possible."
+  },
+  {
+    "locale": "he",
+    "key": "email.contactConfirmation.htmlBody",
+    "value": "קיבלנו את ההודעה שלך ונחזור אליך בהקדם האפשרי."
+  },
+  {
+    "locale": "en",
+    "key": "settings.contact.telegramTimezone",
+    "value": "Time zone"
+  },
+  {
+    "locale": "ru",
+    "key": "settings.contact.telegramTimezone",
+    "value": "Часовой пояс"
+  },
+  {
+    "locale": "fr",
+    "key": "settings.contact.telegramTimezone",
+    "value": "Fuseau horaire"
+  },
+  {
+    "locale": "he",
+    "key": "settings.contact.telegramTimezone",
+    "value": "אזור זמן"
+  },
+  {
+    "locale": "en",
+    "key": "admin.action",
+    "value": "Action"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.action",
+    "value": "Действие"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.action",
+    "value": "Action"
+  },
+  {
+    "locale": "he",
+    "key": "admin.action",
+    "value": "פעולה"
+  },
+  {
+    "locale": "en",
+    "key": "admin.hidden",
+    "value": "Hidden"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.hidden",
+    "value": "Скрыто"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.hidden",
+    "value": "Masqué"
+  },
+  {
+    "locale": "he",
+    "key": "admin.hidden",
+    "value": "מוסתר"
+  },
+  {
+    "locale": "en",
+    "key": "admin.user",
+    "value": "User"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.user",
+    "value": "Пользователь"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.user",
+    "value": "Utilisateur"
+  },
+  {
+    "locale": "he",
+    "key": "admin.user",
+    "value": "משתמש"
+  },
+  {
+    "locale": "en",
+    "key": "admin.branding",
+    "value": "Branding"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.branding",
+    "value": "Брендинг"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.branding",
+    "value": "Branding"
+  },
+  {
+    "locale": "he",
+    "key": "admin.branding",
+    "value": "מיתוג"
+  },
+  {
+    "locale": "en",
+    "key": "admin.website",
+    "value": "Website"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.website",
+    "value": "Сайт"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.website",
+    "value": "Site web"
+  },
+  {
+    "locale": "he",
+    "key": "admin.website",
+    "value": "אתר"
+  },
+  {
+    "locale": "en",
+    "key": "admin.gallery",
+    "value": "Gallery"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.gallery",
+    "value": "Галерея"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.gallery",
+    "value": "Galerie"
+  },
+  {
+    "locale": "he",
+    "key": "admin.gallery",
+    "value": "גלריה"
+  },
+  {
+    "locale": "en",
+    "key": "admin.brandbook",
+    "value": "Brandbook"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.brandbook",
+    "value": "Брендбук"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.brandbook",
+    "value": "Brandbook"
+  },
+  {
+    "locale": "he",
+    "key": "admin.brandbook",
+    "value": "ברנדבוק"
+  },
+  {
+    "locale": "en",
+    "key": "admin.portfolioTypeBranding",
+    "value": "Branding"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.portfolioTypeBranding",
+    "value": "Брендинг"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.portfolioTypeBranding",
+    "value": "Branding"
+  },
+  {
+    "locale": "he",
+    "key": "admin.portfolioTypeBranding",
+    "value": "מיתוג"
+  },
+  {
+    "locale": "en",
+    "key": "admin.portfolioTypeGallery",
+    "value": "Gallery"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.portfolioTypeGallery",
+    "value": "Галерея"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.portfolioTypeGallery",
+    "value": "Galerie"
+  },
+  {
+    "locale": "he",
+    "key": "admin.portfolioTypeGallery",
+    "value": "גלריה"
+  },
+  {
+    "locale": "en",
+    "key": "admin.portfolioTypeCaseStudy",
+    "value": "Case Study"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.portfolioTypeCaseStudy",
+    "value": "Кейс-стади"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.portfolioTypeCaseStudy",
+    "value": "Étude de cas"
+  },
+  {
+    "locale": "he",
+    "key": "admin.portfolioTypeCaseStudy",
+    "value": "מקרה בוחן"
+  },
+  {
+    "locale": "en",
+    "key": "admin.portfolioTypeWebsite",
+    "value": "Website"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.portfolioTypeWebsite",
+    "value": "Сайт"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.portfolioTypeWebsite",
+    "value": "Site web"
+  },
+  {
+    "locale": "he",
+    "key": "admin.portfolioTypeWebsite",
+    "value": "אתר"
+  },
+  {
+    "locale": "en",
+    "key": "admin.portfolioTypeBrandbook",
+    "value": "Brandbook"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.portfolioTypeBrandbook",
+    "value": "Брендбук"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.portfolioTypeBrandbook",
+    "value": "Brandbook"
+  },
+  {
+    "locale": "he",
+    "key": "admin.portfolioTypeBrandbook",
+    "value": "ברנדבוק"
+  },
+  {
+    "locale": "en",
+    "key": "admin.colorPrimary",
+    "value": "Primary"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.colorPrimary",
+    "value": "Основной"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.colorPrimary",
+    "value": "Principal"
+  },
+  {
+    "locale": "he",
+    "key": "admin.colorPrimary",
+    "value": "ראשי"
+  },
+  {
+    "locale": "en",
+    "key": "admin.colorSecondary",
+    "value": "Secondary"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.colorSecondary",
+    "value": "Вторичный"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.colorSecondary",
+    "value": "Secondaire"
+  },
+  {
+    "locale": "he",
+    "key": "admin.colorSecondary",
+    "value": "משני"
+  },
+  {
+    "locale": "en",
+    "key": "admin.colorSuccess",
+    "value": "Success"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.colorSuccess",
+    "value": "Успех"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.colorSuccess",
+    "value": "Succès"
+  },
+  {
+    "locale": "he",
+    "key": "admin.colorSuccess",
+    "value": "הצלחה"
+  },
+  {
+    "locale": "en",
+    "key": "admin.colorWarning",
+    "value": "Warning"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.colorWarning",
+    "value": "Предупреждение"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.colorWarning",
+    "value": "Avertissement"
+  },
+  {
+    "locale": "he",
+    "key": "admin.colorWarning",
+    "value": "אזהרה"
+  },
+  {
+    "locale": "en",
+    "key": "admin.colorDanger",
+    "value": "Danger"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.colorDanger",
+    "value": "Опасность"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.colorDanger",
+    "value": "Danger"
+  },
+  {
+    "locale": "he",
+    "key": "admin.colorDanger",
+    "value": "סכנה"
   }
 ]
