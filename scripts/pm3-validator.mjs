@@ -62,6 +62,8 @@
  */
 
 import { readFileSync, readdirSync, existsSync, writeFileSync } from 'fs'
+import { createRequire } from 'module'
+const require = createRequire(import.meta.url)
 import { resolve, dirname, relative } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -998,6 +1000,141 @@ function checkComponentDocs(file) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Main
 // ═══════════════════════════════════════════════════════════════════════════
+// Check 14: localized content integrity (entity translation tables)
+//
+// Data-level guard for the per-locale entity translation tables (ADR-001).
+// The static checks above cannot see wrong-language or missing translation
+// ROWS, which silently render in the wrong language on a live site. Rules:
+//   1. Locale parity — every owner row must have a translation row in EVERY
+//      configured locale (a missing locale falls back to a legacy column or
+//      renders raw). The global locale set is the union across all tables.
+//   2. Wrong-language text — a descriptive field (description/content/excerpt/
+//      answer/question/quote/position) whose script does not match its locale:
+//      English in the ru rows, Russian in he/en/fr rows. Short strings (<= 25
+//      chars) are skipped — proper-noun titles/brand names are exempt.
+//   3. Empty critical fields — the primary text fields (name/title/question/
+//      answer/quote/text) must not be empty in any locale row.
+//
+// The check is skipped when the DB is absent (fresh CI checkout) or a table
+// has no rows (entity unused). Usage: `node scripts/pm3-validator.mjs`.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const LOCALE_CONTENT_SPECS = [
+  { table: 'portfolio_item_translations', owner: 'item_id', required: ['title', 'description'], language: ['description', 'content'] },
+  { table: 'portfolio_translations', owner: 'portfolio_id', required: ['name', 'description'], language: ['name', 'description'] },
+  { table: 'blog_post_translations', owner: 'post_id', required: ['title'], language: ['excerpt', 'content'] },
+  { table: 'blog_category_translations', owner: 'category_id', required: ['name'], language: ['name', 'description'] },
+  { table: 'faq_item_translations', owner: 'faq_item_id', required: ['question', 'answer'], language: ['question', 'answer'] },
+  { table: 'feature_translations', owner: 'feature_id', required: ['title', 'description'], language: ['title', 'description'] },
+  { table: 'pricing_tier_translations', owner: 'tier_id', required: ['name'], language: ['name', 'description', 'cta_text'] },
+  { table: 'pricing_feature_translations', owner: 'feature_id', required: ['text'], language: ['text'] },
+  { table: 'team_member_translations', owner: 'member_id', required: [], language: ['position', 'bio'] },
+  { table: 'testimonial_translations', owner: 'testimonial_id', required: ['quote'], language: ['quote'] }
+]
+
+const DEFAULT_LOCALE = 'ru'
+const CYRILLIC_RE = /[\u0410-\u044F\u0451]/ // А-я + ё
+const HEBREW_RE = /[\u0590-\u05FF]/
+const MIN_LANGUAGE_LEN = 25
+
+/** Script-mismatch for a descriptive field in a given locale: English in ru,
+ *  Russian in he/en/fr. Returns a human-readable description or null. */
+function scriptMismatch(locale, text) {
+  const letters = text.match(/[A-Za-z\u0410-\u044F\u0451\u0590-\u05FF]/g) ?? []
+  if (letters.length === 0) return null
+  const cyr = letters.filter((c) => CYRILLIC_RE.test(c)).length
+  const heb = letters.filter((c) => HEBREW_RE.test(c)).length
+  const ratio = cyr / letters.length
+  if (locale === DEFAULT_LOCALE && ratio < 0.05 && heb === 0) {
+    return 'English text in the ru (default) locale — must be translated to Russian'
+  }
+  if (locale === 'he' && ratio > 0.3) {
+    return 'Russian text in the he locale — must be translated to Hebrew'
+  }
+  if ((locale === 'en' || locale === 'fr') && ratio > 0.5 && heb === 0) {
+    return 'Russian text in the ' + locale + ' locale — must be translated'
+  }
+  return null
+}
+
+function checkLocalizedContent() {
+  const dbPath = resolve(ROOT, 'data', 'sqlite.db')
+  if (!existsSync(dbPath)) {
+    console.warn('  ⚠ data/sqlite.db not found — skipping localized-content check')
+    return []
+  }
+  let DatabaseSync
+  try {
+    ({ DatabaseSync } = require('node:sqlite'))
+  } catch {
+    console.warn('  ⚠ node:sqlite unavailable — skipping localized-content check')
+    return []
+  }
+  const issues = []
+  const db = new DatabaseSync(dbPath, { readOnly: true })
+
+  // Global locale set: union across every translation table that has rows.
+  const locales = new Set()
+  for (const spec of LOCALE_CONTENT_SPECS) {
+    const rows = db.prepare('SELECT DISTINCT locale FROM ' + spec.table).all()
+    for (const r of rows) locales.add(r.locale)
+  }
+  locales.add(DEFAULT_LOCALE)
+
+  for (const spec of LOCALE_CONTENT_SPECS) {
+    const rows = db.prepare('SELECT * FROM ' + spec.table).all()
+    if (rows.length === 0) continue
+
+    // Per-owner locale coverage.
+    const byOwner = new Map()
+    for (const row of rows) {
+      const list = byOwner.get(row[spec.owner]) ?? []
+      list.push(row)
+      byOwner.set(row[spec.owner], list)
+    }
+    for (const [owner, ownerRows] of byOwner) {
+      const present = new Set(ownerRows.map((r) => r.locale))
+      for (const loc of locales) {
+        if (!present.has(loc)) {
+          issues.push({
+            file: `data/sqlite.db (${spec.table})`,
+            message: `\u274C owner ${spec.owner}=${owner} has no ${loc} translation row — missing-locale fallback`,
+            line: undefined
+          })
+        }
+      }
+    }
+
+    for (const row of rows) {
+      for (const field of spec.required) {
+        const value = row[field]
+        if (value == null || String(value).trim() === '') {
+          issues.push({
+            file: `data/sqlite.db (${spec.table})`,
+            message: `\u274C ${spec.owner}=${row[spec.owner]} ${row.locale}.${field} is empty — no text rendered`,
+            line: undefined
+          })
+        }
+      }
+      for (const field of spec.language) {
+        const value = row[field]
+        if (typeof value !== 'string' || value.trim().length < MIN_LANGUAGE_LEN) continue
+        const mismatch = scriptMismatch(row.locale, value)
+        if (mismatch) {
+          issues.push({
+            file: `data/sqlite.db (${spec.table})`,
+            message: `\u274C ${spec.owner}=${row[spec.owner]} ${row.locale}.${field}: ${mismatch}`,
+            line: undefined
+          })
+        }
+      }
+    }
+  }
+  db.close()
+  return issues
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 
 const args = process.argv.slice(2)
 const updateBaseline = args.includes('--update-baseline')
@@ -1013,6 +1150,7 @@ const files = collectFiles(fileArgs)
 const allIssues = []
 
 allIssues.push(...checkDuplicateTokens())
+allIssues.push(...checkLocalizedContent())
 allIssues.push(...checkUtilities())
 allIssues.push(...checkLayerComponents())
 

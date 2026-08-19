@@ -1337,8 +1337,8 @@
       },
       "ru": {
         "title": "Puppet Master",
-        "description": "Modern software engineering increasingly relies on multi-agent collaboration, yet frameworks frequently struggle with agent alignment, deployment friction, and state synchronization.",
-        "content": "### Abstract\n\nModern software engineering increasingly relies on multi-agent collaboration, yet frameworks frequently struggle with agent alignment, deployment friction, and state synchronization across the full stack. PuppetMaster2 is an agent-native meta-framework and orchestration environment built on top of Nuxt and Vue, engineered to treat AI agents as primary, first-class developers.\n\n### Stack\n\nUI & Web Meta-Framework: Nuxt 3/4 Core Architecture & Reactive Vue.js Component Tree\n\nAgent Orchestration Layer: Native .kilo, .qwen, and .codex Multi-LLM Context Maps\n\nData Layer: High-Performance, Type-Safe SQL via Drizzle ORM\n\nQuality Pipelines: Playwright E2E Automation / Storybook Visual Isolation\n\nInfrastructure: Kamal Zero-Downtime Deployment / Ansible Configuration Management\n\n### Capabilities\n\nNuxt-Driven Agent Customization: Leverages Nuxt's file-system routing and dynamic component architecture for clean AI agent feature generation.\n\nAgent-Native Context Encapsulation: Programmatically distributes isolated instruction sets throughout the directory tree.\n\nDeterministic Deployment: Implements immutable infrastructure pipelines via Docker and Kamal.\n\nEnd-to-End Quality Telemetry: Enforces rigid runtime consistency with automated testing frameworks.\n\n### License\n\nCommercial",
+        "description": "Агент-ориентированный мета-фреймворк и среда оркестрации на базе Nuxt и Vue.",
+        "content": "### Обзор\n\nСовременная разработка всё больше опирается на сотрудничество нескольких AI-агентов, однако фреймворки часто не справляются с выравниванием агентов, трением при развёртывании и синхронизацией состояния на всей длине стека. PuppetMaster2 — это агент-ориентированный мета-фреймворк и среда оркестрации, построенная на Nuxt и Vue и спроектированная так, чтобы относиться к AI-агентам как к полноценным разработчикам первого класса.\n\n### Стек\n\nUI и веб-мета-фреймворк: ядро Nuxt 3/4 и реактивное дерево компонентов Vue.js\n\nСлой оркестрации агентов: нативные контекстные карты .kilo, .qwen и .codex для нескольких LLM\n\nСлой данных: высокопроизводительный типобезопасный SQL через Drizzle ORM\n\nКонвейеры качества: E2E-автоматизация Playwright / визуальная изоляция Storybook\n\nИнфраструктура: бесшовное развёртывание Kamal / управление конфигурацией Ansible\n\n### Возможности\n\nКастомизация агентов через Nuxt: использует файловую маршрутизацию и динамическую архитектуру компонентов Nuxt для чистой генерации фич AI-агентами.\n\nНативная инкапсуляция контекста агентов: программно распространяет изолированные наборы инструкций по всему дереву каталогов.\n\nДетерминированное развёртывание: реализует иммутабельные инфраструктурные конвейеры через Docker и Kamal.\n\nСквозная телеметрия качества: обеспечивает строгую согласованность рантайма с помощью автоматизированных тестовых фреймворков.\n\n### Лицензия\n\nКоммерческая",
         "category": "Инструменты"
       }
     },
@@ -1363,8 +1363,8 @@
       },
       "ru": {
         "title": "PuppetMasterKiosk",
-        "description": "Interactive digital terminals and hardware-bound kiosk systems often suffer from high deployment overhead, rigid user flows, and lack of context-aware flexibility.",
-        "content": "### Abstract\n\nInteractive digital terminals and hardware-bound kiosk systems often suffer from high deployment overhead, rigid user flows, and a complete lack of context-aware flexibility. PuppetMasterKiosk is an agent-driven hardware orchestration meta-framework built on top of SvelteKit, engineered to turn physical kiosk displays into dynamic, LLM-controlled user interfaces.\n\n### Stack\n\nUI Framework: Svelte Framework (Server-Driven Routing & Reactive UI Components)\n\nAgent Layer: Hardware-Constrained Context Maps & Local LLM Instruction Engines\n\nHardware Pipeline: Low-Level Local Peripheral I/O Hooks (Touch, Scan, Print)\n\nConfig Layer: Distributed Markdown-Driven Behavioral Protocols\n\nInfrastructure: Isolated Containerized Target OS Environments for Embedded Systems\n\n### Capabilities\n\nSvelteKit-Driven UI Synthesis: Programmatically translates modular behavioral documents into reactive SvelteKit layouts at runtime.\n\nHardware-Bound Agent Guardrails: Enforces strict physical safety perimeters around local device inputs and outputs.\n\nResilient Offline Telemetry: Implements localized queue state machines that ensure the kiosk remains fully operational during network dropouts.\n\n### License\n\nCommercial",
+        "description": "Агент-ориентированный мета-фреймворк оркестрации оборудования на базе SvelteKit для киоск-экранов.",
+        "content": "### Обзор\n\nИнтерактивные цифровые терминалы и киосковые системы, привязанные к железу, часто страдают от высоких накладных расходов на развёртывание, жёстких пользовательских потоков и отсутствия контекстной гибкости. PuppetMasterKiosk — это агент-ориентированный мета-фреймворк оркестрации оборудования на базе SvelteKit, превращающий физические киоск-экраны в динамические пользовательские интерфейсы, управляемые языковой моделью.\n\n### Стек\n\nUI-фреймворк: Svelte (серверная маршрутизация и реактивные UI-компоненты)\n\nСлой агентов: аппаратно-ограниченные контекстные карты и локальные LLM-движки инструкций\n\nАппаратный конвейер: низкоуровневый локальный ввод/вывод периферии (сенсор, сканирование, печать)\n\nСлой конфигурации: распределённые поведенческие протоколы на базе Markdown\n\nИнфраструктура: контейнеризованные изолированные среды для встроенных систем\n\n### Возможности\n\nСинтез UI через SvelteKit: программно превращает модульные поведенческие документы в реактивные макеты SvelteKit в рантайме.\n\nАппаратные предохранители: строго ограничивает физические границы безопасности локального ввода/вывода.\n\nУстойчивая локальная телеметрия: реализует локальные очереди состояний, гарантирующие работу киоска даже при обрыве сети.\n\n### Лицензия\n\nКоммерческая",
         "category": "Инструменты"
       }
     },
@@ -1389,8 +1389,8 @@
       },
       "ru": {
         "title": "Tzadik.js",
-        "description": "Named after the Hebrew concept of righteousness and integrity, Tzadik.js is an optimization framework engineered to bring structural purity, absolute efficiency, and architectural justice to the web development ecosystem.",
-        "content": "### Abstract\n\nModern web applications frequently suffer from bundle bloat, runtime inefficiencies, and architectural regression over long lifecycles. Named after the Hebrew concept of righteousness and integrity, Tzadik.js is an optimization framework engineered to bring structural purity, absolute efficiency, and architectural justice to the web development ecosystem.\n\n### Stack\n\nCore Engine: High-Performance, Zero-Overhead TypeScript Optimization Utilities\n\nBuild & Compilation: Hyper-Fast Tree-Shaking and Asset-Pruning Compilers\n\nRuntime Telemetry: Low-Friction Bundle Analysis & Execution Path Auditing\n\nPerformance Layer: Lean, Minimal-Allocation Lifecycle and State Trackers\n\n### Capabilities\n\nArchitectural Righteousness: Programmatically audits application structure against strict performance-first design patterns.\n\nGranular Bundle Optimization: Dynamically targets and eliminates dead code paths, redundant dependencies, and unused module hydration logic.\n\nDeterministic Execution Pipelines: Implements hyper-optimized, low-overhead micro-utilities that maximize runtime compilation efficiency.\n\n### License\n\nMIT",
+        "description": "Фреймворк оптимизации для экосистемы веб-разработки, названный в честь еврейской концепции праведности и цельности.",
+        "content": "### Обзор\n\nСовременные веб-приложения часто страдают от раздутости бандлов, неэффективности рантайма и архитектурной деградации на протяжении длительных жизненных циклов. Названный в честь еврейской концепции праведности и цельности, Tzadik.js — это фреймворк оптимизации, призванный привнести структурную чистоту, абсолютную эффективность и архитектурную справедливость в экосистему веб-разработки.\n\n### Стек\n\nЯдро: высокопроизводительные TypeScript-утилиты оптимизации с нулевыми накладными расходами\n\nСборка и компиляция: сверхбыстрые компиляторы с Tree-Shaking и обрезкой ассетов\n\nТелеметрия рантайма: анализ бандлов и аудит путей выполнения с минимальным трением\n\nСлой производительности: лёгкие трекеры жизненного цикла и состояния с минимальным выделением памяти\n\n### Возможности\n\nАрхитектурная праведность: программно аудирует структуру приложения против строгих перформанс-ориентированных паттернов проектирования.\n\nТочная оптимизация бандлов: динамически выявляет и устраняет мёртвые пути кода, избыточные зависимости и неиспользуемую логику гидратации модулей.\n\nДетерминированные конвейеры выполнения: реализует гипероптимизированные микровычисления с низкими накладными расходами, максимизирующие эффективность компиляции в рантайме.\n\n### Лицензия\n\nMIT",
         "category": "Инструменты"
       }
     },
@@ -1415,8 +1415,8 @@
       },
       "ru": {
         "title": "Zerkala Core",
-        "description": "Modern video conferencing systems face a critical engineering trade-off between client-side computational overhead and real-time media distribution efficiency.",
-        "content": "### Abstract\n\nModern video conferencing systems face a critical engineering trade-off between client-side computational overhead and real-time media distribution efficiency. Zerkala Core is a high-performance, real-time communication (RTC) platform engineered to solve this via a dual-layer architecture: a fault-tolerant media routing backend coupled with an immutable, strictly typed client runtime.\n\n### Stack\n\nBackend Architecture: Elixir / Erlang/OTP (BEAM Virtual Machine)\n\nClient SDK Layer: TypeScript / Strict Type-Safe RPC & Media Interfaces\n\nMedia Protocols: WebRTC SFU Implementation / Simulcast Encoding / HLS Recording Pipelines\n\n### Capabilities\n\nDistributed SFU Media Topology: Replaces CPU-heavy client mixing with low-overhead, server-side packet forwarding.\n\nConcurrent Erlang/OTP Orchestration: Leverages the BEAM ecosystem to isolate each meeting instance, signaling channel, and media stream into lightweight, concurrent actors.\n\nComprehensive Telemetry & Edge Hardening: Armed with native automated benchmarking frameworks designed to test cross-regional latency corridors.\n\n### License\n\nCommercial",
+        "description": "Высокопроизводительная платформа коммуникации в реальном времени с отказоустойчивым серверным медиа-роутером.",
+        "content": "### Обзор\n\nСовременные системы видеоконференций сталкиваются с критическим инженерным компромиссом между вычислительной нагрузкой на клиенте и эффективностью распространения медиа в реальном времени. Zerkala Core — это высокопроизводительная платформа реального времени (RTC), решающая эту задачу двухуровневой архитектурой: отказоустойчивый серверный медиа-роутер и иммутабельная, строго типизированная клиентская среда выполнения.\n\n### Стек\n\nСерверная архитектура: Elixir / Erlang/OTP (виртуальная машина BEAM)\n\nКлиентский SDK: TypeScript — типобезопасные RPC и медиа-интерфейсы\n\nМедиа-протоколы: реализация WebRTC SFU / кодирование Simulcast / HLS-конвейеры записи\n\n### Возможности\n\nРаспределённая SFU-топология медиа: заменяет тяжёлое смешивание на клиенте эффективной пересылкой пакетов на сервере.\n\nПараллельная оркестрация Erlang/OTP: использует экосистему BEAM для изоляции каждой конференции, сигнального канала и медиа-потока в лёгкие параллельные акторы.\n\nКомплексная телеметрия и закалка краёв: оснащена нативными автотестами для проверки межрегиональных каналов задержки.\n\n### Лицензия\n\nКоммерческая",
         "category": "Инструменты"
       }
     },
@@ -1441,8 +1441,8 @@
       },
       "ru": {
         "title": "Kroma",
-        "description": "A local-first, contract-driven image workflow engine and asset-management platform enforcing absolute style continuity across shared narrative universes.",
-        "content": "### Abstract\n\nLong-form visual storytelling and graphic-novel generation pipelines frequently struggle with style drift, non-reproducible generation states, and heavy operational dependencies on complex Python runtimes. Kroma is a local-first, contract-driven image workflow engine and asset-management platform engineered to enforce absolute style continuity across shared narrative universes. Built completely in Rust to eliminate runtime language fragmentation, the engine leverages a strict contract-first API design, structured local storage domains, and desktop-first persistence matrices.\n\n### Stack\n\nCore: 100% Pure Rust Architecture (Zero Python/Node.js runtime dependencies)\n\nAPI & Desktop: Tauri Core Framework with a Contract-First OpenAPI Specification Engine\n\nPersistence: Local Desktop-First SQLite Storage with Layered TOML/JSON Configuration Resolvers\n\nFrontend: Nuxt.js Web Meta-Framework Client App\n\nPost-Processing: Native Binary Execution Adapters (BiRefNet via rembg, Real-ESRGAN ncnn)\n\nCryptographic: In-Flight Key Encryption & Token Secret Rotation Controllers\n\n### Capabilities\n\nUniverse-Scoped Asset Continuity: Isolates media assets, generation settings, and style matrices into dedicated, independent narrative project boundaries.\n\nContract-First API Validation: Mounts a stable, frozen 74-route contract validated by strict endpoint and contract smoke tests.\n\nPure Rust Processing Pipelines: Coordinates background removal, native upscaling, color-profile injection entirely through compiled system binaries.\n\nLayered Configuration Resolution: Implements a strict hierarchical fallback strategy for pipeline settings.\n\n### License\n\nGNU General Public License v3 (GPLv3)",
+        "description": "Локальный контрактно-ориентированный движок обработки изображений и платформа управления ассетами, написанная на Rust.",
+        "content": "### Обзор\n\nДлинные форматы визуального повествования и конвейеры генерации графических романов часто страдают от дрейфа стиля, невоспроизводимых состояний генерации и тяжёлых операционных зависимостей в сложных Python-средах. Kroma — это локальный контрактно-ориентированный движок обработки изображений и платформа управления ассетами, обеспечивающие абсолютную преемственность стиля в общих нарративных вселенных. Движок написан целиком на Rust для устранения фрагментации языков рантайма, использует строгий контрактно-ориентированный API-дизайн, структурные домены локального хранилища и матрицы персистентности, ориентированные на настольные рабочие станции.\n\n### Стек\n\nЯдро: архитектура на 100% чистом Rust (без Python/Node.js рантайм-зависимостей)\n\nAPI и десктоп: фреймворк Tauri с контрактно-ориентированным OpenAPI-спецификационным движком\n\nПерсистентность: локальное SQLite-хранилище с многоуровневыми TOML/JSON резолверами конфигурации\n\nФронтенд: клиентское приложение на фреймворке Nuxt.js\n\nПостобработка: нативные бинарные адаптеры (BiRefNet через rembg, Real-ESRGAN ncnn)\n\nКриптография: шифрование ключей на лету и контроллеры ротации секретов\n\n### Возможности\n\nПреемственность ассетов масштаба вселенной: изолирует медиа-ассеты, генеративные конфигурации и матрицы стиля в независимые нарративные границы проектов.\n\nКонтрактно-ориентированная валидация API: закрепляет замороженный контракт из 74 маршрутов, подтверждаемый строгими смоук-тестами.\n\nЧистые Rust-конвейеры обработки: удаление фона, апскейлинг и внедрение цветовых профилей выполняются только через скомпилированные системные бинарники.\n\nМногоуровневое разрешение конфигурации: реализует строгую иерархическую стратегию восстановления настроек конвейера.\n\n### Лицензия\n\nGNU GPL v3",
         "category": "Инструменты"
       }
     },
@@ -1467,8 +1467,8 @@
       },
       "ru": {
         "title": "noCowboy",
-        "description": "While mainstream AI development tools focus purely on generation velocity, they frequently introduce structural drift, type violations, and breaking API contracts.",
-        "content": "### Abstract\n\nWhile mainstream AI development tools focus purely on generation velocity, they frequently introduce structural drift, type violations, and breaking API contracts. NoCowboy TUI is a terminal-native, agentic development environment and enforcement engine engineered to make AI-driven code generation deterministic and secure.\n\n### Stack\n\nRuntime: Bun Runtime Ecosystem with Multi-Package Monorepo Topology\n\nInterface: SolidJS Reactive Engine, OpenTUI Core, and Yoga Flexbox\n\nAnalysis: Tree-Sitter AST Parsers and LanceDB Vector Code Indexing\n\nTools: Embedded Subprocesses (lazygit, neovim, lazysql, xh, nnn, viu)\n\nType System: Strict TypeScript Compilation Matrix via Turborepo\n\n### Capabilities\n\nAST-Driven Code Constitution: Intercepts agent code generation in real time, running local syntax-tree checks to block structural anti-patterns.\n\nLive Contract Guarding: Automatically monitors and cross-validates API schemas against consumer frontend code during compilation.\n\nSpec-First NCP Protocol: Implements a multi-layered verification system forcing agents to map entities and contracts before generating execution logic.\n\nTerminal-Multiplexed View Orchestration: Coordinates specialized terminal views into a cohesive dashboard via hotkey-driven subprocess spawning.\n\n### License\n\nCommercial",
+        "description": "Терминал-ориентированная агентная среда разработки и движок принудительного соблюдения стандартов для детерминированной генерации кода.",
+        "content": "### Обзор\n\nПока основные AI-инструменты разработки фокусируются исключительно на скорости генерации, они часто вносят структурный дрейф, нарушения типов и разрыв контрактов API. NoCowboy TUI — это агентная среда разработки, ориентированная на терминал, и движок принудительного соблюдения стандартов, превращающие генерацию кода AI в детерминированный и безопасный процесс.\n\n### Стек\n\nРантайм: экосистема Bun с многопакетной монорепо-топологией\n\nИнтерфейс: реактивный движок SolidJS, ядро OpenTUI и Yoga Flexbox\n\nАнализ: AST-парсеры Tree-Sitter и векторное индексирование кода LanceDB\n\nИнструменты: встроенные подпроцессы (lazygit, neovim, lazysql, xh, nnn, viu)\n\nСистема типов: строгая матрица компиляции TypeScript через Turborepo\n\n### Возможности\n\nAST-движимая конституция кода: перехватывает генерацию кода агентами в реальном времени и выполняет локальные проверки синтаксических деревьев, блокируя структурные анти-паттерны.\n\nЖивое сохранение контрактов: автоматически сверяет API-схемы с фронтенд-кодом во время компиляции.\n\nПротокол NCP на основе спецификаций: реализует многоуровневую систему верификации, требующую от агентов маппинга сущностей и контрактов до генерации исполняемой логики.\n\nОркестрация мультитерминальных видов: сводит специализированные терминальные представления в единый дашборд через управляемые горячими клавишами подпроцессы.\n\n### Лицензия\n\nКоммерческая",
         "category": "Инструменты"
       }
     },
@@ -1493,8 +1493,8 @@
       },
       "ru": {
         "title": "Daniel",
-        "description": "The Soul of the Ink, Carved for the Modern Canvas.",
-        "content": "### Headline\n\nThe Soul of the Ink, Carved for the Modern Canvas.\n\n### Body\n\nDaniel is a premium Hebrew typeface that bridges the gap between ancient manuscript calligraphy and contemporary editorial strength. Characterized by its raw, expressive strokes and distinct tactile weight, Daniel honors the traditional movement of the scribe's hand while maintaining a commanding, structural presence.\n\n### Perfect for\n\nPremium branding, book covers, packaging, and striking editorial layouts.",
+        "description": "Душа чернил, высеченная на современном холсте.",
+        "content": "### Заголовок\n\nДуша чернил, высеченная на современном холсте.\n\n### Описание\n\nDaniel — премиальная ивритская гарнитура, соединяющая каллиграфию древних рукописей с современной редакторской мощью. Грубые экспрессивные штрихи и ярко выраженный тактильный вес отдают дань традиционному движению руки писца, сохраняя при этом внушительную структурную выразительность.\n\n### Подходит для\n\nПремиального брендинга, обложек книг, упаковки и выразительных редакторских макетов.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1519,8 +1519,8 @@
       },
       "ru": {
         "title": "Eco",
-        "description": "Where Clean Geometry Meets Natural Intention.",
-        "content": "### Headline\n\nWhere Clean Geometry Meets Natural Intention.\n\n### Body\n\nEco is a modern display Hebrew typeface designed at the intersection of architectural engineering and organic form. Defined by its striking geometric cuts, stencil-inspired negative space, and sharp, rhythmic 45-degree terminals, Eco brings a commanding, contemporary edge to ecological and progressive branding.\n\n### Perfect for\n\nEco-tech branding, architectural firms, sustainable packaging, and high-impact identity design.",
+        "description": "Там, где чистая геометрия встречается с естественным намерением.",
+        "content": "### Заголовок\n\nТам, где чистая геометрия встречается с естественным намерением.\n\n### Описание\n\nEco — ивритская гарнитура, сочетающая точный геометрический минимализм с органической теплотой. Чистые формы и сбалансированные интервалы создают ощущение спокойствия и естественного ритма, сохраняя превосходную читаемость в любом размере.\n\n### Подходит для\n\nЭко-брендинга, упаковки натуральных продуктов, сайтов и дизайна интерфейсов.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1545,8 +1545,8 @@
       },
       "ru": {
         "title": "Har Sinai",
-        "description": "The Grace of the Winds, The Weight of the Stone.",
-        "content": "### Headline\n\nThe Grace of the Winds, The Weight of the Stone.\n\n### Body\n\nHar Sinai is a premium display Hebrew typeface that reimagines sacred manuscript traditions through an ethereal, modern lens. Characterized by its sweeping, organic curves and poised, tapered terminals, Har Sinai captures the majestic rhythm of wind-swept landscapes and ancient calligraphic mastery.\n\n### Perfect for\n\nQuiet luxury branding, premium wine or cosmetic packaging, cultural exhibitions, and artistic editorial headlines.",
+        "description": "Грация ветров, вес камня.",
+        "content": "### Заголовок\n\nГрация ветров, вес камня.\n\n### Описание\n\nHar Sinai — ивритская гарнитура с монументальным присутствием, вдохновлённая пустынными ландшафтами и достоинством камня. Устойчивые линии и прочная структура передают силу и традицию, дополненные каллиграфической утончённостью древнего изящества.\n\n### Подходит для\n\nБрендинга наследия, обложек книг, редакторских заголовков и официальных документов.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1571,8 +1571,8 @@
       },
       "ru": {
         "title": "Hidekel",
-        "description": "The Precision of a Blade. The Current of an Ancient River.",
-        "content": "### Headline\n\nThe Precision of a Blade. The Current of an Ancient River.\n\n### Body\n\nHidekel is an avant-garde display Hebrew typeface that cuts through conventional design with razor-sharp geometry, aggressive diagonal slashes, and a thrilling sense of velocity. Every character is a study in tension—deconstructing traditional Hebrew glyphs into sharp, crystalline fragments.\n\n### Perfect for\n\nAvant-garde fashion houses, experimental poster design, tech-noir branding, and high-impact musical or cinematic identities.",
+        "description": "Точность лезвия. Течение древней реки.",
+        "content": "### Заголовок\n\nТочность лезвия. Течение древней реки.\n\n### Описание\n\nHidekel — экспрессивная ивритская гарнитура, сочетающая точную резкость с текучестью. Заострённые штрихи и динамичные линии создают визуальное напряжение между силой и движением, наполняя текст энергией и глубиной.\n\n### Подходит для\n\nРедакторских заголовков, спортивного брендинга, плакатов и музыкального мерча.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1597,8 +1597,8 @@
       },
       "ru": {
         "title": "Josef",
-        "description": "The Texture of Time, Pressed onto the Canvas.",
-        "content": "### Headline\n\nThe Texture of Time, Pressed onto the Canvas.\n\n### Body\n\nJosef is a premium display Hebrew typeface that captures the raw, physical essence of historical block printing and weathered stone inscriptions. Defined by its heavy, organic contours, tactile ink bleeds, and weathered silhouettes, Josef strips away modern sterile geometry to reveal the soul of human artifact.\n\n### Perfect for\n\nArchival luxury packaging, high-end spirit or perfume labels, cultural heritage branding, and monumental book design.",
+        "description": "Фактура времени, оттиснутая на холсте.",
+        "content": "### Заголовок\n\nФактура времени, оттиснутая на холсте.\n\n### Описание\n\nJosef — ивритская гарнитура с историческим характером, соединяющая старинные фактуры с современной ясностью. Буквы несут ощущение возраста и глубины, словно вырезанные терпеливой рукой, сохраняя при этом элегантную читаемость.\n\n### Подходит для\n\nВинного брендинга, винтажной упаковки, обложек книг и проектов наследия.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1623,8 +1623,8 @@
       },
       "ru": {
         "title": "Kimchi",
-        "description": "Hebrew Typography, Reimagined Through the Soul of Hangul.",
-        "content": "### Headline\n\nHebrew Typography, Reimagined Through the Soul of Hangul.\n\n### Body\n\nKimchi is an avant-garde display Hebrew typeface that masterfully blends Middle Eastern script with East Asian calligraphic structure. Inspired by the geometric architecture of the Korean Hangul alphabet, Kimchi strips away traditional Hebrew baselines to create a totally unprecedented visual dialogue.\n\n### Perfect for\n\nFusion cuisine branding, international cultural exhibitions, high-end editorial magazines, and experimental lifestyle packaging.",
+        "description": "Ивритская типографика, переосмысленная через душу хангыля.",
+        "content": "### Заголовок\n\nИвритская типографика, переосмысленная через душу хангыля.\n\n### Описание\n\nKimchi — экспериментальная ивритская гарнитура, сплавляющая геометрическую структуру корейского письма с семитским характером иврита. Результат — оригинальная и неожиданная система букв, бросающая вызов ожиданиям и предлагающая свежий визуальный язык.\n\n### Подходит для\n\nФуд-брендинга, поп-культуры, экспериментальных плакатов и креативных кампаний.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1649,8 +1649,8 @@
       },
       "ru": {
         "title": "Lilach",
-        "description": "The Romance of Cursive Motion, Written in the Dark.",
-        "content": "### Headline\n\nThe Romance of Cursive Motion, Written in the Dark.\n\n### Body\n\nLilach is an expressive, premium display Hebrew typeface that transforms the intimate rhythm of cursive handwriting into a monumental design statement. Defined by its dramatic forward slant, fluid brush-like energy, and sweeping, organic ascenders, Lilach captures the raw, poetic momentum of a midnight manuscript.\n\n### Perfect for\n\nLuxury cosmetics, high-fashion branding, editorial poetry layouts, artisanal wine labels, and intimate storytelling projects.",
+        "description": "Романтика курсивного движения, написанная в темноте.",
+        "content": "### Заголовок\n\nРомантика курсивного движения, написанная в темноте.\n\n### Описание\n\nLilach — экспрессивная ивритская гарнитура, превращающая интимный ритм беглого почерка в монументальное дизайнерское заявление. Драматический наклон вперёд, текучая энергия кисти и размашистые органические штрихи улавливают сырой поэтический импульс полуночного письма.\n\n### Подходит для\n\nЛюксовой косметики, брендинга высокой моды, поэтических редакторских макетов, арт-этикеток вина и интимных повествовательных проектов.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1675,8 +1675,8 @@
       },
       "ru": {
         "title": "Miso",
-        "description": "The Meditative Flow of Japanese Ink, Bound to Hebrew Script.",
-        "content": "### Headline\n\nThe Meditative Flow of Japanese Ink, Bound to Hebrew Script.\n\n### Body\n\nMiso is a high-concept display Hebrew typeface that masterfully reimagines Jewish script through the elegant brush strokes and spatial philosophy of Japanese calligraphy. Borrowing the fluid, continuous line work of Hiragana and the structured restraint of Kanji, Miso strips away hard vertical corners to let the letters breathe.\n\n### Perfect for\n\nHigh-end hospitality branding, Japanese-Israeli fusion concepts, minimalist skincare packaging, and avant-garde editorial publications.",
+        "description": "Медитативный поток японской туши, связанный с ивритским письмом.",
+        "content": "### Заголовок\n\nМедитативный поток японской туши, связанный с ивритским письмом.\n\n### Описание\n\nMiso — ивритская гарнитура, соединяющая каллиграфическое спокойствие Востока с семитской структурой. Мягкие штрихи и безмятежные интервалы напоминают кисть для рисования тушью, придавая тексту духовную глубину и тихую элегантность.\n\n### Подходит для\n\nСпа-брендинга, чая и азиатской кухни, философии и культуры, книжных обложек.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1701,8 +1701,8 @@
       },
       "ru": {
         "title": "Mixer",
-        "description": "Engineered Precision. Formed in Pure Geometry.",
-        "content": "### Headline\n\nEngineered Precision. Formed in Pure Geometry.\n\n### Body\n\nMixer is a premium monolinear display Hebrew typeface built at the intersection of electronic engineering and architectural brutalism. By stripping away organic curves and traditional calligraphic baselines, Mixer introduces a rigid, octagonal architecture where every letterform behaves like a meticulously calibrated mechanical component.\n\n### Perfect for\n\nTech-hardware branding, audio gear packaging, UI/UX dashboard design, industrial architecture, and electronic music subcultures.",
+        "description": "Инженерная точность. Сформированная чистой геометрией.",
+        "content": "### Заголовок\n\nИнженерная точность. Сформированная чистой геометрией.\n\n### Описание\n\nMixer — строгая геометрическая ивритская гарнитура, построенная на точных базовых формах. Минималистичная структура и чистые углы придают ей технический, современный характер с резким и ясным присутствием.\n\n### Подходит для\n\nТехнологического брендинга, программных интерфейсов, современных плакатов и промышленного дизайна.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1727,8 +1727,8 @@
       },
       "ru": {
         "title": "Neo",
-        "description": "Perfect Circles. Absolute Minimalism.",
-        "content": "### Headline\n\nPerfect Circles. Absolute Minimalism.\n\n### Body\n\nNeo is an avant-garde display Hebrew typeface engineered entirely around the geometry of the circle. By discarding traditional block shapes and rigid vertical inheritance, Neo reconstructs the Hebrew alphabet using precise circular arcs, weightless monoline stems, and sweeping orbital loops.\n\n### Perfect for\n\nMinimalist luxury branding, modern architectural firms, cosmic or tech-focused identities, and high-end editorial headers.",
+        "description": "Идеальные окружности. Абсолютный минимализм.",
+        "content": "### Заголовок\n\nИдеальные окружности. Абсолютный минимализм.\n\n### Описание\n\nNeo — минималистичная ивритская гарнитура, построенная на чистой округлой геометрии. Каждая буква определяется точными круговыми пропорциями, создавая радикальную и чистую визуальную гармонию. Гарнитура сводит форму к её базовой сути.\n\n### Подходит для\n\nФутуристического брендинга, моды, архитектуры и оформления пространств.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1753,8 +1753,8 @@
       },
       "ru": {
         "title": "Patch Sans",
-        "description": "Modular Blocks. Brutalist Architecture. Unapologetic Form.",
-        "content": "### Headline\n\nModular Blocks. Brutalist Architecture. Unapologetic Form.\n\n### Body\n\nPatch Sans is a high-impact display Hebrew typeface built for the modern, raw street canvas. Merging the massive weight of solid geometric blocks with the precise engineering of hollow outlines, Patch Sans acts as a modular construction kit for high-contrast design.\n\n### Perfect for\n\nStreetwear apparel branding, vinyl record packaging, brutalist event posters, and disruptive digital media headlines.",
+        "description": "Модульные блоки. Бруталистская архитектура. Бескомпромиссная форма.",
+        "content": "### Заголовок\n\nМодульные блоки. Бруталистская архитектура. Бескомпромиссная форма.\n\n### Описание\n\nPatch Sans — модульная ивритская гарнитура, построенная из смелых геометрических блоков. Бруталистский стиль и тяжёлые линии создают уверенное и резкое присутствие, напоминающее монументальную бетонную архитектуру, — с современной ясной читаемостью.\n\n### Подходит для\n\nУрбанистического брендинга, стритвира, гигантских заголовков и агрессивных плакатов.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1779,8 +1779,8 @@
       },
       "ru": {
         "title": "Patch Serif",
-        "description": "Radical Architecture. Attached Heritage.",
-        "content": "### Headline\n\nRadical Architecture. Attached Heritage.\n\n### Body\n\nPatch Serif is an experimental display Hebrew typeface that takes the concept of the serif and transforms it into a literal structural attachment. The serifs are rendered as independent, high-contrast black isometric blocks clamped onto crisp white geometric letterforms.\n\n### Perfect for\n\nAvant-garde street fashion, industrial product packaging, high-contrast poster design, independent art publishing, and rebellious brand marks.",
+        "description": "Радикальная архитектура. Прикреплённое наследие.",
+        "content": "### Заголовок\n\nРадикальная архитектура. Прикреплённое наследие.\n\n### Описание\n\nPatch Serif — ивритская гарнитура, соединяющая современную геометрическую структуру с традиционными серифными корнями. Отношение между острыми линиями и серифными ответвлениями создаёт диалог между будущим и наследием, между новым и старым.\n\n### Подходит для\n\nСложного брендинга, прессы, книг и премиального редакторского дизайна.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1805,8 +1805,8 @@
       },
       "ru": {
         "title": "Patch Stencil",
-        "description": "Industrial Rawness. Fragmented Architecture.",
-        "content": "### Headline\n\nIndustrial Rawness. Fragmented Architecture.\n\n### Body\n\nPatch Stencil is an experimental display Hebrew typeface that brings a high-contrast, tactical edge to the modular Patch family. By slicing heavy, brutalist block glyphs with precise geometric fractures, Patch Stencil isolates individual strokes into independent, suspended plates.\n\n### Perfect for\n\nStreetwear lookbooks, technical utility packaging, industrial branding, vinyl records, and high-impact political or cultural posters.",
+        "description": "Индустриальная грубость. Фрагментированная архитектура.",
+        "content": "### Заголовок\n\nИндустриальная грубость. Фрагментированная архитектура.\n\n### Описание\n\nPatch Stencil — ивритская гарнитура в духе промышленных трафаретов, с фрагментированными линиями и чёткими срезами. Грубый механический характер придаёт ей ощущение материала и труда — как маркировка на контейнерах и складах.\n\n### Подходит для\n\nПромышленного брендинга, обороны и безопасности, событий, графических плакатов.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1831,8 +1831,8 @@
       },
       "ru": {
         "title": "Sayphan",
-        "description": "The Sharp Elegance of Southeast Asian Calligraphy, Bound to Hebrew Form.",
-        "content": "### Headline\n\nThe Sharp Elegance of Southeast Asian Calligraphy, Bound to Hebrew Form.\n\n### Body\n\nSayphan is an avant-garde display Hebrew typeface that masterfully synthesizes Middle Eastern text with the elegant, fluid stroke rules of Southeast Asian scripts. Borrowing the distinct weight variations, sweeping vertical anchors, and fine, blade-like tails found in classical Thai and Khmer calligraphy.\n\n### Perfect for\n\nHigh-end wellness or hospitality branding, Asian-inspired culinary identities, cinematic poster titles, and luxury editorial headers.",
+        "description": "Острая элегантность юго-восточной азиатской каллиграфии, связанная с ивритской формой.",
+        "content": "### Заголовок\n\nОстрая элегантность юго-восточной азиатской каллиграфии, связанная с ивритской формой.\n\n### Описание\n\nSayphan — ивритская гарнитура, соединяющая резкость и утончённость тайской каллиграфии с ивритской структурой. Диагональные штрихи и заострённые окончания придают тексту уникальное восточное и элегантное присутствие.\n\n### Подходит для\n\nЛюксового брендинга, моды, азиатских ресторанов и дизайна упаковки.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1857,8 +1857,8 @@
       },
       "ru": {
         "title": "Skechers",
-        "description": "The Frequency of the Hand. The Architecture of the Line.",
-        "content": "### Headline\n\nThe Frequency of the Hand. The Architecture of the Line.\n\n### Body\n\nSkechers is an experimental display Hebrew typeface that captures the raw, kinetic friction of ink and graphite on paper. Built upon a sophisticated, rhythmic structure, Skechers completely replaces flat vector outlines with a dense, beautifully chaotic texture of rapid hand-drawn strokes.\n\n### Perfect for\n\nAlternative streetwear lines, artisanal product packaging, vinyl record art, independent lookbooks, and high-contrast editorial headlines.",
+        "description": "Частота руки. Архитектура линии.",
+        "content": "### Заголовок\n\nЧастота руки. Архитектура линии.\n\n### Описание\n\nSkechers — экспериментальная ивритская гарнитура, улавливающая сырой кинетический трение чернил и графита о бумагу. Поверх ритмичного изысканного каркаса Skechers полностью заменяет плоские векторные контуры плотной, хаотично богатой фактурой быстрых ручных штрихов.\n\n### Подходит для\n\nАльтернативного стритвира, арт-упаковки, обложек альбомов, независимых лукбуков и контрастных редакторских заголовков.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1883,8 +1883,8 @@
       },
       "ru": {
         "title": "Strokes",
-        "description": "The Primal Mark. The Architecture of the Fragment.",
-        "content": "### Headline\n\nThe Primal Mark. The Architecture of the Fragment.\n\n### Body\n\nStrokes is an experimental display Hebrew typeface that captures the physical urgency of a scratched inscription. Built on a tall, structural geometric foundation, Strokes replaces conventional vectors with splintered lines, fractured fibers, and unpredictable ink bleeds.\n\n### Perfect for\n\nHigh-end artisanal packaging, cinematic titles, dark-mode editorial concepts, and premium, storytelling-driven identity design.",
+        "description": "Первобытный знак. Архитектура фрагмента.",
+        "content": "### Заголовок\n\nПервобытный знак. Архитектура фрагмента.\n\n### Описание\n\nStrokes — ивритская гарнитура, прославляющая грубый штрих в крайнем минимализме. Каждая буква строится из фрагментов и базовых знаков, создавая резкий и дикий визуальный язык, напоминающий резьбу по дереву или гравировку.\n\n### Подходит для\n\nМузыкального брендинга, альтернативной культуры, плакатов и агрессивного редакторского дизайна.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1909,8 +1909,8 @@
       },
       "ru": {
         "title": "Sticks",
-        "description": "Hyper-Condensed Geometry. Absolute Linear Restraint.",
-        "content": "### Headline\n\nHyper-Condensed Geometry. Absolute Linear Restraint.\n\n### Body\n\nSticks is an experimental, ultra-condensed display Hebrew typeface that treats typography like structural engineering. Built on a strict monoline grid, Sticks replaces traditional letterforms with soaring vertical pillars and short, crisp crossbars that mimic the clean lines of modern architectural framing.\n\n### Perfect for\n\nMinimalist luxury branding, architectural firms, high-concept editorial headers, and structural identity design.",
+        "description": "Гипер-конденсированная геометрия. Абсолютная линейная сдержанность.",
+        "content": "### Заголовок\n\nГипер-конденсированная геометрия. Абсолютная линейная сдержанность.\n\n### Описание\n\nSticks — сверхплотная ивритская гарнитура, построенная из прямых линий и абсолютной сдержанности. Узкие пропорции и линейная структура обеспечивают высокую плотность при сохранении ясности — архитектурная и резкая гарнитура.\n\n### Подходит для\n\nПлотных заголовков, прессы, витрин и информационных интерфейсов.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1935,8 +1935,8 @@
       },
       "ru": {
         "title": "Yam Suf",
-        "description": "The Flow of the Scribe. The Rhythm of the Tide.",
-        "content": "### Headline\n\nThe Flow of the Scribe. The Rhythm of the Tide.\n\n### Body\n\nYam Suf is a premium display Hebrew typeface that transforms the intimate cadence of cursive handwriting into an evocative design statement. Inspired by the organic, undulating movement of water and reed beds, Yam Suf breaks away from rigid square typography to celebrate the continuous, poetic stroke of the pen.\n\n### Perfect for\n\nQuiet luxury branding, artisanal wellness packaging, literary publishing, high-end cosmetic identities, and cinematic poetry layouts.",
+        "description": "Поток писца. Ритм прилива.",
+        "content": "### Заголовок\n\nПоток писца. Ритм прилива.\n\n### Описание\n\nYam Suf — ивритская гарнитура, сочетающая каллиграфический поток с естественным ритмом прилива. Гибкие линии и размашистые движения напоминают волны, создавая постоянное ощущение движения и жизни в тексте.\n\n### Подходит для\n\nМорского брендинга, культуры, поэзии и литературы, креативного дизайна упаковки.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1961,8 +1961,8 @@
       },
       "ru": {
         "title": "Amit",
-        "description": "Towering Architecture, Sculpted with Human Warmth.",
-        "content": "### Headline\n\nTowering Architecture, Sculpted with Human Warmth.\n\n### Body\n\nAmit is a premium, ultra-condensed display Hebrew typeface that balances commanding structural mass with an approachable soul. Reimagining the traditional high-contrast editorial headline, Amit stacks elongated vertical columns into a high-frequency rhythmic cadence.\n\n### Perfect for\n\nPremium personal branding, boutique hospitality identity, luxury editorial headers, high-end cosmetics, and sophisticated packaging.",
+        "description": "Возвышающаяся архитектура, высеченная с человеческим теплом.",
+        "content": "### Заголовок\n\nВозвышающаяся архитектура, высеченная с человеческим теплом.\n\n### Описание\n\nAmit — ивритская гарнитура с благородной возвышающейся структурой, сочетающая длинные вертикальные линии с человеческим теплом. Внушительное присутствие и высокие пропорции придают тексту вес и достоинство.\n\n### Подходит для\n\nБанковского и недвижимостного брендинга, газетных заголовков, официальных документов.",
         "category": "Hebrew Fonts"
       }
     },
@@ -1987,8 +1987,8 @@
       },
       "ru": {
         "title": "Noam",
-        "description": "The Architecture of Comfort. The Soul of the Living Line.",
-        "content": "### Headline\n\nThe Architecture of Comfort. The Soul of the Living Line.\n\n### Body\n\nNoam is a premium display Hebrew typeface designed to infuse modern design with an inherent sense of warmth, dignity, and pleasantness. Striking a brilliant balance between heavy scribal authority and soft, organic humanism, Noam rejects cold, sterile lines to celebrate the natural movement of physical form.\n\n### Perfect for\n\nHigh-end hospitality identity, premium organic branding, editorial publishing, boutique lifestyle assets, and artisanal packaging design.",
+        "description": "Архитектура комфорта. Душа живой линии.",
+        "content": "### Заголовок\n\nАрхитектура комфорта. Душа живой линии.\n\n### Описание\n\nNoam — ивритская гарнитура, сочетающая комфорт чтения с живым тёплым характером. Мягкие линии и сбалансированные пропорции создают ощущение дома и спокойствия, сохраняя высокий типографический уровень.\n\n### Подходит для\n\nПерсонального брендинга, литературы, образования и длинного контента, пользовательских интерфейсов.",
         "category": "Hebrew Fonts"
       }
     },
@@ -2013,8 +2013,8 @@
       },
       "ru": {
         "title": "Kosovo",
-        "description": "The Echo of the Stone. The Architecture of the Myth.",
-        "content": "Kosovo is an extraordinary display typeface that bridges ancient Balkan heritage with high-end modern ethnofuturism. Built on a tall, elongated monoline structure, Kosovo reinterprets medieval stone inscriptions and archaic runic symbology through a sharp, contemporary geometric grid. Characterized by intentional crossbar incisions, delicate runic nodes, and soaring vertical stems, Kosovo weaves an intense, ceremonial rhythm across the layout. Engineered with complete multi-script versatility, featuring stylized Latin and Cyrillic layouts. Perfect for: Cinematic titles, historical or dark-fantasy branding, book covers, cultural heritage projects, and premium multi-language packaging.",
+        "description": "Эхо камня. Архитектура мифа.",
+        "content": "### Заголовок\n\nЭхо камня. Архитектура мифа.\n\n### Описание\n\nKosovo — экстраординарная акцидентная гарнитура, соединяющая древнее балканское наследие с современным высоким этно-футуризмом. Построенная на высоком удлинённом моно-линейном каркасе, Kosovo заново интерпретирует средневековые каменные надписи и архаичные рунические символы через резкую современную геометрическую сетку. Намеренные срезы штрихов, тонкие рунические узлы и взмывающие вертикальные стволы сплетают мощный ритуальный ритм по всей раскладке. Спроектирован с полной мультискриптовой поддержкой, включая стилизованные латинские и кириллические раскладки.\n\n### Подходит для\n\nКинематографических заголовков, исторических проектов или тёмного фэнтези, люксового брендинга и драматического редакторского дизайна.",
         "category": "Latin & Cyrillic"
       }
     },
@@ -2039,8 +2039,8 @@
       },
       "ru": {
         "title": "Vandamme",
-        "description": "The Claude Code Configuration System is an enterprise-grade, two-tier automation framework designed to orchestrate agentic constraints, persistent memory mappings, and semantic search vectors.",
-        "content": "### Abstract\n\nScaling developer workflows across diverse terminal environments frequently encounters systemic context fragmentation, role duplication, and inefficient codebase discovery. The Claude Code Configuration System is an enterprise-grade, two-tier automation framework designed to orchestrate agentic constraints, persistent memory mappings, and semantic search vectors. Built to operate seamlessly with the Claude Code ecosystem, the platform introduces deterministic environment initialization, unified multi-persona role switching (/as), and optional localized Retrieval-Augmented Generation (RAG)—transforming unstructured AI interactions into a highly standardized, spec-first development cycle.\n\n### Stack\n\nAgentic Execution & Lifecycle: Multi-Persona Custom Command Interceptors (/init, /start, /end, /plan)\n\nVector Storage & Semantic Discovery: LanceDB High-Performance Vector Database\n\nLocal Machine Learning Runtime: Ollama Execution Layer utilizing nomic-embed-text\n\nInfrastructure Provisioning: Bash Automation Installer Engine (install.sh) and Unified Python RAG SDK\n\nState & Configuration Tiering: Decentralized JSON/YAML Environment Layout Maps\n\n### Capabilities\n\nTwo-Tier Context Layering: Seamlessly splits agent behavior between a machine-wide global library (~/.claude/) and an isolated, project-bound directory structure (.claude/).\n\nDynamic Multi-Persona Orchestration: Programmatically injects and mutates up to 26 highly specialized, expert-team personas into active development scopes.\n\nAutomated Context Serialization: Implements a strict state tracking matrix that updates a project's target blueprints upon workspace exit.\n\nTelemetry-Driven Guardrail Gating: Enforces discrete permission matrices allowing rapid, non-destructive mutations while intercepting high-risk operations.\n\n### License\n\nMIT",
+        "description": "Корпоративная двухуровневая система автоматизации, оркестрирующая агентные ограничения, отображения памяти и семантический поиск.",
+        "content": "### Обзор\n\nМасштабирование рабочих процессов разработчиков в разнообразных терминальных средах часто сталкивается с системной фрагментацией контекста, дублированием ролей и неэффективным поиском по кодовой базе. Система конфигурации Claude Code — это корпоративная двухуровневая платформа автоматизации, спроектированная для оркестрации агентных ограничений, постоянных отображений памяти и семантических поисковых векторов. Работая в тесной связке с экосистемой Claude Code, платформа обеспечивает детерминированную инициализацию среды, унифицированное переключение ролей между несколькими персонами (/as) и опциональный локальный RAG — превращая неструктурированные AI-взаимодействия в высокостандартизированный цикл разработки, управляемый спецификациями.\n\n### Стек\n\nАгентное выполнение и жизненный цикл: перехватчики пользовательских команд для нескольких персон (/init, /start, /end, /plan)\n\nВекторное хранилище и семантический поиск: высокопроизводительная векторная база данных LanceDB\n\nЛокальный рантайм машинного обучения: слой выполнения Ollama с nomic-embed-text\n\nПредоставление инфраструктуры: движок установки на Bash (install.sh) и единый Python-пакет RAG SDK\n\nУровни состояния и конфигурации: децентрализованные карты окружения в формате JSON/YAML\n\n### Возможности\n\nДвухуровневое наслоение контекста: разделяет поведение агентов между глобальной библиотекой уровня машины (~/.claude/) и изолированной структурой каталогов проекта (.claude/).\n\nДинамическая оркестрация нескольких персон: программно внедряет и модифицирует до 26 узкоспециализированных экспертных персон в активные области разработки.\n\nАвтоматическая сериализация контекста: реализует строгую матрицу отслеживания состояния, обновляющую целевые планы проекта при выходе из рабочей области.\n\nТелеметрическое управление предохранителями: обеспечивает дискретные матрицы разрешений для быстрых неразрушающих изменений, перехватывая операции высокого риска.\n\n### Лицензия\n\nMIT",
         "category": "Tools"
       }
     }
