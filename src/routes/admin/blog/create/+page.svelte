@@ -21,7 +21,7 @@
   const locales = $derived(data.locales ?? [])
   const categories = $derived(data.categories ?? [])
   const categoryOptions = $derived([
-    { value: '', label: t('common.none') },
+    { value: '', label: 'common.none' },
     ...categories.map(c => ({ value: String(c.id), label: c.slug }))
   ])
 
@@ -32,11 +32,11 @@
   let published = $state(false)
   let readingTimeMinutes = $state('')
   const translations = $state<Record<string, { title: string; excerpt: string; content: string }>>({})
-  {
+  $effect.pre(() => {
     for (const loc of locales) {
       translations[loc] = { title: '', excerpt: '', content: '' }
     }
-  }
+  })
 
   function localeName(loc: string): string {
     return LOCALE_CONFIG[loc as keyof typeof LOCALE_CONFIG]?.name ?? loc
@@ -65,7 +65,7 @@
         bind:value={categoryId}
       />
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-pm-text">{adminT['admin.coverImageUrl'] ?? t('admin.coverImageUrl')}</label>
+        <span class="text-sm font-medium text-pm-text">{adminT['admin.coverImageUrl'] ?? t('admin.coverImageUrl')}</span>
         <FileUpload
           bind:value={coverImageUrl}
           dropzoneLabel={adminT['admin.dropzoneLabel'] ?? t('admin.dropzoneLabel')}

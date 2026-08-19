@@ -7,6 +7,11 @@
   import { page } from '$app/stores'
   import { getAdminT } from '$lib/utils/admin-translations'
   import { LOCALE_CONFIG } from '$lib/config/site'
+  import {
+    PRICING_CURRENCIES,
+    PRICING_DEFAULT_PERIOD,
+    PRICING_DEFAULT_CTA_URL
+  } from '$lib/pricing-constants'
   import { createFormDirty } from '$lib/utils/form-dirty.svelte'
   import AdminEditorPage from '$lib/components/molecules/AdminEditorPage.svelte'
   import FormField from '$lib/components/atoms/FormField.svelte'
@@ -25,45 +30,28 @@
   const form = $derived($page.form)
   const errors = $derived((form as { fieldErrors?: Record<string, string[]> } | null)?.fieldErrors ?? {})
 
-  let slug = $state(p.slug)
-  let name = $state(p.name)
-  let description = $state(p.description ?? '')
-  let price = $state(p.price !== null ? String(p.price) : '')
-  let currency = $state(p.currency ?? '')
-  let period = $state(p.period ?? 'month')
-  let featured = $state(p.featured === true)
-  let ctaText = $state(p.ctaText ?? '')
-  let ctaUrl = $state(p.ctaUrl ?? '/contact')
-  let order = $state(p.order !== null ? String(p.order) : '0')
-  let published = $state(p.published === true)
-  let features = $state(tierFeatures.map(f => f.text).join(', '))
-  const currencies = $state(['USD', 'EUR', 'RUB'])
+  let slug = $state('')
+  let name = $state('')
+  let description = $state('')
+  let price = $state('')
+  let currency = $state('')
+  let period = $state(PRICING_DEFAULT_PERIOD)
+  let featured = $state(false)
+  let ctaText = $state('')
+  let ctaUrl = $state(PRICING_DEFAULT_CTA_URL)
+  let order = $state('0')
+  let published = $state(false)
+  let features = $state('')
+  const currencies = $state([...PRICING_CURRENCIES])
   const currencyOptions = $derived(currencies.map(code => ({ value: code, label: code })))
   const periodOptions = $derived([
-    { value: 'month', label: adminT['admin.periodMonth'] ?? t('admin.periodMonth') },
-    { value: 'year', label: adminT['admin.periodYear'] ?? t('admin.periodYear') },
-    { value: 'one-time', label: adminT['admin.periodOneTime'] ?? t('admin.periodOneTime') }
+    { value: 'month', label: 'admin.periodMonth' },
+    { value: 'year', label: 'admin.periodYear' },
+    { value: 'one-time', label: 'admin.periodOneTime' }
   ])
 
   const translations = $state<Record<string, { name: string; description: string; ctaText: string }>>({})
   const featuresByLocale = $state<Record<string, string>>({})
-  {
-    for (const loc of locales) {
-      const row = tierTranslations.find(r => r.locale === loc)
-      translations[loc] = {
-        name: row?.name ?? '',
-        description: row?.description ?? '',
-        ctaText: row?.ctaText ?? ''
-      }
-      // Prefill each locale's feature list with its translated texts in
-      // feature order; fall back to the base text when no translation exists.
-      const localized = tierFeatures.map((f, index) => {
-        const ft = tierFeatureTranslations.find(t => t.featureId === f.id && t.locale === loc)
-        return ft?.text ?? f.text
-      }).filter(Boolean)
-      featuresByLocale[loc] = localized.join(', ')
-    }
-  }
 
   const { isDirty, markClean, guardNavigation } = createFormDirty(() => ({
     slug,
@@ -81,7 +69,40 @@
     featuresByLocale,
     translations
   }))
-  markClean()
+
+  // Seed the editable form from the server-loaded record. Runs before the
+  // first paint (no blank flash) and re-seeds whenever the record changes, so
+  // client-side navigation between two records can never show stale values.
+  $effect.pre(() => {
+    slug = p.slug
+    name = p.name
+    description = p.description ?? ''
+    price = p.price !== null ? String(p.price) : ''
+    currency = p.currency ?? ''
+    period = p.period ?? 'month'
+    featured = p.featured === true
+    ctaText = p.ctaText ?? ''
+    ctaUrl = p.ctaUrl ?? '/contact'
+    order = p.order !== null ? String(p.order) : '0'
+    published = p.published === true
+    features = tierFeatures.map(f => f.text).join(', ')
+    for (const loc of locales) {
+      const row = tierTranslations.find(r => r.locale === loc)
+      translations[loc] = {
+        name: row?.name ?? '',
+        description: row?.description ?? '',
+        ctaText: row?.ctaText ?? ''
+      }
+      // Prefill each locale's feature list with its translated texts in
+      // feature order; fall back to the base text when no translation exists.
+      const localized = tierFeatures.map((f, index) => {
+        const ft = tierFeatureTranslations.find(t => t.featureId === f.id && t.locale === loc)
+        return ft?.text ?? f.text
+      }).filter(Boolean)
+      featuresByLocale[loc] = localized.join(', ')
+    }
+    markClean()
+  })
   // The form element arms the submit bypass — an intentional Save must not be
   // blocked by the unsaved-changes guard (nor its post-save redirect).
   let formEl = $state<HTMLFormElement | null>(null)

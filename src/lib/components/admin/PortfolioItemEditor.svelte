@@ -18,6 +18,7 @@
    * <PortfolioItemEditor open={modalOpen} onClose={() => (modalOpen = false)} portfolioType="branding" />
    */
   import { page } from '$app/stores'
+  import { untrack } from 'svelte'
   import { t } from '$lib/stores/content.svelte'
   import { getAdminT } from '$lib/utils/admin-translations'
   import { LOCALES, DEFAULT_LOCALE, LOCALE_CONFIG } from '$lib/config/site'
@@ -86,15 +87,11 @@
   // render (e.g. case_study portfolios start as `case_study`) so the modal
   // never submits a server-invalid default. The legacy EDIT path keeps the
   // row's own type.
-  let formItemType = $state<PortfolioItemTypeValue>(
-    portfolioItemTypesFor(portfolioType)[0] ?? 'image'
-  )
+  const firstItemType = untrack(() => portfolioItemTypesFor(portfolioType)[0] ?? 'image')
+  let formItemType = $state<PortfolioItemTypeValue>(firstItemType)
   let formMediaUrl = $state('')
   let formThumbnailUrl = $state('')
   let formCaption = $state('')
-  let formTitle = $state('')
-  let formDescription = $state('')
-  let formContent = $state('')
   let formPublished = $state(true)
   let formMetadata = $state<PortfolioItemFormMetadata>(emptyItemFormMetadata())
 
@@ -105,9 +102,6 @@
     formMediaUrl = item?.mediaUrl ?? ''
     formThumbnailUrl = item?.thumbnailUrl ?? ''
     formCaption = item?.caption ?? ''
-    formTitle = item?.title ?? ''
-    formDescription = item?.description ?? ''
-    formContent = item?.content ?? ''
     formPublished = item?.published ?? true
     formMetadata = item ? hydrateItemForm(item, portfolioType) : emptyItemFormMetadata()
   })
@@ -123,9 +117,9 @@
   // they can be inspected/fixed instead of rendering a blank select.
   const itemTypeOptions = $derived.by(() => {
     const allowed = portfolioItemTypesFor(portfolioType)
-    const options = PORTFOLIO_ITEM_TYPE_OPTIONS
+    const options: Array<{ value: string; label: string }> = PORTFOLIO_ITEM_TYPE_OPTIONS
       .filter(ty => allowed.includes(ty.value))
-      .map(ty => ({ value: ty.value, label: adminT[ty.key] ?? ty.value }))
+      .map(ty => ({ value: ty.value, label: ty.key }))
     if (formItemType && !options.some(o => o.value === formItemType)) {
       options.push({ value: formItemType, label: formItemType })
     }
@@ -139,18 +133,35 @@
     (form as { fieldErrors?: Record<string, string[]> } | null)?.fieldErrors ?? {}
   )
 
-  // ── Per-locale text overrides (other languages) ──────────────────────────
-  const nonDefaultLocales = $derived(LOCALES.filter(locale => locale !== DEFAULT_LOCALE))
+  // ── Per-locale text (ADR-001: ALL locales, ru included) ──────────────────
+  const allLocales = $derived(LOCALES)
   const localeNames = $derived(
     Object.fromEntries(LOCALES.map(locale => [locale, LOCALE_CONFIG[locale].name]))
   )
-  const localizedValues = $derived(
-    editingItem ? (itemTranslations[editingItem.id] ?? {}) : {}
-  )
+  // Seed the ru tab from the item's base columns (the legacy default-locale
+  // storage); every other locale reads the dedicated translation rows. After
+  // the first save, ru persists to the translation table like any other.
+  const localizedValues = $derived.by(() => {
+    const base: Record<string, Record<string, string>> = {}
+    for (const locale of LOCALES) base[locale] = {}
+    const stored = editingItem ? (itemTranslations[editingItem.id] ?? {}) : {}
+    for (const locale of LOCALES) {
+      base[locale] = { ...(stored[locale] ?? {}) }
+    }
+    if (editingItem) {
+      const ru = base[DEFAULT_LOCALE] ?? {}
+      if (editingItem.title) ru.title = editingItem.title
+      if (editingItem.description) ru.description = editingItem.description
+      if (editingItem.content) ru.content = editingItem.content
+      if (editingItem.category) ru.category = editingItem.category
+      base[DEFAULT_LOCALE] = ru
+    }
+    return base
+  })
   // The localized content field mirrors the base form's conditionality: only
   // the body-rendering portfolio types expose it. `category` is always
   // rendered — the hydration localizes it and the viewers display it.
-  const localizedBodyField: Array<{ key: string; label: string; type: 'textarea'; rows: number }> =
+  const localizedBodyField = $derived<Array<{ key: string; label: string; type: 'textarea'; rows: number }>>(
     isWebsite || isBranding || isCaseStudy
       ? [{
           key: 'content',
@@ -159,6 +170,7 @@
           rows: 8
         }]
       : []
+  )
   const localizedFields = $derived<Array<{ key: string; label: string; type?: 'input' | 'textarea'; rows?: number }>>([
     { key: 'title', label: adminT['admin.itemTitle'] ?? t('admin.itemTitle') },
     {
@@ -217,28 +229,15 @@
           placeholder="https://..."
         />
         <FormField
-          name="title"
-          label={adminT['admin.itemTitle'] ?? t('admin.itemTitle')}
-          bind:value={formTitle}
-        />
-        <FormField
           name="caption"
           label={adminT['admin.caption'] ?? t('admin.caption')}
           bind:value={formCaption}
-        />
-        <FormField
-          name="description"
-          type="textarea"
-          rows={3}
-          label={adminT['admin.description'] ?? t('admin.description')}
-          bind:value={formDescription}
         />
         {#if isWebsite}
           <WebsiteFields
             bind:liveUrl={formMetadata.liveUrl}
             bind:technologies={formMetadata.technologies}
             bind:screenshots={formMetadata.screenshots}
-            bind:content={formContent}
           />
         {/if}
         {#if isBranding}
@@ -247,11 +246,10 @@
             bind:tags={formMetadata.tags}
             bind:sections={formMetadata.sections}
             bind:gallery={formMetadata.gallery}
-            bind:content={formContent}
           />
         {/if}
         {#if isCaseStudy}
-          <CaseStudyFields bind:tags={formMetadata.tags} bind:content={formContent} />
+          <CaseStudyFields bind:tags={formMetadata.tags} />
         {/if}
         {#if isBrandbook}
           <BrandbookFields bind:pdfUrl={formMetadata.pdfUrl} bind:pages={formMetadata.pages} />
@@ -267,7 +265,7 @@
 
     <AdminFormSection title={adminT['admin.localizedText'] ?? t('admin.localizedText')}>
       <AdminLocaleTextFields
-        locales={nonDefaultLocales}
+        locales={allLocales}
         localeNames={localeNames}
         fields={localizedFields}
         initialValues={localizedValues}

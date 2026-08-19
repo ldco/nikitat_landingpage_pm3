@@ -20,7 +20,7 @@
   const locales = $derived(data.locales ?? [])
   const categories = $derived(data.categories ?? [])
   const categoryOptions = $derived([
-    { value: '', label: t('common.none') },
+    { value: '', label: 'common.none' },
     ...categories.map(c => ({ value: String(c.id), label: c.slug }))
   ])
   const postTranslations = $derived(data.translations ?? [])
@@ -29,29 +29,18 @@
   const form = $derived($page.form)
   const errors = $derived((form as { fieldErrors?: Record<string, string[]> } | null)?.fieldErrors ?? {})
 
-  let slug = $state(p.slug)
-  let categoryId = $state(p.categoryId ? String(p.categoryId) : '')
-  let coverImageUrl = $state(p.coverImageUrl ?? '')
-  let coverImageAlt = $state(p.coverImageAlt ?? '')
-  let published = $state(p.published === true)
-  let readingTimeMinutes = $state(p.readingTimeMinutes ? String(p.readingTimeMinutes) : '')
+  let slug = $state('')
+  let categoryId = $state('')
+  let coverImageUrl = $state('')
+  let coverImageAlt = $state('')
+  let published = $state(false)
+  let readingTimeMinutes = $state('')
 
   const translations = $state<Record<string, { title: string; excerpt: string; content: string }>>({})
   // Per-locale explicit-removal intent (the `remove_<loc>` checkboxes below).
   // Part of the dirty source so a removal-only edit enables Save — toggling
   // the checkbox must count as a change even when no field text is edited.
   const removals = $state<Record<string, boolean>>({})
-  {
-    for (const loc of locales) {
-      const row = postTranslations.find(r => r.locale === loc)
-      translations[loc] = {
-        title: row?.title ?? '',
-        excerpt: row?.excerpt ?? '',
-        content: row?.content ?? ''
-      }
-      removals[loc] = false
-    }
-  }
 
   const { isDirty, markClean, guardNavigation } = createFormDirty(() => ({
     slug,
@@ -63,7 +52,29 @@
     translations,
     removals
   }))
-  markClean()
+
+  // Seed the editable form from the server-loaded record. Runs before the
+  // first paint (no blank flash) and re-seeds whenever the record changes, so
+  // client-side navigation between two posts can never show stale values.
+  $effect.pre(() => {
+    slug = p.slug
+    categoryId = p.categoryId ? String(p.categoryId) : ''
+    coverImageUrl = p.coverImageUrl ?? ''
+    coverImageAlt = p.coverImageAlt ?? ''
+    published = p.published === true
+    readingTimeMinutes = p.readingTimeMinutes ? String(p.readingTimeMinutes) : ''
+    for (const loc of locales) {
+      const row = postTranslations.find(r => r.locale === loc)
+      translations[loc] = {
+        title: row?.title ?? '',
+        excerpt: row?.excerpt ?? '',
+        content: row?.content ?? ''
+      }
+      removals[loc] = false
+    }
+    markClean()
+  })
+
   // The form element arms the submit bypass — an intentional Save must not be
   // blocked by the unsaved-changes guard (nor its post-save redirect).
   let formEl = $state<HTMLFormElement | null>(null)
@@ -98,7 +109,7 @@
         bind:value={categoryId}
       />
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-pm-text">{adminT['admin.coverImageUrl'] ?? t('admin.coverImageUrl')}</label>
+        <span class="text-sm font-medium text-pm-text">{adminT['admin.coverImageUrl'] ?? t('admin.coverImageUrl')}</span>
         <FileUpload
           bind:value={coverImageUrl}
           dropzoneLabel={adminT['admin.dropzoneLabel'] ?? t('admin.dropzoneLabel')}

@@ -43,7 +43,7 @@
     { value: 'danger', key: 'admin.colorDanger' }
   ]
   const colorOptions = $derived(
-    COLOR_OPTIONS.map(o => ({ value: o.value, label: adminT[o.key] ?? o.value }))
+    COLOR_OPTIONS.map(o => ({ value: o.value, label: o.key }))
   )
 
   let {

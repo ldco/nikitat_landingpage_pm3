@@ -7,6 +7,12 @@
   import { page } from '$app/stores'
   import { getAdminT } from '$lib/utils/admin-translations'
   import { LOCALE_CONFIG } from '$lib/config/site'
+  import {
+    PRICING_CURRENCIES,
+    PRICING_DEFAULT_CURRENCY,
+    PRICING_DEFAULT_PERIOD,
+    PRICING_DEFAULT_CTA_URL
+  } from '$lib/pricing-constants'
   import AdminEditorPage from '$lib/components/molecules/AdminEditorPage.svelte'
   import FormField from '$lib/components/atoms/FormField.svelte'
   import AdminFormSection from '$lib/components/molecules/AdminFormSection.svelte'
@@ -23,34 +29,34 @@
   let name = $state('')
   let description = $state('')
   let price = $state('')
-  let currency = $state('USD')
-  let period = $state('month')
+  let currency = $state(PRICING_DEFAULT_CURRENCY)
+  let period = $state(PRICING_DEFAULT_PERIOD)
   let featured = $state(false)
   let ctaText = $state('')
-  let ctaUrl = $state('/contact')
+  let ctaUrl = $state(PRICING_DEFAULT_CTA_URL)
   let order = $state('0')
   let published = $state(true)
   let features = $state('')
-  const currencies = $state(['USD', 'EUR', 'RUB'])
+  const currencies = $state([...PRICING_CURRENCIES])
   const currencyOptions = $derived(currencies.map(code => ({ value: code, label: code })))
   const periodOptions = $derived([
-    { value: 'month', label: adminT['admin.periodMonth'] ?? t('admin.periodMonth') },
-    { value: 'year', label: adminT['admin.periodYear'] ?? t('admin.periodYear') },
-    { value: 'one-time', label: adminT['admin.periodOneTime'] ?? t('admin.periodOneTime') }
+    { value: 'month', label: 'admin.periodMonth' },
+    { value: 'year', label: 'admin.periodYear' },
+    { value: 'one-time', label: 'admin.periodOneTime' }
   ])
   const translations = $state<Record<string, { name: string; description: string; ctaText: string }>>({})
-  {
+  $effect.pre(() => {
     for (const loc of locales) {
       translations[loc] = { name: '', description: '', ctaText: '' }
     }
-  }
+  })
 
   const featuresByLocale = $state<Record<string, string>>({})
-  {
+  $effect.pre(() => {
     for (const loc of locales) {
       featuresByLocale[loc] = ''
     }
-  }
+  })
 
   function localeName(loc: string): string {
     return LOCALE_CONFIG[loc as keyof typeof LOCALE_CONFIG]?.name ?? loc

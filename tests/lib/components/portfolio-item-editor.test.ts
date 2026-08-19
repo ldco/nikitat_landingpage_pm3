@@ -40,9 +40,20 @@ function tick() {
 }
 
 function selectValue(container: HTMLElement): string {
-  const select = container.querySelector('select[name="itemType"]') as HTMLSelectElement | null
-  expect(select).not.toBeNull()
-  return select?.value ?? ''
+  const input = container.querySelector('input[name="itemType"]') as HTMLInputElement | null
+  expect(input).not.toBeNull()
+  return input?.value ?? ''
+}
+
+/** Open the Dropdown and read the currently rendered option values (portaled to <body>). */
+async function openDropdown(container: HTMLElement): Promise<string[]> {
+  const trigger = container.querySelector('button[role="combobox"][id="itemType"]') as HTMLButtonElement | null
+  expect(trigger).not.toBeNull()
+  trigger?.click()
+  await tick()
+  return Array.from(document.body.querySelectorAll('[role="option"]')).map(o =>
+    (o as HTMLElement).getAttribute('data-option-value') ?? ''
+  )
 }
 
 const editingItem: PortfolioItem = {
@@ -82,9 +93,7 @@ describe('PortfolioItemEditor — create-path itemType default', () => {
     })
     await tick()
     expect(selectValue(container)).toBe('image')
-    const optionValues = Array.from(
-      container.querySelectorAll('select[name="itemType"] option')
-    ).map(o => (o as HTMLOptionElement).value)
+    const optionValues = await openDropdown(container)
     expect(optionValues).toEqual(['image'])
   })
 

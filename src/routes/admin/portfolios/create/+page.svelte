@@ -20,7 +20,7 @@
     { value: 'brandbook', key: 'admin.portfolioTypeBrandbook', fallback: 'Brandbook' }
   ]
   const typeOptions = $derived(
-    PORTFOLIO_TYPES.map(pt => ({ value: pt.value, label: adminT[pt.key] ?? pt.fallback }))
+    PORTFOLIO_TYPES.map(pt => ({ value: pt.value, label: pt.key }))
   )
 
   let name = $state(''),

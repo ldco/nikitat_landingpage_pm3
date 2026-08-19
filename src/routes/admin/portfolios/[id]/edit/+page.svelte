@@ -25,23 +25,32 @@
   import IconPencil from '@tabler/icons-svelte/icons/pencil'
   let { data }: { data: PageData } = $props()
   const p = $derived(data.portfolio)
-  let name = $state(p.name)
-  let slug = $state(p.slug)
-  let type = $state(p.type)
-  let description = $state(p.description ?? '')
-  let coverImageUrl = $state(p.coverImageUrl ?? '')
-  let published = $state(p.published === true)
+  let name = $state('')
+  let slug = $state('')
+  let type = $state('')
+  let coverImageUrl = $state('')
+  let published = $state(false)
   // Dirty source covers EVERY editable field — a change to slug, type,
   // description, coverImageUrl or published enables Save just like a name change.
   const { isDirty, markClean, guardNavigation } = createFormDirty(() => ({
     name,
     slug,
     type,
-    description,
     coverImageUrl,
     published
   }))
-  markClean()
+
+  // Seed the editable form from the server-loaded record. Runs before the
+  // first paint (no blank flash) and re-seeds whenever the record changes, so
+  // client-side navigation between two portfolios can never show stale values.
+  $effect.pre(() => {
+    name = p.name
+    slug = p.slug
+    type = p.type
+    coverImageUrl = p.coverImageUrl ?? ''
+    published = p.published === true
+    markClean()
+  })
   // The form element arms the submit bypass — an intentional Save must not be
   // blocked by the unsaved-changes guard (nor its post-save redirect).
   let formEl = $state<HTMLFormElement | null>(null)
@@ -53,10 +62,21 @@
     (form as { fieldErrors?: Record<string, string[]> } | null)?.fieldErrors ?? {}
   )
 
-  const nonDefaultLocales = $derived(LOCALES.filter(locale => locale !== DEFAULT_LOCALE))
+  const allLocales = $derived(LOCALES)
   const localeNames = $derived(
     Object.fromEntries(LOCALES.map(locale => [locale, LOCALE_CONFIG[locale].name]))
   )
+  // Seed the ru tab from the base name/description (legacy default-locale
+  // storage). After the first save, ru persists to the translation table.
+  const localizedValues = $derived.by(() => {
+    const out: Record<string, Record<string, string>> = {}
+    for (const locale of LOCALES) out[locale] = { ...(data.translations?.[locale] ?? {}) }
+    const ru = out[DEFAULT_LOCALE] ?? {}
+    if (name) ru.name = name
+    // description is localized-only now (seeded from data.translations below)
+    out[DEFAULT_LOCALE] = ru
+    return out
+  })
 
   const PORTFOLIO_TYPES = [
     { value: 'branding', key: 'admin.portfolioTypeBranding', fallback: 'Branding' },
@@ -66,7 +86,7 @@
     { value: 'brandbook', key: 'admin.portfolioTypeBrandbook', fallback: 'Brandbook' }
   ]
   const typeOptions = $derived(
-    PORTFOLIO_TYPES.map(pt => ({ value: pt.value, label: adminT[pt.key] ?? pt.fallback }))
+    PORTFOLIO_TYPES.map(pt => ({ value: pt.value, label: pt.key }))
   )
 </script>
 
@@ -114,13 +134,6 @@
 
   <AdminFormSection title={adminT['admin.media'] ?? t('admin.media')}>
     <div class="flex flex-col gap-4">
-      <FormField
-        name="description"
-        type="textarea"
-        label={adminT['admin.description'] ?? t('admin.description')}
-        bind:value={description}
-        error={t(errors.description?.[0] ?? '')}
-      />
       <input type="hidden" name="coverImageUrl" value={coverImageUrl} />
       <div class="flex flex-col gap-1.5">
         <span class="text-sm font-medium text-pm-text">
@@ -140,7 +153,7 @@
 
   <AdminFormSection title={adminT['admin.localizedText'] ?? t('admin.localizedText')}>
     <AdminLocaleTextFields
-      locales={nonDefaultLocales}
+      locales={allLocales}
       localeNames={localeNames}
       fields={[
         { key: 'name', label: adminT['admin.name'] ?? t('admin.name') },
@@ -151,7 +164,7 @@
           rows: 4
         }
       ]}
-      initialValues={data.translations ?? {}}
+      initialValues={localizedValues}
     />
   </AdminFormSection>
 

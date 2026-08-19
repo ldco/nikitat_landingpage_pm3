@@ -11,10 +11,14 @@
    * @props {string} name — control name/id (label association + form submission)
    * @props {string} [label=''] — field label (hidden when empty — used for row controls)
    * @props {'text'|'email'|'password'|'tel'|'url'|'number'|'textarea'|'select'|'checkbox'} [type='text'] — control type
-   * @props {Array<{value: string, label: string}>} [options] — select options (type='select')
+   * @props {Array<{value: string, label: string}>} [options] — select options (type='select'); label is an i18n key or a literal, resolved by the Dropdown
    * @props {string} [placeholder=''] — input/textarea placeholder
+   * @props {string} [autocomplete] — input/textarea autocomplete attribute
+   * @props {number} [minlength] — input/textarea minlength attribute
+   * @props {string} [inputClass] — extra classes merged onto the control itself (public-form styling)
    * @props {string|boolean} [value=''] — bound value (two-way via bind:value)
    * @props {string} [error=''] — inline error message
+   * @props {string} [hint=''] — helper text under the control
    * @props {boolean} [required=false] — required marker + attribute
    * @props {boolean} [disabled=false] — disabled attribute
    * @props {number} [rows=4] — textarea row count
@@ -28,8 +32,12 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
+  import Dropdown from '$lib/components/atoms/Dropdown.svelte'
 
   type InputType = 'text' | 'email' | 'password' | 'tel' | 'url' | 'number' | 'textarea' | 'select' | 'checkbox'
+  // The DOM attribute accepts a narrow union; expose it as the element's own
+  // type so `{autocomplete}` shorthand assigns without a cast.
+  type AutoFill = import('svelte/elements').HTMLInputAttributes['autocomplete']
 
   let {
     name,
@@ -37,8 +45,12 @@
     type = 'text',
     options = [] as Array<{ value: string; label: string }>,
     placeholder = '',
+    autocomplete = undefined as AutoFill,
+    minlength,
+    inputClass = '',
     value = $bindable(''),
     error = '',
+    hint = '',
     required = false,
     disabled = false,
     rows = 4,
@@ -51,8 +63,12 @@
     type?: InputType
     options?: Array<{ value: string; label: string }>
     placeholder?: string
+    autocomplete?: AutoFill
+    minlength?: number
+    inputClass?: string
     value?: string | boolean
     error?: string
+    hint?: string
     required?: boolean
     disabled?: boolean
     rows?: number
@@ -68,6 +84,10 @@
   const inputNormal = 'border-pm-border bg-pm-bg text-pm-text focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring'
   const inputError = 'border-pm-danger focus:border-pm-danger focus:ring-2 focus:ring-pm-danger'
   const errorClass = 'text-xs text-pm-danger'
+
+  // Reactive: the error state (and the public-form inputClass) can change
+  // after submit, so the merged control classes must track the props.
+  const controlClass = $derived(twMerge(clsx(inputBase, error ? inputError : inputNormal, inputClass)))
 </script>
 
 <div class={twMerge(clsx(base, className))}>
@@ -84,34 +104,30 @@
       id={name}
       value={typeof value === 'string' ? value : ''}
       {placeholder}
+      {autocomplete}
+      {minlength}
       {required}
       {disabled}
       {rows}
       aria-label={ariaLabel || undefined}
-      class={twMerge(clsx(inputBase, error ? inputError : inputNormal))}
+      class={controlClass}
       oninput={(e) => {
         value = (e.currentTarget as HTMLTextAreaElement).value
         oninput?.(e)
       }}
     ></textarea>
   {:else if type === 'select'}
-    <select
+    <Dropdown
       {name}
-      id={name}
-      value={typeof value === 'string' ? value : ''}
+      bind:value={value}
+      {options}
       {required}
       {disabled}
-      aria-label={ariaLabel || undefined}
-      class={twMerge(clsx(inputBase, error ? inputError : inputNormal))}
-      onchange={(e) => {
-        value = (e.currentTarget as HTMLSelectElement).value
-        oninput?.(e)
-      }}
-    >
-      {#each options as opt (opt.value)}
-        <option value={opt.value}>{opt.label}</option>
-      {/each}
-    </select>
+      invalid={Boolean(error)}
+      ariaLabel={ariaLabel}
+      inputClass={inputClass}
+      oninput={oninput}
+    />
   {:else if type === 'checkbox'}
     <label class="flex items-center gap-2 cursor-pointer">
       <input
@@ -140,15 +156,21 @@
       id={name}
       value={typeof value === 'string' ? value : ''}
       {placeholder}
+      {autocomplete}
+      {minlength}
       {required}
       {disabled}
       aria-label={ariaLabel || undefined}
-      class={twMerge(clsx(inputBase, error ? inputError : inputNormal))}
+      class={controlClass}
       oninput={(e) => {
         value = (e.currentTarget as HTMLInputElement).value
         oninput?.(e)
       }}
     />
+  {/if}
+
+  {#if hint}
+    <p class="text-xs text-pm-text-muted">{hint}</p>
   {/if}
 
   {#if error}
