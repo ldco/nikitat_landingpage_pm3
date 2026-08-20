@@ -39,6 +39,7 @@
   --color-pm-brand-light: color-mix(in srgb, var(--p-brand), white 15%);
   --color-pm-brand-dark: color-mix(in srgb, var(--p-brand), black 10%);
   --color-pm-brand-subtle: light-dark(color-mix(in srgb, var(--p-brand), transparent 90%), color-mix(in srgb, var(--p-brand), transparent 85%));
+  --color-pm-brand-text: light-dark(var(--p-brand), color-mix(in srgb, var(--p-brand), var(--p-white) 50%));
 
   /* --- Gray Scale (kept from Phase 2 — used in admin) --- */
   --color-pm-gray-50: #f9fafb;

@@ -24,6 +24,7 @@
  * browser's native validation — an invalid form that will NOT be submitted
  * never arms the bypass.
  */
+import { untrack } from 'svelte'
 import { beforeNavigate } from '$app/navigation'
 import { browser } from '$app/environment'
 
@@ -32,8 +33,15 @@ const WARN_MESSAGE = 'You have unsaved changes. Are you sure you want to leave?'
 export function createFormDirty<T>(getSnapshot: () => T) {
   let cleanSnapshot = $state('')
 
+  // Reads of the form snapshot are UNTRACKED: the caller's seeding $effect
+  // calls markClean() after writing form fields, and if the reads here were
+  // tracked the effect would depend on every field it just wrote. Clearing a
+  // field to '' (removing a cover image, blanking an answer, …) would then
+  // re-trigger the effect, which re-seeds the ORIGINAL server value — the
+  // user's removal is silently undone and survives Save+reload. untrack()
+  // breaks that self-dependency: the effect tracks only the server record.
   function serialize(): string {
-    return JSON.stringify(getSnapshot())
+    return untrack(() => JSON.stringify(getSnapshot()))
   }
 
   function markClean(): void {

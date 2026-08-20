@@ -29,6 +29,7 @@ Change these 4 values to rebrand the entire site — everything else is derived.
 | `--color-pm-brand-light` | Brand lightened 15% (hover) | `hover:bg-pm-brand-light` |
 | `--color-pm-brand-dark` | Brand darkened 10% (active) | `active:bg-pm-brand-dark` |
 | `--color-pm-brand-subtle` | Brand ~90% transparent (tints) | `bg-pm-brand-subtle` |
+| `--color-pm-brand-text` | Theme-aware brand text (light: brand, dark: tinted for AA contrast) | `text-pm-brand-text` |
 
 ### Neutrals
 | Token | Purpose | Example |

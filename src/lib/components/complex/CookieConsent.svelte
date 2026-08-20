@@ -111,7 +111,7 @@
   <div class={twMerge(clsx(base, className))}>
     <div class={panel}>
       <!-- Cookie icon -->
-      <div class="flex items-center justify-center size-10 flex-shrink-0 bg-pm-brand-subtle text-pm-brand rounded-full">
+      <div class="flex items-center justify-center size-10 flex-shrink-0 bg-pm-brand-subtle text-pm-brand-text rounded-full">
         <IconCookie class="size-5" />
       </div>
 
@@ -119,7 +119,7 @@
       <div class="min-w-0">
         <p class="m-0 text-sm text-pm-text-secondary leading-snug">
           {t('cookies.description')}
-          <a href={localizedHref('/legal/privacy-policy', currentLocale())} class="text-pm-brand hover:text-pm-brand-light underline">{t('cookies.learnMore')}</a>.
+          <a href={localizedHref('/legal/privacy-policy', currentLocale())} class="text-pm-brand-text hover:text-pm-brand-light underline">{t('cookies.learnMore')}</a>.
         </p>
       </div>
 

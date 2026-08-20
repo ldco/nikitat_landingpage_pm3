@@ -58,7 +58,7 @@
           ))}>
             <span class={twMerge(clsx(
               'inline-flex items-center px-[var(--space-2)] py-[var(--space-1)] text-xs font-semibold leading-none rounded-full uppercase tracking-[0.08em]',
-              card.category === 'dev' ? 'bg-pm-brand text-pm-white' : 'bg-pm-brand-subtle text-pm-brand'
+              card.category === 'dev' ? 'bg-pm-brand text-pm-white' : 'bg-pm-brand-subtle text-pm-brand-text'
             ))}>
               {card.category === 'dev' ? devLabel : designLabel}
             </span>
@@ -66,7 +66,7 @@
               'size-12 flex items-center justify-center rounded-lg',
               card.category === 'dev' ? 'bg-pm-brand' : 'bg-pm-brand-subtle'
             ))}>
-              <card.icon size={24} class={card.category === 'dev' ? 'text-pm-white' : 'text-pm-brand'} />
+              <card.icon size={24} class={card.category === 'dev' ? 'text-pm-white' : 'text-pm-brand-text'} />
             </div>
             <h3 class="text-xl font-semibold mb-[var(--space-2)] text-pm-text">{card.title}</h3>
             <p class="text-base text-pm-text-secondary leading-relaxed">{card.desc}</p>

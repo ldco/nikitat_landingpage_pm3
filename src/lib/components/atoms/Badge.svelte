@@ -38,7 +38,7 @@
 
   const bases: Record<Variant, string> = {
     default: 'bg-pm-bg-sunken text-pm-text-secondary',
-    primary: 'bg-pm-brand-subtle text-pm-brand',
+    primary: 'bg-pm-brand-subtle text-pm-brand-text',
     success: 'bg-pm-success-bg text-pm-success',
     error: 'bg-pm-danger-bg text-pm-danger',
     warning: 'bg-pm-warning-bg text-pm-warning',

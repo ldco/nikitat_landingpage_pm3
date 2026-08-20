@@ -7,6 +7,7 @@ import type { RequestEvent } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 import { ADMIN_ROUTES } from '$lib/utils/admin-paths'
 import { updatePortfolio, getPortfolioTranslations, persistPortfolioTranslations, PORTFOLIO_LOCALIZED_FIELDS } from '$lib/server/services/portfolio-admin'
+import { getPortfolioCardThumbnails } from '$lib/server/services/portfolio'
 import { invalidateContentCache } from '$lib/server/db/content-cache'
 import { LOCALES } from '$lib/config/site'
 import { PORTFOLIO_TYPES } from '$lib/portfolio-types'
@@ -67,7 +68,11 @@ export const load: PageServerLoad = event => {
   if (!portfolio) error(404)
   return {
     portfolio,
-    translations: getPortfolioTranslations([portfolio.id]).get(portfolio.id) ?? {}
+    translations: getPortfolioTranslations([portfolio.id]).get(portfolio.id) ?? {},
+    // The first six published item thumbnails power the live card preview's
+    // collage fallback (PortfolioCardPreview) — identical resolution to the
+    // public listing, so the admin preview matches the site.
+    thumbnails: getPortfolioCardThumbnails(portfolio.id)
   }
 }
 

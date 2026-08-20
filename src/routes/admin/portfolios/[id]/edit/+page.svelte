@@ -22,6 +22,7 @@
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import FormField from '$lib/components/atoms/FormField.svelte'
   import FileUpload from '$lib/components/molecules/FileUpload.svelte'
+  import PortfolioCardPreview from '$lib/components/admin/PortfolioCardPreview.svelte'
   import IconPencil from '@tabler/icons-svelte/icons/pencil'
   let { data }: { data: PageData } = $props()
   const p = $derived(data.portfolio)
@@ -146,6 +147,17 @@
           tooLargeLabel={adminT['admin.fileTooLarge'] ?? t('admin.fileTooLarge')}
           uploadFailedLabel={adminT['admin.uploadFailed'] ?? t('admin.uploadFailed')}
           removeLabel={t('common.remove')}
+          replaceLabel={adminT['admin.replaceImage'] ?? t('admin.replaceImage')}
+          removeConfirmTitle={adminT['admin.confirmRemoveImageTitle'] ?? t('admin.confirmRemoveImageTitle')}
+          removeConfirmMessage={adminT['admin.confirmRemoveImageMessage'] ?? t('admin.confirmRemoveImageMessage')}
+          removeConfirmConfirm={t('common.remove')}
+          removeConfirmCancel={t('common.cancel')}
+        />
+        <PortfolioCardPreview
+          bind:coverImageUrl={coverImageUrl}
+          thumbnails={data.thumbnails}
+          title={adminT['admin.cardPreview'] ?? t('admin.cardPreview')}
+          hint={adminT['admin.coverImageHint'] ?? t('admin.coverImageHint')}
         />
       </div>
     </div>

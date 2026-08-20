@@ -191,6 +191,117 @@ describe('catalog validation — untranslated copies', () => {
   })
 })
 
+
+describe('catalog validation — framework-level wrong-language text (any locale pair)', () => {
+  // The script checks are LANGUAGE-AGNOSTIC: they detect when a value's
+  // dominant script does not match its locale's script, for ANY locale pair
+  // (French/Latin in Hebrew, English in Russian, Russian in English/French).
+
+  const LONG_FRENCH =
+    'Ceci est un texte français complet écrit en français sur une page hébraïque.'
+  const LONG_ENGLISH =
+    'This is a full English sentence that was accidentally left untranslated.'
+  const LONG_RUSSIAN =
+    'Это полное русское предложение, которое случайно осталось непереведённым.'
+  const LONG_HEBREW =
+    'זהו טקסט עברי מלא שנכנס בטעות לשורה הלא נכונה וצריך להיות מתורגם לעברית.'
+  const LONG_CORRECT_RUSSIAN =
+    'Это полностью корректное русское предложение с нормальным текстом для проверки.'
+
+  it('flags French text in a Hebrew value (script mismatch)', () => {
+    const entries = catalog({
+      'common.hello': { ...cleanEntry('5'), he: LONG_FRENCH }
+    })
+    const violations = validate(entries, new Set())
+    expect(
+      violations.some(
+        v => v.locale === 'he' && v.key === 'common.hello' && v.reason.includes('wrong-language text')
+      )
+    ).toBe(true)
+  })
+
+  it('flags English text in a Russian value', () => {
+    const entries = catalog({ 'common.hello': { ...cleanEntry('6'), ru: LONG_ENGLISH } })
+    const violations = validate(entries, new Set())
+    expect(
+      violations.some(
+        v => v.locale === 'ru' && v.key === 'common.hello' && v.reason.includes('wrong-language text')
+      )
+    ).toBe(true)
+  })
+
+  it('flags Russian text in English/French values', () => {
+    for (const locale of ['en', 'fr']) {
+      const entries = catalog({ 'common.hello': { ...cleanEntry('7'), [locale]: LONG_RUSSIAN } })
+      const violations = validate(entries, new Set())
+      expect(
+        violations.some(
+          v => v.locale === locale && v.key === 'common.hello' && v.reason.includes('wrong-language text')
+        )
+      ).toBe(true)
+    }
+  })
+
+  it('flags Hebrew text in a Russian value', () => {
+    const entries = catalog({ 'common.hello': { ...cleanEntry('8'), ru: LONG_HEBREW } })
+    const violations = validate(entries, new Set())
+    expect(
+      violations.some(
+        v => v.locale === 'ru' && v.key === 'common.hello' && v.reason.includes('wrong-language text')
+      )
+    ).toBe(true)
+  })
+
+  it('accepts values in the correct script', () => {
+    const entries = catalog({
+      'common.hello': { ...cleanEntry('9'), ru: LONG_CORRECT_RUSSIAN }
+    })
+    const violations = validate(entries, new Set())
+    expect(violations.filter(v => v.reason.includes('wrong-language text'))).toHaveLength(0)
+  })
+
+  it('accepts technical copy that embeds dotted keys / identifiers (stripped before judging)', () => {
+    const entries = catalog({
+      'common.placeholder': {
+        ...cleanEntry('10'),
+        ru: 'например, hero.title или about.description для примера кода',
+        he: 'לדוגמה, hero.title או about.description עבור דוגמה לקוד',
+        en: 'for example, hero.title or about.description for a code example',
+        fr: 'par exemple, hero.title ou about.description pour un exemple de code'
+      }
+    })
+    const violations = validate(entries, new Set())
+    expect(violations.filter(v => v.reason.includes('wrong-language text'))).toHaveLength(0)
+  })
+
+  it('accepts a script-mismatched value when its key is script-allowlisted', () => {
+    const entries = catalog({ 'common.hello': { ...cleanEntry('11'), ru: LONG_ENGLISH } })
+    const violations = validate(entries, new Set(), new Set(['common.hello']))
+    expect(violations.filter(v => v.reason.includes('wrong-language text'))).toHaveLength(0)
+  })
+
+  it('flags a case-insensitive raw key value (placeholder with wrong casing)', () => {
+    const entries = catalog({ 'common.hello': { ...cleanEntry('12'), [target as string]: 'Common.HELLO' } })
+    const violations = validate(entries, new Set())
+    expect(
+      violations.some(
+        v => v.locale === target && v.key === 'common.hello' && v.reason.includes('dotted key')
+      )
+    ).toBe(true)
+  })
+
+  it('the real catalog passes the wrong-language check (no script regressions)', () => {
+    const seedPath = join(__dirname, '..', '..', 'i18n', 'system-seed.json')
+    const entries = JSON.parse(readFileSync(seedPath, 'utf-8')) as Array<{
+      locale: string
+      key: string
+      value: string
+    }>
+    const violations = validate(entries)
+    expect(violations.filter(v => v.reason.includes('wrong-language text'))).toHaveLength(0)
+  })
+})
+
 describe('catalog validation — clean catalogs pass', () => {
   it('accepts a fully translated catalog', () => {
     const entries = catalog({ 'common.hello': cleanEntry('4') })

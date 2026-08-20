@@ -142,7 +142,7 @@
           'inline-block ms-2 px-2 py-0.5 rounded text-xs font-medium align-middle',
           activeSection === 'system'
             ? 'bg-pm-warning-bg text-pm-warning'
-            : 'bg-pm-brand-subtle text-pm-brand'
+            : 'bg-pm-brand-subtle text-pm-brand-text'
         )}
       >
         {activeSection === 'system'

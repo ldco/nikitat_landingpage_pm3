@@ -4,8 +4,8 @@
    *
    * Consumes PORTFOLIO cards (not item rows): every card links with
    * `portfolios.slug` and shares the same preview data model as the dedicated
-   * `/portfolio` listing (six-image collage / cover / placeholder + description
-   * info), rendered through the shared PortfolioCard molecule.
+   * `/portfolio` listing (explicit cover / six-image collage / placeholder +
+   * description info), rendered through the shared PortfolioCard molecule.
    *
    * @props {Array<{id: number; slug: string; name: string; type: string; description?: string | null; coverImageUrl?: string | null; thumbnails: string[]}>} [portfolios=[]] — published portfolio cards
    * @props {string} [class] — additional CSS classes merged via twMerge

@@ -62,6 +62,7 @@
  */
 
 import { readFileSync, readdirSync, existsSync, writeFileSync } from 'fs'
+import { scriptMismatch, isRawKeyValue, loadScriptAllowlist } from './lib/i18n-scripts.mjs'
 import { createRequire } from 'module'
 const require = createRequire(import.meta.url)
 import { resolve, dirname, relative } from 'path'
@@ -1006,15 +1007,26 @@ function checkComponentDocs(file) {
 // The static checks above cannot see wrong-language or missing translation
 // ROWS, which silently render in the wrong language on a live site. Rules:
 //   1. Locale parity — every owner row must have a translation row in EVERY
-//      configured locale (a missing locale falls back to a legacy column or
-//      renders raw). The global locale set is the union across all tables.
+//      locale present in the data (a missing locale falls back to a legacy
+//      column or renders raw). The global locale set is the union across all
+//      translation tables — data-driven, never hardcoded.
 //   2. Wrong-language text — a descriptive field (description/content/excerpt/
-//      answer/question/quote/position) whose script does not match its locale:
-//      English in the ru rows, Russian in he/en/fr rows. Short strings (<= 25
-//      chars) are skipped — proper-noun titles/brand names are exempt.
+//      answer/question/quote/position) whose script does not match its locale,
+//      FRAMEWORK-LEVEL: any locale/script pair is detected via
+//      scripts/lib/i18n-scripts.mjs (no per-language hardcoding — French in a
+//      Hebrew row, English in Russian, Russian in English/French, …). Short
+//      strings (<= 25 letters) are skipped — proper-noun titles/brand names
+//      are exempt; code-like tokens (dotted keys, identifiers, masks) are
+//      stripped; values that intentionally mix scripts are exempted per-key
+//      via scripts/i18n-script-allowlist.json.
 //   3. Empty critical fields — the primary text fields (name/title/question/
 //      answer/quote/text) must not be empty in any locale row.
-//
+//   4. Translations table (ALL locales, not just the default): no value may
+//      render its own key (raw placeholder, case-insensitive), no value may be
+//      in the wrong script, and every key translated in ANY locale must be
+//      translated in EVERY locale present in the translations table (blank/
+//      missing rows are untranslated gaps; entity-table-only locales are NOT
+//      forced onto the generic UI keys).
 // The check is skipped when the DB is absent (fresh CI checkout) or a table
 // has no rows (entity unused). Usage: `node scripts/pm3-validator.mjs`.
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1032,33 +1044,14 @@ const LOCALE_CONTENT_SPECS = [
   { table: 'testimonial_translations', owner: 'testimonial_id', required: ['quote'], language: ['quote'] }
 ]
 
-const DEFAULT_LOCALE = 'ru'
-const CYRILLIC_RE = /[\u0410-\u044F\u0451]/ // А-я + ё
-const HEBREW_RE = /[\u0590-\u05FF]/
 const MIN_LANGUAGE_LEN = 25
 
-/** Script-mismatch for a descriptive field in a given locale: English in ru,
- *  Russian in he/en/fr. Returns a human-readable description or null. */
-function scriptMismatch(locale, text) {
-  const letters = text.match(/[A-Za-z\u0410-\u044F\u0451\u0590-\u05FF]/g) ?? []
-  if (letters.length === 0) return null
-  const cyr = letters.filter((c) => CYRILLIC_RE.test(c)).length
-  const heb = letters.filter((c) => HEBREW_RE.test(c)).length
-  const ratio = cyr / letters.length
-  if (locale === DEFAULT_LOCALE && ratio < 0.05 && heb === 0) {
-    return 'English text in the ru (default) locale — must be translated to Russian'
-  }
-  if (locale === 'he' && ratio > 0.3) {
-    return 'Russian text in the he locale — must be translated to Hebrew'
-  }
-  if ((locale === 'en' || locale === 'fr') && ratio > 0.5 && heb === 0) {
-    return 'Russian text in the ' + locale + ' locale — must be translated'
-  }
-  return null
-}
-
 function checkLocalizedContent() {
-  const dbPath = resolve(ROOT, 'data', 'sqlite.db')
+  // PM3_DB_PATH overrides the DB file (CI / test harness can point the check
+  // at a scratch DB); defaults to the project database.
+  const dbPath = process.env.PM3_DB_PATH
+    ? resolve(ROOT, process.env.PM3_DB_PATH)
+    : resolve(ROOT, 'data', 'sqlite.db')
   if (!existsSync(dbPath)) {
     console.warn('  ⚠ data/sqlite.db not found — skipping localized-content check')
     return []
@@ -1070,94 +1063,364 @@ function checkLocalizedContent() {
     console.warn('  ⚠ node:sqlite unavailable — skipping localized-content check')
     return []
   }
+  const scriptAllowlist = loadScriptAllowlist()
   const issues = []
-  const db = new DatabaseSync(dbPath, { readOnly: true })
-
-  // Global locale set: union across every translation table that has rows.
-  const locales = new Set()
-  for (const spec of LOCALE_CONTENT_SPECS) {
-    const rows = db.prepare('SELECT DISTINCT locale FROM ' + spec.table).all()
-    for (const r of rows) locales.add(r.locale)
-  }
-  locales.add(DEFAULT_LOCALE)
-
-  for (const spec of LOCALE_CONTENT_SPECS) {
-    const rows = db.prepare('SELECT * FROM ' + spec.table).all()
-    if (rows.length === 0) continue
-
-    // Per-owner locale coverage.
-    const byOwner = new Map()
-    for (const row of rows) {
-      const list = byOwner.get(row[spec.owner]) ?? []
+  try {
+    const db = new DatabaseSync(dbPath, { readOnly: true })
+  
+    // Global locale set: union across every translation table that has rows
+    // (entity tables + the generic translations table) — data-driven, so ANY
+    // project language set is validated without hardcoding.
+    const locales = new Set()
+    for (const spec of LOCALE_CONTENT_SPECS) {
+      const rows = db.prepare('SELECT DISTINCT locale FROM ' + spec.table).all()
+      for (const r of rows) locales.add(r.locale)
+    }
+    for (const r of db.prepare('SELECT DISTINCT locale FROM translations').all()) {
+      locales.add(r.locale)
+    }
+  
+    for (const spec of LOCALE_CONTENT_SPECS) {
+      const rows = db.prepare('SELECT * FROM ' + spec.table).all()
+      if (rows.length === 0) continue
+  
+      // Per-owner locale coverage.
+      const byOwner = new Map()
+      for (const row of rows) {
+        const list = byOwner.get(row[spec.owner]) ?? []
+        list.push(row)
+        byOwner.set(row[spec.owner], list)
+      }
+      for (const [owner, ownerRows] of byOwner) {
+        const present = new Set(ownerRows.map((r) => r.locale))
+        for (const loc of locales) {
+          if (!present.has(loc)) {
+            issues.push({
+              file: `data/sqlite.db (${spec.table})`,
+              message: `\u274C owner ${spec.owner}=${owner} has no ${loc} translation row — missing-locale fallback`,
+              line: undefined
+            })
+          }
+        }
+      }
+  
+      for (const row of rows) {
+        for (const field of spec.required) {
+          const value = row[field]
+          if (value == null || String(value).trim() === '') {
+            issues.push({
+              file: `data/sqlite.db (${spec.table})`,
+              message: `\u274C ${spec.owner}=${row[spec.owner]} ${row.locale}.${field} is empty — no text rendered`,
+              line: undefined
+            })
+          }
+        }
+        for (const field of spec.language) {
+          const value = row[field]
+          if (typeof value !== 'string') continue
+          const mismatch = scriptMismatch(row.locale, value, { minLetters: MIN_LANGUAGE_LEN })
+          if (mismatch) {
+            issues.push({
+              file: `data/sqlite.db (${spec.table})`,
+              message: `\u274C ${spec.owner}=${row[spec.owner]} ${row.locale}.${field}: wrong-language text — ${mismatch}`,
+              line: undefined
+            })
+          }
+        }
+      }
+    }
+  
+    // The generic translations table (UI + content labels) — EVERY locale:
+    //  - a value equal to its key (any casing) renders raw instead of text
+    //  - a value in the wrong script is wrong-language copy (allowlist-gated)
+    //  - a key with text in some locale but blank/missing in another is a gap
+    const genericRows = db.prepare('SELECT locale, key, value FROM translations').all()
+    const byKey = new Map()
+    for (const row of genericRows) {
+      const list = byKey.get(row.key) ?? []
       list.push(row)
-      byOwner.set(row[spec.owner], list)
+      byKey.set(row.key, list)
     }
-    for (const [owner, ownerRows] of byOwner) {
-      const present = new Set(ownerRows.map((r) => r.locale))
-      for (const loc of locales) {
-        if (!present.has(loc)) {
-          issues.push({
-            file: `data/sqlite.db (${spec.table})`,
-            message: `\u274C owner ${spec.owner}=${owner} has no ${loc} translation row — missing-locale fallback`,
-            line: undefined
-          })
-        }
-      }
-    }
-
-    for (const row of rows) {
-      for (const field of spec.required) {
-        const value = row[field]
-        if (value == null || String(value).trim() === '') {
-          issues.push({
-            file: `data/sqlite.db (${spec.table})`,
-            message: `\u274C ${spec.owner}=${row[spec.owner]} ${row.locale}.${field} is empty — no text rendered`,
-            line: undefined
-          })
-        }
-      }
-      for (const field of spec.language) {
-        const value = row[field]
-        if (typeof value !== 'string' || value.trim().length < MIN_LANGUAGE_LEN) continue
-        const mismatch = scriptMismatch(row.locale, value)
-        if (mismatch) {
-          issues.push({
-            file: `data/sqlite.db (${spec.table})`,
-            message: `\u274C ${spec.owner}=${row[spec.owner]} ${row.locale}.${field}: ${mismatch}`,
-            line: undefined
-          })
-        }
-      }
-    }
-  }
-  // The generic translations table (UI + content labels): ru values must not
-  // be English-dominant and no row may render its own key (missing translation).
-  const genericRows = db.prepare('SELECT locale, key, value FROM translations').all()
-  for (const row of genericRows) {
-    if (row.locale !== DEFAULT_LOCALE) continue
-    const value = row.value
-    if (value == null) continue
-    if (String(value).trim().toLowerCase() === String(row.key).toLowerCase()) {
-      issues.push({
-        file: 'data/sqlite.db (translations)',
-        message: '\u274C ' + row.key + ' (ru) value equals its key — missing translation renders raw',
-        line: undefined
-      })
-      continue
-    }
-    if (typeof value === 'string' && value.trim().length >= MIN_LANGUAGE_LEN) {
-      const mismatch = scriptMismatch(DEFAULT_LOCALE, value)
-      if (mismatch) {
+    for (const row of genericRows) {
+      const value = row.value == null ? '' : String(row.value)
+      if (isRawKeyValue(row.key, value)) {
         issues.push({
           file: 'data/sqlite.db (translations)',
-          message: '\u274C ' + row.key + ' (ru): ' + mismatch,
+          message: `\u274C ${row.key} (${row.locale}) value equals its key — missing translation renders raw`,
+          line: undefined
+        })
+        continue
+      }
+      if (value.length >= MIN_LANGUAGE_LEN) {
+        const mismatch = scriptMismatch(row.locale, value, { minLetters: MIN_LANGUAGE_LEN })
+        if (mismatch && !scriptAllowlist.has(row.key)) {
+          issues.push({
+            file: 'data/sqlite.db (translations)',
+            message: `\u274C ${row.key} (${row.locale}): wrong-language text — ${mismatch}`,
+            line: undefined
+          })
+        }
+      }
+    }
+    // Coverage: a key translated in some locales must be translated in ALL
+    // locales present in the translations table. The locale set here is the
+    // translations-table universe ONLY — a locale present solely in an entity
+    // table (e.g. portfolio content authored in a 5th language) must not force
+    // every generic UI key to cover it.
+    const translationsLocales = new Set(genericRows.map((r) => r.locale))
+    for (const [key, rows] of byKey) {
+      const hasText = rows.some((r) => r.value != null && String(r.value).trim() !== '')
+      if (!hasText) continue
+      const present = new Set(rows.map((r) => r.locale))
+      for (const row of rows) {
+        if (row.value == null || String(row.value).trim() === '') {
+          issues.push({
+            file: 'data/sqlite.db (translations)',
+            message: `\u274C ${key} (${row.locale}) is blank while other locales have text — untranslated gap`,
+            line: undefined
+          })
+        }
+      }
+      for (const loc of translationsLocales) {
+        if (!present.has(loc)) {
+          issues.push({
+            file: 'data/sqlite.db (translations)',
+            message: `\u274C ${key} has no ${loc} translation row while other locales have text — untranslated gap`,
+            line: undefined
+          })
+        }
+      }
+    }
+  
+    db.close()
+    return issues
+  } catch (err) {
+    console.warn('  ⚠ localized-content check skipped — DB read failed (' + (err instanceof Error ? err.message : String(err)) + ')')
+    return []
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Check 16: database integrity (schema + required data, framework-wide)
+//
+// The DB is a first-class part of the framework and of every project built on
+// it — broken data renders broken sites regardless of what the static checks
+// say. This check validates the WHOLE database, not just translations:
+//   1. Every table declared in src/lib/server/db/schema.ts must exist in the
+//      DB (a missing table = missing migration = runtime SQL failure).
+//   2. NOT NULL columns must not hold empty/whitespace values — an empty name,
+//      slug, email, or password hash silently renders a broken record. The
+//      required-column manifest is derived from the Drizzle schema (.notNull()
+//      text/integer columns), so it tracks schema changes without a second
+//      hand-maintained list. Exceptions: columns where an empty value is legal
+//      (audit details, settings value, nullable-annotated fallbacks) and the
+//      translations table (checked separately with its own empty-value rule).
+//   3. Foreign keys must resolve — an orphan row (item pointing at a deleted
+//      portfolio, session at a deleted user) breaks every join that reads it.
+//      PRAGMA foreign_key_check reports exactly those rows.
+// Skips when the DB is absent (fresh CI checkout) or node:sqlite is missing.
+function checkDatabaseIntegrity() {
+  const dbPath = process.env.PM3_DB_PATH
+    ? resolve(ROOT, process.env.PM3_DB_PATH)
+    : resolve(ROOT, 'data', 'sqlite.db')
+  if (!existsSync(dbPath)) {
+    console.warn('  ⚠ data/sqlite.db not found — skipping database-integrity check')
+    return []
+  }
+  let DatabaseSync
+  try {
+    ({ DatabaseSync } = require('node:sqlite'))
+  } catch {
+    console.warn('  ⚠ node:sqlite unavailable — skipping database-integrity check')
+    return []
+  }
+
+  const issues = []
+  let db
+  try {
+    db = new DatabaseSync(dbPath, { readOnly: true })
+
+    // 1. Schema tables present. Parse src/lib/server/db/schema.ts for
+    //    sqliteTable('name', ...) declarations and compare against the DB.
+    const schemaPath = resolve(ROOT, 'src', 'lib', 'server', 'db', 'schema.ts')
+    let declaredTables = []
+    try {
+      const schemaSource = readFileSync(schemaPath, 'utf-8')
+      declaredTables = [...schemaSource.matchAll(/sqliteTable\(\s*'([a-z_]+)'/g)].map((m) => m[1])
+    } catch {
+      console.warn('  ⚠ src/lib/server/db/schema.ts unreadable — skipping table-presence check')
+    }
+    const dbTables = new Set(
+      db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all().map((r) => r.name)
+    )
+    for (const table of declaredTables) {
+      if (!dbTables.has(table)) {
+        issues.push({
+          file: 'data/sqlite.db (schema)',
+          message: `❌ table "${table}" is declared in src/lib/server/db/schema.ts but missing from the database — run migrations (npm run db:push / db:migrate)`,
           line: undefined
         })
       }
     }
+
+    // 2. Required (NOT NULL) columns must not hold empty values. Derive the
+    //    required set from the schema source: each text(...).notNull() column
+    //    is captured WITH the actual DB column name (text('db_name')) and
+    //    scoped to its table via brace-balanced body extraction — a naive
+    //    block regex breaks on nested braces (primaryKey({ autoIncrement: true }))
+    //    and a positional scan misattributes columns between tables.
+    const requiredColumns = new Map() // table -> [dbColumn, ...]
+    try {
+      const schemaSource = readFileSync(schemaPath, 'utf-8')
+      const tableRe = /sqliteTable\(\s*'([a-z0-9_]+)'\s*,\s*\{/g
+      const tables = []
+      let tm
+      while ((tm = tableRe.exec(schemaSource)) !== null) {
+        tables.push({ name: tm[1], start: tm.index + tm[0].length - 1 })
+      }
+      for (let i = 0; i < tables.length; i++) {
+        const start = tables[i].start
+        const end = i + 1 < tables.length ? tables[i + 1].start : schemaSource.length
+        const body = schemaSource.slice(start, end)
+        let depth = 0
+        let close = -1
+        for (let j = 0; j < body.length; j++) {
+          if (body[j] === '{') depth++
+          else if (body[j] === '}') {
+            depth--
+            if (depth === 0) {
+              close = j
+              break
+            }
+          }
+        }
+        const cols = [...body.slice(0, close).matchAll(/text\('([a-z0-9_]+)'\)\.notNull\(\)/g)].map((c) => c[1])
+        if (cols.length > 0) requiredColumns.set(tables[i].name, cols)
+      }
+    } catch {
+      console.warn('  ⚠ src/lib/server/db/schema.ts unreadable — skipping required-field check')
+    }
+
+    const IGNORED_REQUIRED = new Set([
+      // settings.value is nullable in the schema but typed nullable-only for
+      // some keys; audit details/agent are free-form.
+      'details', 'userAgent'
+    ])
+    for (const [table, cols] of requiredColumns) {
+      if (!dbTables.has(table)) continue
+      for (const col of cols) {
+        if (IGNORED_REQUIRED.has(col)) continue
+        try {
+          const row = db.prepare(
+            `SELECT COUNT(*) AS n FROM ${table} WHERE ${col} IS NULL OR TRIM(${col}) = ''`
+          ).get()
+          if (row.n > 0) {
+            issues.push({
+              file: `data/sqlite.db (${table})`,
+              message: `❌ ${row.n} row(s) in ${table}.${col} are empty — NOT NULL column with blank data`,
+              line: undefined
+            })
+          }
+        } catch {
+          // Column missing (migration lag) — the table-presence check above
+          // already flags the structural gap; do not double-report per row.
+        }
+      }
+    }
+
+    // 3. Foreign-key integrity: every referencing row must resolve its parent.
+    const orphans = db.prepare('PRAGMA foreign_key_check').all()
+    for (const orphan of orphans) {
+      issues.push({
+        file: `data/sqlite.db (${orphan.table})`,
+        message: `❌ FK violation: row ${orphan.rowid} references missing ${orphan.parent} row (constraint ${orphan.fkid})`,
+        line: undefined
+      })
+    }
+
+    db.close()
+    db = null
+    return issues
+  } catch (err) {
+    if (db) {
+      try { db.close() } catch { /* already closed */ }
+    }
+    console.warn('  ⚠ database-integrity check skipped — DB read failed (' + (err instanceof Error ? err.message : String(err)) + ')')
+    return []
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Check 15: catalog → DB translation drift
+//
+// The canonical catalog (i18n/system-seed.json) is the single source of truth
+// for SYSTEM translations, and admin.* keys are DB-RESIDENT ONLY (excluded
+// from the Paraglide catalog). A key added to the catalog but never synced
+// into the DB (forgotten `npm run db:seed`) renders as a RAW KEY in the admin
+// UI — the t() fallback has no catalog row to fall back to. This check
+// compares every catalog entry against the translations table and fails on
+// missing rows, so the "new key, no seed" class of bug is caught at commit
+// time, not discovered in the browser. Rows deleted through the admin
+// translations editor are tombstoned (settings `translations.deleted`) and are
+// intentionally NOT re-inserted — they are excluded here.
+function checkCatalogDbDrift() {
+  const dbPath = process.env.PM3_DB_PATH
+    ? resolve(ROOT, process.env.PM3_DB_PATH)
+    : resolve(ROOT, 'data', 'sqlite.db')
+  if (!existsSync(dbPath)) {
+    console.warn('  ⚠ data/sqlite.db not found — skipping catalog→DB drift check')
+    return []
+  }
+  const catalogPath = resolve(ROOT, 'i18n', 'system-seed.json')
+  if (!existsSync(catalogPath)) {
+    console.warn('  ⚠ i18n/system-seed.json not found — skipping catalog→DB drift check')
+    return []
+  }
+  let DatabaseSync
+  try {
+    ({ DatabaseSync } = require('node:sqlite'))
+  } catch {
+    console.warn('  ⚠ node:sqlite unavailable — skipping catalog→DB drift check')
+    return []
   }
 
-  db.close()
+  const issues = []
+  try {
+    const catalog = JSON.parse(readFileSync(catalogPath, 'utf-8'))
+    const db = new DatabaseSync(dbPath, { readOnly: true })
+    const existing = new Set(
+      db.prepare("SELECT locale || ':' || key FROM translations").all()
+        .map((r) => Object.values(r)[0])
+    )
+    // Tombstoned rows (deleted via the admin editor) are legitimately absent.
+    let tombstones = new Set()
+    try {
+      const raw = db.prepare(
+        "SELECT value FROM settings WHERE key = 'translations.deleted'"
+      ).get()
+      if (raw) {
+        const parsed = JSON.parse(Object.values(raw)[0])
+        if (Array.isArray(parsed)) tombstones = new Set(parsed)
+      }
+    } catch {
+      // settings table may predate the tombstone feature — treat as empty
+    }
+    db.close()
+
+    for (const row of catalog) {
+      const mapKey = `${row.locale}:${row.key}`
+      if (!existing.has(mapKey) && !tombstones.has(mapKey)) {
+        issues.push({
+          file: 'data/sqlite.db (translations)',
+          message: `❌ ${row.key} (${row.locale}) is in i18n/system-seed.json but missing from the translations table — run npm run db:seed (admin.* keys are DB-resident and render as raw keys without it)`,
+          line: undefined
+        })
+      }
+    }
+  } catch (err) {
+    console.warn('  ⚠ catalog→DB drift check skipped — DB read failed (' + (err instanceof Error ? err.message : String(err)) + ')')
+    return []
+  }
   return issues
 }
 
@@ -1178,6 +1441,8 @@ const allIssues = []
 
 allIssues.push(...checkDuplicateTokens())
 allIssues.push(...checkLocalizedContent())
+allIssues.push(...checkCatalogDbDrift())
+allIssues.push(...checkDatabaseIntegrity())
 allIssues.push(...checkUtilities())
 allIssues.push(...checkLayerComponents())
 

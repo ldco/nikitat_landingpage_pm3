@@ -359,9 +359,9 @@ describe('per-type portfolio item metadata round-trips through the admin API', (
   })
 })
 
-describe('public portfolio listing — cover falls back to the first item thumbnail', () => {
-  it('a published portfolio with items but no cover shows the item thumbnail on the listing', async () => {
-    const slug = `cover-fallback-${stamp}`
+describe('public portfolio listing — explicit cover takes priority over the item collage', () => {
+  it('a published portfolio with items but no explicit cover exposes the collage thumbnails and a null cover', async () => {
+    const slug = `cover-collage-${stamp}`
     const id = await createPortfolio('website', slug)
     const res = await client.postJson(`/api/admin/portfolios/${id}/items`, {
       itemType: 'image',
@@ -377,17 +377,107 @@ describe('public portfolio listing — cover falls back to the first item thumbn
 
     // The listing is paginated (itemsPerPage=12) and every portfolio created
     // by this file shares order=0, so the item can sit past page 1. Search the
-    // pages for the portfolio and assert its card cover falls back to the
-    // first item thumbnail — deterministic regardless of listing position.
+    // pages for the portfolio and assert its card exposes the item thumbnails
+    // through the collage array while coverImageUrl stays null (no explicit
+    // admin upload) — deterministic regardless of listing position.
+    let found: { coverImageUrl: string | null; thumbnails?: string[] } | undefined
+    for (let page = 1; page <= 5 && !found; page++) {
+      const listing = await client.get(`/api/portfolios?page=${page}`)
+      expect(listing.status).toBe(200)
+      const body = (await listing.json()) as {
+        data?: Array<{ slug?: string; coverImageUrl?: string | null; thumbnails?: string[] }>
+      }
+      found = body.data?.find(p => p.slug === slug)
+    }
+    expect(found).toBeDefined()
+    expect(found?.coverImageUrl).toBeNull()
+    expect(found?.thumbnails).toEqual(['https://example.com/screen-thumb.png'])
+  })
+
+  it('an explicitly uploaded cover is exposed as coverImageUrl and takes priority over the collage', async () => {
+    const slug = `explicit-cover-${stamp}`
+    const id = await createPortfolio('website', slug)
+    const res = await client.postJson(`/api/admin/portfolios/${id}/items`, {
+      itemType: 'image',
+      mediaUrl: 'https://example.com/screen.png',
+      thumbnailUrl: 'https://example.com/screen-thumb.png',
+      metadata: {
+        liveUrl: 'https://example.com',
+        screenshots: [{ url: 'https://example.com/screen.png' }]
+      },
+      published: true
+    })
+    expect(res.status).toBe(200)
+
+    const cover = await client.postForm(`/admin/portfolios/${id}/edit`, {
+      name: `website ${stamp}`,
+      slug,
+      type: 'website',
+      coverImageUrl: 'https://example.com/cover.png',
+      published: 'on'
+    })
+    expect(cover.status).toBe(200)
+
+    let found: { coverImageUrl: string | null; thumbnails?: string[] } | undefined
+    for (let page = 1; page <= 5 && !found; page++) {
+      const listing = await client.get(`/api/portfolios?page=${page}`)
+      expect(listing.status).toBe(200)
+      const body = (await listing.json()) as {
+        data?: Array<{ slug?: string; coverImageUrl?: string | null; thumbnails?: string[] }>
+      }
+      found = body.data?.find(p => p.slug === slug)
+    }
+    expect(found).toBeDefined()
+    expect(found?.coverImageUrl).toBe('https://example.com/cover.png')
+    expect(found?.thumbnails).toEqual(['https://example.com/screen-thumb.png'])
+  })
+
+  it('submitting an empty coverImageUrl REMOVES the persisted cover (no re-seed)', async () => {
+    const slug = `cover-remove-${stamp}`
+    const id = await createPortfolio('website', slug)
+    await client.postJson(`/api/admin/portfolios/${id}/items`, {
+      itemType: 'image',
+      mediaUrl: 'https://example.com/screen.png',
+      thumbnailUrl: 'https://example.com/screen-thumb.png',
+      metadata: {
+        liveUrl: 'https://example.com',
+        screenshots: [{ url: 'https://example.com/screen.png' }]
+      },
+      published: true
+    })
+
+    // Set a cover first.
+    const setCover = await client.postForm(`/admin/portfolios/${id}/edit`, {
+      name: `website ${stamp}`,
+      slug,
+      type: 'website',
+      coverImageUrl: 'https://example.com/cover.png',
+      published: 'on'
+    })
+    expect(setCover.status).toBe(200)
+
+    // Then clear it (the editor submits an empty hidden input after the user
+    // confirms removal — the form action must map '' to null and persist it).
+    const removeCover = await client.postForm(`/admin/portfolios/${id}/edit`, {
+      name: `website ${stamp}`,
+      slug,
+      type: 'website',
+      coverImageUrl: '',
+      published: 'on'
+    })
+    expect(removeCover.status).toBe(200)
+
     let found: { coverImageUrl: string | null } | undefined
     for (let page = 1; page <= 5 && !found; page++) {
       const listing = await client.get(`/api/portfolios?page=${page}`)
       expect(listing.status).toBe(200)
-      const body = (await listing.json()) as { data?: Array<{ slug?: string; coverImageUrl?: string | null }> }
+      const body = (await listing.json()) as {
+        data?: Array<{ slug?: string; coverImageUrl?: string | null }>
+      }
       found = body.data?.find(p => p.slug === slug)
     }
     expect(found).toBeDefined()
-    expect(found?.coverImageUrl).toBe('https://example.com/screen-thumb.png')
+    expect(found?.coverImageUrl).toBeNull()
   })
 })
 

@@ -32,7 +32,7 @@ import { t } from '$lib/stores/content.svelte'
   </div>
 
   {#if data.posts.length === 0}
-    <p class="text-center text-pm-text-muted py-16">{t('common.note')}</p>
+    <p class="text-center text-pm-text-secondary py-16">{t('common.note')}</p>
   {/if}
 
   <!-- Pagination -->

@@ -34,6 +34,7 @@
   import IconX from '@tabler/icons-svelte/icons/x'
   import CtaButton from '$lib/components/atoms/CtaButton.svelte'
   import { getCsrfToken } from '$lib/utils/auth'
+  import { getOverlaysState } from '$lib/stores/overlays.svelte'
   import { API_ROUTES } from '$lib/utils/api-paths'
 
   let {
@@ -47,6 +48,15 @@
     tooLargeLabel = '',
     uploadFailedLabel = '',
     removeLabel = '',
+    replaceLabel = '',
+    // Optional removal confirmation: when removeConfirmTitle is set, the X
+    // button asks before clearing (removing an uploaded image is destructive —
+    // the parent may replace the preview with a fallback, e.g. the portfolio
+    // collage). Left empty, removal is instant (legacy behavior).
+    removeConfirmTitle = '',
+    removeConfirmMessage = '',
+    removeConfirmConfirm = '',
+    removeConfirmCancel = '',
     class: className = ''
   }: {
     accept?: string
@@ -59,6 +69,11 @@
     tooLargeLabel?: string
     uploadFailedLabel?: string
     removeLabel?: string
+    replaceLabel?: string
+    removeConfirmTitle?: string
+    removeConfirmMessage?: string
+    removeConfirmConfirm?: string
+    removeConfirmCancel?: string
     class?: string
   } = $props()
 
@@ -66,6 +81,16 @@
   let uploadError = $state('')
   let dragOver = $state(false)
   let inputId = $state('')
+  // Resolved at INITIALISATION: getContext() can only be called during
+  // component init (Svelte 5 lifecycle rule) — never from an event handler.
+  // FileUpload is a shared molecule also rendered by component tests without
+  // an <OverlayProvider>; without one, removal falls back to instant clear.
+  let overlays: ReturnType<typeof getOverlaysState> | null = null
+  try {
+    overlays = getOverlaysState()
+  } catch {
+    overlays = null
+  }
 
   $effect(() => {
     if (!inputId) {
@@ -121,24 +146,47 @@
     thumbnailUrl = ''
     uploadError = ''
   }
+
+  /** Ask before removing when a confirmation title is provided, then clear. */
+  async function confirmRemove(e: MouseEvent): Promise<void> {
+    e.stopPropagation()
+    if (!removeConfirmTitle || !overlays) {
+      clearValue()
+      return
+    }
+    const confirmed = await overlays.confirm({
+      title: removeConfirmTitle,
+      message: removeConfirmMessage || undefined,
+      confirmText: removeConfirmConfirm,
+      cancelText: removeConfirmCancel,
+      variant: 'danger'
+    })
+    if (confirmed) clearValue()
+  }
 </script>
 
 <div class={twMerge(clsx('flex flex-col gap-2', className))}>
   {#if value}
     <!-- Preview mode: click the image to replace (re-opens the file picker),
-         X clears. The hidden input stays mounted (see below) so the click can
-         always reach it. -->
-    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-    <div
-      class="relative group rounded-md overflow-hidden border border-pm-border cursor-pointer"
-      onclick={() => document.getElementById(inputId)?.click()}
-      role="button"
-      tabindex="0"
-      onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') document.getElementById(inputId)?.click() }}
-    >
-      <img src={value} alt="" class="w-full h-48 object-cover" />
-      <button type="button" onclick={clearValue}
-        class="absolute top-2 end-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+         X removes. The hidden input stays mounted (see below) so the click can
+         always reach it. The remove button is a SIBLING of the clickable
+         preview — nesting an interactive control inside another interactive
+         control fails axe (nested-interactive) and breaks keyboard/SR
+         semantics. -->
+    <div class="relative group rounded-md overflow-hidden border border-pm-border">
+      <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+      <div
+        class="cursor-pointer"
+        onclick={() => document.getElementById(inputId)?.click()}
+        role="button"
+        tabindex="0"
+        aria-label={removeLabel ? `${removeLabel} (${replaceLabel})` : replaceLabel}
+        onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') document.getElementById(inputId)?.click() }}
+      >
+        <img src={value} alt="" class="w-full h-48 object-cover" />
+      </div>
+      <button type="button" onclick={confirmRemove}
+        class="absolute top-2 end-2 p-1.5 rounded-full bg-black/60 text-white opacity-100 transition-opacity hover:bg-black/80"
         aria-label={removeLabel}>
         <IconX class="size-4" />
       </button>

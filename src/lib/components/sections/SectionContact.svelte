@@ -174,9 +174,9 @@
           />
           <span class="text-xs text-pm-text-secondary">
             {consentText}
-            <a href={localizedHref('/legal/personal-data-policy', currentLocale())} class="text-pm-brand hover:underline" target="_blank" rel="noopener noreferrer">{consentLink}</a>
+            <a href={localizedHref('/legal/personal-data-policy', currentLocale())} class="text-pm-brand-text hover:underline" target="_blank" rel="noopener noreferrer">{consentLink}</a>
             {consentAnd}
-            <a href={localizedHref('/legal/privacy-policy', currentLocale())} class="text-pm-brand hover:underline" target="_blank" rel="noopener noreferrer">{consentPrivacy}</a>
+            <a href={localizedHref('/legal/privacy-policy', currentLocale())} class="text-pm-brand-text hover:underline" target="_blank" rel="noopener noreferrer">{consentPrivacy}</a>
           </span>
         </label>
         {#if consentError}

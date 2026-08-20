@@ -10,6 +10,7 @@
   import FormField from '$lib/components/atoms/FormField.svelte'
   import AdminFormSection from '$lib/components/molecules/AdminFormSection.svelte'
   import FileUpload from '$lib/components/molecules/FileUpload.svelte'
+  import PortfolioCardPreview from '$lib/components/admin/PortfolioCardPreview.svelte'
   const adminT = $derived(getAdminT($page.data))
 
   const PORTFOLIO_TYPES = [
@@ -88,6 +89,17 @@
           tooLargeLabel={adminT['admin.fileTooLarge'] ?? t('admin.fileTooLarge')}
           uploadFailedLabel={adminT['admin.uploadFailed'] ?? t('admin.uploadFailed')}
           removeLabel={t('common.remove')}
+          replaceLabel={adminT['admin.replaceImage'] ?? t('admin.replaceImage')}
+          removeConfirmTitle={adminT['admin.confirmRemoveImageTitle'] ?? t('admin.confirmRemoveImageTitle')}
+          removeConfirmMessage={adminT['admin.confirmRemoveImageMessage'] ?? t('admin.confirmRemoveImageMessage')}
+          removeConfirmConfirm={t('common.remove')}
+          removeConfirmCancel={t('common.cancel')}
+        />
+        <PortfolioCardPreview
+          bind:coverImageUrl={coverImageUrl}
+          thumbnails={[]}
+          title={adminT['admin.cardPreview'] ?? t('admin.cardPreview')}
+          hint={adminT['admin.coverImageHint'] ?? t('admin.coverImageHint')}
         />
       </div>
     </div>

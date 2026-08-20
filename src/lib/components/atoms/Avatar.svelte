@@ -45,7 +45,7 @@
 
   const base =
     'inline-flex items-center justify-center rounded-full ' +
-    'bg-pm-brand-subtle text-pm-brand font-semibold ' +
+    'bg-pm-brand-subtle text-pm-brand-text font-semibold ' +
     'overflow-hidden flex-shrink-0'
 
   const merged = $derived(twMerge(clsx(base, sizes[size], className)))

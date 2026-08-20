@@ -94,7 +94,7 @@
   <div class="flex flex-col justify-center items-start w-full max-w-[var(--content-default)] mx-auto">
     <h1 class="text-fluid-hero font-black text-pm-text leading-[var(--hero-leading)] mb-[var(--space-5)] space-y-[var(--hero-title-line-gap)] max-sm:text-[var(--text-hero-title-mobile)] {mobileTitleClass}">
       {#each segments as segment}
-        <span class="block w-fit" class:text-pm-brand={segment.brand}>
+        <span class="block w-fit" class:text-pm-brand-text={segment.brand}>
           {segment.text}
         </span>
       {/each}

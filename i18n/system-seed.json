@@ -481,6 +481,26 @@
   },
   {
     "locale": "en",
+    "key": "admin.cardPreview",
+    "value": "Card preview"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.cardPreview",
+    "value": "Предпросмотр карточки"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.cardPreview",
+    "value": "Aperçu de la carte"
+  },
+  {
+    "locale": "he",
+    "key": "admin.cardPreview",
+    "value": "תצוגה מקדימה של הכרטיס"
+  },
+  {
+    "locale": "en",
     "key": "admin.caseStudy",
     "value": "Case Study"
   },
@@ -618,6 +638,26 @@
     "locale": "he",
     "key": "admin.confirmDelete",
     "value": "האם למחוק פריט זה?"
+  },
+  {
+    "locale": "en",
+    "key": "admin.confirmRemoveImageTitle",
+    "value": "Remove image?"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.confirmRemoveImageTitle",
+    "value": "Удалить изображение?"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.confirmRemoveImageTitle",
+    "value": "Supprimer l'image ?"
+  },
+  {
+    "locale": "he",
+    "key": "admin.confirmRemoveImageTitle",
+    "value": "להסיר את התמונה?"
   },
   {
     "locale": "en",
@@ -858,6 +898,46 @@
     "locale": "he",
     "key": "admin.coverImage",
     "value": "תמונת כריכה"
+  },
+  {
+    "locale": "en",
+    "key": "admin.coverImageHint",
+    "value": "The cover image is the main card image on the site. If no cover is set, the card automatically shows a collage of the first six portfolio images."
+  },
+  {
+    "locale": "ru",
+    "key": "admin.coverImageHint",
+    "value": "Обложка — главное изображение карточки портфолио на сайте. Если обложка не задана, на карточке автоматически показывается коллаж из первых шести изображений работ."
+  },
+  {
+    "locale": "fr",
+    "key": "admin.coverImageHint",
+    "value": "L'image de couverture est l'image principale de la carte sur le site. Sans couverture, la carte affiche automatiquement un collage des six premières images du portfolio."
+  },
+  {
+    "locale": "he",
+    "key": "admin.coverImageHint",
+    "value": "תמונת הכריכה היא התמונה הראשית של הכרטיס באתר. אם לא הוגדרה כריכה, הכרטיס מציג אוטומטית קולאז' של שש התמונות הראשונות מהתיק."
+  },
+  {
+    "locale": "en",
+    "key": "admin.confirmRemoveImageMessage",
+    "value": "The cover image will be removed. Without a cover, the card automatically shows a collage of the first six portfolio images."
+  },
+  {
+    "locale": "ru",
+    "key": "admin.confirmRemoveImageMessage",
+    "value": "Обложка будет удалена. Без обложки на карточке автоматически будет показан коллаж из первых шести изображений портфолио."
+  },
+  {
+    "locale": "fr",
+    "key": "admin.confirmRemoveImageMessage",
+    "value": "L'image de couverture sera supprimée. Sans couverture, la carte affichera automatiquement un collage des six premières images du portfolio."
+  },
+  {
+    "locale": "he",
+    "key": "admin.confirmRemoveImageMessage",
+    "value": "תמונת הכריכה תוסר. ללא כריכה, הכרטיס יציג אוטומטית קולאז' של שש התמונות הראשונות מהתיק."
   },
   {
     "locale": "en",
@@ -6238,6 +6318,26 @@
     "locale": "he",
     "key": "admin.removeTranslation",
     "value": "מחק תרגום זה"
+  },
+  {
+    "locale": "en",
+    "key": "admin.replaceImage",
+    "value": "Replace image"
+  },
+  {
+    "locale": "ru",
+    "key": "admin.replaceImage",
+    "value": "Заменить изображение"
+  },
+  {
+    "locale": "fr",
+    "key": "admin.replaceImage",
+    "value": "Remplacer l'image"
+  },
+  {
+    "locale": "he",
+    "key": "admin.replaceImage",
+    "value": "החלף תמונה"
   },
   {
     "locale": "en",

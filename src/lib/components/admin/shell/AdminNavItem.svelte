@@ -60,7 +60,7 @@
       variant === 'rail' ? 'size-10' : '',
       variant === 'header' ? 'size-11' : '',
       active
-        ? 'bg-pm-brand-subtle text-pm-brand'
+        ? 'bg-pm-brand-subtle text-pm-brand-text'
         : 'text-pm-text-secondary hover:text-pm-text hover:bg-pm-bg-sunken',
       className
     )
@@ -71,7 +71,7 @@
     <span
       class={clsx(
         'text-[var(--text-2xs)] truncate max-w-16 px-1 text-center',
-        active ? 'text-pm-brand' : 'text-pm-text-muted group-hover:text-pm-text'
+        active ? 'text-pm-brand-text' : 'text-pm-text-muted group-hover:text-pm-text'
       )}
     >
       {label}

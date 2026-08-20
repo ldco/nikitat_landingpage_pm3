@@ -60,7 +60,7 @@
   // ── Role badges (PM2 roleBadgeClass) ─────────────────────────────────────
   function roleBadgeClass(role: string): string {
     if (role === 'master') return 'bg-pm-warning-bg text-pm-warning'
-    if (role === 'admin') return 'bg-pm-brand-subtle text-pm-brand'
+    if (role === 'admin') return 'bg-pm-brand-subtle text-pm-brand-text'
     return 'bg-pm-bg-sunken text-pm-text-muted'
   }
 

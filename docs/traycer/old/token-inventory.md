@@ -33,6 +33,7 @@ This inventory is generated for `docs/traycer/token-inventory.md` and consumed b
 | `--color-pm-brand-light` | color | Brand lightened 15% (hover/accent states). |
 | `--color-pm-brand-dark` | color | Brand darkened 10% (active/pressed states). |
 | `--color-pm-brand-subtle` | color | Brand at ~90% transparency, theme-aware (background tints, selection). |
+| `--color-pm-brand-text` | color | Brand text, theme-aware (light: brand; dark: tinted 50% toward paper for AA contrast). |
 
 ### Gray Scale
 | Token | Category | Purpose |

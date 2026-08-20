@@ -21,6 +21,16 @@
  *      URLs); those are enforced through an explicit allowlist
  *      (scripts/i18n-identical-allowlist.json) instead of being silently
  *      accepted.
+ *   5. Wrong-language text — a value whose dominant script is not the script
+ *      its locale requires (French copy pasted into a Hebrew row, English into
+ *      Russian, …). Framework-level: any locale/script pair works
+ *      (scripts/lib/i18n-scripts.mjs), no per-language hardcoding. Short
+ *      values (<= 25 letters) and code-like tokens (dotted keys, identifiers,
+ *      masks) are excluded; values that intentionally mix scripts are exempted
+ *      per-key via scripts/i18n-script-allowlist.json.
+ *   6. Case-insensitive raw keys — in addition to the exact dotted/underscore
+ *      forms, a value equal to its key with different casing
+ *      ('Common.hello' / 'COMMON_HELLO') is an un-translated placeholder.
  *
  * Invoked by `npm run i18n:validate`, by `npm run i18n:export` (before
  * generating messages) and by CI.
@@ -30,6 +40,7 @@
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { LOCALES, DEFAULT_LOCALE, SECONDARY_LOCALE } from '../src/project/site-config'
+import { scriptMismatch, isRawKeyValue, loadScriptAllowlist } from './lib/i18n-scripts.mjs'
 
 interface TranslationEntry {
   locale: string
@@ -64,7 +75,11 @@ function loadAllowlist(): Set<string> {
  *   acceptable (brand names, proper nouns, URLs); defaults to the on-disk
  *   allowlist
  */
-export function validate(entries: TranslationEntry[], allowlist?: Set<string>): Violation[] {
+export function validate(
+  entries: TranslationEntry[],
+  allowlist?: Set<string>,
+  scriptAllowlist: Set<string> = loadScriptAllowlist()
+): Violation[] {
   const byLocale: Record<string, Record<string, string>> = {}
   for (const entry of entries) {
     ;(byLocale[entry.locale] ??= {})[entry.key] = entry.value
@@ -85,6 +100,8 @@ export function validate(entries: TranslationEntry[], allowlist?: Set<string>): 
 
   const allowed = allowlist ?? loadAllowlist()
   const violations: Violation[] = []
+
+  const scriptAllowed = scriptAllowlist
 
   const nonDefault = LOCALES.filter(l => l !== DEFAULT_LOCALE)
 
@@ -107,17 +124,23 @@ export function validate(entries: TranslationEntry[], allowlist?: Set<string>): 
     }
   }
 
-  for (const locale of nonDefault) {
+  for (const locale of LOCALES) {
     const map = byLocale[locale] ?? {}
     const secondaryMap = secondary && locale !== secondary ? byLocale[secondary] : undefined
+    const isDefault = locale === DEFAULT_LOCALE
 
-    // 1. Missing keys vs the default-locale key set.
-    for (const key of defaultKeys) {
-      if (!(key in map)) {
-        violations.push({ locale, key, reason: 'missing key (present in default locale)' })
+    // 1. Missing keys vs the default-locale key set (non-default locales only —
+    //    the default locale's own coverage is enforced symmetrically above).
+    if (!isDefault) {
+      for (const key of defaultKeys) {
+        if (!(key in map)) {
+          violations.push({ locale, key, reason: 'missing key (present in default locale)' })
+        }
       }
     }
 
+    // Value-level checks run for EVERY locale (including the default) so a
+    // blank / raw-key / wrong-language value in any locale is caught.
     for (const [key, value] of Object.entries(map)) {
       const trimmed = String(value).trim()
       // 2. Blank values.
@@ -125,30 +148,49 @@ export function validate(entries: TranslationEntry[], allowlist?: Set<string>): 
         violations.push({ locale, key, reason: 'blank value' })
         continue
       }
-      // 3. Raw-key values (dotted key or Paraglide underscore export form).
-      if (value === key) {
-        violations.push({ locale, key, reason: 'value equals the dotted key' })
-        continue
-      }
-      if (value === key.replace(/\./g, '_')) {
-        violations.push({ locale, key, reason: 'value equals the underscore-export form' })
-        continue
-      }
-      // 4. Untranslated copies: the value copied from another configured
-      //    locale (the default locale, or the secondary copy-source locale).
-      const defaultValue = byLocale[DEFAULT_LOCALE]?.[key]
-      const copiedFrom =
-        value === defaultValue
-          ? DEFAULT_LOCALE
-          : secondaryMap && secondaryMap[key] !== undefined && secondaryMap[key] !== defaultValue && value === secondaryMap[key]
-            ? secondary
-            : undefined
-      if (copiedFrom && !allowed.has(key)) {
+      // 3. Raw-key values (dotted key or Paraglide underscore export form,
+      //    case-insensitive after trimming — shared with the pm3-validator DB
+      //    check via scripts/lib/i18n-scripts.mjs so the two surfaces cannot
+      //    drift on normalization).
+      if (isRawKeyValue(key, value)) {
+        const valueLower = value.trim().toLowerCase()
+        const keyLower = key.toLowerCase()
         violations.push({
           locale,
           key,
-          reason: `identical to ${copiedFrom}-locale value (untranslated copy)`
+          reason:
+            valueLower === keyLower.replace(/\./g, '_')
+              ? 'value equals the underscore-export form'
+              : 'value equals the dotted key'
         })
+        continue
+      }
+      // 4. Untranslated copies: a NON-default value copied from another
+      //    configured locale (the default locale, or the secondary copy-source
+      //    locale). The default locale is the source, never the suspect.
+      if (!isDefault) {
+        const defaultValue = byLocale[DEFAULT_LOCALE]?.[key]
+        const copiedFrom =
+          value === defaultValue
+            ? DEFAULT_LOCALE
+            : secondaryMap && secondaryMap[key] !== undefined && secondaryMap[key] !== defaultValue && value === secondaryMap[key]
+              ? secondary
+              : undefined
+        if (copiedFrom && !allowed.has(key)) {
+          violations.push({
+            locale,
+            key,
+            reason: `identical to ${copiedFrom}-locale value (untranslated copy)`
+          })
+        }
+      }
+      // 5. Wrong-language text — the value's dominant script does not match
+      //    its locale's script (framework-level, any locale/script pair).
+      //    Short values and code-like tokens are skipped inside scriptMismatch;
+      //    keys that intentionally mix scripts are exempted via the allowlist.
+      const mismatch = scriptMismatch(locale, value)
+      if (mismatch && !scriptAllowed.has(key)) {
+        violations.push({ locale, key, reason: `wrong-language text — ${mismatch}` })
       }
     }
   }

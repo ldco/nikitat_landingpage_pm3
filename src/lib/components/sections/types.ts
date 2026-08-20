@@ -23,8 +23,9 @@ export interface PortfolioCard {
   name: string
   type: string
   description?: string | null
+  /** Explicit admin-uploaded cover — takes priority on the card over the collage. */
   coverImageUrl?: string | null
-  /** First six published item thumbnails — the PM v2 six-image collage preview. */
+  /** First six published item thumbnails — the PM v2 six-image collage preview (fallback when no explicit cover). */
   thumbnails: string[]
 }
 

@@ -156,10 +156,34 @@ function localizeItem<T extends { id: number }>(
 }
 
 /**
+ * Resolve the preview URL of a single portfolio item: an explicit thumbnail
+ * wins; image items without one fall back to their mediaUrl. Video/link items
+ * have no static preview. Shared by the batched listing collage
+ * (attachThumbnails) and the single-portfolio admin editor preview
+ * (getPortfolioCardThumbnails) so the two surfaces can never resolve a card
+ * image differently.
+ */
+function itemPreviewUrl(item: {
+  thumbnailUrl: string | null | undefined
+  mediaUrl: string | null | undefined
+  itemType: string
+}): string | undefined {
+  if (item.thumbnailUrl) return item.thumbnailUrl
+  return item.itemType === 'image' ? (item.mediaUrl ?? undefined) : undefined
+}
+
+/**
  * Attach the first SIX published item thumbnails per portfolio (PM v2
- * six-image collage preview). Batched window-function query capped in SQL —
- * never a per-row query, never more than 6 rows per portfolio. mediaUrl covers
- * only IMAGE items uploaded without an explicit thumbnail.
+ * six-image collage preview) alongside the explicit admin-uploaded cover.
+ * Batched window-function query capped in SQL — never a per-row query, never
+ * more than 6 rows per portfolio. mediaUrl covers only IMAGE items uploaded
+ * without an explicit thumbnail.
+ *
+ * Display contract (listing + section cards): `coverImageUrl` is the explicit
+ * admin upload and takes priority on the card; the six-image collage from
+ * `thumbnails` is the fallback for portfolios without a curated cover.
+ * `coverImageUrl` is NEVER substituted with the first thumbnail — that would
+ * collapse cover-less portfolios to a single image instead of the collage.
  */
 function attachThumbnails(db: ReturnType<typeof useDatabase>, rows: PortfolioRow[]): PortfolioCard[] {
   const portfolioIds = rows.map(row => row.id)
@@ -195,7 +219,7 @@ function attachThumbnails(db: ReturnType<typeof useDatabase>, rows: PortfolioRow
 
   const thumbnailsByPortfolio = new Map<number, string[]>()
   for (const item of itemRows) {
-    const url = item.thumbnailUrl || (item.itemType === 'image' ? item.mediaUrl : undefined)
+    const url = itemPreviewUrl(item)
     if (!url) continue
     const list = thumbnailsByPortfolio.get(item.portfolioId) ?? []
     if (list.length < 6) {
@@ -206,7 +230,7 @@ function attachThumbnails(db: ReturnType<typeof useDatabase>, rows: PortfolioRow
 
   return rows.map(row => {
     const thumbnails = thumbnailsByPortfolio.get(row.id) ?? []
-    const coverImageUrl = row.coverImageUrl ?? thumbnails[0] ?? null
+    const coverImageUrl = row.coverImageUrl
     return {
       id: row.id,
       slug: row.slug,
@@ -217,6 +241,39 @@ function attachThumbnails(db: ReturnType<typeof useDatabase>, rows: PortfolioRow
       thumbnails
     }
   })
+}
+
+/**
+ * First SIX published item thumbnails of ONE portfolio — the item-collage
+ * fallback for the admin editor's live card preview (PortfolioCardPreview).
+ * Mirrors the listing collage resolution (itemPreviewUrl) and the
+ * published-only, order-first contract of attachThumbnails, so the admin
+ * preview matches the public card image for image for portfolios without a
+ * curated cover. Used by the portfolio edit route to hydrate the preview.
+ */
+export function getPortfolioCardThumbnails(portfolioId: number): string[] {
+  const db = useDatabase()
+  const items = db.select({
+    thumbnailUrl: schema.portfolioItems.thumbnailUrl,
+    mediaUrl: schema.portfolioItems.mediaUrl,
+    itemType: schema.portfolioItems.itemType
+  })
+    .from(schema.portfolioItems)
+    .where(and(
+      eq(schema.portfolioItems.portfolioId, portfolioId),
+      eq(schema.portfolioItems.published, true)
+    ))
+    .orderBy(asc(schema.portfolioItems.order))
+    .all()
+
+  const urls: string[] = []
+  for (const item of items) {
+    const url = itemPreviewUrl(item)
+    if (!url) continue
+    urls.push(url)
+    if (urls.length >= 6) break
+  }
+  return urls
 }
 
 /**
@@ -233,9 +290,10 @@ export function getHomepagePortfolios(locale: string): PortfolioCard[] {
  *
  * PM v2 listing contract (docs/archive/pm-v2/portfolio-display-modes.md):
  * each card carries the portfolio description plus the first SIX published
- * item thumbnails for the six-image collage preview. `coverImageUrl` falls
- * back to the first item thumbnail (a portfolio that only has items uploaded
- * never looks empty), and the card renders a placeholder when neither exists.
+ * item thumbnails for the six-image collage preview. `coverImageUrl` is the
+ * explicit admin-uploaded cover and takes priority on the card; the collage
+ * is the fallback for portfolios without a curated cover, and the card
+ * renders a placeholder when neither exists.
  */
 export function getPublishedPortfolios(locale: string, sort: PortfolioSort = 'order'): PortfolioCard[] {
   const db = useDatabase()

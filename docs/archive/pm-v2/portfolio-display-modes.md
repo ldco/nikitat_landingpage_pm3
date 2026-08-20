@@ -50,7 +50,7 @@ Mode logic in `app/pages/portfolio/[slug].vue`:
 
 ## Listing Page (`/portfolio`)
 
-All portfolio cards show the same layout (`portfolio-card-image` + `portfolio-card-info`). The `portfolio-card-image` shows a 6-image grid from items' thumbnails when available, falls back to cover image, then to `IconPhoto` placeholder. No type-specific styling on the listing page.
+All portfolio cards show the same layout (`portfolio-card-image` + `portfolio-card-info`). The `portfolio-card-image` shows the explicitly uploaded cover image when available (admin-set `cover_image_url` takes priority), otherwise a 6-image grid from items' thumbnails, then to `IconPhoto` placeholder. No type-specific styling on the listing page.
 
 ## Adding a New Mode
 

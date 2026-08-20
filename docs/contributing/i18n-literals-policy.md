@@ -47,6 +47,33 @@ never grow with new literals.
 Everything else — headings, labels, button text, aria labels, alt text,
 placeholders, error messages, empty-state copy — MUST be a translation key.
 
+## Framework-level translation content checks (any language set)
+
+Beyond the literal guardrails, the framework validates the TRANSLATION DATA
+itself — for ANY languages a project configures. The checks live in the
+framework (no per-language hardcoding) and consume only the project's declared
+locales (`LOCALES` / `DEFAULT_LOCALE` / `SECONDARY_LOCALE`) plus the data
+itself.
+
+| Check | Where | What it catches |
+|---|---|---|
+| Wrong-language text (script mismatch) | `npm run i18n:validate` (catalog) + pm3-validator check #14 (DB) | A value whose dominant **script** does not match its locale's script — French/Latin copy in a Hebrew row, English in Russian, Russian in English/French, Hebrew in Russian, … Any locale/script pair works via `scripts/lib/i18n-scripts.mjs` (memoized `Intl.Locale#maximize` → expected script vs Unicode `\p{Script=…}` counts). Short values (≤ 25 letters — proper nouns/brands) and code-like tokens (dotted keys, `snake_case`, `tag:name`, `{params}`, `G-XXXXXXXX` masks, URLs) are excluded. Latin-dominant values get a high lenience (≥ 85% foreign before flagging): correctly translated sentences dominated by brand names (`Google Analytics`, `Facebook Pixel`) are native text, not wrong-language copy. Distinctive non-Latin foreign scripts (Cyrillic in Hebrew, Hebrew in Russian, …) are judged strictly at the 50% majority rule. |
+| Raw key instead of text | catalog + DB | A value equal to its key in dotted/underscore form, case-insensitive (`common.hello`, `common_hello`, `Common.HELLO`) renders raw at runtime. |
+| Catalog key missing from DB (check #15) | pm3-validator | An `i18n/system-seed.json` key absent from the `translations` table (unless tombstoned via the admin editor) renders raw at runtime — run `npm run db:seed`. |
+| Database integrity (check #16) | pm3-validator | Framework-wide DB health, not just translations: every table declared in `src/lib/server/db/schema.ts` must exist (missing migration), NOT NULL text columns must not hold empty values, and `PRAGMA foreign_key_check` must report no orphan rows. The DB is a first-class part of the framework — broken data fails the validator, never renders a broken site. |
+| Untranslated gap (missing/blank) | catalog + DB | A key with text in some locales but missing/blank in another (per-key coverage across every configured locale; DB check covers admin edits to the translations table). |
+| Untranslated copy | catalog | A non-default value identical to the default or secondary copy-source locale's value (allowlisted via `scripts/i18n-identical-allowlist.json`). |
+
+The script check accepts a per-key allowlist for values that intentionally mix
+scripts (technical copy with embedded English terms): add the dotted key to
+`scripts/i18n-script-allowlist.json`. This only records the project's
+deliberate exceptions — the detection itself stays framework-level.
+
+The raw-key placeholder check (`isRawKeyValue` in `scripts/lib/i18n-scripts.mjs`) is a single shared implementation used by both validators, so trimming/casing normalization can never drift. `scripts/lib/i18n-scripts.mjs` is the single shared implementation used by both
+the catalog validator and the pm3 validator, so the two surfaces can never
+drift. Test coverage: `tests/i18n/i18n-scripts.test.ts` (module) and
+`tests/i18n/system-seed-validation.test.ts` (catalog).
+
 ## How agents should add new UI text
 
 The database is the runtime owner of ALL translations (PM v2 parity), and
@@ -61,7 +88,14 @@ canonical catalog is `i18n/system-seed.json`:
 2. Regenerate the Paraglide artifacts (messages + inlang settings) from the
    catalog and the config:
    `npm run i18n:export`
-3. Reference it via `t('testimonials.next')` — the unified helper resolves the
+3. **Sync the catalog into the database:** `npm run db:seed`. This step is
+   NOT optional for `admin.*` keys — they are DB-resident ONLY (excluded
+   from the Paraglide catalog), so a key added to the catalog but never
+   seeded renders as a RAW KEY in the admin UI. The pm3 validator check #15
+   (catalog→DB drift) fails the build when a catalog key is missing from the
+   translations table, so the "new key, no seed" bug is caught at commit
+   time.
+4. Reference it via `t('testimonials.next')` — the unified helper resolves the
    DB first (admin edits apply live) and falls back to the compiled message.
    NEVER import the Paraglide catalog directly (`import * as m from '$lib/i18n'`)
    in components — validator check #12 blocks it: the DB is the runtime owner.

@@ -51,7 +51,7 @@
     default: '',
     filled: 'bg-pm-bg-sunken hover:bg-pm-brand-subtle',
     bordered: 'border border-pm-border hover:border-pm-brand',
-    circle: 'bg-pm-brand-subtle text-pm-brand hover:bg-pm-brand hover:text-pm-white rounded-full'
+    circle: 'bg-pm-brand-subtle text-pm-brand-text hover:bg-pm-brand hover:text-pm-white rounded-full'
   }
 
   const linkBase =

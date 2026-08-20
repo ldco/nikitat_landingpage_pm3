@@ -1,17 +1,19 @@
 <script lang="ts">
   /**
-   * PortfolioCard — PM2-style portfolio preview card (six-image collage / cover / placeholder + hover info)
+   * PortfolioCard — PM2-style portfolio preview card (cover image / six-image collage / placeholder + hover info)
    *
    * Shared by the dedicated `/portfolio` listing page and the SectionPortfolio
    * framework section so both surfaces stay visually and behaviorally aligned
    * (docs/archive/pm-v2/portfolio-display-modes.md listing contract):
-   *   1. six-image collage from the first six item thumbnails when available
-   *   2. cover image fallback
+   *   1. explicitly uploaded cover image when available
+   *   2. six-image collage from the first six item thumbnails
    *   3. IconPhoto placeholder
-   * The explanatory copy (portfolio description) and the title live in a hover
-   * info layer that slides up over the preview (always visible on small
-   * screens, matching the PM2 hover-reveal interaction). Every card links
-   * with `portfolios.slug`.
+   * The image area is delegated to the shared PortfolioCardImage atom — the
+   * SAME component the admin editor preview uses, so what an admin previews is
+   * pixel-identical to what visitors see. The explanatory copy (portfolio
+   * description) and the title live in a hover info layer that slides up over
+   * the preview (always visible on small screens, matching the PM2
+   * hover-reveal interaction). Every card links with `portfolios.slug`.
    *
    * Rule #1: class prop + twMerge
    *
@@ -25,8 +27,7 @@
    */
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
-  import AppImage from '$lib/components/atoms/AppImage.svelte'
-  import IconPhoto from '@tabler/icons-svelte/icons/photo'
+  import PortfolioCardImage from '$lib/components/atoms/PortfolioCardImage.svelte'
   import { localizedHref } from '$lib/utils/navigation'
   import { currentLocale } from '$lib/stores/locale.svelte'
   import type { PortfolioCard as PortfolioCardData } from '$lib/components/sections/types'
@@ -52,29 +53,13 @@
     className
   ))}
 >
-  <!-- Image area: six-image collage → cover → placeholder -->
-  <div class="relative aspect-16/10 overflow-hidden bg-pm-bg-sunken">
-    {#if card.thumbnails.length > 0}
-      <div class="grid h-full w-full grid-cols-3 grid-rows-2 gap-0.5">
-        {#each card.thumbnails.slice(0, 6) as url, i (i)}
-          <AppImage
-            src={url}
-            alt={card.name}
-            class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        {/each}
-      </div>
-    {:else if card.coverImageUrl}
-      <AppImage
-        src={card.coverImageUrl}
-        alt={card.name}
-        class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-      />
-    {:else}
-      <div class="flex h-full w-full items-center justify-center">
-        <IconPhoto class="size-10 text-pm-text-muted" />
-      </div>
-    {/if}
+  <div class="relative">
+    <!-- Image area: explicit cover → six-image collage → placeholder (shared atom) -->
+    <PortfolioCardImage
+      coverImageUrl={card.coverImageUrl}
+      thumbnails={card.thumbnails}
+      alt={card.name}
+    />
 
     <!-- Hover gradient over the preview (revealed on hover AND keyboard
          focus; always visible on small screens) -->
