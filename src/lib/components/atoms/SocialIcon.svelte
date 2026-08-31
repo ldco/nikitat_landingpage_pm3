@@ -38,6 +38,7 @@
 
   const ICONS: Record<string, typeof BrandTelegram> = {
     telegram: BrandTelegram,
+    telegramchannel: BrandTelegram,
     github: BrandGithub,
     instagram: BrandInstagram,
     youtube: BrandYoutube,

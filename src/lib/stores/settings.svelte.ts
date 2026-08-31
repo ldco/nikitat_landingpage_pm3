@@ -8,6 +8,7 @@
  */
 import { browser } from '$app/environment'
 import { fetchSettings } from '$lib/api/client'
+import { buildSocialUrl } from '$lib/utils/social-url'
 
 export interface SiteSettings {
   contact: Record<string, string | null>
@@ -108,7 +109,8 @@ export function getSettings() {
     get socialLinks() {
       return Object.entries(_settings.social)
         .filter(([_, url]) => url && url.trim() !== '')
-        .map(([platform, url]) => ({ platform, url: url as string }))
+        .map(([platform, url]) => ({ platform, url: buildSocialUrl(platform, url as string) }))
+        .filter(link => link.url !== '')
     },
     get seoTitle() { return _settings.seo.title || _settings.legal.companyName || '' },
     get seoDescription() { return _settings.seo.description ?? null }

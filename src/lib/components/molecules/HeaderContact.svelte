@@ -20,6 +20,7 @@
   import { twMerge } from 'tailwind-merge'
   import { HEADER_CONTACT } from '$lib/config/site'
   import { useSettings } from '$lib/stores/settings.svelte'
+  import { buildSocialUrl } from '$lib/utils/social-url'
   import BrandTelegram from '@tabler/icons-svelte/icons/brand-telegram'
   import BrandWhatsapp from '@tabler/icons-svelte/icons/brand-whatsapp'
   import BrandDiscord from '@tabler/icons-svelte/icons/brand-discord'
@@ -89,13 +90,7 @@
   function buildUrl(key: string, value: string): string {
     if (key === 'contact.phone') return `tel:${value.replace(/\s/g, '')}`
     if (key === 'contact.email') return `mailto:${value}`
-    if (key === 'social.telegram' || key === 'telegram') {
-      const handle = value.trim().replace(/^@/, '')
-      if (!handle) return value
-      if (/^https?:\/\//i.test(handle)) return handle
-      return `https://t.me/${handle}`
-    }
-    return value
+    return buildSocialUrl(key, value)
   }
 
   /** Parse comma-separated headerQuickItems setting into keys */
@@ -114,9 +109,11 @@
     for (const key of configItems) {
       const value = settings.get(key)
       if (!value) continue
+      const url = buildUrl(key, value)
+      if (!url) continue
       const iconKey = key.split('.').pop() ?? ''
       const icon = ICON_MAP[iconKey] ?? ICON_MAP[key] ?? IconMail
-      result.push({ key, url: buildUrl(key, value), icon })
+      result.push({ key, url, icon })
     }
 
     return result
