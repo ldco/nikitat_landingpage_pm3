@@ -725,12 +725,6 @@ const config = {
       public: false
     },
     {
-      key: 'contact.headerQuickEnabled',
-      type: 'boolean',
-      group: 'contact',
-      label: 'Show Header Quick Contact Buttons'
-    },
-    {
       key: 'contact.headerQuickItems',
       type: 'string',
       group: 'contact',

@@ -52,7 +52,6 @@ export const SETTINGS_SCHEMA: SettingDefinition[] = [
   { key: 'contact.telegramBotToken', type: 'string', group: 'integrations', label: 'settings.contact.telegramBotToken', icon: 'lock', public: false },
   { key: 'contact.telegramChatId', type: 'string', group: 'integrations', label: 'settings.contact.telegramChatId', icon: 'hash', public: false },
   { key: 'contact.telegramTimezone', type: 'string', group: 'integrations', label: 'settings.contact.telegramTimezone', icon: 'world', public: false },
-  { key: 'contact.headerQuickEnabled', type: 'boolean', group: 'contact', label: 'settings.contact.headerQuickEnabled', layout: 'toggle' },
   { key: 'contact.headerQuickItems', type: 'string', group: 'contact', label: 'settings.contact.headerQuickItems', layout: 'picker' },
 
   // ── Social — Messaging ──────────────────────────────────────────────────

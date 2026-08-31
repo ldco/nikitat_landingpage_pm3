@@ -15981,26 +15981,6 @@
   },
   {
     "locale": "en",
-    "key": "settings.contact.headerQuickEnabled",
-    "value": "Show Header Quick Contact Buttons"
-  },
-  {
-    "locale": "ru",
-    "key": "settings.contact.headerQuickEnabled",
-    "value": "Показывать быстрые контакты в шапке"
-  },
-  {
-    "locale": "fr",
-    "key": "settings.contact.headerQuickEnabled",
-    "value": "Afficher les boutons de contact rapides dans l'en-tête"
-  },
-  {
-    "locale": "he",
-    "key": "settings.contact.headerQuickEnabled",
-    "value": "הצג כפתורי קשר מהירים בכותרת"
-  },
-  {
-    "locale": "en",
     "key": "settings.contact.headerQuickItems",
     "value": "Header Quick Contact Items"
   },

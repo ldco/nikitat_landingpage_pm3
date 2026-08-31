@@ -24,7 +24,6 @@ export const DEFAULT_SETTINGS: Array<{ key: string; value: string; type: Setting
   { key: 'contact.telegramBotToken', value: '', type: 'string', group: 'integrations' },
   { key: 'contact.telegramChatId', value: '', type: 'string', group: 'integrations' },
   { key: 'contact.telegramTimezone', value: 'Europe/Moscow', type: 'string', group: 'integrations' },
-  { key: 'contact.headerQuickEnabled', value: 'true', type: 'boolean', group: 'contact' },
   { key: 'contact.headerQuickItems', value: 'social.telegram,contact.email', type: 'string', group: 'contact' },
 
   // ── Social — Messaging ───────────────────────────────────────────────────
@@ -84,6 +83,13 @@ export const DEFAULT_SETTINGS: Array<{ key: string; value: string; type: Setting
   { key: 'verification.yandex', value: '', type: 'string', group: 'integrations' }
 ]
 
+/**
+ * Settings keys removed from the framework schema. Kept rows are deleted on
+ * every seed so DBs seeded before the removal (and admin UI surfaces that
+ * render from the schema) converge — the setting is gone from the runtime.
+ */
+const REMOVED_SETTING_KEYS = ['contact.headerQuickEnabled']
+
 export function seedSettings() {
   const db = useDatabase()
   console.log('⚙️  Syncing settings from PM config schema...')
@@ -129,6 +135,19 @@ export function seedSettings() {
         .where(eq(schema.settings.key, backfill.key))
         .run()
     }
+  }
+
+  // Remove settings + their translation labels for keys dropped from the schema.
+  let removed = 0
+  for (const key of REMOVED_SETTING_KEYS) {
+    const row = existing.find(s => s.key === key)
+    if (!row) continue
+    db.delete(schema.settings).where(eq(schema.settings.key, key)).run()
+    db.delete(schema.translations).where(eq(schema.translations.key, `settings.${key}`)).run()
+    removed++
+  }
+  if (removed > 0) {
+    console.log(`   ✓ removed ${removed} deprecated setting(s): ${REMOVED_SETTING_KEYS.join(', ')}`)
   }
 
   console.log(`   ✓ ${added} new settings added, ${preserved} existing preserved (total ${DEFAULT_SETTINGS.length})\n`)
