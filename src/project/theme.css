@@ -10,7 +10,25 @@
   --p-black: #3b0902;
   --p-white: #fbf2e7;
   --p-accent: #901504;
+
+  /* Script-support fonts for THIS project's locales. The framework consumes
+     --font-script as the multilingual fallback slot in --font-sans (default
+     system-ui = any language). This project ships Hebrew → Heebo; a project
+     with other scripts replaces it here, e.g.:
+       --font-script: 'Noto Sans Arabic', 'Noto Sans Devanagari';
+     (plus the matching @fontsource imports in src/app.css). */
+  --font-script: 'Heebo Variable', 'Heebo';
+
   color-scheme: light;
+}
+
+/* Promote the script font to the front of the stack for Hebrew pages (this
+   project ships Hebrew). Per-locale promotion is a project concern — an
+   Arabic/Hindi/etc. project adds :lang(ar) / :lang(hi) blocks the same way. */
+:lang(he) {
+  --font-sans: var(--font-script), 'Inter Variable', 'Inter', system-ui,
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-brand-primary: var(--font-script), var(--font-sans);
 }
 
 .dark {

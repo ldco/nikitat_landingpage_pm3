@@ -33,6 +33,7 @@
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import Dropdown from '$lib/components/atoms/Dropdown.svelte'
+  import AutoGrowTextarea from '$lib/components/atoms/AutoGrowTextarea.svelte'
 
   type InputType = 'text' | 'email' | 'password' | 'tel' | 'url' | 'number' | 'textarea' | 'select' | 'checkbox'
   // The DOM attribute accepts a narrow union; expose it as the element's own
@@ -99,7 +100,7 @@
   {/if}
 
   {#if type === 'textarea'}
-    <textarea
+    <AutoGrowTextarea
       {name}
       id={name}
       value={typeof value === 'string' ? value : ''}
@@ -115,7 +116,7 @@
         value = (e.currentTarget as HTMLTextAreaElement).value
         oninput?.(e)
       }}
-    ></textarea>
+    />
   {:else if type === 'select'}
     <Dropdown
       {name}

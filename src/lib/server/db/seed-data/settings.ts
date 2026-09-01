@@ -88,7 +88,7 @@ export const DEFAULT_SETTINGS: Array<{ key: string; value: string; type: Setting
  * every seed so DBs seeded before the removal (and admin UI surfaces that
  * render from the schema) converge — the setting is gone from the runtime.
  */
-const REMOVED_SETTING_KEYS = ['contact.headerQuickEnabled']
+const REMOVED_SETTING_KEYS = ['contact.headerQuickEnabled', 'footer.socialItems']
 
 export function seedSettings() {
   const db = useDatabase()

@@ -26,7 +26,8 @@
   import { getAdminT } from '$lib/utils/admin-translations'
   import AdminFormSection from '$lib/components/molecules/AdminFormSection.svelte'
   import ContactPicker from '$lib/components/molecules/ContactPicker.svelte'
-  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import FormActions from '$lib/components/molecules/FormActions.svelte'
+  import AutoGrowTextarea from '$lib/components/atoms/AutoGrowTextarea.svelte'
   import IconBrandTelegram from '@tabler/icons-svelte/icons/brand-telegram'
   import IconBrandWhatsapp from '@tabler/icons-svelte/icons/brand-whatsapp'
   import IconBrandDiscord from '@tabler/icons-svelte/icons/brand-discord'
@@ -244,12 +245,12 @@
               <div class={clsx('flex flex-col gap-1', item.layout === 'full' ? 'col-span-full' : '')}>
                 <label for="setting-{item.key}" class="text-sm font-medium text-pm-text">{t(item.label)}</label>
                 {#if item.type === 'json'}
-                  <textarea
+                  <AutoGrowTextarea
                     id="setting-{item.key}"
                     bind:value={form[item.key]}
                     rows={3}
-                    class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text font-mono focus:outline-none focus:border-pm-brand focus:ring-2 focus:ring-pm-focus-ring"
-                  ></textarea>
+                    class="font-mono"
+                  />
                 {:else}
                   <input
                     id="setting-{item.key}"
@@ -265,9 +266,8 @@
     </AdminFormSection>
   {/each}
 
-  <div class="flex justify-end gap-4">
-    <CtaButton type="submit" variant="primary" size="md" disabled={saving || !isDirty}>
-      {saving ? t('common.saving') : t('common.save')}
-    </CtaButton>
-  </div>
+  <FormActions
+    submitLabel={saving ? t('common.saving') : t('common.save')}
+    submitDisabled={saving || !isDirty}
+  />
 </form>

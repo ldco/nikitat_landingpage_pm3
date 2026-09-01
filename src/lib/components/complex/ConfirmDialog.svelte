@@ -23,11 +23,9 @@
    * @example
    * <ConfirmDialog bind:open={open} title="Delete item?" onConfirm={handleDelete} />
    */
-  import { clsx } from 'clsx'
-  import { twMerge } from 'tailwind-merge'
   import { t } from '$lib/stores/content.svelte'
   import { getOverlaysState } from '$lib/stores/overlays.svelte'
-  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import FormActions from '$lib/components/molecules/FormActions.svelte'
 
   let {
     open = $bindable(false),
@@ -110,25 +108,17 @@
         <h3 class="text-lg font-semibold text-pm-text m-0 leading-normal">{activeTitle}</h3>
         <p class="mt-2 text-sm text-pm-text-secondary m-0">{activeMessage}</p>
       </div>
-      <!-- .modal-footer: flex justify-end, gap-sm, p-4, border-top -->
-      <div class="flex justify-end gap-3 px-6 py-4 border-t border-pm-border">
-        <CtaButton
-          variant="ghost"
-          size="compact"
-          class="text-pm-text-secondary hover:text-pm-text"
-          onclick={handleCancel}
-        >
-          {activeCancelText}
-        </CtaButton>
-        <CtaButton
-          variant={activeVariant === 'danger' ? 'danger' : 'primary'}
-          size="compact"
-          class={twMerge(clsx(className))}
-          onclick={handleConfirm}
-        >
-          {activeConfirmText}
-        </CtaButton>
-      </div>
+      <!-- .modal-footer: FormActions divider strip (border-top, compact actions) -->
+      <FormActions
+        variant="divider"
+        class={className}
+        cancelLabel={activeCancelText}
+        onCancel={handleCancel}
+        submitLabel={activeConfirmText}
+        submitVariant={activeVariant}
+        submitType="button"
+        onSubmit={handleConfirm}
+      />
     </div>
   </div>
 {/if}

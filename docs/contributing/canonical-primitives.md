@@ -11,6 +11,7 @@ Reusable visual patterns in Puppet Master v3 are **Svelte components**, never sh
 | Segmented pill toggle | `src/lib/components/atoms/SegmentedControl.svelte` | hand-rolled `bg-pm-brand border-pm-brand text-pm-white` pill toggle buttons (e.g. translations Content/System toggle) |
 | Add-row action (repeatable fields) | `src/lib/components/atoms/AddRowButton.svelte` | hand-rolled `text-pm-brand hover:text-pm-brand-light` "+ label" add-row buttons in repeatable form groups |
 | Form control (label + input/textarea/select/checkbox + error) | `src/lib/components/atoms/FormField.svelte` | hand-rolled `w-full px-3 py-2 rounded-md border ...` input/textarea/select/checkbox bundles with a `<label>` (a raw `<select>` with the bundle in admin UI is flagged) |
+| Long-form / auto-growing textarea | `src/lib/components/atoms/AutoGrowTextarea.svelte` | fixed-`rows` `<textarea>` keyholes that force internal scrolling for long content — the atom starts at `rows` and grows with content up to `--textarea-max-height` (80dvh) before scrolling (FormField textareas and the translations modal use it) |
 | Content width wrapper | `src/lib/components/atoms/Container.svelte` or `src/lib/components/molecules/SectionContent.svelte` | `max-w-[var(--max-w-container)] mx-auto px-[var(--px-container)]` by hand |
 | Section title heading | `src/lib/components/molecules/SectionHeading.svelte` | `text-[var(--heading-2)] font-black leading-tight mb-[var(--space-8)]` by hand |
 | Card visual | `src/lib/components/atoms/Card.svelte` | `bg-pm-bg-elevated border border-pm-border rounded-[var(--radius-xl)] shadow-frosted ...` bundles |
@@ -23,6 +24,7 @@ Reusable visual patterns in Puppet Master v3 are **Svelte components**, never sh
 | Admin table row-action row | `src/lib/components/atoms/AdminRowActions.svelte` | hand-rolled `flex items-center justify-end gap-1` action wrappers in admin table/card rows |
 | Inline banner action (dismiss/retry) | `src/lib/components/atoms/InlineBannerAction.svelte` | raw `<button class="ms-2 underline hover:no-underline">` dismiss/retry links inside admin banner alerts |
 | Admin editor page shell | `src/lib/components/molecules/AdminEditorPage.svelte` | hand-assembled editor pages (PageHeader + raw back link + `<form>` + csrf input + footer Cancel/Save) — the shell produces back nav, page titles, top actions and form framing from one pattern |
+| Form-action footer (Cancel/Save row) | `src/lib/components/molecules/FormActions.svelte` | hand-rolled `flex justify-end gap-*` action rows floating below admin forms — the bar/strip container enforces the card aesthetic, right alignment and the compact (language-tab-scale) button sizing |
 
 ## Validator enforcement
 

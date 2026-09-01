@@ -71,11 +71,11 @@ Reusable visual patterns are Svelte components, NOT shared CSS classes. Before h
 
 **Validator enforcement (check #6):** the bundles above are rejected repo-wide in
 UI surfaces. The admin primitives (AdminBackButton, AdminCreateButton,
-AdminRowActions, InlineBannerAction, AdminEditorPage) and raw FormField-bundle
-`<select>`s are additionally enforced with markup-level checks in **admin UI
-files only** (`src/routes/admin/**` + `src/lib/components/admin/**`) — public
-surfaces may legitimately reuse the muted-link / row layouts, so the admin
-contract never trips public pages.
+AdminRowActions, InlineBannerAction, AdminEditorPage, FormActions) and raw
+FormField-bundle `<select>`s are additionally enforced with markup-level checks
+in **admin UI files only** (`src/routes/admin/**` + `src/lib/components/admin/**`)
+— public surfaces may legitimately reuse the muted-link / row layouts, so the
+admin contract never trips public pages.
 
 ### A. Visual System
 

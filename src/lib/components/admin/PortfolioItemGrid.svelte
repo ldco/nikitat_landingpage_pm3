@@ -66,7 +66,7 @@
   }
 
   const merged = $derived(twMerge(clsx(
-    'bg-pm-bg-elevated border border-pm-border rounded-[var(--radius-xl)] overflow-hidden',
+    'bg-[var(--card-shell-bg)] border border-pm-border rounded-[var(--card-shell-radius)] overflow-hidden',
     className
   )))
 </script>

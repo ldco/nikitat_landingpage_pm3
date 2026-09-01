@@ -36,7 +36,7 @@
   import { t } from '$lib/stores/content.svelte'
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
   import AdminBackButton from '$lib/components/atoms/AdminBackButton.svelte'
-  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import FormActions from '$lib/components/molecules/FormActions.svelte'
 
   let {
     title,
@@ -76,8 +76,10 @@
 >
   <input type="hidden" name="_csrf" value={csrfToken} />
   {@render children?.()}
-  <div class="flex justify-end gap-3">
-    <CtaButton variant="ghost" href={backHref}>{t('common.cancel')}</CtaButton>
-    <CtaButton type="submit" variant="primary" disabled={saveDisabled}>{t('common.save')}</CtaButton>
-  </div>
+  <FormActions
+    cancelLabel={t('common.cancel')}
+    cancelHref={backHref}
+    submitLabel={t('common.save')}
+    submitDisabled={saveDisabled}
+  />
 </form>

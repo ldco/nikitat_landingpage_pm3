@@ -20,7 +20,7 @@
   import { createFormDirty } from '$lib/utils/form-dirty.svelte'
   import { hydrateDocsForm, LEGAL_DOC_SLUGS } from '$lib/utils/legal-editor'
   import PageHeader from '$lib/components/atoms/PageHeader.svelte'
-  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import FormActions from '$lib/components/molecules/FormActions.svelte'
   import AdminFormSection from '$lib/components/molecules/AdminFormSection.svelte'
   import LegalDocumentsEditor from '$lib/components/admin/legal/LegalDocumentsEditor.svelte'
   import type { PageData } from './$types'
@@ -176,10 +176,9 @@
     <!-- Legal documents (PM2 admin-legal-page.css) -->
     <LegalDocumentsEditor bind:docsForm={docsForm} {locales} localeNames={data.localeNames ?? {}} {forceShowForm} />
 
-    <div class="flex justify-end gap-4">
-      <CtaButton type="submit" variant="primary" size="md" disabled={saving || !isDirty}>
-        {saving ? t('common.saving') : t('common.save')}
-      </CtaButton>
-    </div>
+    <FormActions
+      submitLabel={saving ? t('common.saving') : t('common.save')}
+      submitDisabled={saving || !isDirty}
+    />
   </form>
 </div>

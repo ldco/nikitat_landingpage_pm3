@@ -3,10 +3,21 @@
    * CtaButton — PM v2 button system translated to Tailwind
    *
    * Source: app-nuxt/app/assets/css/ui/forms/buttons.css (235 lines)
-   * Variants: primary, secondary, outline, ghost, danger, ghost-danger
-   * Sizes: sm, md, lg, compact (compact = md padding with text-sm, used by
-   * dialog/overlay action buttons so they share one size instead of each
-   * hand-rolling a `text-sm` override)
+   *
+   * Strict action hierarchy (use the right level, never an ad-hoc override):
+   *   - Primary   (solid):  `primary` — the single dominant action per surface
+   *     (e.g. Save / Submit). Never two primary buttons in the same row.
+   *   - Secondary (outline/ghost): `secondary`, `outline`, `ghost` — supporting
+   *     actions (e.g. Cancel). `ghost` is the standard secondary for form rows.
+   *   - Tertiary  (text):    `ghost` with muted text overrides, or plain links —
+   *     inline text actions that must not look like buttons.
+   *   - Destructive:         `danger` (solid) / `ghost-danger` (text).
+   *
+   * Sizes: sm, md, lg, compact (compact = md padding with text-sm — the same
+   * px-4/py-2/text-sm scale as the SegmentedControl language tabs). Form and
+   * dialog action rows MUST use size "compact" so every Cancel/Save pair
+   * matches the surrounding interactive scale; <FormActions> enforces this.
+   * The default `md` (text-base) is reserved for standalone page CTAs.
    *
    * Rule #1: class prop + twMerge
    * Rule #3: strict union types
@@ -79,7 +90,7 @@
       'hover:bg-pm-bg-sunken ' +
       'active:bg-pm-bg-sunken',
     danger:
-      'bg-pm-danger text-white ' +
+      'bg-pm-danger text-pm-white ' +
       'hover:bg-pm-danger ' +
       'active:bg-pm-danger',
     'ghost-danger':

@@ -86,7 +86,7 @@
     {:else}
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {#each items as post (post.id)}
-          <div class="bg-pm-bg-elevated border border-pm-border rounded-[var(--radius-xl)] overflow-hidden flex flex-col">
+          <div class="bg-[var(--card-shell-bg)] border border-pm-border rounded-[var(--card-shell-radius)] overflow-hidden flex flex-col">
             <div class="relative h-40 bg-pm-bg-sunken flex items-center justify-center">
               {#if post.coverImageUrl}
                 <img src={post.coverImageUrl} alt="" class="w-full h-full object-cover" />

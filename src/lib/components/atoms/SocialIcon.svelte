@@ -22,6 +22,17 @@
   import BrandLinkedin from '@tabler/icons-svelte/icons/brand-linkedin'
   import BrandWhatsapp from '@tabler/icons-svelte/icons/brand-whatsapp'
   import BrandFacebook from '@tabler/icons-svelte/icons/brand-facebook'
+  import BrandDiscord from '@tabler/icons-svelte/icons/brand-discord'
+  import BrandX from '@tabler/icons-svelte/icons/brand-x'
+  import BrandThreads from '@tabler/icons-svelte/icons/brand-threads'
+  import BrandTiktok from '@tabler/icons-svelte/icons/brand-tiktok'
+  import BrandPinterest from '@tabler/icons-svelte/icons/brand-pinterest'
+  import BrandTwitch from '@tabler/icons-svelte/icons/brand-twitch'
+  import BrandMedium from '@tabler/icons-svelte/icons/brand-medium'
+  import BrandGitlab from '@tabler/icons-svelte/icons/brand-gitlab'
+  import BrandDribbble from '@tabler/icons-svelte/icons/brand-dribbble'
+  import BrandBehance from '@tabler/icons-svelte/icons/brand-behance'
+  import IconMessageCircle from '@tabler/icons-svelte/icons/message-circle'
   import IconWorld from '@tabler/icons-svelte/icons/world'
 
   interface Props {
@@ -40,14 +51,27 @@
     telegram: BrandTelegram,
     telegramchannel: BrandTelegram,
     github: BrandGithub,
+    gitlab: BrandGitlab,
     instagram: BrandInstagram,
     youtube: BrandYoutube,
     vk: BrandVk,
-    x: BrandTwitter,
+    x: BrandX,
     twitter: BrandTwitter,
+    threads: BrandThreads,
+    tiktok: BrandTiktok,
+    pinterest: BrandPinterest,
+    twitch: BrandTwitch,
+    medium: BrandMedium,
+    dribbble: BrandDribbble,
+    behance: BrandBehance,
     linkedin: BrandLinkedin,
     whatsapp: BrandWhatsapp,
-    facebook: BrandFacebook
+    facebook: BrandFacebook,
+    discord: BrandDiscord,
+    discordserver: BrandDiscord,
+    viber: IconMessageCircle,
+    max: IconMessageCircle,
+    maxchannel: IconMessageCircle
   }
 
   const Icon = $derived(ICONS[key] ?? IconWorld)

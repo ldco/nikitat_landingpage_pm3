@@ -41,7 +41,7 @@
   import { twMerge } from 'tailwind-merge'
   import { enhance } from '$app/forms'
   import IconX from '@tabler/icons-svelte/icons/x'
-  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import FormActions from '$lib/components/molecules/FormActions.svelte'
 
   let {
     open = false,
@@ -131,7 +131,7 @@
     <div
       class={twMerge(
         clsx(
-          'bg-pm-bg-elevated rounded-[var(--radius-xl)] shadow-[var(--shadow-xl)] w-full max-h-[var(--dialog-max-height)] overflow-auto',
+          'bg-[var(--card-shell-bg)] rounded-[var(--card-shell-radius)] shadow-[var(--shadow-xl)] w-full max-h-[var(--dialog-max-height)] overflow-auto',
           maxWidthClass,
           className
         )
@@ -177,19 +177,14 @@
           {#if footer}
             {@render footer()}
           {:else}
-            <div class="flex justify-end gap-3 pt-2">
-              <CtaButton variant="ghost" size="compact" onclick={onclose} type="button">
-                {cancelLabel}
-              </CtaButton>
-              <CtaButton
-                variant="primary"
-                size="compact"
-                type="submit"
-                disabled={submitDisabled || loading}
-              >
-                {loading ? '...' : submitLabel}
-              </CtaButton>
-            </div>
+            <FormActions
+              variant="divider"
+              class="px-0 pt-2 pb-0"
+              cancelLabel={cancelLabel}
+              onCancel={onclose}
+              submitLabel={loading ? '...' : submitLabel}
+              submitDisabled={submitDisabled || loading}
+            />
           {/if}
         </form>
       {:else}
@@ -205,19 +200,14 @@
           {#if footer}
             {@render footer()}
           {:else}
-            <div class="flex justify-end gap-3 pt-2">
-              <CtaButton variant="ghost" size="compact" onclick={onclose} type="button">
-                {cancelLabel}
-              </CtaButton>
-              <CtaButton
-                variant="primary"
-                size="compact"
-                type="submit"
-                disabled={submitDisabled || loading}
-              >
-                {loading ? '...' : submitLabel}
-              </CtaButton>
-            </div>
+            <FormActions
+              variant="divider"
+              class="px-0 pt-2 pb-0"
+              cancelLabel={cancelLabel}
+              onCancel={onclose}
+              submitLabel={loading ? '...' : submitLabel}
+              submitDisabled={submitDisabled || loading}
+            />
           {/if}
         </form>
       {/if}

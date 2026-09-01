@@ -167,13 +167,13 @@ test.describe('Admin edit journeys', () => {
     await expect(page.getByRole('button', { name: ru('admin.addTranslation') })).toBeVisible()
 
     // The initial (default) locale renders namespace groups immediately.
-    await expect(page.locator('button[aria-expanded] code').first()).toBeVisible()
+    await expect(page.locator('.admin-translations button[aria-expanded]').first()).toBeVisible()
 
     // Switching to a non-default locale fetches its rows on demand; the
     // namespace groups only appear once the fetch resolves (a failed fetch
     // renders the error state instead, so this assertion catches it).
     await page.getByRole('tab', { name: 'English' }).click()
-    await expect(page.locator('button[aria-expanded] code').first()).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('.admin-translations button[aria-expanded]').first()).toBeVisible({ timeout: 15000 })
   })
 
   test('translations: add, edit, and delete a key through the editor modal', async ({ page }) => {
@@ -193,15 +193,15 @@ test.describe('Admin edit journeys', () => {
     await expect(page.getByRole('dialog')).toHaveCount(0)
 
     // The new namespace group appears in the (collapsed) list — expand it.
-    const groupHeader = page.locator('button[aria-expanded] code', { hasText: 'e2e' }).locator('xpath=..')
+    const groupHeader = page.locator('button[aria-expanded]', { hasText: 'e2e' })
     await expect(groupHeader).toBeVisible()
     await groupHeader.click()
 
-    // Edit: value cell opens the modal, save closes it and refreshes the row.
+    // Edit: the row's edit action opens the modal, save closes it and refreshes the row.
     const editedValue = `edited-${Date.now()}`
     const row = page.locator('tr', { hasText: key })
     await expect(row).toBeVisible()
-    await row.locator('td.cursor-pointer').click()
+    await row.getByRole('button', { name: ru('common.edit') }).click()
     const editDialog = page.getByRole('dialog')
     await expect(editDialog).toBeVisible()
     await editDialog.locator('#translation-modal-value').fill(editedValue)

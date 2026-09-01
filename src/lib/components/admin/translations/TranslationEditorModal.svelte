@@ -33,6 +33,7 @@
   import { getAdminT } from '$lib/utils/admin-translations'
   import { isRtlLocale } from '$lib/config/site'
   import AdminModal from '$lib/components/molecules/AdminModal.svelte'
+  import AutoGrowTextarea from '$lib/components/atoms/AutoGrowTextarea.svelte'
 
   let {
     open = false,
@@ -127,7 +128,7 @@
 <AdminModal
   open={open}
   title={editingKey ? t('common.edit') : (adminT['admin.addItem'] ?? t('admin.addItem'))}
-  maxWidthClass="max-w-lg"
+  maxWidthClass="max-w-xl"
   cancelLabel={t('common.cancel')}
   submitLabel={saving ? t('common.saving') : t('common.save')}
   submitDisabled={saving || !formKey.trim()}
@@ -206,14 +207,13 @@
       <label for="translation-modal-value" class="text-sm font-medium text-pm-text">
         {localeNames[editingLocale] || editingLocale}
       </label>
-      <textarea
+      <AutoGrowTextarea
         id="translation-modal-value"
         bind:value={formValues[editingLocale]}
         rows={3}
         required
         dir="auto"
-        class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text focus:outline-none focus:ring-2 focus:ring-pm-focus-ring"
-      ></textarea>
+      />
     </div>
   {:else}
     {#each locales as loc (loc)}
@@ -221,16 +221,15 @@
         <label for="translation-locale-{loc}" class="text-sm font-medium text-pm-text">
           {localeNames[loc] || loc}
         </label>
-        <textarea
+        <AutoGrowTextarea
           id="translation-locale-{loc}"
           bind:value={formValues[loc]}
           rows={2}
           dir={isRtlLocale(loc) ? 'rtl' : 'ltr'}
-          class="w-full px-3 py-2 rounded-md border border-pm-border bg-pm-bg text-sm text-pm-text focus:outline-none focus:ring-2 focus:ring-pm-focus-ring"
           placeholder={t('admin.translationValuePlaceholder', {
             locale: localeNames[loc] || loc
           })}
-        ></textarea>
+        />
       </div>
     {/each}
   {/if}

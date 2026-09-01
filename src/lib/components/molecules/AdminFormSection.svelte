@@ -29,15 +29,15 @@
 </script>
 
 <section class={twMerge(clsx(
-  'bg-pm-bg-elevated border border-pm-border rounded-[var(--radius-xl)] overflow-hidden',
+  'bg-[var(--card-shell-bg)] border border-pm-border rounded-[var(--card-shell-radius)] overflow-hidden',
   className
 ))}>
   {#if title}
-    <div class="flex items-center justify-between gap-4 px-6 py-4 border-b border-pm-border">
+    <div class="flex items-center justify-between gap-4 px-[var(--card-shell-pad-x)] py-4 border-b border-pm-border">
       <h2 class="text-lg font-semibold text-pm-text m-0">{title}</h2>
     </div>
   {/if}
-  <div class="p-6">
+  <div class="p-[var(--card-shell-pad-x)]">
     {@render children?.()}
   </div>
 </section>

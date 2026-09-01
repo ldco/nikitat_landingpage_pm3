@@ -25,9 +25,11 @@
   import { t } from '$lib/stores/content.svelte'
   import { getAdminT } from '$lib/utils/admin-translations'
   import IconChevronDown from '@tabler/icons-svelte/icons/chevron-down'
+  import IconPencil from '@tabler/icons-svelte/icons/pencil'
   import IconTrash from '@tabler/icons-svelte/icons/trash'
   import Card from '$lib/components/atoms/Card.svelte'
   import IconButton from '$lib/components/atoms/IconButton.svelte'
+  import AdminRowActions from '$lib/components/atoms/AdminRowActions.svelte'
   import type { TranslationRow } from '$lib/utils/translations-editor'
 
   export interface TranslationGroup {
@@ -90,7 +92,7 @@
               !isGroupOpen(group) && '-rotate-90'
             )}
           />
-          <code class="text-base text-pm-text">{group.namespace}</code>
+          <span class="text-base text-pm-text">{group.namespace}</span>
         </span>
         <span
           class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-full bg-pm-bg-sunken text-xs font-medium text-pm-text-muted"
@@ -128,32 +130,29 @@
                     <span class="hidden max-sm:block text-sm font-medium text-pm-text-muted mb-1">
                       {keyLabel}
                     </span>
-                    <code class="text-sm bg-pm-bg-sunken px-2 py-1 rounded-md inline-block">
+                    <span class="text-sm bg-pm-bg-sunken px-2 py-1 rounded-md inline-block">
                       {item.key}
-                    </code>
+                    </span>
                   </td>
-                  <td
-                    class="px-5 py-3 align-top cursor-pointer hover:bg-pm-brand-subtle transition-colors sm:px-0 sm:py-1"
-                    dir="auto"
-                    onclick={() => onEdit(item)}
-                  >
+                  <td class="px-5 py-3 align-top sm:px-0 sm:py-1" dir="auto">
                     <span class="hidden max-sm:block text-sm font-medium text-pm-text-muted mb-1">
                       {valueLabel}
                     </span>
                     {item.value}
                   </td>
-                  <td
-                    class="px-5 py-3 text-end align-middle whitespace-nowrap sm:px-0 sm:pt-2 sm:border-t sm:border-pm-border sm:mt-1"
-                  >
-                    <IconButton
-                      size="md"
-                      variant="danger"
-                      ariaLabel={t('common.delete')}
-                      class="hover:bg-pm-danger/10"
-                      onclick={() => onDelete(item)}
-                    >
-                      <IconTrash class="size-4" />
-                    </IconButton>
+                  <td class="px-5 py-3 text-end align-middle whitespace-nowrap sm:px-0">
+                    <AdminRowActions>
+                      <IconButton ariaLabel={t('common.edit')} onclick={() => onEdit(item)}>
+                        <IconPencil class="size-4" />
+                      </IconButton>
+                      <IconButton
+                        variant="danger"
+                        ariaLabel={t('common.delete')}
+                        onclick={() => onDelete(item)}
+                      >
+                        <IconTrash class="size-4" />
+                      </IconButton>
+                    </AdminRowActions>
                   </td>
                 </tr>
               {/each}

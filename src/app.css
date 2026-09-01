@@ -76,8 +76,18 @@
   --color-pm-success-bg: oklch(95% 0.05 145);
   --color-pm-warning: oklch(75% 0.15 85);
   --color-pm-warning-bg: oklch(95% 0.05 85);
-  --color-pm-danger: oklch(55% 0.22 25);
-  --color-pm-danger-bg: oklch(95% 0.05 25);
+  /* Danger = the brand hue at destructive weight (color-mixed from the brand
+     primitives) so destructive actions stay inside the brand family instead of
+     a foreign generic red. light-dark: light mode = deep brand maroon, dark
+     mode = lighter brand red for contrast on the dark surface. */
+  --color-pm-danger: light-dark(
+    color-mix(in srgb, var(--p-brand) 75%, var(--p-black) 25%),
+    color-mix(in srgb, var(--p-brand) 50%, var(--p-white) 50%)
+  );
+  --color-pm-danger-bg: light-dark(
+    color-mix(in srgb, var(--p-brand) 10%, var(--p-white) 90%),
+    color-mix(in srgb, var(--p-brand) 30%, var(--p-black) 70%)
+  );
   --color-pm-info: oklch(60% 0.18 250);
   --color-pm-info-bg: oklch(95% 0.05 250);
 
@@ -86,8 +96,15 @@
   --color-pm-focus-outline: var(--color-pm-focus-ring);
 
   /* --- Typography (from typography/variables.css) --- */
-  --font-sans: 'Geologica', 'Inter Variable', 'Inter', system-ui, -apple-system,
-    BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Language-agnostic script slot: `--font-script` (default in @layer base
+     below) carries OPTIONAL project fonts for non-Latin/Cyrillic/Greek
+     scripts — Hebrew, Arabic, Devanagari, CJK, … . The stack consumes it via
+     var() so any project can extend it in src/project/theme.css without
+     touching framework code. The default (system-ui) renders EVERY script
+     through the OS fonts, so the framework is ready for any language out of
+     the box. */
+  --font-sans: 'Geologica', 'Inter Variable', 'Inter', var(--font-script),
+    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: var(--font-sans);
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
@@ -218,6 +235,14 @@
   --width-key-column: 35%;
   --grid-admin-form: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
 
+  /* --- Card Shell Tokens (AdminFormSection cards + FormActions footer bar) --- */
+  /* Single source of truth for the elevated card shell: the form-action
+     footer bar references the same tokens as the section cards so the two
+     can never drift apart when the card aesthetic changes. */
+  --card-shell-bg: var(--color-pm-bg-elevated);
+  --card-shell-radius: var(--radius-xl);
+  --card-shell-pad-x: var(--space-6);
+
   /* --- Grid Primitives --- */
   /* Smallest auto-fit column for the shared Grid atom (no literal px in markup). */
   --grid-auto-min: 280px;
@@ -288,6 +313,19 @@
    * Used by components via CSS custom properties
    * ══════════════════════════════════════════════════════════ */
   :root {
+    /* --- Script Fonts (multilingual fallback for --font-sans) --- */
+    /* Language-agnostic default: system-ui renders every script via the OS
+       fonts, so the framework works for ANY language with zero configuration.
+       Projects override this in src/project/theme.css (unlayered :root beats
+       this layered default) with their brand script fonts, e.g.
+       --font-script: 'Noto Sans Arabic', 'Noto Sans Devanagari'; */
+    --font-script: system-ui;
+
+    /* --- Auto-grow Textarea (AutoGrowTextarea atom) --- */
+    /* Height cap for auto-growing textareas: the box grows with content up to
+       80% of the viewport, then scrolls (long-form editing without keyholes). */
+    --textarea-max-height: 80dvh;
+
     /* --- Spacing Scale (4px base from common/spacing.css) --- */
     --space-0: 0;
     --space-px: 1px;
@@ -400,7 +438,6 @@
   .dark {
     --color-pm-success-bg: oklch(25% 0.05 145);
     --color-pm-warning-bg: oklch(25% 0.05 85);
-    --color-pm-danger-bg: oklch(25% 0.05 25);
     --color-pm-info-bg: oklch(25% 0.05 250);
 
     /* Dark frosted surface */
@@ -673,11 +710,6 @@
     :focus-visible { outline: 3px solid currentColor; outline-offset: 2px; }
   }
 
-  /* Hebrew font override */
-  :lang(he) {
-    --font-sans: 'Heebo Variable', 'Heebo', 'Inter Variable', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-brand-primary: 'Heebo Variable', 'Heebo', var(--font-sans);
-  }
 }
 
 /* ── Hamburger CSS Animations ──────────────────────────────────────────────────────── */

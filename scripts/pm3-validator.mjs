@@ -113,7 +113,8 @@ const PRIMITIVE_FILES = {
   adminCreateButton: 'src/lib/components/atoms/AdminCreateButton.svelte',
   adminRowActions: 'src/lib/components/atoms/AdminRowActions.svelte',
   inlineBannerAction: 'src/lib/components/atoms/InlineBannerAction.svelte',
-  editorPage: 'src/lib/components/molecules/AdminEditorPage.svelte'
+  editorPage: 'src/lib/components/molecules/AdminEditorPage.svelte',
+  formActions: 'src/lib/components/molecules/FormActions.svelte'
 }
 
 /**
@@ -498,6 +499,22 @@ function checkPrimitiveBypass(file) {
         file: rel,
         line: lineAt(content, index),
         message: 'Canonical-primitive bypass: hand-rolled inline banner action — use <InlineBannerAction>'
+      })
+    }
+
+    // ── Form-action footer row (admin UI only) ──────────────────────────────
+    // The `flex justify-end gap-3/gap-4` Cancel/Save row floating at the bottom
+    // of admin forms is the FormActions primitive's own bundle. gap-1 rows
+    // belong to AdminRowActions (caught above); anything else right-aligned
+    // with a numeric gap must be a <FormActions> bar or strip.
+    const isFormActionRow =
+      exact('flex') && exact('justify-end') &&
+      tokens.some((t) => /^gap-[2-9]$/.test(t))
+    if (isFormActionRow && isAdminUi && rel !== PRIMITIVE_FILES.formActions) {
+      issues.push({
+        file: rel,
+        line: lineAt(content, index),
+        message: 'Canonical-primitive bypass: hand-rolled form-action row — use <FormActions>'
       })
     }
   }

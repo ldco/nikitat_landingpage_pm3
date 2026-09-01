@@ -15,7 +15,7 @@ import { t } from '$lib/stores/content.svelte'
   import { clsx } from 'clsx'
   import { twMerge } from 'tailwind-merge'
   import { changePassword } from '$lib/api/client'
-  import CtaButton from '$lib/components/atoms/CtaButton.svelte'
+  import FormActions from '$lib/components/molecules/FormActions.svelte'
   import IconX from '@tabler/icons-svelte/icons/x'
   import IconLock from '@tabler/icons-svelte/icons/lock'
   import IconEye from '@tabler/icons-svelte/icons/eye'
@@ -197,24 +197,14 @@ import { t } from '$lib/stores/content.svelte'
           {/if}
         </div>
 
-        <div class="flex justify-end gap-3 pt-2 border-t border-pm-border">
-          <CtaButton
-            variant="ghost"
-            size="compact"
-            class="text-pm-text-secondary hover:text-pm-text"
-            onclick={close}
-          >
-            {t('common.cancel')}
-          </CtaButton>
-          <CtaButton
-            type="submit"
-            variant="primary"
-            size="compact"
-            disabled={!isValid || isSubmitting}
-          >
-            {isSubmitting ? t('common.saving') : t('common.save')}
-          </CtaButton>
-        </div>
+        <FormActions
+          variant="divider"
+          class="px-0 pt-2 pb-0"
+          cancelLabel={t('common.cancel')}
+          onCancel={close}
+          submitLabel={isSubmitting ? t('common.saving') : t('common.save')}
+          submitDisabled={!isValid || isSubmitting}
+        />
       </form>
     </div>
   </div>

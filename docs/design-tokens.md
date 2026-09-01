@@ -85,6 +85,24 @@ Change these 4 values to rebrand the entire site — everything else is derived.
 | `--font-display` | `font-display` (headings) |
 | `--font-mono` | `font-mono` (code) |
 
+The `--font-sans` stack is multilingual and language-agnostic: Geologica/Inter
+cover Latin + Cyrillic + Greek, and the script-support slot `--font-script`
+carries OPTIONAL project fonts for every other script (Hebrew, Arabic,
+Devanagari, CJK, …). The framework default is `system-ui` — the OS renders any
+script — so the framework is ready for ANY language out of the box.
+`--font-script` is a **project extension point**: a project overrides it in
+`src/project/theme.css` (unlayered `:root` beats the framework's `@layer base`
+default) with its brand script fonts, e.g.
+`--font-script: 'Noto Sans Arabic', 'Noto Sans Devanagari';` plus the matching
+`@fontsource` imports in `src/app.css`. Script glyphs render through the slot
+wherever scripts mix (e.g. locale tabs listing every language at once).
+Per-locale promotion is a project concern too: this project ships a `:lang(he)`
+block in `src/project/theme.css` that moves the slot to the front of the stack
+for Hebrew pages; Arabic/Hindi/etc. projects add `:lang(ar)` / `:lang(hi)`
+blocks the same way. Components never switch the family for semantically-
+identical content — hierarchy comes from weight/size, not from swapping to
+`font-mono` (mono is reserved for genuine code/log content).
+
 ### Static sizes
 | Token | Example |
 |---|---|
@@ -135,6 +153,8 @@ Static spacing lives in `@layer base :root`: `--space-0`…`--space-32` (`p-[var
 | `--pt-section` | `pt-[var(--pt-section)]` |
 | `--drawer-width` | `w-[var(--drawer-width)]` |
 | `--dialog-max-height` | `max-h-[var(--dialog-max-height)]` |
+| `--textarea-max-height` | AutoGrowTextarea cap (80dvh) — `max-h-[var(--textarea-max-height)]` |
+| `--card-shell-bg` / `--card-shell-radius` / `--card-shell-pad-x` | Admin card shell shared by `AdminFormSection` cards and the `FormActions` footer bar so the two can never drift apart: `bg-[var(--card-shell-bg)]`, `rounded-[var(--card-shell-radius)]`, `px-[var(--card-shell-pad-x)]` |
 
 > Prefer `<Container>` / `<SectionContent>` instead of hand-rolling container classes.
 

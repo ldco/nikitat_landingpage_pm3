@@ -3,7 +3,10 @@
    * SocialNav — Dynamic social links from DB settings
    *
    * Renders social platform icons based on settings table entries.
-   * Only platforms with non-empty values in settings (key: social.*) appear.
+   * Only platforms with non-empty values render, and only from the "Social
+   * Networks" admin section (settings group 'social') — the messaging
+   * platforms (Telegram, WhatsApp, Viber, Discord, MAX — group 'contact')
+   * are contact-page concerns and never appear in the footer.
    * Icons are loaded from the social-icons registry (add/remove platforms there).
    *
    * Data: loaded client-side from /api/settings endpoint.
@@ -21,6 +24,7 @@
   import { twMerge } from 'tailwind-merge'
   import SocialIcon from '$lib/components/atoms/SocialIcon.svelte'
   import { useSettings } from '$lib/stores/settings.svelte'
+  import { SETTINGS_SCHEMA } from '$lib/config/settings-schema'
 
   type Size = 'sm' | 'md' | 'lg'
   type Variant = 'default' | 'filled' | 'bordered' | 'circle'
@@ -68,9 +72,19 @@
 
   const settings = useSettings()
 
-  // Reactive social links from shared settings store (rule 6: no direct API fetch)
-  const socialLinks = $derived(
-    settings.socialLinks.map(link => ({ platform: link.platform, url: link.url }))
+  // Footer socials = the "Social Networks" admin section (settings group
+  // 'social'). The schema is the single source of truth for which platforms
+  // belong there, so the footer can never drift from the admin UI.
+  const FOOTER_PLATFORMS = new Set(
+    SETTINGS_SCHEMA.filter(s => s.group === 'social').map(s => s.key.split('.')[1])
+  )
+
+  // Reactive social links from shared settings store (rule 6: no direct API fetch).
+  // Only non-empty values from the Social Networks section render.
+  const socialLinks = $derived.by(() =>
+    settings.socialLinks
+      .filter(link => FOOTER_PLATFORMS.has(link.platform))
+      .map(link => ({ platform: link.platform, url: link.url }))
   )
 </script>
 
