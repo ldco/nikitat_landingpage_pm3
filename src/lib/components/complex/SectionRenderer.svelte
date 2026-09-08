@@ -15,6 +15,7 @@
    *
    * @props sectionId?: string — section id from HOMEPAGE_SECTIONS
    * @props content?: SectionContent — typed content from +page.server.ts
+   * @props legalReady?: boolean — current locale has the required legal documents (contact gate)
    * @props class?: string — merged Tailwind classes
    * @example <SectionRenderer sectionId="about" content={data.sectionContent} />
    */
@@ -29,10 +30,12 @@
   let {
     sectionId,
     content,
+    legalReady = false,
     class: className = ''
   }: {
     sectionId?: string
     content?: SectionContent
+    legalReady?: boolean
     class?: string
   } = $props()
 
@@ -46,7 +49,7 @@
   })
 
   const SectionComponent = $derived(section ? SECTION_REGISTRY[section.component] : null)
-  const sectionProps = $derived(section ? buildSectionProps(section.component, sectionData) : {})
+  const sectionProps = $derived(section ? buildSectionProps(section.component, sectionData, { legalReady }) : {})
 </script>
 
 {#if section && SectionComponent}

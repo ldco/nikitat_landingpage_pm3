@@ -45,6 +45,34 @@ const DOCUMENT_SLUGS: Record<string, string> = {
 }
 
 /**
+ * Legal documents the contact form requires before it may be shown without
+ * the force flag (PM v2 `hasRequiredLegalDocuments` parity — privacy policy +
+ * personal-data processing policy). Maps to this port's canonical slugs:
+ * privacy-policy and personal-data-policy (the two consent links SectionContact
+ * renders).
+ */
+export const CONTACT_REQUIRED_LEGAL_SLUGS = ['privacy-policy', 'personal-data-policy'] as const
+
+/**
+ * Strict per-locale availability for the contact-form legal gate (PM v2
+ * `hasRequiredLegalDocuments` parity): the CURRENT locale — never the
+ * fallback chain — must have non-empty content for both required documents.
+ * A DB row with empty content counts as missing (admin cleared it); when the
+ * DB has no row (or is unavailable) the filesystem corpus for the locale is
+ * consulted. The fallback-aware readLegalDocument() is intentionally NOT used:
+ * falling back to the default locale would show the form in a locale whose
+ * legal pages 404.
+ */
+export function hasRequiredLegalDocuments(locale: string): boolean {
+  return CONTACT_REQUIRED_LEGAL_SLUGS.every(slug => {
+    const dbContent = readDbContent(slug, locale)
+    if (dbContent !== null) return dbContent.trim().length > 0
+    const file = join(process.cwd(), LEGAL_DIR, locale, `${DOCUMENT_SLUGS[slug] ?? slug}.md`)
+    return existsSync(file) && readFileSync(file, 'utf-8').trim().length > 0
+  })
+}
+
+/**
  * DB-first content read: returns the row content for a slug+locale, or null
  * when the table has no row or the DB is unavailable. The filesystem remains
  * the fallback so the footer/legal page never break on an empty DB.

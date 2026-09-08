@@ -12,6 +12,7 @@ import { error } from '@sveltejs/kit'
 import { HOMEPAGE_SECTIONS } from '$lib/config/site'
 import { loadSectionContent } from '$lib/server/services/section-content'
 import { activeLocale } from '$lib/server/utils/locales'
+import { hasRequiredLegalDocuments } from '$lib/utils/legal-documents'
 
 export const load: PageServerLoad = ({ params, locals }) => {
   const sectionId = params.section
@@ -24,5 +25,9 @@ export const load: PageServerLoad = ({ params, locals }) => {
   const locale = activeLocale(locals.paraglide?.lang)
   // Load only the content slices the rendered section consumes — the loader
   // accepts the section id so non-onepager pages do not run all nine queries.
-  return { section, sectionContent: loadSectionContent(locale, section.id) }
+  return {
+    section,
+    sectionContent: loadSectionContent(locale, section.id),
+    legalReady: hasRequiredLegalDocuments(locale)
+  }
 }

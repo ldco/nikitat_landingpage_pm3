@@ -23,5 +23,5 @@
 <Seo />
 
 {#if isOnepager}
-  <Onepager sections={sections} content={data.sectionContent} />
+  <Onepager sections={sections} content={data.sectionContent} legalReady={data.legalReady} />
 {/if}

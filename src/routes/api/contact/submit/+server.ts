@@ -2,6 +2,7 @@ import type { RequestEvent } from '@sveltejs/kit'
 import { error, json } from '@sveltejs/kit'
 import { z } from 'zod'
 import { createSubmission } from '$lib/server/services/contact'
+import { getSetting } from '$lib/server/services/settings'
 import { contactRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
 import { logger } from '$lib/server/utils/logger'
 import { FEATURES } from '$lib/config/site'
@@ -34,7 +35,11 @@ export async function POST(event: RequestEvent) {
 
   const { name, email, phone, subject, message, consent } = parsed.data
 
-  if (!consent) {
+  // PM v2 parity: consent is required unless the admin's
+  // forceShowFormWithoutLegalDocuments flag is on (in force mode the form has
+  // no consent line — there is no legal text to consent to).
+  const forceShowFormWithoutLegalDocuments = getSetting('contact.forceShowFormWithoutLegalDocuments') === 'true'
+  if (!consent && !forceShowFormWithoutLegalDocuments) {
     error(400)
   }
 

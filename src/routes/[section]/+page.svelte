@@ -15,6 +15,7 @@
     data: {
       section: (typeof HOMEPAGE_SECTIONS)[number]
       sectionContent: SectionContent
+      legalReady: boolean
     }
   } = $props()
 
@@ -22,4 +23,4 @@
   // data is server-loaded — init is intentional
 </script>
 
-<SectionRenderer sectionId={section.id} content={data.sectionContent} />
+<SectionRenderer sectionId={section.id} content={data.sectionContent} legalReady={data.legalReady} />

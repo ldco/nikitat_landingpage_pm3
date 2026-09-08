@@ -36,11 +36,13 @@ export const SETTINGS_SCHEMA: SettingDefinition[] = [
   { key: 'contact.location', type: 'string', group: 'location', label: 'settings.contact.location', icon: 'map-pin' },
   { key: 'contact.workingHours', type: 'string', group: 'location', label: 'settings.contact.workingHours', icon: 'clock' },
   {
+    // Rendered by the legal page's "Contact form legal gate" section, NOT by
+    // the generic settings renderer (see SETTINGS_CUSTOM_RENDERED_KEYS) — a
+    // setting must never have two editors.
     key: 'contact.forceShowFormWithoutLegalDocuments',
     type: 'boolean',
     group: 'contact',
-    label: 'settings.contact.forceShowFormWithoutLegalDocuments',
-    layout: 'toggle'
+    label: 'settings.contact.forceShowFormWithoutLegalDocuments'
   },
   {
     key: 'contact.contactPageItems',
@@ -107,6 +109,27 @@ export const SETTINGS_SCHEMA: SettingDefinition[] = [
   { key: 'verification.google', type: 'string', group: 'integrations', label: 'settings.verification.google' },
   { key: 'verification.yandex', type: 'string', group: 'integrations', label: 'settings.verification.yandex' }
 ]
+
+/**
+ * Setting keys edited on dedicated admin pages instead of the generic
+ * settings renderer (PM v2 `customRenderedSettingKeys`). The generic
+ * /admin/settings page must skip these keys so a setting never has two
+ * editors.
+ *
+ * - `contact.forceShowFormWithoutLegalDocuments` — its only editor is the
+ *   legal page's "Contact form legal gate" section.
+ */
+export const SETTINGS_CUSTOM_RENDERED_KEYS = new Set([
+  'contact.forceShowFormWithoutLegalDocuments'
+])
+
+/**
+ * Settings groups edited on dedicated admin pages — never on /admin/settings
+ * (PM v2 `hiddenGroupKeys`).
+ *
+ * - `legal` — company/juridical details are edited on the legal page.
+ */
+export const SETTINGS_HIDDEN_GROUPS = new Set(['legal'])
 
 /** Setting groups with i18n labels (PM v2 group list) */
 export const SETTINGS_GROUPS: Array<{ key: string; label: string; icon?: string }> = [

@@ -10,6 +10,8 @@
    *
    * Form contract: Zod → $state bindings → CSRF header → POST /api/contact/submit
    *
+   * @props {boolean} [legalReady=false] — current locale has the required legal
+   *   documents (privacy + personal-data policy); gates the form and the consent line
    * @props {string} [class] — additional CSS classes merged via twMerge
    * @example <SectionContact />
    */
@@ -20,7 +22,7 @@
   import { currentLocale } from '$lib/stores/locale.svelte'
   import { submitContact } from '$lib/api/client'
   import { useSettings } from '$lib/stores/settings.svelte'
-  import { CONTACT } from '$lib/config/site'
+  import { CONTACT, MODULES } from '$lib/config/site'
   import Section from '$lib/components/atoms/Section.svelte'
   import SectionContent from '$lib/components/molecules/SectionContent.svelte'
   import SectionHeading from '$lib/components/molecules/SectionHeading.svelte'
@@ -29,8 +31,11 @@
   import FormField from '$lib/components/atoms/FormField.svelte'
 
   let {
+    legalReady = false,
     class: className = ''
   }: {
+    /** Current locale has the privacy + personal-data legal documents (server-computed, PM v2 parity). */
+    legalReady?: boolean
     class?: string
   } = $props()
 
@@ -41,6 +46,30 @@
     'rounded-lg text-fluid-base placeholder-pm-text-muted focus:ring focus:ring-pm-brand/30 transition'
 
   const settings = useSettings()
+
+  // PM v2 module contract (config-driven — rule 4): MODULES.contact.config
+  // decides which halves of the section render.
+  //   showForm: false → hide the contact form (contact info sidebar stays)
+  //   showInfo: false → hide the info sidebar (form only)
+  //   enabled:  false → neither (the section shell itself is gated by
+  //                     HOMEPAGE_SECTIONS in Onepager)
+  const contactModule = MODULES.contact
+  const showInfo = contactModule?.config.showInfo !== false
+
+  // Form visibility — TWO-STAGE gate, evaluated in this order:
+  //   1. Master switch: module enabled AND config showForm on. When off, the
+  //      form is NEVER shown — no legal-documents state or force flag can
+  //      bring it back (docs/force only ever act on an already-on switch).
+  //   2. Legal gate (PM v2 shouldShowContactForm parity): with the master
+  //      switch on, the form still needs the current locale's privacy +
+  //      personal-data documents (legalReady), OR the admin's
+  //      forceShowFormWithoutLegalDocuments flag.
+  const masterSwitchShowsForm = contactModule?.enabled !== false && contactModule?.config.showForm !== false
+  const forceShowForm = $derived(settings.get('contact.forceShowFormWithoutLegalDocuments') === 'true')
+  // Consent line is required ONLY when the documents exist — in force mode it
+  // is hidden (152-ФЗ: no consent contract without legal text to consent to).
+  const shouldRequireConsent = $derived(legalReady)
+  const showForm = $derived(masterSwitchShowsForm && (legalReady || forceShowForm))
 
   const title = $derived(t('contact.title', t('sections.contact')))
   const intro = $derived(t('contact.intro', ''))
@@ -72,7 +101,9 @@
       name: z.string().trim().min(1, { message: t('contact.nameRequired', t('validation.required')) }),
       email: z.string().trim().email({ message: t('contact.invalidEmail', t('validation.email')) }),
       message: z.string().trim().min(10, { message: t('contact.messageTooShort', t('validation.minLength', { min: 10 })) }),
-      consent: z.boolean().refine(v => v === true, { message: t('contact.consentRequired', t('validation.required')) })
+      consent: shouldRequireConsent
+        ? z.boolean().refine(v => v === true, { message: t('contact.consentRequired', t('validation.required')) })
+        : z.boolean().optional()
     })
   )
 
@@ -85,7 +116,9 @@
     if (sending) return
     success = false; errorMsg = ''; resetFieldErrors()
 
-    const result = contactSchema.safeParse({ name, email, message, consent })
+    const result = contactSchema.safeParse({
+      name, email, message, consent: shouldRequireConsent ? consent : false
+    })
     if (!result.success) {
       const fieldErrors = result.error.flatten().fieldErrors
       nameError = fieldErrors.name?.[0] ?? ''
@@ -98,7 +131,8 @@
     sending = true
     try {
       const result = await submitContact({
-        name: name.trim(), email: email.trim(), message: message.trim(), consent
+        name: name.trim(), email: email.trim(), message: message.trim(),
+        consent: shouldRequireConsent ? consent : false
       })
       if (result.success) {
         success = true; name = ''; email = ''; message = ''; consent = false
@@ -122,6 +156,7 @@
 
     <!-- PM2 .contact-grid: vertical stack, 640px centered column -->
     <div class="max-w-[var(--contact-form-max-w)] mx-auto flex flex-col gap-[var(--gap-xl)]">
+      {#if showForm}
       <form onsubmit={handleSubmit} class="flex flex-col gap-[var(--space-5)] p-[var(--space-8)] bg-pm-bg-elevated border border-pm-border rounded-[var(--radius-xl)] shadow-frosted">
         <div class="flex flex-col gap-[var(--space-2)]">
           <FormField
@@ -163,6 +198,7 @@
           />
         </div>
 
+        {#if shouldRequireConsent}
         <label class="flex items-start gap-[var(--gap-xs)] leading-relaxed cursor-pointer mt-[var(--space-5)]">
           <!-- Tokenized brand-accent checkbox (PM v2 parity): accent-color from
                the brand token, token size, focus ring matching the text inputs. -->
@@ -181,6 +217,7 @@
         </label>
         {#if consentError}
           <p class="text-xs text-pm-danger mt-[var(--space-1)]" transition:fly={{ y: -6, duration: 200 }}>{consentError}</p>
+        {/if}
         {/if}
 
         <CtaButton
@@ -208,8 +245,10 @@
           {/if}
         </div>
       </form>
+      {/if}
 
       <!-- PM2 .contact-sidebar: below the form, 2.5rem top margin, centered -->
+      {#if showInfo}
       <aside class="mt-[var(--space-10)]">
         <ContactInfo
           email={contactEmail}
@@ -219,6 +258,7 @@
           class="items-center text-center"
         />
       </aside>
+      {/if}
     </div>
   </SectionContent>
 </Section>

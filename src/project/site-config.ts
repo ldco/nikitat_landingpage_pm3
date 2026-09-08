@@ -181,7 +181,16 @@ export const MODULES: Record<string, ModuleConfig> = {
   contact: {
     enabled: true,
     config: {
-      showMap: false, mapProvider: 'yandex', showForm: true, showInfo: true,
+      showMap: false, mapProvider: 'yandex',
+      // showForm is the MASTER switch for the form: false hides it no matter
+      // what — even with legal documents present or the admin's force flag on.
+      // When true, the form still waits for the legal gate: it renders only
+      // when the locale's privacy + personal-data documents exist, or when
+      // settings.contact.forceShowFormWithoutLegalDocuments is on (see
+      // SectionContact). showInfo: false hides the info sidebar (form only).
+      // enabled: false hides both halves (the whole section shell is gated
+      // separately by HOMEPAGE_SECTIONS). Consumed by SectionContact.
+      showForm: true, showInfo: true,
       // Labels are i18n keys (t('contact.form.name') etc.) — consumed via the
       // content store, never rendered raw (validator check #10 scans this file).
       formFields: [

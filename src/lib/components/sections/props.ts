@@ -2,8 +2,9 @@
  * Section Props Adapter — typed component-name → props mapping for SectionRenderer
  *
  * The only framework place that knows which slice of SectionContent each
- * data-backed section consumes. Content-less sections (about, focus, contact,
- * hero) receive `{}`. Project-only sections (SectionF22, …) are NOT listed
+ * data-backed section consumes. Content-less sections (about, focus, hero)
+ * receive `{}`; SectionContact receives only the server-computed legal gate
+ * flag (`legalReady`). Project-only sections (SectionF22, …) are NOT listed
  * here — they render with `{}` exactly like framework content-less sections,
  * so adding a project section never requires a framework edit.
  *
@@ -16,14 +17,25 @@ import type { SectionContent } from './types'
 export type SectionProps = Record<string, unknown>
 
 /**
+ * Extra non-content props the renderer injects into sections (server-computed
+ * page context that is not part of any content slice).
+ */
+export interface SectionExtraProps {
+  legalReady?: boolean
+}
+
+/**
  * Build the props object passed to a registered section component.
  *
  * @param component — the component name from HOMEPAGE_SECTIONS[].component
  * @param content — the typed SectionContent payload from the server load
+ * @param extra — page-context props (legalReady for the contact gate)
  * @returns the props for that component (`{}` for content-less sections)
  */
-export function buildSectionProps(component: string, content: SectionContent): SectionProps {
+export function buildSectionProps(component: string, content: SectionContent, extra: SectionExtraProps = {}): SectionProps {
   switch (component) {
+    case 'SectionContact':
+      return { legalReady: extra.legalReady }
     case 'SectionPortfolio':
       return { portfolios: content.portfolios }
     case 'SectionBlog':

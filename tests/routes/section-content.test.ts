@@ -29,14 +29,15 @@ describe('Section content in both routing modes', () => {
   it('[section]/+page.server.ts validates the section AND loads content via the same shared loader', () => {
     const src = readSource('src/routes/[section]/+page.server.ts')
     expect(src).toContain("import { loadSectionContent } from '$lib/server/services/section-content'")
-    expect(src).toContain('loadSectionContent(locale, section.id)')
-    expect(src).toContain('return { section, sectionContent')
+    expect(src).toContain('sectionContent: loadSectionContent(locale, section.id)')
+    expect(src).toContain('legalReady')
+    expect(src).not.toContain('drizzle-orm')
   })
 
   it('[section]/+page.svelte passes the server-loaded SectionContent to SectionRenderer', () => {
     const src = readSource('src/routes/[section]/+page.svelte')
     expect(src).toContain('sectionContent')
-    expect(src).toContain('<SectionRenderer sectionId={section.id} content={data.sectionContent} />')
+    expect(src).toContain('<SectionRenderer sectionId={section.id} content={data.sectionContent} legalReady={data.legalReady} />')
   })
 
   it('the shared loader feeds every data-backed section type', () => {

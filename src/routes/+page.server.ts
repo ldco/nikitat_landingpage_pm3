@@ -8,8 +8,14 @@
 import type { PageServerLoad } from './$types'
 import { loadSectionContent } from '$lib/server/services/section-content'
 import { activeLocale } from '$lib/server/utils/locales'
+import { hasRequiredLegalDocuments } from '$lib/utils/legal-documents'
 
-export const load: PageServerLoad = async ({ locals }): Promise<{ sectionContent: ReturnType<typeof loadSectionContent> }> => {
+export const load: PageServerLoad = async ({ locals }): Promise<{
+  sectionContent: ReturnType<typeof loadSectionContent>
+  legalReady: boolean
+}> => {
   const locale = activeLocale(locals.paraglide?.lang)
-  return { sectionContent: loadSectionContent(locale) }
+  // Legal contact gate (PM v2 parity): does the current locale have the
+  // privacy + personal-data documents the contact form's consent line needs?
+  return { sectionContent: loadSectionContent(locale), legalReady: hasRequiredLegalDocuments(locale) }
 }

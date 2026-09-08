@@ -11,6 +11,7 @@
    *
    * @props sections — enabled non-hero homepage sections (from HOMEPAGE_SECTIONS)
    * @props content — section content from the page server load
+   * @props legalReady — current locale has the required legal documents (contact gate)
    * @example <Onepager sections={enabledSections} content={data.sectionContent} />
    */
   import { t } from '$lib/stores/content.svelte'
@@ -44,10 +45,12 @@
 
   let {
     sections,
-    content
+    content,
+    legalReady = false
   }: {
     sections: HomepageSection[]
     content?: SectionContent
+    legalReady?: boolean
   } = $props()
 </script>
 
@@ -65,7 +68,7 @@
 
   {#each sections as section (section.id)}
     <div class="scene-full-bleed">
-      <SectionRenderer sectionId={section.id} content={content} />
+      <SectionRenderer sectionId={section.id} content={content} {legalReady} />
     </div>
   {/each}
 </div>
