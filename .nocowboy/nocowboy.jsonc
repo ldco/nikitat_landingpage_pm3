@@ -1,0 +1,4 @@
+{
+  "$schema": "https://nocowboy.dev/config.json",
+  "lsp": true
+}
