@@ -42,6 +42,7 @@
     "seed:portfolio-localizations": "tsx --env-file=.env scripts/seed-portfolio-localizations.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1128.0",
     "@fontsource-variable/geologica": "^5.3.0",
     "@fontsource-variable/heebo": "^5.2.8",
     "@fontsource-variable/inter": "^5.2.8",
@@ -58,6 +59,7 @@
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.1",
     "gsap": "^3.15.0",
+    "ioredis": "^6.0.0",
     "matter-js": "^0.20.0",
     "nodemailer": "^7.0.11",
     "otpauth": "^9.4.0",

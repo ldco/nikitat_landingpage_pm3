@@ -1358,7 +1358,7 @@ pm_deploy_repair_shared_ownership: $(quote_yaml_value "${PM_DEPLOY_REPAIR_SHARED
 app_version: $(quote_yaml_value "${APP_VERSION:-0.1.0}")
 uptime_kuma_subdomain: $(quote_yaml_value "${UPTIME_KUMA_SUBDOMAIN:-}")
 pm_monitoring_netdata_enabled: $(quote_yaml_value "${PM_MONITORING_NETDATA_ENABLED:-true}")
-pm_backup_cron_enabled: $(quote_yaml_value "${PM_DEPLOY_BACKUP_CRON:-false}")
+pm_backup_cron_enabled: $(quote_yaml_value "${PM_DEPLOY_BACKUP_CRON:-true}")
 netdata_url: $(quote_yaml_value "${NETDATA_URL:-http://127.0.0.1:19999}")
 pm_ops_agent_enabled: $(quote_yaml_value "${PM_OPS_AGENT_ENABLED:-true}")
 pm_ops_agent_token: $(quote_yaml_value "${PM_OPS_AGENT_TOKEN:-$(resolved_settings_encryption_key)}")

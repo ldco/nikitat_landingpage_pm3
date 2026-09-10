@@ -12,7 +12,7 @@ import {
   incrementVerificationAttempts,
   MAX_2FA_VERIFY_ATTEMPTS
 } from '$lib/server/auth/pending-2fa'
-import { twoFactorVerifyRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
+import { getRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
 import { audit } from '$lib/server/audit'
 
 const PENDING_COOKIE = 'pm-2fa-pending'
@@ -43,7 +43,8 @@ export async function POST(event: RequestEvent) {
   // Key the limiter on the unguessable per-login token (not just IP, which is
   // client-controllable via X-Forwarded-For). Each login mints a fresh token,
   // so rotating IPs cannot defeat the attempt budget.
-  if (!twoFactorVerifyRateLimiter.check(pendingToken)) {
+  const twoFactorLimiter = await getRateLimiter('2fa-verify')
+  if (!(await twoFactorLimiter.check(pendingToken))) {
     throw error(429, 'Too many verification attempts. Please try again later.')
   }
 

@@ -6,7 +6,7 @@ import { requireAuth } from '$lib/server/utils/api'
 import { useDatabase, schema } from '$lib/server/db'
 import { eq } from 'drizzle-orm'
 import { verifyPassword } from '$lib/server/auth/password'
-import { twoFactorVerifyRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
+import { getRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
 import { audit } from '$lib/server/audit'
 
 const disableSchema = z.object({
@@ -23,7 +23,8 @@ export async function POST(event: RequestEvent) {
   }
   const user = requireAuth(event)
 
-  if (!twoFactorVerifyRateLimiter.check(String(user.id))) {
+  const twoFactorLimiter = await getRateLimiter('2fa-verify')
+  if (!(await twoFactorLimiter.check(String(user.id)))) {
     throw error(429, 'Too many attempts. Please try again later.')
   }
 

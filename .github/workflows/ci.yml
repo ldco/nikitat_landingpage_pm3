@@ -44,3 +44,36 @@ jobs:
 
       - name: API test gate (request-level, per-file timeout)
         run: bash scripts/run-api-tests.sh
+
+  # Browser e2e (admin journeys + locale navigation) on chromium only. Runs
+  # against the dev server with a freshly seeded DB; non-blocking
+  # (continue-on-error) so an environment-specific failure cannot break the
+  # main quality gate — inspect the run when it is red.
+  # Visual-regression snapshots (5 browser projects) are intentionally NOT in
+  # CI: run `npm run test:e2e` locally or trigger the manual `visual` job.
+  e2e:
+    name: Playwright e2e (chromium)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Reset + seed the database (bootstraps .env with generated secrets)
+        run: npm run db:reset
+
+      - name: Run e2e (admin journeys + locale navigation)
+        run: npx playwright test --project=chromium \
+          e2e-playwright/admin-edit-journeys.spec.ts \
+          e2e-playwright/locale-navigation.spec.ts

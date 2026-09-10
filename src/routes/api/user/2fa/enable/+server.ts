@@ -7,7 +7,7 @@ import { useDatabase, schema } from '$lib/server/db'
 import { eq } from 'drizzle-orm'
 import { verifyTotpCode } from '$lib/server/auth/totp'
 import { getPendingSetup, clearPendingSetup } from '$lib/server/auth/pending-2fa'
-import { twoFactorVerifyRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
+import { getRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
 import { audit } from '$lib/server/audit'
 
 const enableSchema = z.object({
@@ -24,7 +24,8 @@ export async function POST(event: RequestEvent) {
   }
   const user = requireAuth(event)
 
-  if (!twoFactorVerifyRateLimiter.check(String(user.id))) {
+  const twoFactorLimiter = await getRateLimiter('2fa-verify')
+  if (!(await twoFactorLimiter.check(String(user.id)))) {
     throw error(429, 'Too many verification attempts. Please try again later.')
   }
 

@@ -3,7 +3,10 @@
 
 ## 1. Config-Driven Everything
 
-**Core principle:** `project/puppet-master.config.ts` (1019 строк) — единственный источник правды.
+**Core principle:** `src/project/site-config.ts` — единственный источник правды для сайта (framework-типы в `src/lib/config/site.ts`).
+
+> Примечание: `project/puppet-master.config.ts` — артефакт PM2-инструментария (scaffolding-скрипты
+> `pm-vanilla.sh`/`pm-new-project.sh`/`scripts/lib/config-*`). Приложение PM3 его НЕ читает.
 
 ### Что управляется конфигом:
 
@@ -14,11 +17,13 @@ features{}      → onepager/SPA, cookie, multiLangs, theme, scrollytelling, PWA
 locales[]       → какие языки, какой по умолчанию
 settings[]      → схема настроек (admin panel)
 logo{}          → пути, файлы, fallback per language
-colors{}        → 4 OKLCH примитива
-admin{}         → RBAC per module
-storage{}       → local/S3, image/video settings
-dataSource{}    → database/api/hybrid
+colors{}        → 4 примитива (project/theme.css + config/theme.ts)
+storage{}       → local (дефолт) | s3 (src/lib/server/storage)
 ```
+
+Прозрачного `dataSource.provider = 'api'|'hybrid'` (swap всей persistence на REST) НЕТ —
+архитектура синхронная (Drizzle + better-sqlite3). Внешние интеграции идут через
+`src/lib/server/external-api` (HTTP-клиент + OAuth/JWT/API-key + retry + circuit breaker + TTL cache).
 
 ## 2. Sections System — Центральная архитектура
 

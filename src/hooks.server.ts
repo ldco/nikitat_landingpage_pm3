@@ -22,7 +22,7 @@ import {
   CSRF_FIELD_NAME,
   generateCsrfToken
 } from '$lib/server/security/csrf'
-import { loginRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
+import { getRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
 import { logger } from '$lib/server/utils/logger'
 import { FEATURES } from '$lib/config/site'
 import { initSentry, isSentryEnabled } from '$lib/server/security/sentry'
@@ -204,7 +204,8 @@ const rateLimitHandle: Handle = async ({ event, resolve }) => {
   // Only rate-limit specific endpoints
   if (url.pathname === '/api/auth/login') {
     const ip = getClientIp(event)
-    if (!loginRateLimiter.check(ip)) {
+    const limiter = await getRateLimiter('login')
+    if (!(await limiter.check(ip))) {
       return new Response(
         JSON.stringify({
           success: false,

@@ -11,7 +11,7 @@ import type { StorageAdapter, UploadOptions, UploadResult } from './types'
 
 const UPLOADS_ROOT = join(process.cwd(), 'public', 'uploads')
 
-function sanitizeExt(name: string, mimeType: string): string {
+export function sanitizeExt(name: string, mimeType: string): string {
   const ext = name.split('.').pop()?.toLowerCase() ?? ''
   if (ext && /^[a-z0-9]{2,5}$/.test(ext)) return ext
   if (mimeType === 'image/png') return 'png'

@@ -19,7 +19,7 @@ import { STORAGE_CONFIG } from '$lib/config/site'
 import { getStorageAdapter } from '$lib/server/storage'
 import { validateImageBuffer } from '$lib/server/utils/file-validation'
 import { scanFileForViruses } from '$lib/server/utils/virus-scanning'
-import { uploadRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
+import { getRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
 import { logger } from '$lib/server/utils/logger'
 
 // Rule C.10: mutations validate input with Zod. The binary payload is validated
@@ -32,7 +32,8 @@ export async function POST(event: RequestEvent) {
   requireAdmin(event)
 
   // audit N-5: bound upload abuse (per-IP).
-  if (!uploadRateLimiter.check(getClientIp(event))) {
+  const uploadLimiter = await getRateLimiter('upload')
+  if (!(await uploadLimiter.check(getClientIp(event)))) {
     error(429, 'Too many uploads. Try again later.')
   }
 

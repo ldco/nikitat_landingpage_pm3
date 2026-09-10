@@ -71,7 +71,39 @@ const envSchema = z.object({
   // values are validated (string paths); when unset, sparse rows render
   // unchanged and the service warns once so the misconfiguration is visible.
   PM2_SOURCE_DB: z.string().optional(),
-  PM2_LEGACY_SOURCE_DB: z.string().optional()
+  PM2_LEGACY_SOURCE_DB: z.string().optional(),
+
+  // Object storage (S3 / Cloudflare R2 / MinIO / DO Spaces) — required when
+  // STORAGE_CONFIG.provider = 's3' (src/lib/server/storage). All optional so a
+  // project that never leaves the local adapter does not fail env validation.
+  S3_ENDPOINT: z.string().optional(),
+  S3_BUCKET: z.string().optional(),
+  S3_ACCESS_KEY: z.string().optional(),
+  S3_SECRET_KEY: z.string().optional(),
+  S3_REGION: z.string().optional(),
+  // 'public' -> objects served via S3_PUBLIC_URL; 'private' -> proxied through
+  // /api/media/s3/[...key] with pre-signed URLs signed by S3_PROXY_SIGNING_KEY.
+  S3_VISIBILITY: z.enum(['public', 'private']).optional(),
+  S3_PUBLIC_URL: z.string().optional(),
+  S3_PROXY_SIGNING_KEY: z.string().optional(),
+
+  // Redis — optional distributed backend for the rate limiter and the TTL
+  // caches (content/translations/external-api). Absent REDIS_URL => the
+  // framework fails closed to the in-memory implementations (single instance).
+  REDIS_URL: z.string().optional(),
+  REDIS_PREFIX: z.string().optional(),
+
+  // External API client (src/lib/server/external-api) — OAuth 2.0 client
+  // credentials, static JWT, or API-key auth. Used by integrations (headless
+  // CMS, PSPs, shipping/ERP) that call the client module directly; it is NOT
+  // a transparent data-source swap for the Drizzle layer.
+  API_BASE_URL: z.string().optional(),
+  API_CLIENT_ID: z.string().optional(),
+  API_CLIENT_SECRET: z.string().optional(),
+  API_TOKEN_URL: z.string().optional(),
+  API_JWT_TOKEN: z.string().optional(),
+  API_KEY: z.string().optional(),
+  API_TOKEN_REFRESH_BUFFER: z.coerce.number().optional()
 })
 
 export type EnvConfig = z.infer<typeof envSchema>

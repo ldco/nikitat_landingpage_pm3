@@ -8,7 +8,7 @@ import { createSession, deleteUserSessions, sessionCookieMaxAge } from '$lib/ser
 import { isPasswordBreached } from '$lib/server/utils/breach-check'
 import { apiErrorResponse, requireAuth } from '$lib/server/utils/api'
 import { audit } from '$lib/server/audit'
-import { getClientIp, changePasswordRateLimiter } from '$lib/server/security/rateLimit'
+import { getRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
@@ -24,7 +24,8 @@ const changePasswordSchema = z.object({
 export async function PUT(event: RequestEvent) {
   const user = requireAuth(event)
 
-  if (!changePasswordRateLimiter.check(String(user.id))) {
+  const changePasswordLimiter = await getRateLimiter('change-password')
+  if (!(await changePasswordLimiter.check(String(user.id)))) {
     return apiErrorResponse(429, 'apiErrors.auth.tooManyLoginAttempts', 'Too many attempts. Please try again later.')
   }
 

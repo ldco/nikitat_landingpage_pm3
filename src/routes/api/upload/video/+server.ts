@@ -15,7 +15,7 @@ import { requireAdmin } from '$lib/server/utils/admin-rbac'
 import { getStorageAdapter } from '$lib/server/storage'
 import { validateVideoBuffer } from '$lib/server/utils/file-validation'
 import { scanFileForViruses } from '$lib/server/utils/virus-scanning'
-import { uploadRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
+import { getRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
 
 // Rule C.10: mutations validate input with Zod. The binary payload is validated
 // by magic bytes (validateVideoBuffer); the multipart text fields are validated here.
@@ -27,7 +27,8 @@ export async function POST(event: RequestEvent) {
   requireAdmin(event)
 
   // audit N-5: bound upload abuse (per-IP).
-  if (!uploadRateLimiter.check(getClientIp(event))) {
+  const uploadLimiter = await getRateLimiter('upload')
+  if (!(await uploadLimiter.check(getClientIp(event)))) {
     error(429, 'Too many uploads. Try again later.')
   }
 

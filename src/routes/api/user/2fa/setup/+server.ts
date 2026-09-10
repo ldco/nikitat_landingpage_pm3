@@ -6,7 +6,7 @@ import { requireAuth } from '$lib/server/utils/api'
 import { useDatabase, schema } from '$lib/server/db'
 import { eq } from 'drizzle-orm'
 import { generateTotpSecret, generateTotpQRCode, getTotpUri, encryptTotpSecret, generateBackupCodes } from '$lib/server/auth/totp'
-import { twoFactorSetupRateLimiter } from '$lib/server/security/rateLimit'
+import { getRateLimiter } from '$lib/server/security/rateLimit'
 import { setPendingSetup } from '$lib/server/auth/pending-2fa'
 
 // Rule C.10: mutations validate input with Zod. Setup carries no payload —
@@ -28,7 +28,8 @@ export async function POST(event: RequestEvent) {
   const parsed = setupBodySchema.safeParse(body)
   if (!parsed.success) throw error(400, 'Unexpected body')
 
-  if (!twoFactorSetupRateLimiter.check(String(user.id))) {
+  const setupLimiter = await getRateLimiter('2fa-setup')
+  if (!(await setupLimiter.check(String(user.id)))) {
     throw error(429, 'Too many setup attempts. Please try again later.')
   }
 

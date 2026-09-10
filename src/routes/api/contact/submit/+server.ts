@@ -3,7 +3,7 @@ import { error, json } from '@sveltejs/kit'
 import { z } from 'zod'
 import { createSubmission } from '$lib/server/services/contact'
 import { getSetting } from '$lib/server/services/settings'
-import { contactRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
+import { getRateLimiter, getClientIp } from '$lib/server/security/rateLimit'
 import { logger } from '$lib/server/utils/logger'
 import { FEATURES } from '$lib/config/site'
 import { notifyNewContact } from '$lib/server/telegram'
@@ -21,7 +21,8 @@ const contactSchema = z.object({
 export async function POST(event: RequestEvent) {
   const ip = getClientIp(event)
 
-  if (!contactRateLimiter.check(ip)) {
+  const limiter = await getRateLimiter('contact')
+  if (!(await limiter.check(ip))) {
     error(429)
   }
 
